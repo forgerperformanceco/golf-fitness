@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FairwayFuel — Golf Macro Calculator &amp; Mass + Speed Training Plan</title>
+<meta name="description" content="FairwayFuel: macro/TDEE calculator plus a 20-week mass &amp; clubhead-speed training plan for golfers. Build like a bodybuilder, move like a golfer — add 10 lb of muscle and swing faster." />
+<style>
+  :root {
+    --green-900: #0b3d22;
+    --green-800: #14532d;
+    --green-700: #15803d;
+    --green-600: #16a34a;
+    --green-500: #22c55e;
+    --sand: #e8dcb5;
+    --sand-dark: #d9c98f;
+    --ink: #0f2417;
+    --paper: #f7faf6;
+    --card: #ffffff;
+    --muted: #5b6b60;
+    --line: #e2ebe2;
+    --accent: #f4c542;
+    --shadow: 0 10px 30px rgba(11, 61, 34, 0.12);
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    background:
+      radial-gradient(1200px 600px at 50% -200px, #1f6b3a 0%, rgba(31,107,58,0) 60%),
+      linear-gradient(180deg, #0b3d22 0%, #0b3d22 240px, var(--paper) 240px, var(--paper) 100%);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 28px 20px 80px; }
+
+  header.hero { text-align: center; color: #eafff1; padding: 8px 0 22px; }
+  .logo {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-weight: 800; letter-spacing: 0.5px; font-size: 15px;
+    text-transform: uppercase; color: var(--accent);
+  }
+  .logo .ball {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #fff, #d7e2d7);
+    box-shadow: inset -2px -2px 4px rgba(0,0,0,.15);
+  }
+  h1 { margin: 10px 0 6px; font-size: clamp(30px, 5vw, 46px); line-height: 1.05; color: #fff; }
+  h1 .em { color: var(--accent); }
+  header.hero p { margin: 0 auto; max-width: 640px; color: #c9e8d3; font-size: 16px; }
+
+  /* Tabs */
+  .tabs {
+    display: inline-flex; gap: 6px; background: rgba(255,255,255,.12);
+    padding: 6px; border-radius: 999px; margin: 18px auto 0;
+  }
+  .tabs button {
+    border: none; background: transparent; color: #d6f3e0;
+    font-size: 14px; font-weight: 700; padding: 10px 20px; border-radius: 999px;
+    cursor: pointer; transition: all .15s;
+  }
+  .tabs button.active { background: #fff; color: var(--green-800); box-shadow: 0 2px 8px rgba(0,0,0,.18); }
+
+  .view { display: none; }
+  .view.active { display: block; }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: start; }
+  @media (max-width: 880px) { .grid { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--card); border-radius: var(--radius);
+    box-shadow: var(--shadow); border: 1px solid var(--line); padding: 24px;
+  }
+  .card h2 { margin: 0 0 4px; font-size: 20px; }
+  .card .sub { margin: 0 0 18px; color: var(--muted); font-size: 13.5px; }
+
+  label.field { display: block; margin-bottom: 16px; }
+  label.field > span.lbl {
+    display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #243a2c;
+  }
+  input[type="number"], select {
+    width: 100%; padding: 12px 13px; border: 1.5px solid var(--line);
+    border-radius: 10px; font-size: 15px; background: #fcfdfc; color: var(--ink);
+    transition: border-color .15s, box-shadow .15s;
+  }
+  input[type="number"]:focus, select:focus {
+    outline: none; border-color: var(--green-600); box-shadow: 0 0 0 3px rgba(34,197,94,.15);
+  }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+  .seg { display: inline-flex; background: #eef3ee; border-radius: 10px; padding: 4px; gap: 4px; width: 100%; }
+  .seg button {
+    flex: 1; border: none; background: transparent; padding: 9px 8px; border-radius: 7px;
+    font-size: 13.5px; font-weight: 600; color: var(--muted); cursor: pointer; transition: all .15s;
+  }
+  .seg button.active { background: var(--card); color: var(--green-800); box-shadow: 0 1px 4px rgba(0,0,0,.12); }
+  .unit-suffix { font-weight: 500; color: var(--muted); font-size: 12px; }
+
+  .goals { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
+  .goal {
+    text-align: left; border: 1.5px solid var(--line); background: #fcfdfc;
+    border-radius: 12px; padding: 12px 13px; cursor: pointer; transition: all .15s;
+  }
+  .goal:hover { border-color: var(--green-500); }
+  .goal.active {
+    border-color: var(--green-600); background: linear-gradient(180deg, #f1fdf4, #ffffff);
+    box-shadow: 0 4px 14px rgba(22,163,74,.16);
+  }
+  .goal .gname { font-weight: 700; font-size: 14.5px; display:flex; align-items:center; gap:6px; }
+  .goal .gdesc { font-size: 11.5px; color: var(--muted); margin-top: 3px; line-height: 1.35; }
+  .goal .gtag { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--green-700); }
+
+  .result-hero {
+    text-align: center; background: linear-gradient(160deg, var(--green-800), var(--green-600));
+    color: #fff; border-radius: 14px; padding: 22px; margin-bottom: 18px;
+  }
+  .result-hero .kcal { font-size: 52px; font-weight: 800; line-height: 1; letter-spacing: -1px; }
+  .result-hero .kcal small { font-size: 18px; font-weight: 600; opacity: .85; }
+  .result-hero .goal-label {
+    display:inline-block; margin-top: 8px; font-size: 12.5px; background: rgba(255,255,255,.18);
+    padding: 4px 12px; border-radius: 999px; font-weight: 600;
+  }
+  .tdee-line { font-size: 12.5px; opacity: .9; margin-top: 8px; }
+
+  .macros { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 6px; }
+  .macro { border-radius: 12px; padding: 14px 12px; text-align: center; border: 1.5px solid var(--line); }
+  .macro.p { background: #fdf1f1; border-color:#f6d6d6; }
+  .macro.c { background: #fef7e6; border-color:#f6e6bd; }
+  .macro.f { background: #eef6ff; border-color:#d4e6f9; }
+  .macro .mlabel { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing:.5px; color:#4a5a50; }
+  .macro .mg { font-size: 30px; font-weight: 800; line-height:1.1; margin: 4px 0 0; }
+  .macro .mg small { font-size: 14px; font-weight:600; }
+  .macro .mkcal { font-size: 11.5px; color: var(--muted); }
+  .macro .mbar { height:6px; border-radius:6px; margin-top:8px; background: rgba(0,0,0,.08); overflow:hidden; }
+  .macro .mbar > i { display:block; height:100%; border-radius:6px; }
+  .macro.p .mbar > i { background:#e05a5a; }
+  .macro.c .mbar > i { background:#e6b13a; }
+  .macro.f .mbar > i { background:#4a90e2; }
+
+  .breakdown { margin-top: 18px; border-top: 1px solid var(--line); padding-top: 14px; }
+  .breakdown table { width:100%; border-collapse: collapse; font-size: 13px; }
+  .breakdown td { padding: 7px 0; color: #2b3a30; }
+  .breakdown td:last-child { text-align: right; font-weight: 700; color: var(--green-800); }
+  .breakdown tr + tr td { border-top: 1px dashed var(--line); }
+  .permeal { font-size:12.5px; color:var(--muted); margin-top:12px; text-align:center; }
+
+  .golf-note {
+    margin-top: 16px; background: var(--sand); border: 1px solid var(--sand-dark);
+    border-radius: 12px; padding: 13px 15px; font-size: 12.8px; color: #5a4f2b; line-height: 1.45;
+  }
+  .golf-note b { color:#3f3818; }
+  .placeholder { text-align:center; color:var(--muted); padding: 40px 10px; font-size:14px; }
+  .placeholder .big { font-size:40px; margin-bottom:8px; }
+  .reset-btn { background:none; border:none; color:var(--muted); font-size:12.5px; cursor:pointer; text-decoration:underline; margin-top:4px; }
+
+  /* ---- Training plan ---- */
+  .plan-intro { margin-bottom: 22px; }
+  .plan-intro .lead {
+    font-size: 15px; color: #2b3a30; line-height: 1.55; margin: 0 0 16px;
+  }
+  .plan-intro .lead b { color: var(--green-800); }
+  .pillars { display:grid; grid-template-columns: repeat(3,1fr); gap:14px; }
+  @media (max-width: 720px){ .pillars { grid-template-columns: 1fr; } }
+  .pillar { background:#fff; border:1px solid var(--line); border-radius:14px; padding:16px; box-shadow: var(--shadow); }
+  .pillar .ico { font-size:26px; }
+  .pillar h3 { margin:8px 0 4px; font-size:15px; }
+  .pillar p { margin:0; font-size:12.8px; color:var(--muted); line-height:1.45; }
+
+  .phasebar { display:flex; gap:8px; margin: 24px 0 4px; flex-wrap:wrap; }
+  .phasebar button {
+    flex:1; min-width: 150px; text-align:left; border:1.5px solid var(--line); background:#fff;
+    border-radius:12px; padding:12px 14px; cursor:pointer; transition: all .15s;
+  }
+  .phasebar button:hover { border-color: var(--green-500); }
+  .phasebar button.active { border-color: var(--green-600); background:linear-gradient(180deg,#f1fdf4,#fff); box-shadow:0 4px 14px rgba(22,163,74,.16); }
+  .phasebar .pweeks { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.4px; color:var(--green-700); }
+  .phasebar .pname { font-size:15px; font-weight:800; margin-top:2px; }
+  .phasebar .pgoal { font-size:11.5px; color:var(--muted); margin-top:2px; }
+
+  .phase-detail { margin-top:18px; }
+  .phase-head {
+    background: linear-gradient(160deg, var(--green-800), var(--green-600)); color:#fff;
+    border-radius:14px; padding:18px 20px; margin-bottom:18px;
+  }
+  .phase-head h3 { margin:0 0 4px; font-size:20px; }
+  .phase-head p { margin:0; font-size:13px; opacity:.92; line-height:1.5; }
+  .phase-head .focuschips { margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; }
+  .phase-head .focuschips span { background:rgba(255,255,255,.18); padding:4px 11px; border-radius:999px; font-size:11.5px; font-weight:600; }
+
+  .freqbar { display:flex; align-items:center; gap:10px; margin-bottom:16px; font-size:13px; color:var(--muted); }
+  .freqbar .seg { width:auto; }
+  .freqbar .seg button { padding:8px 16px; }
+
+  .day { border:1px solid var(--line); border-radius:12px; margin-bottom:12px; overflow:hidden; }
+  .day-head {
+    display:flex; justify-content:space-between; align-items:center;
+    background:#f3f8f3; padding:11px 15px; font-weight:700; font-size:14px; color:var(--green-800);
+  }
+  .day-head .tag { font-size:11px; font-weight:700; color:#fff; background:var(--green-600); padding:3px 9px; border-radius:999px; }
+  .day-head .tag.rest { background:#9aa9a0; }
+  .day-head .tag.speed { background:#e0843a; }
+  .day-head .tag.power { background:#7a4fd0; }
+  table.ex { width:100%; border-collapse:collapse; font-size:13px; }
+  table.ex th { text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:var(--muted); padding:8px 15px 4px; }
+  table.ex td { padding:7px 15px; border-top:1px solid var(--line); color:#2b3a30; }
+  table.ex td.sets { text-align:right; font-weight:700; color:var(--green-800); white-space:nowrap; }
+  table.ex tr.note td { font-size:11.5px; color:var(--muted); font-style:italic; border-top:none; padding-top:0; }
+  .restday { padding:14px 15px; font-size:13px; color:var(--muted); }
+
+  .speed-callout {
+    margin-top:8px; background:#fff4e8; border:1px solid #f3d6b0; border-radius:12px; padding:15px 16px;
+  }
+  .speed-callout h4 { margin:0 0 6px; font-size:14px; color:#9a5b1c; display:flex; align-items:center; gap:7px; }
+  .speed-callout p { margin:0 0 8px; font-size:12.8px; color:#7a5320; line-height:1.5; }
+  .speed-callout ul { margin:0; padding-left:18px; font-size:12.8px; color:#7a5320; line-height:1.6; }
+
+  .tracker {
+    margin-top:22px; background:var(--sand); border:1px solid var(--sand-dark); border-radius:14px; padding:18px 20px;
+  }
+  .tracker h3 { margin:0 0 10px; font-size:15px; color:#5a4f2b; }
+  .tracker ul { margin:0; padding-left:18px; color:#5a4f2b; font-size:13px; line-height:1.7; }
+  .tracker ul b { color:#3f3818; }
+
+  footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 36px; line-height: 1.6; }
+  footer .disc { max-width: 660px; margin: 8px auto 0; opacity:.85; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="logo"><span class="ball"></span> FairwayFuel</div>
+    <h1>Fuel &amp; Build the <span class="em">Long Game</span></h1>
+    <p>Macros and a training plan engineered for golfers. Build like a bodybuilder, move like a golfer — add lean mass and turn it into clubhead speed.</p>
+    <div class="tabs" id="tabs">
+      <button data-view="calc" class="active">Macro Calculator</button>
+      <button data-view="plan">Mass + Speed Plan</button>
+    </div>
+  </header>
+
+  <!-- ============ VIEW 1: CALCULATOR ============ -->
+  <div class="view active" id="view-calc">
+    <div class="grid">
+      <section class="card" aria-label="Your details">
+        <h2>Your Numbers</h2>
+        <p class="sub">Everything that feeds your TDEE — the engine behind your plan.</p>
+
+        <label class="field">
+          <span class="lbl">Units</span>
+          <div class="seg" id="unitSeg">
+            <button type="button" data-unit="imperial" class="active">Imperial (lb / ft·in)</button>
+            <button type="button" data-unit="metric">Metric (kg / cm)</button>
+          </div>
+        </label>
+
+        <label class="field">
+          <span class="lbl">Sex <span class="unit-suffix">(affects BMR formula)</span></span>
+          <div class="seg" id="sexSeg">
+            <button type="button" data-sex="male" class="active">Male</button>
+            <button type="button" data-sex="female">Female</button>
+          </div>
+        </label>
+
+        <div class="row">
+          <label class="field">
+            <span class="lbl">Age <span class="unit-suffix">years</span></span>
+            <input type="number" id="age" min="14" max="90" value="32" />
+          </label>
+          <label class="field">
+            <span class="lbl">Weight <span class="unit-suffix" id="weightUnit">lb</span></span>
+            <input type="number" id="weight" min="60" max="500" value="180" />
+          </label>
+        </div>
+
+        <div id="heightImperial">
+          <label class="field">
+            <span class="lbl">Height</span>
+            <div class="row">
+              <input type="number" id="heightFt" min="3" max="8" value="5" placeholder="ft" />
+              <input type="number" id="heightIn" min="0" max="11" value="10" placeholder="in" />
+            </div>
+          </label>
+        </div>
+        <div id="heightMetric" style="display:none;">
+          <label class="field">
+            <span class="lbl">Height <span class="unit-suffix">cm</span></span>
+            <input type="number" id="heightCm" min="120" max="230" value="178" />
+          </label>
+        </div>
+
+        <label class="field">
+          <span class="lbl">Activity Level <span class="unit-suffix">training + daily life</span></span>
+          <select id="activity">
+            <option value="1.2">Sedentary — desk job, little exercise</option>
+            <option value="1.375">Light — range/play + light lifting 1–3×/wk</option>
+            <option value="1.55" selected>Moderate — gym 3–5×/wk + regular golf</option>
+            <option value="1.725">Very Active — hard training 6–7×/wk, walking 18s</option>
+            <option value="1.9">Athlete — 2-a-days, walking + lifting + speed work</option>
+          </select>
+        </label>
+
+        <label class="field" style="margin-bottom:8px;">
+          <span class="lbl">Goal</span>
+          <div class="goals" id="goals">
+            <button type="button" class="goal active" data-goal="leanbulk">
+              <div class="gname">🏗️ Lean Bulk</div><div class="gtag">+10%</div>
+              <div class="gdesc">Slow, quality mass. Add power while keeping mobility for the swing.</div>
+            </button>
+            <button type="button" class="goal" data-goal="bulk">
+              <div class="gname">💪 Bulk</div><div class="gtag">+20%</div>
+              <div class="gdesc">Aggressive size &amp; strength off-season. Maximize speed potential.</div>
+            </button>
+            <button type="button" class="goal" data-goal="maintain">
+              <div class="gname">⛳ In-Season</div><div class="gtag">Maintain</div>
+              <div class="gdesc">Hold your build &amp; energy through a tournament stretch.</div>
+            </button>
+            <button type="button" class="goal" data-goal="cut">
+              <div class="gname">🔥 Lean Out</div><div class="gtag">−20%</div>
+              <div class="gdesc">Drop fat, protect muscle. Improve your power-to-weight ratio.</div>
+            </button>
+          </div>
+        </label>
+        <button type="button" class="reset-btn" id="resetBtn">Reset to defaults</button>
+      </section>
+
+      <section class="card" aria-label="Your plan">
+        <h2>Your FairwayFuel Plan</h2>
+        <p class="sub">Calculated live as you type.</p>
+        <div id="results"></div>
+      </section>
+    </div>
+  </div>
+
+  <!-- ============ VIEW 2: TRAINING PLAN ============ -->
+  <div class="view" id="view-plan">
+    <section class="card">
+      <div class="plan-intro">
+        <h2>The 20-Week Mass + Speed Blueprint</h2>
+        <p class="sub">Build like a bodybuilder, move like a golfer.</p>
+        <p class="lead">
+          Goal: <b>add ~10 lb of lean muscle</b> and convert it into <b>clubhead speed</b>. We front-load
+          bodybuilding-style hypertrophy to put real size on your frame, then teach that new muscle to fire
+          fast and rotate hard. Pair this with the <b>Lean Bulk</b> macros from the calculator — you can't
+          build the engine without the fuel.
+        </p>
+        <div class="pillars">
+          <div class="pillar"><div class="ico">🏗️</div><h3>Build the Mass</h3>
+            <p>High-volume hypertrophy on the big lifts puts 10 lb on your frame — bigger glutes, lats, quads and forearms are your power base.</p></div>
+          <div class="pillar"><div class="ico">⚡</div><h3>Make it Fast</h3>
+            <p>Heavy strength then explosive Olympic-style and ballistic work teaches the new muscle to contract <em>fast</em> — speed, not just size.</p></div>
+          <div class="pillar"><div class="ico">🌀</div><h3>Rotate &amp; Transfer</h3>
+            <p>Med-ball throws, anti-rotation core and overspeed swings transfer raw power into the rotational chain that drives the ball.</p></div>
+        </div>
+      </div>
+
+      <div class="phasebar" id="phasebar"></div>
+      <div class="phase-detail" id="phaseDetail"></div>
+
+      <div class="tracker">
+        <h3>📈 How to actually gain the 10 lb (and keep your swing)</h3>
+        <ul>
+          <li><b>Eat in a lean surplus:</b> use the <b>Lean Bulk</b> setting (+10%). Aim to gain <b>~0.5–0.75 lb/week</b> — faster than that is mostly fat that hurts mobility.</li>
+          <li><b>Hit protein every day:</b> ~1g per lb of bodyweight, spread across 4 meals. Muscle is built in the kitchen.</li>
+          <li><b>Progressive overload:</b> add a little weight or a rep each week on the main lifts. Log every session.</li>
+          <li><b>Never skip speed work:</b> 2–3 overspeed sessions a week keep the swing pattern fast while you bulk, so size becomes <b>speed</b>.</li>
+          <li><b>Protect mobility:</b> keep your thoracic rotation and hip mobility drills — big muscles that can't turn won't help your driver.</li>
+          <li><b>Sleep 7–9 hrs:</b> recovery is where mass and speed are actually made.</li>
+        </ul>
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    <strong>FairwayFuel</strong> — Macros &amp; muscle, engineered for the long game.
+    <div class="disc">
+      Calorie estimates use the Mifflin–St Jeor equation with standard activity multipliers. Macro and
+      training targets follow evidence-based ranges for strength, power &amp; rotational athletes. These are
+      starting points — track for 2–3 weeks and adjust. Warm up, use a load you can control, and consult a
+      coach or physician before starting a new program. Not medical advice.
+    </div>
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ===================== TAB NAV ===================== */
+  var tabs = document.getElementById("tabs");
+  tabs.addEventListener("click", function (e) {
+    var btn = e.target.closest("button");
+    if (!btn) return;
+    Array.prototype.forEach.call(tabs.querySelectorAll("button"), function (b) { b.classList.remove("active"); });
+    btn.classList.add("active");
+    var view = btn.getAttribute("data-view");
+    document.getElementById("view-calc").classList.toggle("active", view === "calc");
+    document.getElementById("view-plan").classList.toggle("active", view === "plan");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  /* ===================== MACRO CALCULATOR ===================== */
+  var state = { unit: "imperial", sex: "male", goal: "leanbulk" };
+
+  var GOALS = {
+    leanbulk: { label: "Lean Bulk", pct: 0.10, proteinKg: 2.0, fatKg: 0.9,
+      note: "A modest surplus builds <b>quality mass and power</b> without packing on fat that steals your rotation and mobility. Keep carbs high around lifts and speed sessions to drive adaptation." },
+    bulk: { label: "Bulk", pct: 0.20, proteinKg: 1.9, fatKg: 1.0,
+      note: "An aggressive off-season surplus to <b>maximize strength and clubhead-speed potential</b>. Expect some fat gain — plan a Lean Out phase before your season starts." },
+    maintain: { label: "In-Season Maintain", pct: 0.0, proteinKg: 1.9, fatKg: 0.9,
+      note: "Hold your build and <b>keep steady energy across 4–5 hour rounds</b>. Carbs fuel focus and late-round decision-making — don't slash them during tournament weeks." },
+    cut: { label: "Lean Out", pct: -0.20, proteinKg: 2.4, fatKg: 0.8,
+      note: "A controlled deficit with <b>high protein to protect muscle</b> while you drop fat. A better power-to-weight ratio means more speed from the same strength. Don't crash — slow and steady protects your swing." }
+  };
+  var ACTIVITY_LABELS = { "1.2":"Sedentary","1.375":"Light","1.55":"Moderate","1.725":"Very Active","1.9":"Athlete" };
+
+  function $(id){ return document.getElementById(id); }
+  function num(id){ var v=parseFloat($(id).value); return isNaN(v)?0:v; }
+  function round(n){ return Math.round(n); }
+  function round5(n){ return Math.round(n/5)*5; }
+
+  function wireSeg(segId, attr, key, onChange){
+    var seg=$(segId);
+    seg.addEventListener("click", function(e){
+      var btn=e.target.closest("button"); if(!btn) return;
+      Array.prototype.forEach.call(seg.querySelectorAll("button"), function(b){ b.classList.remove("active"); });
+      btn.classList.add("active"); state[key]=btn.getAttribute(attr);
+      if(onChange) onChange(); calc();
+    });
+  }
+  wireSeg("unitSeg","data-unit","unit", function(){
+    var imperial = state.unit==="imperial";
+    $("heightImperial").style.display = imperial?"":"none";
+    $("heightMetric").style.display = imperial?"none":"";
+    $("weightUnit").textContent = imperial?"lb":"kg";
+    var w=num("weight");
+    $("weight").value = imperial ? round(w*2.20462) : round(w/2.20462);
+  });
+  wireSeg("sexSeg","data-sex","sex");
+
+  $("goals").addEventListener("click", function(e){
+    var btn=e.target.closest(".goal"); if(!btn) return;
+    Array.prototype.forEach.call(this.querySelectorAll(".goal"), function(b){ b.classList.remove("active"); });
+    btn.classList.add("active"); state.goal=btn.getAttribute("data-goal"); calc();
+  });
+  ["age","weight","heightFt","heightIn","heightCm","activity"].forEach(function(id){
+    $(id).addEventListener("input", calc);
+  });
+  $("resetBtn").addEventListener("click", function(){ location.reload(); });
+
+  function calc(){
+    var age=num("age"), weightKg, heightCm;
+    if(state.unit==="imperial"){
+      weightKg=num("weight")/2.20462;
+      heightCm=(num("heightFt")*12+num("heightIn"))*2.54;
+    } else { weightKg=num("weight"); heightCm=num("heightCm"); }
+
+    if(weightKg<=0||heightCm<=0||age<=0){ $("results").innerHTML=placeholder(); return; }
+
+    var bmr=10*weightKg+6.25*heightCm-5*age+(state.sex==="male"?5:-161);
+    var activity=parseFloat($("activity").value);
+    var tdee=bmr*activity;
+    var g=GOALS[state.goal];
+    var target=tdee*(1+g.pct);
+
+    var proteinG=g.proteinKg*weightKg, fatG=g.fatKg*weightKg;
+    var proteinKcal=proteinG*4, fatKcal=fatG*9;
+    var carbKcal=target-proteinKcal-fatKcal, carbG=carbKcal/4;
+    if(carbG<0){ carbG=0; carbKcal=0; }
+
+    render({ bmr:bmr,tdee:tdee,target:target,activity:activity,
+      proteinG:proteinG,fatG:fatG,carbG:carbG,
+      proteinKcal:proteinKcal,fatKcal:fatKcal,carbKcal:carbKcal,
+      goal:g,pct:g.pct });
+  }
+  function placeholder(){ return '<div class="placeholder"><div class="big">⛳</div>Enter your details to see your calorie target and macros.</div>'; }
+
+  function render(r){
+    var totalK=r.proteinKcal+r.fatKcal+r.carbKcal;
+    var pPct=totalK?r.proteinKcal/totalK*100:0, cPct=totalK?r.carbKcal/totalK*100:0, fPct=totalK?r.fatKcal/totalK*100:0;
+    var pctTxt = r.pct===0?"maintenance":(r.pct>0?"+"+Math.round(r.pct*100)+"% surplus":Math.round(r.pct*100)+"% deficit");
+    var deltaKcal=round(r.target-r.tdee);
+    var deltaTxt = deltaKcal===0?"±0 kcal/day":(deltaKcal>0?"+"+deltaKcal+" kcal/day":deltaKcal+" kcal/day");
+
+    var html="";
+    html+='<div class="result-hero">'+
+      '<div class="kcal">'+round5(r.target)+' <small>kcal/day</small></div>'+
+      '<div class="goal-label">'+r.goal.label+' &middot; '+pctTxt+'</div>'+
+      '<div class="tdee-line">Maintenance (TDEE): <b>'+round5(r.tdee)+' kcal</b> &nbsp;·&nbsp; Target: <b>'+deltaTxt+'</b></div>'+
+      '</div>';
+    html+='<div class="macros">'+
+      macroCard("p","Protein",r.proteinG,r.proteinKcal,pPct)+
+      macroCard("c","Carbs",r.carbG,r.carbKcal,cPct)+
+      macroCard("f","Fat",r.fatG,r.fatKcal,fPct)+'</div>';
+    html+='<div class="permeal">Split across 4 meals ≈ <b>'+round(r.proteinG/4)+'g P</b> / <b>'+round(r.carbG/4)+'g C</b> / <b>'+round(r.fatG/4)+'g F</b> per meal</div>';
+    html+='<div class="breakdown"><table>'+
+      tr("BMR (Mifflin–St Jeor)",round5(r.bmr)+" kcal")+
+      tr("Activity multiplier","×"+r.activity+" ("+ACTIVITY_LABELS[String(r.activity)]+")")+
+      tr("TDEE / Maintenance",round5(r.tdee)+" kcal")+
+      tr("Goal adjustment",deltaTxt)+
+      tr("Daily target",round5(r.target)+" kcal")+
+      tr("Protein per kg bodyweight",r.goal.proteinKg+" g/kg")+
+      '</table></div>';
+    html+='<div class="golf-note"><b>⛳ Golf focus:</b> '+r.goal.note+'</div>';
+    $("results").innerHTML=html;
+  }
+  function macroCard(cls,label,grams,kcal,pct){
+    return '<div class="macro '+cls+'"><div class="mlabel">'+label+'</div>'+
+      '<div class="mg">'+round(grams)+'<small>g</small></div>'+
+      '<div class="mkcal">'+round(kcal)+' kcal · '+Math.round(pct)+'%</div>'+
+      '<div class="mbar"><i style="width:'+Math.min(100,pct)+'%"></i></div></div>';
+  }
+  function tr(a,b){ return '<tr><td>'+a+'</td><td>'+b+'</td></tr>'; }
+  calc();
+
+  /* ===================== TRAINING PLAN ===================== */
+  // Each phase: a 4-day and 5-day weekly schedule. Days have a type + exercise list.
+  var PHASES = [
+    {
+      id: "base", weeks: "Weeks 1–8", name: "Mass Base", goal: "Bodybuilder hypertrophy — put the 10 lb on",
+      blurb: "Highest volume of the program. We chase muscle with moderate-heavy weight and 8–15 rep ranges across two passes per muscle each week. Speed work stays light here — just enough to keep the pattern sharp while the size goes on.",
+      chips: ["8–15 reps", "Highest volume", "1.5–3 min rest", "Eat in surplus"],
+      speed: {
+        title: "Speed primer (2×/week, ~10 min)",
+        intro: "Keep it light while you build — the goal is to stay fast, not fatigue the swing.",
+        bullets: [
+          "Overspeed swings: 3 sets × 6 swings (light/training club or weighted-stick protocol), alternate lead/trail side",
+          "Seated chest pass with med ball: 3 × 8 (explosive)",
+          "Pogo hops: 3 × 12 (stiff, fast ground contact)"
+        ]
+      },
+      days4: [
+        { name:"Day 1 — Lower (Quad/Glute focus)", tag:"Lift", ex:[
+          ["Back Squat","4 × 8–10"],["Romanian Deadlift","3 × 10"],["Walking Lunge","3 × 12 / leg"],
+          ["Leg Press","3 × 12–15"],["Standing Calf Raise","4 × 15"],["Hanging Leg Raise","3 × 12"]
+        ]},
+        { name:"Day 2 — Upper (Push focus)", tag:"Lift", ex:[
+          ["Incline DB Press","4 × 8–10"],["Flat Barbell Bench","3 × 10"],["Seated DB Shoulder Press","3 × 10"],
+          ["Lateral Raise","3 × 15"],["Cable Triceps Pushdown","3 × 12"],["Cable Wood-chop (rotational core)","3 × 10 / side"]
+        ]},
+        { name:"Day 3 — Speed Primer + Mobility", tag:"speed", type:"speed" },
+        { name:"Day 4 — Lower (Posterior/Hinge)", tag:"Lift", ex:[
+          ["Deadlift","4 × 6–8"],["Hip Thrust","3 × 10"],["Bulgarian Split Squat","3 × 10 / leg"],
+          ["Leg Curl","3 × 12"],["Pallof Press (anti-rotation)","3 × 12 / side"],["Farmer Carry","3 × 40 yd"]
+        ]},
+        { name:"Day 5 — Upper (Pull focus)", tag:"Lift", ex:[
+          ["Weighted Pull-up","4 × 8"],["Chest-Supported Row","3 × 10"],["Lat Pulldown","3 × 12"],
+          ["Face Pull","3 × 15"],["DB Curl","3 × 12"],["Forearm/Wrist Roller","3 × failure"]
+        ]},
+        { name:"Day 6 & 7 — Rest / Golf / Walk", tag:"rest", type:"rest" }
+      ],
+      days5: null // 4-day doubles as the template; 5th lift day is Day 5 above
+    },
+    {
+      id: "strength", weeks: "Weeks 9–13", name: "Strength Convert", goal: "Turn new mass into raw force",
+      blurb: "We cut volume and add weight. Lower reps (3–6) on the main lifts build the maximal strength that underpins speed — a stronger muscle has a higher ceiling for fast force. Speed work ramps up.",
+      chips: ["3–6 reps", "Heavy loads", "3–5 min rest", "Build the engine"],
+      speed: {
+        title: "Speed development (3×/week, ~15 min)",
+        intro: "Now we start aggressively training the fast end of the curve.",
+        bullets: [
+          "Overspeed swing protocol: 4 sets × 6 swings, lead + trail + dominant, progress stick weight down",
+          "Rotational med-ball side throw: 4 × 5 / side (max intent into a wall)",
+          "Broad jump or box jump: 4 × 4 (full recovery)"
+        ]
+      },
+      days4: [
+        { name:"Day 1 — Squat Strength", tag:"Lift", ex:[
+          ["Back Squat","5 × 4 (heavy)"],["Front Squat","3 × 5"],["Romanian Deadlift","3 × 6"],
+          ["Weighted Plank","3 × 30 s"],["Standing Calf Raise","3 × 10"]
+        ]},
+        { name:"Day 2 — Press Strength", tag:"Lift", ex:[
+          ["Barbell Bench Press","5 × 4 (heavy)"],["Weighted Dip","3 × 6"],["Standing Overhead Press","4 × 5"],
+          ["Cable Wood-chop","3 × 8 / side"],["Lateral Raise","3 × 12"]
+        ]},
+        { name:"Day 3 — Speed + Power", tag:"power", type:"speed" },
+        { name:"Day 4 — Deadlift Strength", tag:"Lift", ex:[
+          ["Deadlift","5 × 3 (heavy)"],["Hip Thrust","4 × 6"],["Bulgarian Split Squat","3 × 6 / leg"],
+          ["Pallof Press","3 × 10 / side"],["Farmer Carry","4 × 30 yd (heavy)"]
+        ]},
+        { name:"Day 5 — Pull Strength", tag:"Lift", ex:[
+          ["Weighted Pull-up","5 × 4"],["Pendlay Row","4 × 5"],["Lat Pulldown","3 × 8"],
+          ["Heavy Wrist/Forearm work","3 × 8"],["Hammer Curl","3 × 8"]
+        ]},
+        { name:"Day 6 & 7 — Rest / Golf / Walk", tag:"rest", type:"rest" }
+      ]
+    },
+    {
+      id: "power", weeks: "Weeks 14–20", name: "Power &amp; Speed", goal: "Convert force into clubhead speed",
+      blurb: "The payoff phase. Strength is maintained with a couple of heavy lifts, but the priority is explosive, ballistic and rotational work at maximal velocity. This is where new mass becomes new swing speed.",
+      chips: ["Max velocity", "Ballistic & Olympic", "Full recovery", "Speed > size"],
+      speed: {
+        title: "Max-velocity speed (3×/week, ~20 min — the priority)",
+        intro: "Every rep is max intent with full recovery. Quality over quantity — stop when speed drops.",
+        bullets: [
+          "Overspeed swing protocol: 5 sets × 6 swings, full step-down/step-up stick progression, both sides",
+          "Rotational med-ball throws: standing side throw + step-behind throw, 5 × 4 / side, max effort",
+          "Med-ball overhead slam &amp; scoop toss: 4 × 5",
+          "Track clubhead speed weekly with a radar/speed device — chase a new top-end number"
+        ]
+      },
+      days4: [
+        { name:"Day 1 — Lower Power", tag:"power", ex:[
+          ["Box Jump","5 × 3 (max height)"],["Trap-Bar Jump / Squat Jump","5 × 3"],["Back Squat (maintain)","3 × 4"],
+          ["Hip Thrust (explosive)","3 × 5"],["Anti-rotation Cable Hold","3 × 20 s / side"]
+        ]},
+        { name:"Day 2 — Upper Power", tag:"power", ex:[
+          ["Plyo / Clap Push-up","5 × 4"],["Speed Bench (50–60%, max bar speed)","6 × 3"],["Med-Ball Chest Pass","5 × 4"],
+          ["Cable Rotational Punch","4 × 6 / side"],["Landmine Rotation","3 × 8 / side"]
+        ]},
+        { name:"Day 3 — Speed + Rotational Power", tag:"speed", type:"speed" },
+        { name:"Day 4 — Total-Body Explosive", tag:"power", ex:[
+          ["Hang Power Clean / KB Swing","6 × 3"],["Trap-Bar Deadlift (maintain)","3 × 3"],["Broad Jump","5 × 3"],
+          ["Rotational Med-Ball Throw","5 × 4 / side"],["Pallof Press (fast)","3 × 10 / side"]
+        ]},
+        { name:"Day 5 — Speed Session + Light Pull", tag:"speed", ex:[
+          ["Overspeed swing protocol","full session"],["Pull-up","3 × 6"],["Face Pull","3 × 15"],
+          ["Forearm/Grip work","3 × 12"],["Thoracic mobility flow","10 min"]
+        ]},
+        { name:"Day 6 & 7 — Rest / Play 18", tag:"rest", type:"rest" }
+      ]
+    }
+  ];
+
+  var planState = { phase: 0, freq: 4 };
+  var phasebar = $("phasebar");
+
+  PHASES.forEach(function(p, i){
+    var b=document.createElement("button");
+    b.innerHTML = '<div class="pweeks">'+p.weeks+'</div><div class="pname">'+p.name+'</div><div class="pgoal">'+p.goal+'</div>';
+    b.addEventListener("click", function(){ planState.phase=i; renderPhasebar(); renderPhase(); });
+    phasebar.appendChild(b);
+  });
+
+  function renderPhasebar(){
+    Array.prototype.forEach.call(phasebar.children, function(c,i){
+      c.classList.toggle("active", i===planState.phase);
+    });
+  }
+
+  function renderPhase(){
+    var p = PHASES[planState.phase];
+    var days = p.days4;
+    var shown = planState.freq===4 ? days.filter(function(d,i){ return i!==4; }) : days; // 4-day drops the 5th lift day
+    // For 4-day we drop one lift day (Day 5) but keep speed + rest; rebuild list:
+    if (planState.freq===4){
+      shown = days.filter(function(d){ return d.name.indexOf("Day 5")===-1; });
+    } else {
+      shown = days.slice();
+    }
+
+    var html="";
+    html+='<div class="phase-head"><h3>'+p.weeks+' · '+p.name+'</h3><p>'+p.blurb+'</p>'+
+      '<div class="focuschips">'+p.chips.map(function(c){ return '<span>'+c+'</span>'; }).join("")+'</div></div>';
+
+    html+='<div class="freqbar"><span>Training days per week:</span><div class="seg" id="freqSeg">'+
+      '<button type="button" data-freq="4" '+(planState.freq===4?'class="active"':'')+'>4 days</button>'+
+      '<button type="button" data-freq="5" '+(planState.freq===5?'class="active"':'')+'>5 days</button>'+
+      '</div></div>';
+
+    shown.forEach(function(d){
+      if(d.type==="rest"){
+        html+='<div class="day"><div class="day-head">'+d.name+' <span class="tag rest">Recover</span></div>'+
+          '<div class="restday">Active recovery: walk a casual 9, mobility flow, foam roll. Light is fine — but let the body rebuild. This is when muscle and speed are made.</div></div>';
+        return;
+      }
+      if(d.type==="speed"){
+        var s=p.speed;
+        html+='<div class="day"><div class="day-head">'+d.name+' <span class="tag '+(d.tag)+'">'+labelFor(d.tag)+'</span></div>'+
+          '<div class="speed-callout" style="margin:0;border-radius:0;border:none;border-top:1px solid var(--line);">'+
+          '<h4>⚡ '+s.title+'</h4><p>'+s.intro+'</p><ul>'+s.bullets.map(function(b){return '<li>'+b+'</li>';}).join("")+'</ul></div></div>';
+        return;
+      }
+      html+='<div class="day"><div class="day-head">'+d.name+' <span class="tag '+(d.tag==="Lift"?"":d.tag)+'">'+labelFor(d.tag)+'</span></div>'+
+        '<table class="ex"><tr><th>Exercise</th><th style="text-align:right">Sets × Reps</th></tr>'+
+        d.ex.map(function(row){ return '<tr><td>'+row[0]+'</td><td class="sets">'+row[1]+'</td></tr>'; }).join("")+
+        '</table></div>';
+    });
+
+    // Speed methodology callout (always shown under the week)
+    var sp=p.speed;
+    html+='<div class="speed-callout"><h4>🌀 Why this builds clubhead speed</h4>'+
+      '<p>Phase priority: <b>'+p.goal+'.</b> '+phaseWhy(p.id)+'</p></div>';
+
+    $("phaseDetail").innerHTML=html;
+
+    var freqSeg=$("freqSeg");
+    if(freqSeg){
+      freqSeg.addEventListener("click", function(e){
+        var btn=e.target.closest("button"); if(!btn) return;
+        planState.freq=parseInt(btn.getAttribute("data-freq"),10);
+        renderPhase();
+      });
+    }
+  }
+
+  function labelFor(tag){
+    if(tag==="rest") return "Recover";
+    if(tag==="speed") return "Speed";
+    if(tag==="power") return "Power";
+    return "Lift";
+  }
+  function phaseWhy(id){
+    if(id==="base") return "Bigger muscles in the glutes, lats, core and forearms raise your total force potential — you can't fire a cannon from a canoe. Light speed work keeps the swing pattern fast while you add the size.";
+    if(id==="strength") return "Maximal strength raises the ceiling on how much force you can produce. A stronger squat and deadlift mean more ground force — the foundation of every fast swing — and the heavy work makes your new mass useful, not just for show.";
+    return "Now it's all about rate of force development: moving light loads and your own body as fast as humanly possible, plus rotational throws and overspeed swings that train the exact pattern of the golf swing. This is the phase where strength becomes speed and speed becomes distance.";
+  }
+
+  renderPhasebar();
+  renderPhase();
+})();
+</script>
+</body>
+</html>
