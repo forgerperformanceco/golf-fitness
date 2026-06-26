@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#176236"/>
+      <stop offset="0.65" stop-color="#0b3d22"/>
+      <stop offset="1" stop-color="#19a84e"/>
+    </linearGradient>
+    <radialGradient id="ball" cx="0.38" cy="0.34" r="0.75">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#d7e2da"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <!-- fairway sweep -->
+  <path d="M0 360 Q256 300 512 360 L512 512 L0 512 Z" fill="#ffffff" opacity="0.06"/>
+  <!-- flagstick -->
+  <rect x="300" y="118" width="11" height="232" rx="5" fill="#f4f6f2"/>
+  <!-- gold pennant -->
+  <path d="M311 126 L408 158 L311 196 Z" fill="#f4c542"/>
+  <!-- cup line -->
+  <ellipse cx="305" cy="352" rx="46" ry="14" fill="#0b3d22" opacity="0.55"/>
+  <!-- golf ball -->
+  <circle cx="196" cy="316" r="74" fill="url(#ball)"/>
+  <g fill="#b9c6bd" opacity="0.85">
+    <circle cx="176" cy="296" r="6"/><circle cx="200" cy="290" r="6"/><circle cx="222" cy="304" r="6"/>
+    <circle cx="166" cy="320" r="6"/><circle cx="190" cy="316" r="6"/><circle cx="214" cy="328" r="6"/>
+    <circle cx="182" cy="342" r="6"/><circle cx="206" cy="346" r="6"/>
+  </g>
+</svg>

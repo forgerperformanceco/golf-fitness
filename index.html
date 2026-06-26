@@ -10,6 +10,10 @@
 <meta name="apple-mobile-web-app-title" content="FairwayFuel" />
 <title>FairwayFuel — Golf Macro Calculator &amp; Mass + Speed Training Plan</title>
 <meta name="description" content="FairwayFuel: macro/TDEE calculator plus a 20-week mass &amp; clubhead-speed training plan for golfers. Build like a bodybuilder, move like a golfer — add 10 lb of muscle and swing faster." />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" type="image/svg+xml" href="icon.svg" />
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
 <style>
   :root {
     --green-900: #0b3d22;
@@ -317,6 +321,12 @@
   .placeholder { text-align:center; color:var(--muted); padding: 40px 10px; font-size:14px; }
   .placeholder .big { font-size:40px; margin-bottom:8px; }
   .reset-btn { background:none; border:none; color:var(--muted); font-size:12.5px; cursor:pointer; text-decoration:underline; margin-top:4px; }
+  .form-actions { display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-top:6px; }
+  .share-btn { background:var(--green-600); color:#fff; border:none; border-radius:10px;
+    font-size:13.5px; font-weight:700; padding:10px 16px; cursor:pointer; box-shadow:0 3px 10px rgba(20,83,45,.22); }
+  .share-btn:active { transform:translateY(1px); }
+  .share-btn.done { background:#1f9d52; }
+  .share-hint { font-size:11.5px; color:var(--muted); margin:8px 2px 0; }
 
   /* ---- Training plan ---- */
   .plan-intro { margin-bottom: 22px; }
@@ -580,7 +590,11 @@
             </button>
           </div>
         </label>
-        <button type="button" class="reset-btn" id="resetBtn">Reset to defaults</button>
+        <div class="form-actions">
+          <button type="button" class="share-btn" id="shareBtn">🔗 Copy my plan link</button>
+          <button type="button" class="reset-btn" id="resetBtn">Reset to defaults</button>
+        </div>
+        <p class="share-hint" id="shareHint">Sends a friend this calculator pre-filled with your exact numbers.</p>
       </section>
 
       <section class="card" aria-label="Your plan">
@@ -820,7 +834,55 @@
     var b=e.target.closest("[data-meals]"); if(!b) return;
     state.meals=parseInt(b.getAttribute("data-meals"),10); calc();
   });
-  $("resetBtn").addEventListener("click", function(){ location.reload(); });
+  $("resetBtn").addEventListener("click", function(){
+    try { localStorage.removeItem("fairwayfuel"); } catch(e){}
+    location.href = location.origin + location.pathname;   // drop any share params too
+  });
+
+  // ---- Shareable plan link: encode the calculator settings into the URL ----
+  var SHARE_KEYS = { s:"sex", g:"goal", w:"workout", m:"meals", a:"age",
+    wt:"weight", hf:"heightFt", hi:"heightIn", ac:"activity" };
+  function buildShareURL(){
+    var p=new URLSearchParams();
+    p.set("s",state.sex); p.set("g",state.goal); p.set("w",state.workout);
+    if(state.meals) p.set("m",state.meals);
+    ["a:age","wt:weight","hf:heightFt","hi:heightIn","ac:activity"].forEach(function(pair){
+      var k=pair.split(":")[0], id=pair.split(":")[1], v=$(id)?$(id).value:"";
+      if(v!=="") p.set(k,v);
+    });
+    return location.origin + location.pathname + "?" + p.toString();
+  }
+  function applyShareParams(){
+    if(!location.search || location.search==="?") return false;
+    var q=new URLSearchParams(location.search);
+    var get=function(k){ return q.get(k); };
+    ["a:age","wt:weight","hf:heightFt","hi:heightIn","ac:activity"].forEach(function(pair){
+      var k=pair.split(":")[0], id=pair.split(":")[1];
+      if(q.has(k) && $(id)) $(id).value=q.get(k);
+    });
+    function act(segId, attr, val){
+      var seg=$(segId); if(!seg||val==null) return;
+      Array.prototype.forEach.call(seg.querySelectorAll("button"), function(b){
+        b.classList.toggle("active", b.getAttribute(attr)===String(val)); });
+    }
+    if(q.has("s")){ state.sex=get("s"); act("sexSeg","data-sex",get("s")); }
+    if(q.has("w")){ state.workout=get("w"); act("workoutSeg","data-workout",get("w")); }
+    if(q.has("g")){ state.goal=get("g");
+      Array.prototype.forEach.call($("goals").querySelectorAll(".goal"), function(b){
+        b.classList.toggle("active", b.getAttribute("data-goal")===get("g")); }); }
+    if(q.has("m")) state.meals=parseInt(get("m"),10);
+    return true;
+  }
+  $("shareBtn").addEventListener("click", function(){
+    var url=buildShareURL(), btn=this, hint=$("shareHint");
+    function ok(){ btn.classList.add("done"); btn.textContent="✓ Link copied!";
+      hint.textContent="Pasted to your clipboard — text or AirDrop it to a friend.";
+      setTimeout(function(){ btn.classList.remove("done"); btn.textContent="🔗 Copy my plan link";
+        hint.textContent="Sends a friend this calculator pre-filled with your exact numbers."; }, 2600); }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(url).then(ok).catch(function(){ prompt("Copy your plan link:", url); });
+    } else { prompt("Copy your plan link:", url); }
+  });
 
   function calc(){
     var age=num("age");
@@ -1441,10 +1503,18 @@
   });
 
   restore();      // bring back the user's saved inputs/equipment/tab
+  applyShareParams();   // a shared ?link= overrides local state so friends see your numbers
   calc();
   renderEquip();
   renderPhase();
 })();
+
+/* Register the service worker so the app installs to the home screen and works offline. */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+  });
+}
 </script>
 </body>
 </html>
