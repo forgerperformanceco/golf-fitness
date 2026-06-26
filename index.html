@@ -151,6 +151,53 @@
     border-radius: 12px; padding: 13px 15px; font-size: 12.8px; color: #5a4f2b; line-height: 1.45;
   }
   .golf-note b { color:#3f3818; }
+
+  /* ---- Nutrient timing ---- */
+  .timing { margin-top:18px; border:1px solid var(--line); border-radius:14px; overflow:hidden; }
+  .timing-head {
+    background:#0f2417; color:#eafff1; padding:12px 16px; font-size:14px; font-weight:700;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  .timing-head .when { font-size:11.5px; font-weight:600; background:rgba(255,255,255,.16); padding:3px 10px; border-radius:999px; }
+  .timing-rows { display:grid; grid-template-columns:1fr 1fr; }
+  @media (max-width:520px){ .timing-rows { grid-template-columns:1fr; } }
+  .twin { padding:14px 16px; }
+  .twin.pre { border-right:1px solid var(--line); background:#fef7e6; }
+  .twin.post { background:#eaf7ee; }
+  @media (max-width:520px){ .twin.pre { border-right:none; border-bottom:1px solid var(--line); } }
+  .twin .tlabel { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:#4a5a50; }
+  .twin .tgrams { font-size:26px; font-weight:800; line-height:1.1; margin:3px 0 1px; color:#1d2b22; }
+  .twin .tgrams small { font-size:13px; font-weight:600; }
+  .twin .tclock { font-size:12.5px; color:#5b6b60; font-weight:600; }
+  .twin .ttip { font-size:11.5px; color:var(--muted); margin-top:6px; line-height:1.4; }
+  .timing-foot { padding:11px 16px; font-size:12.2px; color:#5a4f2b; background:var(--sand); border-top:1px solid var(--sand-dark); line-height:1.45; }
+  .timing-foot b { color:#3f3818; }
+
+  /* ---- Meal plan ---- */
+  .meals { margin-top:18px; border:1px solid var(--line); border-radius:14px; overflow:hidden; }
+  .meals-head {
+    background:#14532d; color:#eafff1; padding:11px 16px; font-size:14px; font-weight:700;
+    display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;
+  }
+  .meal-pick { display:flex; align-items:center; gap:8px; }
+  .meal-pick-lbl { font-size:11px; font-weight:600; opacity:.85; }
+  .seg.meal-seg { width:auto; background:rgba(255,255,255,.15); padding:3px; }
+  .seg.meal-seg button { padding:5px 11px; color:#d6f3e0; font-size:13px; }
+  .seg.meal-seg button.active { background:#fff; color:#14532d; }
+  .meals-body { padding:15px 16px; }
+  .meal-each { font-size:13px; color:#2b3a30; margin-bottom:12px; }
+  .meal-each .rec { color:var(--muted); font-size:11.5px; }
+  .meal-macros { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+  .mm { border-radius:12px; padding:12px; text-align:center; border:1.5px solid var(--line); }
+  .mm.p { background:#fdf1f1; border-color:#f6d6d6; }
+  .mm.c { background:#fef7e6; border-color:#f6e6bd; }
+  .mm.f { background:#eef6ff; border-color:#d4e6f9; }
+  .mm-g { font-size:27px; font-weight:800; line-height:1.1; color:#1d2b22; }
+  .mm-g small { font-size:13px; font-weight:600; }
+  .mm-l { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:#4a5a50; margin-top:2px; }
+  .meal-foot { margin-top:13px; font-size:12.2px; color:#5b6b60; line-height:1.5; }
+  .meal-foot b { color:#243a2c; }
+
   .placeholder { text-align:center; color:var(--muted); padding: 40px 10px; font-size:14px; }
   .placeholder .big { font-size:40px; margin-bottom:8px; }
   .reset-btn { background:none; border:none; color:var(--muted); font-size:12.5px; cursor:pointer; text-decoration:underline; margin-top:4px; }
@@ -301,6 +348,16 @@
           </select>
         </label>
 
+        <label class="field">
+          <span class="lbl">When do you train? <span class="unit-suffix">drives your carb timing</span></span>
+          <div class="seg" id="workoutSeg">
+            <button type="button" data-workout="morning" class="active">Morning</button>
+            <button type="button" data-workout="midday">Midday</button>
+            <button type="button" data-workout="afternoon">Afternoon</button>
+            <button type="button" data-workout="evening">Evening</button>
+          </div>
+        </label>
+
         <label class="field" style="margin-bottom:8px;">
           <span class="lbl">Goal</span>
           <div class="goals" id="goals">
@@ -401,25 +458,52 @@
   });
 
   /* ===================== MACRO CALCULATOR ===================== */
-  var state = { unit: "imperial", sex: "male", goal: "leanbulk" };
+  var state = { unit: "imperial", sex: "male", goal: "leanbulk", workout: "morning", meals: null };
+
+  // Recommended number of main meals per plan (pre/post-workout feedings are extra, around training).
+  var MEALS_REC = { leanbulk: 4, bulk: 5, maintain: 4, cut: 3 };
 
   var GOALS = {
     leanbulk: { label: "Lean Bulk", pct: 0.10, proteinKg: 2.0, fatKg: 0.9,
+      preFrac: 0.25, postFrac: 0.30,
+      timing: "On a Lean Bulk, the <b>post-workout window is your build window</b> — keep it the biggest carb feeding of the day to drive recovery and growth.",
       note: "A modest surplus builds <b>quality mass and power</b> without packing on fat that steals your rotation and mobility. Keep carbs high around lifts and speed sessions to drive adaptation." },
     bulk: { label: "Bulk", pct: 0.20, proteinKg: 1.9, fatKg: 1.0,
+      preFrac: 0.25, postFrac: 0.35,
+      timing: "On a Bulk, <b>load the post-workout window hard</b> — it's your single biggest glycogen-refill and growth opportunity. Eating most carbs around training keeps energy high without sitting heavy all day.",
       note: "An aggressive off-season surplus to <b>maximize strength and clubhead-speed potential</b>. Expect some fat gain — plan a Lean Out phase before your season starts." },
     maintain: { label: "In-Season Maintain", pct: 0.0, proteinKg: 1.9, fatKg: 0.9,
+      preFrac: 0.25, postFrac: 0.25,
+      timing: "In-Season, split carbs <b>evenly around training</b> for steady energy, and save some for your round — fuel the swing on the course, not just in the gym.",
       note: "Hold your build and <b>keep steady energy across 4–5 hour rounds</b>. Carbs fuel focus and late-round decision-making — don't slash them during tournament weeks." },
     cut: { label: "Lean Out", pct: -0.20, proteinKg: 2.4, fatKg: 0.8,
+      preFrac: 0.30, postFrac: 0.35,
+      timing: "On a Lean Out, <b>concentrate your limited carbs around the workout</b> — fuel before, refill after, and stay lower the rest of the day. You get energy where it matters and burn fat everywhere else.",
       note: "A controlled deficit with <b>high protein to protect muscle</b> while you drop fat. A better power-to-weight ratio means more speed from the same strength. Don't crash — slow and steady protects your swing." }
   };
   var ACTIVITY_LABELS = { "1.2":"Sedentary","1.375":"Light","1.55":"Moderate","1.725":"Very Active","1.9":"Athlete" };
+
+  // Anchor training hour (24h) per slot. Pre = 90 min before, post ≈ 90 min after start.
+  var WORKOUT_SLOTS = {
+    morning:   { label: "Morning",   anchor: 7 },
+    midday:    { label: "Midday",    anchor: 12 },
+    afternoon: { label: "Afternoon", anchor: 16 },
+    evening:   { label: "Evening",   anchor: 19 }
+  };
 
   function $(id){ return document.getElementById(id); }
   function num(id){ var v=parseFloat($(id).value); return isNaN(v)?0:v; }
   function round(n){ return Math.round(n); }
   function round5(n){ return Math.round(n/5)*5; }
   function roundEven(n){ var e=Math.round(n/2)*2; return e<0?0:e; }
+  function formatTime(h){
+    h=((h%24)+24)%24;
+    var hr=Math.floor(h), min=Math.round((h-hr)*60);
+    if(min===60){ hr++; min=0; }
+    var ampm=hr>=12?"PM":"AM";
+    var h12=hr%12; if(h12===0) h12=12;
+    return h12+":"+(min<10?"0":"")+min+" "+ampm;
+  }
 
   function wireSeg(segId, attr, key, onChange){
     var seg=$(segId);
@@ -439,6 +523,7 @@
     $("weight").value = imperial ? round(w*2.20462) : round(w/2.20462);
   });
   wireSeg("sexSeg","data-sex","sex");
+  wireSeg("workoutSeg","data-workout","workout");
 
   $("goals").addEventListener("click", function(e){
     var btn=e.target.closest(".goal"); if(!btn) return;
@@ -447,6 +532,11 @@
   });
   ["age","weight","heightFt","heightIn","heightCm","activity"].forEach(function(id){
     $(id).addEventListener("input", calc);
+  });
+  // Meal-count buttons live inside the re-rendered results, so delegate from the stable parent.
+  $("results").addEventListener("click", function(e){
+    var b=e.target.closest("[data-meals]"); if(!b) return;
+    state.meals=parseInt(b.getAttribute("data-meals"),10); calc();
   });
   $("resetBtn").addEventListener("click", function(){ location.reload(); });
 
@@ -476,10 +566,39 @@
     if(carbG<0){ carbG=0; }
     carbKcal=carbG*4;
 
+    // ---- Nutrient timing: carve pre/post-workout carbs out of the daily total ----
+    var preG=roundEven(carbG*g.preFrac);
+    var postG=roundEven(carbG*g.postFrac);
+    if(preG+postG>carbG){ // safety for tiny carb totals
+      preG=roundEven(carbG*0.3); postG=carbG-preG;
+    }
+    var restG=carbG-preG-postG; if(restG<0) restG=0;
+    var slot=WORKOUT_SLOTS[state.workout];
+    var timing={
+      slot: slot.label,
+      preG: preG, postG: postG, restG: restG,
+      preTime: formatTime(slot.anchor-1.5),   // ~90 min before
+      postTime: formatTime(slot.anchor+1.5),  // right after a ~75–90 min session
+      trainTime: formatTime(slot.anchor),
+      fasted: state.workout==="morning",
+      note: g.timing
+    };
+
+    // ---- Meal plan: split protein, fat, and the non-timing carbs across main meals ----
+    var mealN = state.meals || MEALS_REC[state.goal];
+    var meal = {
+      n: mealN,
+      recommended: MEALS_REC[state.goal],
+      proteinG: round(proteinG/mealN),
+      fatG: round(fatG/mealN),
+      carbG: round(restG/mealN),   // pre/post carbs are fed separately around training
+      preG: preG, postG: postG
+    };
+
     render({ bmr:bmr,tdee:tdee,target:target,activity:activity,
       proteinG:proteinG,fatG:fatG,carbG:carbG,
       proteinKcal:proteinKcal,fatKcal:fatKcal,carbKcal:carbKcal,
-      goal:g,pct:g.pct });
+      goal:g,pct:g.pct, timing:timing, meal:meal });
   }
   function placeholder(){ return '<div class="placeholder"><div class="big">⛳</div>Enter your details to see your calorie target and macros.</div>'; }
 
@@ -500,7 +619,8 @@
       macroCard("p","Protein",r.proteinG,r.proteinKcal,pPct)+
       macroCard("c","Carbs",r.carbG,r.carbKcal,cPct)+
       macroCard("f","Fat",r.fatG,r.fatKcal,fPct)+'</div>';
-    html+='<div class="permeal">Split across 4 meals ≈ <b>'+round(r.proteinG/4)+'g P</b> / <b>'+round(r.carbG/4)+'g C</b> / <b>'+round(r.fatG/4)+'g F</b> per meal</div>';
+    html+=mealBlock(r.meal);
+    html+=timingBlock(r.timing);
     html+='<div class="breakdown"><table>'+
       tr("BMR (Mifflin–St Jeor)",round5(r.bmr)+" kcal")+
       tr("Activity multiplier","×"+r.activity+" ("+ACTIVITY_LABELS[String(r.activity)]+")")+
@@ -521,6 +641,52 @@
       '<div class="mbar"><i style="width:'+Math.min(100,pct)+'%"></i></div></div>';
   }
   function tr(a,b){ return '<tr><td>'+a+'</td><td>'+b+'</td></tr>'; }
+
+  function mealBlock(m){
+    var opts="";
+    [3,4,5,6].forEach(function(n){
+      opts+='<button type="button" data-meals="'+n+'"'+(n===m.n?' class="active"':'')+'>'+n+'</button>';
+    });
+    var recTxt = m.n===m.recommended ? "recommended for this plan" : "recommended: "+m.recommended;
+    var h="";
+    h+='<div class="meals">';
+    h+='<div class="meals-head"><span>🍽️ Meal Plan</span>'+
+       '<span class="meal-pick"><span class="meal-pick-lbl">meals/day</span><span class="seg meal-seg">'+opts+'</span></span></div>';
+    h+='<div class="meals-body">';
+    h+='<div class="meal-each">Each of your <b>'+m.n+' main meals</b> <span class="rec">('+recTxt+')</span></div>';
+    h+='<div class="meal-macros">'+
+       '<div class="mm p"><div class="mm-g">'+m.proteinG+'<small>g</small></div><div class="mm-l">Protein</div></div>'+
+       '<div class="mm c"><div class="mm-g">'+m.carbG+'<small>g</small></div><div class="mm-l">Carbs</div></div>'+
+       '<div class="mm f"><div class="mm-g">'+m.fatG+'<small>g</small></div><div class="mm-l">Fat</div></div>'+
+       '</div>';
+    h+='<div class="meal-foot">Plus your <b>pre-workout '+m.preG+'g</b> and <b>post-workout '+m.postG+'g</b> carbs around training (see below). '+
+       '<b>Tip:</b> time one main meal to land right after your session so its protein doubles as your post-workout meal.</div>';
+    h+='</div></div>';
+    return h;
+  }
+
+  function timingBlock(t){
+    var preTip = t.fasted
+      ? "Training fasted? Have these carbs <b>as you start</b> (or sip a carb drink during) and make the post-workout meal your priority."
+      : "Fast-digesting carbs ~60–90 min before — oats, banana, rice, toast or a sports drink.";
+    var postTip = "Within ~60 min of finishing — pair with protein. Faster carbs (rice, potatoes, fruit) refill glycogen best.";
+    var h="";
+    h+='<div class="timing">';
+    h+='<div class="timing-head"><span>🕒 Carb Timing</span><span class="when">'+t.slot+' &middot; train ≈ '+t.trainTime+'</span></div>';
+    h+='<div class="timing-rows">';
+    h+='<div class="twin pre"><div class="tlabel">Pre-Workout</div>'+
+       '<div class="tgrams">'+t.preG+'<small>g carbs</small></div>'+
+       '<div class="tclock">≈ '+t.preTime+'</div>'+
+       '<div class="ttip">'+preTip+'</div></div>';
+    h+='<div class="twin post"><div class="tlabel">Post-Workout</div>'+
+       '<div class="tgrams">'+t.postG+'<small>g carbs</small></div>'+
+       '<div class="tclock">≈ '+t.postTime+'</div>'+
+       '<div class="ttip">'+postTip+'</div></div>';
+    h+='</div>';
+    h+='<div class="timing-foot"><b>'+t.restG+'g carbs</b> remaining for your other meals. '+t.note+'</div>';
+    h+='</div>';
+    return h;
+  }
   calc();
 
   /* ===================== TRAINING PLAN ===================== */
