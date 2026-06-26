@@ -483,14 +483,6 @@
         <p class="sub">Everything that feeds your TDEE — the engine behind your plan.</p>
 
         <label class="field">
-          <span class="lbl">Units</span>
-          <div class="seg" id="unitSeg">
-            <button type="button" data-unit="imperial" class="active">Imperial (lb / ft·in)</button>
-            <button type="button" data-unit="metric">Metric (kg / cm)</button>
-          </div>
-        </label>
-
-        <label class="field">
           <span class="lbl">Sex <span class="unit-suffix">(affects BMR formula)</span></span>
           <div class="seg" id="sexSeg">
             <button type="button" data-sex="male" class="active">Male</button>
@@ -504,26 +496,18 @@
             <input type="number" id="age" min="14" max="90" value="32" />
           </label>
           <label class="field">
-            <span class="lbl">Weight <span class="unit-suffix" id="weightUnit">lb</span></span>
+            <span class="lbl">Weight <span class="unit-suffix">lb</span></span>
             <input type="number" id="weight" min="60" max="500" value="180" />
           </label>
         </div>
 
-        <div id="heightImperial">
-          <label class="field">
-            <span class="lbl">Height</span>
-            <div class="row">
-              <input type="number" id="heightFt" min="3" max="8" value="5" placeholder="ft" />
-              <input type="number" id="heightIn" min="0" max="11" value="10" placeholder="in" />
-            </div>
-          </label>
-        </div>
-        <div id="heightMetric" style="display:none;">
-          <label class="field">
-            <span class="lbl">Height <span class="unit-suffix">cm</span></span>
-            <input type="number" id="heightCm" min="120" max="230" value="178" />
-          </label>
-        </div>
+        <label class="field">
+          <span class="lbl">Height <span class="unit-suffix">ft / in</span></span>
+          <div class="row">
+            <input type="number" id="heightFt" min="3" max="8" value="5" placeholder="ft" />
+            <input type="number" id="heightIn" min="0" max="11" value="10" placeholder="in" />
+          </div>
+        </label>
 
         <label class="field">
           <span class="lbl">Activity Level <span class="unit-suffix">training + daily life</span></span>
@@ -681,9 +665,9 @@
     if (typeof planState === "undefined") return;     // not ready during first init render
     try {
       localStorage.setItem("fairwayfuel", JSON.stringify({
-        unit:state.unit, sex:state.sex, goal:state.goal, workout:state.workout, meals:state.meals,
+        sex:state.sex, goal:state.goal, workout:state.workout, meals:state.meals,
         age:$("age").value, weight:$("weight").value,
-        heightFt:$("heightFt").value, heightIn:$("heightIn").value, heightCm:$("heightCm").value,
+        heightFt:$("heightFt").value, heightIn:$("heightIn").value,
         activity:$("activity").value,
         freq:planState.freq, equip:planState.equip,
         view:(document.querySelector("#tabs button.active")||{getAttribute:function(){return "calc";}}).getAttribute("data-view")
@@ -693,7 +677,7 @@
   function restore(){
     var data; try { data=JSON.parse(localStorage.getItem("fairwayfuel")||"null"); } catch(e){ data=null; }
     if(!data) return;
-    ["age","weight","heightFt","heightIn","heightCm","activity"].forEach(function(id){
+    ["age","weight","heightFt","heightIn","activity"].forEach(function(id){
       if(data[id]!=null && data[id]!=="" && $(id)) $(id).value=data[id];
     });
     function act(segId, attr, val){
@@ -701,12 +685,6 @@
       Array.prototype.forEach.call(seg.querySelectorAll("button"), function(b){
         b.classList.toggle("active", b.getAttribute(attr)===String(val));
       });
-    }
-    if(data.unit){ state.unit=data.unit; act("unitSeg","data-unit",data.unit);
-      var imp=state.unit==="imperial";
-      $("heightImperial").style.display=imp?"":"none";
-      $("heightMetric").style.display=imp?"none":"";
-      $("weightUnit").textContent=imp?"lb":"kg";
     }
     if(data.sex){ state.sex=data.sex; act("sexSeg","data-sex",data.sex); }
     if(data.workout){ state.workout=data.workout; act("workoutSeg","data-workout",data.workout); }
@@ -725,25 +703,25 @@
   }
 
   /* ===================== MACRO CALCULATOR ===================== */
-  var state = { unit: "imperial", sex: "male", goal: "leanbulk", workout: "morning", meals: null };
+  var state = { sex: "male", goal: "leanbulk", workout: "morning", meals: null };
 
   // Recommended number of main meals per plan (pre/post-workout feedings are extra, around training).
   var MEALS_REC = { leanbulk: 4, bulk: 5, maintain: 4, cut: 3 };
 
   var GOALS = {
-    leanbulk: { label: "Lean Bulk", pct: 0.10, proteinLb: 1.1, fatKg: 0.9,
+    leanbulk: { label: "Lean Bulk", pct: 0.10, proteinPct: 0.30, fatPct: 0.15,
       preFrac: 0.25, postFrac: 0.30,
       timing: "Post-workout is your <b>build window</b> — keep it the biggest carb feeding of the day.",
       note: "A clean surplus builds <b>quality mass and force</b> — the lean, fast body out-drives the heavy one." },
-    bulk: { label: "Bulk", pct: 0.20, proteinLb: 1.15, fatKg: 1.0,
+    bulk: { label: "Bulk", pct: 0.20, proteinPct: 0.30, fatPct: 0.15,
       preFrac: 0.25, postFrac: 0.35,
       timing: "<b>Load post-workout hard</b> — your biggest glycogen-refill and growth window.",
-      note: "Aggressive surplus for <b>max strength &amp; speed</b>. Protein ticks up to back the extra training. Quality food, not a dirty bulk." },
-    maintain: { label: "In-Season Maintain", pct: 0.0, proteinLb: 1.0, fatKg: 0.9,
+      note: "Aggressive surplus for <b>max strength &amp; speed</b>. High protein, high carb, lower fat. Quality food, not a dirty bulk." },
+    maintain: { label: "In-Season Maintain", pct: 0.0, proteinPct: 0.30, fatPct: 0.15,
       preFrac: 0.25, postFrac: 0.25,
       timing: "Split carbs <b>evenly around training</b>, and save some to fuel your round.",
       note: "Hold your build and <b>steady energy across a 4–5 hour round</b>. Don't slash carbs on tournament weeks." },
-    cut: { label: "Lean Out", pct: -0.20, proteinLb: 1.2, fatKg: 0.8, fatCap: 50,
+    cut: { label: "Lean Out", pct: -0.20, proteinPct: 0.35, fatPct: 0.20,
       preFrac: 0.30, postFrac: 0.35,
       timing: "<b>Concentrate limited carbs around the workout</b>; stay lower the rest of the day.",
       note: "High-protein deficit to <b>protect muscle</b> while you drop fat — better power-to-weight, more speed. Don't crash." }
@@ -793,14 +771,6 @@
       if(onChange) onChange(); calc();
     });
   }
-  wireSeg("unitSeg","data-unit","unit", function(){
-    var imperial = state.unit==="imperial";
-    $("heightImperial").style.display = imperial?"":"none";
-    $("heightMetric").style.display = imperial?"none":"";
-    $("weightUnit").textContent = imperial?"lb":"kg";
-    var w=num("weight");
-    $("weight").value = imperial ? round(w*2.20462) : round(w/2.20462);
-  });
   wireSeg("sexSeg","data-sex","sex");
   wireSeg("workoutSeg","data-workout","workout");
 
@@ -809,7 +779,7 @@
     Array.prototype.forEach.call(this.querySelectorAll(".goal"), function(b){ b.classList.remove("active"); });
     btn.classList.add("active"); state.goal=btn.getAttribute("data-goal"); calc();
   });
-  ["age","weight","heightFt","heightIn","heightCm","activity"].forEach(function(id){
+  ["age","weight","heightFt","heightIn","activity"].forEach(function(id){
     $(id).addEventListener("input", calc);
   });
   // Meal-count buttons live inside the re-rendered results, so delegate from the stable parent.
@@ -820,13 +790,12 @@
   $("resetBtn").addEventListener("click", function(){ location.reload(); });
 
   function calc(){
-    var age=num("age"), weightKg, heightCm;
-    if(state.unit==="imperial"){
-      weightKg=num("weight")/2.20462;
-      heightCm=(num("heightFt")*12+num("heightIn"))*2.54;
-    } else { weightKg=num("weight"); heightCm=num("heightCm"); }
+    var age=num("age");
+    var weightLb=num("weight");
+    var heightCm=(num("heightFt")*12+num("heightIn"))*2.54;
+    var weightKg=weightLb/2.20462;
 
-    if(weightKg<=0||heightCm<=0||age<=0){ $("results").innerHTML=placeholder(); return; }
+    if(weightLb<=0||heightCm<=0||age<=0){ $("results").innerHTML=placeholder(); return; }
 
     var bmr=10*weightKg+6.25*heightCm-5*age+(state.sex==="male"?5:-161);
     var activity=parseFloat($("activity").value);
@@ -834,16 +803,11 @@
     var g=GOALS[state.goal];
     var target=tdee*(1+g.pct);
 
-    var weightLb=weightKg*2.20462;
-    // Protein: per-goal g/lb of bodyweight (higher on a bulk/cut), always an even number.
-    var proteinLb = g.proteinLb || 1.0;
-    var proteinG=roundEven(weightLb*proteinLb);
-    // Fat: goal target, but capped (65 g default; 50 g on a cut to free calories for protein & carbs).
-    var fatCap = g.fatCap || 65;
-    var fatG=Math.min(round(g.fatKg*weightKg), fatCap);
+    // Macros as a % of calories — high protein, high carb, lower fat (golfer-friendly).
+    var proteinG=roundEven(target*g.proteinPct/4);
+    var fatG=round(target*g.fatPct/9);
     var proteinKcal=proteinG*4, fatKcal=fatG*9;
-    // Carbs fill the rest, also rounded to an even number.
-    var carbKcal=target-proteinKcal-fatKcal, carbG=roundEven(carbKcal/4);
+    var carbKcal=target - proteinKcal - fatKcal, carbG=roundEven(carbKcal/4);
     if(carbG<0){ carbG=0; }
     carbKcal=carbG*4;
 
@@ -949,9 +913,9 @@
       tr("TDEE / Maintenance",round5(r.tdee)+" kcal")+
       tr("Goal adjustment",deltaTxt)+
       tr("Daily target",round5(r.target)+" kcal")+
-      tr("Protein",(r.goal.proteinLb||1)+" g/lb · even ("+r.proteinG+" g)")+
-      tr("Fat","capped at "+(r.goal.fatCap||65)+" g ("+r.fatG+" g)")+
-      tr("Carbs","fills remainder · even ("+r.carbG+" g)")+
+      tr("Protein",Math.round(r.goal.proteinPct*100)+"% of calories ("+r.proteinG+" g)")+
+      tr("Fat",Math.round(r.goal.fatPct*100)+"% of calories ("+r.fatG+" g)")+
+      tr("Carbs","the rest ("+r.carbG+" g)")+
       '</table></div></details>';
     $("results").innerHTML=html;
   }
