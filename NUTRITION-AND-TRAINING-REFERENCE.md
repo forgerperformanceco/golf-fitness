@@ -27,8 +27,11 @@ bodybuilding principles it's built on.
 8. [Gaining ~10 lb of muscle: realistic rate & timeline](#8-gaining-10-lb-of-muscle-realistic-rate--timeline)
 9. [Where golf actually changes things](#9-where-golf-actually-changes-things)
 10. [The app's exact formulas & config](#10-the-apps-exact-formulas--config)
-11. [Sources & further reading](#11-sources--further-reading)
-12. [Disclaimer](#12-disclaimer)
+11. [Supplements: the few that actually work](#11-supplements-the-few-that-actually-work)
+12. [How FairwayFuel compares to other calculators](#12-how-fairwayfuel-compares-to-other-calculators)
+13. [Applied example: Bryson DeChambeau (vetted)](#13-applied-example-bryson-dechambeau-vetted)
+14. [Sources & further reading](#14-sources--further-reading)
+15. [Disclaimer](#15-disclaimer)
 
 ---
 
@@ -88,10 +91,11 @@ FairwayFuel sets macros in a fixed priority order: **protein → fat → carbs f
 rest.** This is the standard physique-athlete approach.
 
 ### The app's rules (user-tuned)
-1. **Protein = ~1 g per lb of bodyweight, rounded to an even number** (lands on clean
-   targets like 180 / 190 / 200 g).
+1. **Protein = 1.0–1.2 g per lb of bodyweight (per goal), rounded to an even number** —
+   higher on a bulk/cut. See [§4](#4-protein-the-master-nutrient).
 2. **Fat is capped at a hard maximum — 65 g** (50 g on a cut). Never higher.
-3. **Carbs fill the remaining calories**, rounded to an even number.
+3. **Carbs fill the remaining calories**, rounded to an even number, then **distributed
+   across the day** (bigger dinner, low-fat post-workout meal — see [§6](#6-meal-frequency--per-meal-distribution)).
 
 ### Why this works
 - **Protein first** because it's the most important macro for body composition (see §4).
@@ -121,12 +125,35 @@ Calorie values: **protein 4 kcal/g, carbs 4 kcal/g, fat 9 kcal/g.**
 
 ## 4. Protein: the master nutrient
 
-Protein is the single most important dietary lever for building or keeping muscle.
+Protein is the single most important dietary lever for building or keeping muscle —
+**when in doubt, err high.** It's satiating, it has the highest thermic effect, and
+overshooting the "optimal" number costs nothing but a little money.
 
-- **Total daily intake** is what matters most: **~1.6–2.2 g/kg (0.7–1.0 g/lb)** of
-  bodyweight supports maximal muscle protein synthesis for most trainees. ~1 g/lb is a
-  simple, effective target — and slightly higher (up to ~1.1 g/lb) helps preserve muscle
-  in a deficit.
+**What the research says (and why we bias upward):**
+- **Morton et al. 2018** (meta-analysis, 49 RCTs, *Br J Sports Med*): muscle/strength gains
+  *plateau* around **1.6 g/kg/day**, but the confidence interval runs up to **~2.2 g/kg
+  (1.0 g/lb)** — so 1 g/lb is the smart upper anchor for building.
+- **Helms et al. 2014** (review for lean athletes): in a **calorie deficit, go higher —
+  2.3–3.1 g/kg (≈1.1–1.4 g/lb)** — and the leaner you are, the higher in that range, to
+  protect muscle.
+- **ISSN** position stand: 1.4–2.0 g/kg supports most athletes; for **fat loss, intakes
+  >3.0 g/kg** are supported in lean, resistance-trained individuals.
+
+**What FairwayFuel uses** (per-goal, erring high — 1 g/lb minimum everywhere):
+
+| Goal | Protein |
+|---|---|
+| In-Season Maintain | **1.0 g/lb** |
+| Lean Bulk | **1.1 g/lb** |
+| Bulk | **1.15 g/lb** |
+| Cut / Lean Out | **1.2 g/lb** |
+
+Protein ticks **up on a bulk** (to back the extra training volume) and is **highest on a
+cut** (muscle preservation in a deficit). For a 165 lb athlete that's ~166 g maintaining,
+182 g lean bulking, 190 g bulking, and 198 g cutting.
+
+- **~1 g/lb is the floor, not the ceiling.** Total daily intake is what matters most;
+  hitting the number every day beats perfect timing.
 - **Per-meal dose:** muscle protein synthesis is maximized by roughly **0.4 g/kg per
   meal** (~0.18 g/lb, ≈30–50 g for most people) — enough to clear the "leucine
   threshold" that triggers the building response.
@@ -184,11 +211,19 @@ Its biggest practical value is *fueling the session* and *kick-starting recovery
 - **More meals** help when you need to eat a *lot* (bulking) or prefer smaller, frequent
   feedings. **Fewer, larger meals** are often more satiating on a **cut.**
 - FairwayFuel's recommended **main-meal counts**: Lean Bulk 4 · Bulk 5 · Maintain 4 ·
-  Cut 3 — with the pre- and post-workout feedings sitting *around training* on top of
-  those. The app splits protein, fat, and your "non-timing" carbs evenly across the main
-  meals, then feeds the pre/post carbs separately.
-- **Tip:** on training days, time one main meal to land right after your session so its
-  protein doubles as your post-workout meal — fewer feedings, same effect.
+  Cut 3 — with a pre-workout carb snack and the post-workout meal placed *around training*.
+
+### How FairwayFuel distributes the macros (not evenly!)
+Real people don't eat identical meals. The app **weights each meal by its role** so the
+day reads like a normal one:
+- **Dinner** is the biggest meal — most protein, more fat.
+- **Breakfast** carries a bit more fat (eggs) and carbs (oats).
+- **Snacks** are lighter.
+- The **post-workout meal goes low-fat / high-carb** — fat slows digestion and blunts the
+  glycogen refill, so it's pushed to the *other* meals.
+- Each meal is **clock-timed and shifts with your workout slot** (the meal nearest training
+  becomes the post-workout meal). All meals still **sum exactly** to your daily totals.
+- **Per-meal protein** lands above the leucine threshold (~30–50 g) at every main meal.
 
 ---
 
@@ -278,7 +313,7 @@ So this file fully documents the data behind FairwayFuel.
 
 ### Macro logic (per day)
 ```
-protein_g = round_even( bodyweight_lb )           // ~1 g/lb, even
+protein_g = round_even( bodyweight_lb × protein_per_lb )    // per goal (1.0–1.2), even
 fat_g     = min( round(fat_per_kg × weight_kg), fat_cap )   // 65 g, or 50 g on a cut
 carb_kcal = target_kcal − (protein_g × 4) − (fat_g × 9)
 carb_g    = round_even( carb_kcal / 4 )           // fills the rest, even
@@ -286,12 +321,12 @@ carb_g    = round_even( carb_kcal / 4 )           // fills the rest, even
 `round_even(n)` = round to the nearest even number (never below 0).
 
 ### Per-goal settings
-| Goal | Calorie adj | Fat target (pre-cap) | Fat cap | Pre-WO carb % | Post-WO carb % | Rec. meals |
-|---|---|---|---|---|---|---|
-| Lean Bulk | +10% | 0.9 g/kg | 65 g | 25% | 30% | 4 |
-| Bulk | +20% | 1.0 g/kg | 65 g | 25% | 35% | 5 |
-| Maintain | ±0% | 0.9 g/kg | 65 g | 25% | 25% | 4 |
-| Cut / Lean Out | −20% | 0.8 g/kg | **50 g** | 30% | 35% | 3 |
+| Goal | Calorie adj | Protein | Fat target (pre-cap) | Fat cap | Pre-WO carb % | Post-WO carb % | Rec. meals |
+|---|---|---|---|---|---|---|---|
+| Lean Bulk | +10% | 1.1 g/lb | 0.9 g/kg | 65 g | 25% | 30% | 4 |
+| Bulk | +20% | 1.15 g/lb | 1.0 g/kg | 65 g | 25% | 35% | 5 |
+| Maintain | ±0% | 1.0 g/lb | 0.9 g/kg | 65 g | 25% | 25% | 4 |
+| Cut / Lean Out | −20% | 1.2 g/lb | 0.8 g/kg | **50 g** | 30% | 35% | 3 |
 
 > Fat target is pre-cap; the cap always wins. Pre/post carb % are taken from the **total
 > daily carbs**; the remainder is split across the main meals, which are then **clock-timed
@@ -322,31 +357,119 @@ per_main_meal_carbs   = round( rest_carbs / meals )   // rest = total − pre �
 
 ---
 
-## 11. Sources & further reading
+## 11. Supplements: the few that actually work
 
-The figures above reflect mainstream, evidence-based sports-nutrition and strength
-guidance. Authoritative bodies and resources to go deeper (search by name):
+Most supplements are a waste of money. A short list has real, repeatable evidence and is
+relevant to building mass and swing speed:
 
-- **International Society of Sports Nutrition (ISSN)** position stands — Protein &
-  Exercise; Nutrient Timing; Diets & Body Composition; Meal Frequency. (Open-access in
-  the *Journal of the International Society of Sports Nutrition*.)
-- **American College of Sports Medicine (ACSM) / Academy of Nutrition and Dietetics /
-  Dietitians of Canada** joint position: *Nutrition and Athletic Performance.*
-- **Mifflin MD, St Jeor ST, et al. (1990)** — the BMR equation used here.
-- **Brad Schoenfeld** — research and books on hypertrophy (volume, frequency, rep ranges).
-- **Eric Helms / "The Muscle and Strength Pyramid"** — practical hierarchy of nutrition
-  and training priorities (adherence → calories → macros → timing → supplements).
-- **Stronger by Science** (articles by Greg Nuckols et al.) — evidence reviews on
-  hypertrophy, protein, and programming.
-- **Golf-specific:** Titleist Performance Institute (TPI) for golf fitness, mobility, and
-  speed training concepts; SuperSpeed Golf for overspeed-training protocols.
+- **Creatine monohydrate — 3–5 g/day, every day** (timing irrelevant). The most
+  evidence-backed legal supplement there is: more strength, power, lean mass, and
+  training capacity — all of which feed clubhead speed. Cheap. No loading phase needed.
+- **Protein powder (whey or plant)** — not magic, just a convenient way to *hit your
+  daily protein number.* Useful post-workout or when whole food isn't handy.
+- **Caffeine — ~3 mg/kg ~45–60 min pre-session** — a genuine performance and focus
+  boost for training (and the front nine).
+- **Vitamin D / creatine / electrolytes** for general health and hydration on long, hot
+  rounds. Get most micronutrients from food first.
 
-> These are cited by name rather than as fabricated links. Verify specifics against the
-> primary sources — recommendations evolve.
+Everything else (BCAAs, testosterone "boosters", fat burners, exotic pre-workouts) is
+mostly marketing. Food, protein, creatine, sleep, and progressive overload do ~95% of it.
 
 ---
 
-## 12. Disclaimer
+## 12. How FairwayFuel compares to other calculators
+
+FairwayFuel's logic lines up with the most respected evidence-based calculators — and
+errs slightly higher on protein, by design.
+
+| Source | Protein | Fat | Carbs | Surplus / deficit |
+|---|---|---|---|---|
+| **RippedBody** (Andy Morgan / Leangains) | ~1 g/lb | 15–25% kcal (cut), 20–30% (maint/bulk) | remainder | adjust via carb:fat 2:1 |
+| **Bony to Beastly** | 0.7–1 g/lb | 20–40% kcal | 40–60% kcal | bulk ≈ +750 kcal, ~0.5 lb/wk |
+| **Bodybuilding.com** | ~30% kcal (gain) / 40% (loss) | 20–30% kcal | 40% kcal | by goal & body type |
+| **FairwayFuel** | **1.0–1.2 g/lb** | **≤65 g (50 g cut)** | remainder | +10/+20% or −20% |
+
+Common ground across all of them: **protein set by bodyweight first, fat second (with a
+floor/ceiling), carbs fill the rest, and a moderate surplus (~+10–20%) gained at roughly
+0.5 lb/week.** Where they differ is mostly preference. FairwayFuel deliberately runs
+protein at the **top** of the evidence range, caps fat to protect carbs (which fuel hard
+training and a long round), and adds the golf-specific carb-timing and meal schedule.
+
+---
+
+## 13. Applied example: Bryson DeChambeau (vetted)
+
+DeChambeau is the most public test of the "build mass → make it speed" idea. The internet
+is full of "Bryson workout" articles — **most are reconstructed, unverified, or
+exaggerated.** Here's the honest split.
+
+**✅ Worth copying (credible, evidence-aligned, already in this plan):**
+- **Mass → force → speed pipeline.** He added ~40 lb and roughly *doubled force output*,
+  which drove swing speed from ~117 to 130–140+ mph. Bigger, stronger muscle = a higher
+  speed ceiling. (Roskopf / MAT; Como force-plate work.)
+- **Compound lifts as the base** — squat, deadlift, RDL, hip thrust, bench, row — plus
+  isolation for weak links. **Plyometrics** (box jumps) and **med-ball throws** for power.
+- **Ground force + footwork** (push off the ground, lead foot fires early) and **overspeed
+  swing training** with weekly radar tracking — the actual speed transfer.
+- **Strength + mobility together** (MAT, plus yoga/flexibility work) so the bigger body
+  can still rotate.
+- **Basics that matter:** ~1 g/lb+ protein, **creatine**, hydration, and lots of sleep.
+
+**🚩 Clickbait — do NOT copy:**
+- **"23 lb of muscle in 12 weeks" / "27 lb fat lost at the same time."** Physiologically
+  implausible — real lean-muscle gain is ~0.5–1 lb/month for intermediates (see §8).
+  These numbers come from content-farm body-fat estimates, not reality.
+- **"Exact Bryson routine" splits** (e.g. Mon chest/shoulders…) on aggregator sites are
+  *reconstructed guesses*, often self-contradictory ("isolation over compound" then
+  listing heavy compounds). Don't treat them as gospel.
+- **"Better than steroids"** and similar — marketing hyperbole.
+- The **dirty bulk itself.** His 6,000-cal everything-goes phase caused dizziness, gut
+  issues and mood swings, and he later stripped ~20–30 lb to a leaner, *still-fast* build
+  that won the 2024 U.S. Open. The lesson: a **clean lean bulk beats a dirty one.**
+
+**Bottom line:** this program already encodes what's credible from his approach. We did
+not change the training based on the dubious "routine" articles — they validate the
+principles; their numbers don't survive scrutiny.
+
+---
+
+## 14. Sources & further reading
+
+**Primary / authoritative (highest confidence):**
+- **Morton RW, et al. (2018)** — meta-analysis of protein & resistance training, *Br J
+  Sports Med* (the 1.6 g/kg plateau, ~2.2 g/kg CI).
+- **Helms ER, et al. (2014)** — protein for lean athletes in a deficit (2.3–3.1 g/kg).
+- **ISSN position stands** — Protein & Exercise; Nutrient Timing; Diets & Body Comp.
+- **ACSM / AND / DC** joint position: *Nutrition and Athletic Performance.*
+- **Mifflin–St Jeor (1990)** — the BMR equation used here.
+- **Schoenfeld B.** (hypertrophy research); **Helms E.** *Muscle & Strength Pyramids*;
+  **Stronger by Science** (Greg Nuckols) — evidence reviews.
+
+**Practitioner macro calculators (credible, used for the §12 comparison):**
+- RippedBody (Andy Morgan): https://rippedbody.com/macro-calculator/ and /updated-bulking-guidelines/
+- Bony to Beastly: https://bonytobeastly.com/bulking-macros/
+- Bodybuilding.com — *The 3 Keys for Counting Macronutrient Ratios*
+- MyProtein — *Nutrition Guide for Bodybuilders*
+- University of Toledo, Endocrinology — *Macronutrient Considerations* (PDF handout)
+
+**Bryson DeChambeau (use with judgement — see §13 for what's vetted):**
+- Golf Digest — *Bryson bulks up for distance* and Joel Beall's *"Being Like Bryson"
+  3-month experiment* (reputable reporting / honest first-person test).
+- Golf.com — *Bryson explains his speed-training secret*.
+- Golf Monthly — interview with his fitness coach.
+- CNN — *6,000 calories a day* (trainer Greg Roskopf); PGA Tour — Masters dizziness.
+- DRVN Golf — *What golfers can learn* (golf-fitness framing).
+- GolfWRX (Jaacob Bowden, PGA) — speed-coach article; protein/creatine advice is sound,
+  but its "23 lb muscle in 12 weeks" result is not credible (see §13).
+- Men's Health UK; EssentiallySports; TotalShape — **lower confidence** (mainstream/
+  content sites; treat specific "routines" as unverified).
+
+> Practitioner and media links are for further reading. Where a claim mattered, it was
+> checked against the primary sources above — and flagged in §13 when it didn't hold up.
+
+---
+
+## 15. Disclaimer
 
 This document is educational and reflects general, evidence-based ranges — not
 individualized medical or dietetic advice. Energy and macro estimates carry inherent
