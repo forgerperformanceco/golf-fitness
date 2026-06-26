@@ -213,6 +213,34 @@
   .meal-foot { margin-top:13px; font-size:12.2px; color:#5b6b60; line-height:1.5; }
   .meal-foot b { color:#243a2c; }
 
+  /* ---- Equipment selector ---- */
+  .equip { background:#fff; border:1px solid var(--line); border-radius:16px; padding:16px 18px; box-shadow: var(--shadow-sm); margin-bottom:4px; }
+  .equip-head { display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
+  .equip-head h3 { margin:0; font-size:15px; }
+  .equip-head h3 small { display:block; font-weight:500; font-size:11.5px; color:var(--muted); margin-top:2px; }
+  .equip-presets { display:flex; gap:6px; flex-wrap:wrap; }
+  .equip-presets button { border:1px solid var(--line); background:#fcfdfc; border-radius:999px; padding:6px 13px; font-size:12px; font-weight:700; color:var(--muted); cursor:pointer; transition:all .15s; }
+  .equip-presets button:hover { border-color:var(--green-500); color:var(--green-800); }
+  .equip-chips { display:flex; flex-wrap:wrap; gap:8px; }
+  .eq-chip { border:1.5px solid var(--line); background:#fcfdfc; border-radius:999px; padding:7px 13px; font-size:12.5px; font-weight:600; color:var(--muted); cursor:pointer; transition:all .15s; display:inline-flex; align-items:center; gap:6px; user-select:none; }
+  .eq-chip:hover { border-color:var(--green-500); }
+  .eq-chip.on { border-color:var(--green-600); background:linear-gradient(180deg,#f1fdf4,#fff); color:var(--green-800); }
+  .eq-chip.on::before { content:"✓"; font-weight:800; color:var(--green-600); font-size:11px; }
+  .eq-chip.locked { opacity:.65; cursor:default; }
+  .equip-note { font-size:11.5px; color:var(--muted); margin-top:11px; line-height:1.45; }
+  .equip-note b { color:var(--green-800); }
+
+  /* swapped / unavailable exercises */
+  table.ex tr.swap td.exname .swap-badge {
+    display:inline-block; font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:.4px;
+    background:#e3f5e9; color:var(--green-700); border-radius:5px; padding:1px 6px; margin-left:7px; vertical-align:middle;
+  }
+  table.ex tr.swap td.exname .orig { color:var(--muted); font-size:11px; font-weight:500; }
+  table.ex tr.skip td.exname { color:#a84747; }
+  table.ex tr.skip td.exname .nm { text-decoration:line-through; opacity:.7; }
+  table.ex tr.skip td.exname .need { display:block; font-size:11px; color:var(--muted); font-style:italic; text-decoration:none; margin-top:1px; }
+  table.ex tr.skip td.sets { color:#c98a8a; }
+
   .placeholder { text-align:center; color:var(--muted); padding: 40px 10px; font-size:14px; }
   .placeholder .big { font-size:40px; margin-bottom:8px; }
   .reset-btn { background:none; border:none; color:var(--muted); font-size:12.5px; cursor:pointer; text-decoration:underline; margin-top:4px; }
@@ -414,19 +442,22 @@
         <p class="sub">Build like a bodybuilder, move like a golfer.</p>
         <p class="lead">
           Goal: <b>add ~10 lb of lean muscle</b> and convert it into <b>clubhead speed</b>. We front-load
-          bodybuilding-style hypertrophy to put real size on your frame, then teach that new muscle to fire
-          fast and rotate hard. Pair this with the <b>Lean Bulk</b> macros from the calculator — you can't
-          build the engine without the fuel.
+          bodybuilding-style hypertrophy to put real size on your frame, then teach that new muscle to produce
+          force — <b>fast</b> — and channel it through the ground and into rotation. The pros who've added 20+ mph
+          did it by roughly <b>doubling their force output</b>, then training the body to apply it quickly. Pair
+          this with the <b>Lean Bulk</b> macros — a clean, quality surplus, never a "dirty bulk."
         </p>
         <div class="pillars">
           <div class="pillar"><div class="ico">🏗️</div><h3>Build the Mass</h3>
-            <p>High-volume hypertrophy on the big lifts puts 10 lb on your frame — bigger glutes, lats, quads and forearms are your power base.</p></div>
+            <p>High-volume hypertrophy on the big lifts puts 10 lb on your frame — bigger glutes, lats, quads and forearms are your force base. More muscle = a higher speed ceiling.</p></div>
           <div class="pillar"><div class="ico">⚡</div><h3>Make it Fast</h3>
-            <p>Heavy strength then explosive Olympic-style and ballistic work teaches the new muscle to contract <em>fast</em> — speed, not just size.</p></div>
-          <div class="pillar"><div class="ico">🌀</div><h3>Rotate &amp; Transfer</h3>
-            <p>Med-ball throws, anti-rotation core and overspeed swings transfer raw power into the rotational chain that drives the ball.</p></div>
+            <p>Heavy strength then explosive Olympic-style and ballistic work teaches the new muscle to contract <em>fast</em>. Speed comes from <b>rate of force development</b>, not size alone.</p></div>
+          <div class="pillar"><div class="ico">🌀</div><h3>Ground Force &amp; Rotate</h3>
+            <p>Push hard into the ground and fire the rotational chain. Ground-force footwork, med-ball throws, anti-rotation core and overspeed swings transfer raw power into the club.</p></div>
         </div>
       </div>
+
+      <div class="equip" id="equipBar"></div>
 
       <div class="phasebar" id="phasebar"></div>
       <div class="phase-detail" id="phaseDetail"></div>
@@ -434,12 +465,13 @@
       <div class="tracker">
         <h3>📈 How to actually gain the 10 lb (and keep your swing)</h3>
         <ul>
-          <li><b>Eat in a lean surplus:</b> use the <b>Lean Bulk</b> setting (+10%). Aim to gain <b>~0.5–0.75 lb/week</b> — faster than that is mostly fat that hurts mobility.</li>
-          <li><b>Hit protein every day:</b> ~1g per lb of bodyweight, spread across 4 meals. Muscle is built in the kitchen.</li>
+          <li><b>Clean surplus, not a dirty bulk:</b> use the <b>Lean Bulk</b> setting (+10%) and gain <b>~0.5–0.75 lb/week</b>. Chasing 5,000 junk calories adds fat, wrecks your gut, and kills mobility — the leaner, faster body wins.</li>
+          <li><b>Hit protein every day:</b> ~1g per lb of bodyweight, spread across your meals. Muscle is built in the kitchen.</li>
+          <li><b>Quality food &amp; gut health:</b> whole foods over processed; if you bloat or feel sluggish, watch common triggers (gluten, dairy, excess sugar). A good gut is how you actually absorb the fuel.</li>
           <li><b>Progressive overload:</b> add a little weight or a rep each week on the main lifts. Log every session.</li>
-          <li><b>Never skip speed work:</b> 2–3 overspeed sessions a week keep the swing pattern fast while you bulk, so size becomes <b>speed</b>.</li>
-          <li><b>Protect mobility:</b> keep your thoracic rotation and hip mobility drills — big muscles that can't turn won't help your driver.</li>
-          <li><b>Sleep 7–9 hrs:</b> recovery is where mass and speed are actually made.</li>
+          <li><b>Train the ground &amp; the turn:</b> push hard into the ground and rotate fast — that's where strength becomes clubhead speed. Never skip the 2–3 weekly speed/overspeed sessions.</li>
+          <li><b>Measure it:</b> track clubhead speed on a radar and chase a new top-end number — what gets measured gets faster.</li>
+          <li><b>Protect mobility &amp; sleep 7–9 hrs:</b> keep thoracic-rotation and hip drills; recovery is where mass and speed are actually made.</li>
         </ul>
       </div>
     </section>
@@ -483,11 +515,11 @@
     leanbulk: { label: "Lean Bulk", pct: 0.10, proteinKg: 2.0, fatKg: 0.9,
       preFrac: 0.25, postFrac: 0.30,
       timing: "On a Lean Bulk, the <b>post-workout window is your build window</b> — keep it the biggest carb feeding of the day to drive recovery and growth.",
-      note: "A modest surplus builds <b>quality mass and power</b> without packing on fat that steals your rotation and mobility. Keep carbs high around lifts and speed sessions to drive adaptation." },
+      note: "A modest, <b>clean surplus</b> builds quality mass and force without the fat that steals rotation and mobility — the lean, fast body out-drives the heavy, slow one. Keep carbs high around lifts and speed work to fuel adaptation." },
     bulk: { label: "Bulk", pct: 0.20, proteinKg: 1.9, fatKg: 1.0,
       preFrac: 0.25, postFrac: 0.35,
       timing: "On a Bulk, <b>load the post-workout window hard</b> — it's your single biggest glycogen-refill and growth opportunity. Eating most carbs around training keeps energy high without sitting heavy all day.",
-      note: "An aggressive off-season surplus to <b>maximize strength and clubhead-speed potential</b>. Expect some fat gain — plan a Lean Out phase before your season starts." },
+      note: "An aggressive off-season surplus to <b>maximize strength and clubhead-speed potential</b>. Keep it quality food, not a dirty bulk — too much junk wrecks your gut and mobility. Expect some fat gain and plan a Lean Out phase before your season." },
     maintain: { label: "In-Season Maintain", pct: 0.0, proteinKg: 1.9, fatKg: 0.9,
       preFrac: 0.25, postFrac: 0.25,
       timing: "In-Season, split carbs <b>evenly around training</b> for steady energy, and save some for your round — fuel the swing on the course, not just in the gym.",
@@ -786,6 +818,7 @@
         intro: "Every rep is max intent with full recovery. Quality over quantity — stop when speed drops.",
         bullets: [
           "Overspeed swing protocol: 5 sets × 6 swings, full step-down/step-up stick progression, both sides",
+          "Ground-force footwork: lead-foot push drill — drive into the ground from the top of the backswing, 4 × 5 / side (load the legs, fire up through rotation)",
           "Rotational med-ball throws: standing side throw + step-behind throw, 5 × 4 / side, max effort",
           "Med-ball overhead slam &amp; scoop toss: 4 × 5",
           "Track clubhead speed weekly with a radar/speed device — chase a new top-end number"
@@ -814,8 +847,119 @@
     }
   ];
 
-  var planState = { phase: 0, freq: 4 };
+  /* ---- Equipment & exercise substitution ---- */
+  var EQUIPMENT = [
+    { key:"bodyweight", label:"Bodyweight", locked:true },
+    { key:"dumbbells",  label:"Dumbbells" },
+    { key:"barbell",    label:"Barbell + Rack" },
+    { key:"bench",      label:"Bench" },
+    { key:"pullupbar",  label:"Pull-up Bar" },
+    { key:"cable",      label:"Cable Machine" },
+    { key:"machines",   label:"Weight Machines" },
+    { key:"kettlebell", label:"Kettlebell" },
+    { key:"trapbar",    label:"Trap / Hex Bar" },
+    { key:"medball",    label:"Medicine Ball" },
+    { key:"bands",      label:"Resistance Bands" },
+    { key:"box",        label:"Plyo Box" },
+    { key:"speedsticks",label:"Speed Sticks" }
+  ];
+  var EQ_PRESETS = {
+    full:    EQUIPMENT.map(function(e){return e.key;}),
+    home:    ["bodyweight","dumbbells","bench","pullupbar","kettlebell","bands","medball","box"],
+    minimal: ["bodyweight","bands"]
+  };
+  function eqLabel(k){ for(var i=0;i<EQUIPMENT.length;i++){ if(EQUIPMENT[i].key===k) return EQUIPMENT[i].label; } return k; }
+
+  // Exercise -> required equipment + ordered fallbacks. Keyed by base name (parentheticals stripped).
+  var EX = {
+    "Back Squat":{needs:["barbell"],subs:[{needs:["dumbbells"],name:"Goblet Squat"},{needs:["bodyweight"],name:"Tempo Bodyweight Squat (3-1-1, +1.5 reps)"}]},
+    "Front Squat":{needs:["barbell"],subs:[{needs:["dumbbells"],name:"Goblet Squat"},{needs:["bodyweight"],name:"Tempo Bodyweight Squat"}]},
+    "Romanian Deadlift":{needs:["barbell"],subs:[{needs:["dumbbells"],name:"DB Romanian Deadlift"},{needs:["kettlebell"],name:"Kettlebell RDL"},{needs:["bodyweight"],name:"Single-leg RDL"}]},
+    "Leg Press":{needs:["machines"],subs:[{needs:["dumbbells"],name:"Goblet Squat"},{needs:["bodyweight"],name:"Walking Lunge"}]},
+    "Hanging Leg Raise":{needs:["pullupbar"],subs:[{needs:["bodyweight"],name:"Lying Leg Raise"}]},
+    "Incline DB Press":{needs:["dumbbells"],subs:[{needs:["bodyweight"],name:"Decline / Feet-elevated Push-up"}]},
+    "Flat Barbell Bench":{needs:["barbell","bench"],subs:[{needs:["dumbbells","bench"],name:"Flat DB Bench Press"},{needs:["dumbbells"],name:"Floor DB Press"},{needs:["bodyweight"],name:"Push-up (weighted / feet-elevated)"}]},
+    "Barbell Bench Press":{needs:["barbell","bench"],subs:[{needs:["dumbbells","bench"],name:"Flat DB Bench Press"},{needs:["dumbbells"],name:"Floor DB Press"},{needs:["bodyweight"],name:"Push-up (weighted / feet-elevated)"}]},
+    "Seated DB Shoulder Press":{needs:["dumbbells"],subs:[{needs:["bands"],name:"Band Overhead Press"},{needs:["bodyweight"],name:"Pike Push-up"}]},
+    "Standing Overhead Press":{needs:["barbell"],subs:[{needs:["dumbbells"],name:"Standing DB Press"},{needs:["bands"],name:"Band Overhead Press"},{needs:["bodyweight"],name:"Pike Push-up"}]},
+    "Lateral Raise":{needs:["dumbbells"],subs:[{needs:["bands"],name:"Band Lateral Raise"}]},
+    "Cable Triceps Pushdown":{needs:["cable"],subs:[{needs:["bands"],name:"Band Triceps Pushdown"},{needs:["bodyweight"],name:"Diamond Push-up"}]},
+    "Cable Wood-chop":{needs:["cable"],subs:[{needs:["bands"],name:"Band Wood-chop"},{needs:["medball"],name:"Med-Ball Rotational Throw"},{needs:["bodyweight"],name:"Speed Russian Twist"}]},
+    "Deadlift":{needs:["barbell"],subs:[{needs:["trapbar"],name:"Trap-Bar Deadlift"},{needs:["dumbbells"],name:"DB Romanian Deadlift"},{needs:["kettlebell"],name:"Kettlebell Deadlift"},{needs:["bodyweight"],name:"Single-leg RDL"}]},
+    "Hip Thrust":{needs:["barbell","bench"],subs:[{needs:["dumbbells","bench"],name:"DB Hip Thrust"},{needs:["bodyweight"],name:"Single-leg Glute Bridge"}]},
+    "Leg Curl":{needs:["machines"],subs:[{needs:["bands"],name:"Band Leg Curl"},{needs:["bodyweight"],name:"Nordic / Slider Leg Curl"}]},
+    "Pallof Press":{needs:["cable"],subs:[{needs:["bands"],name:"Band Pallof Press"},{needs:["bodyweight"],name:"Side Plank"}]},
+    "Farmer Carry":{needs:["dumbbells"],subs:[{needs:["kettlebell"],name:"Kettlebell Carry"},{needs:["bodyweight"],name:"Loaded Carry (backpack / any heavy object)"}]},
+    "Weighted Pull-up":{needs:["pullupbar"],subs:[{needs:["machines"],name:"Lat Pulldown"},{needs:["bands"],name:"Band Lat Pulldown"},{needs:["dumbbells"],name:"DB Row"},{needs:["bodyweight"],name:"Inverted Row (under a sturdy table)"}]},
+    "Pull-up":{needs:["pullupbar"],subs:[{needs:["machines"],name:"Lat Pulldown"},{needs:["bands"],name:"Band Lat Pulldown"},{needs:["dumbbells"],name:"DB Row"},{needs:["bodyweight"],name:"Inverted Row"}]},
+    "Chest-Supported Row":{needs:["dumbbells"],subs:[{needs:["bands"],name:"Band Row"},{needs:["bodyweight"],name:"Inverted Row"}]},
+    "Lat Pulldown":{needs:["machines"],subs:[{needs:["pullupbar"],name:"Pull-up / Band-assisted Pull-up"},{needs:["bands"],name:"Band Lat Pulldown"},{needs:["bodyweight"],name:"Inverted Row"}]},
+    "Face Pull":{needs:["cable"],subs:[{needs:["bands"],name:"Band Face Pull"},{needs:["dumbbells"],name:"Rear-Delt Raise"},{needs:["bodyweight"],name:"Prone Y-T-W Raises"}]},
+    "DB Curl":{needs:["dumbbells"],subs:[{needs:["bands"],name:"Band Curl"}]},
+    "Hammer Curl":{needs:["dumbbells"],subs:[{needs:["bands"],name:"Band Hammer Curl"}]},
+    "Weighted Dip":{needs:["bench"],subs:[{needs:["bodyweight"],name:"Push-up / Bench Dip"}]},
+    "Pendlay Row":{needs:["barbell"],subs:[{needs:["dumbbells"],name:"DB Row"},{needs:["bands"],name:"Band Row"},{needs:["bodyweight"],name:"Inverted Row"}]},
+    "Box Jump":{needs:["box"],subs:[{needs:["bodyweight"],name:"Squat Jump / Tuck Jump"}]},
+    "Trap-Bar Jump / Squat Jump":{needs:["trapbar"],subs:[{needs:["bodyweight"],name:"Squat Jump"}]},
+    "Anti-rotation Cable Hold":{needs:["cable"],subs:[{needs:["bands"],name:"Band Anti-rotation Hold"},{needs:["bodyweight"],name:"Plank Hold"}]},
+    "Speed Bench":{needs:["barbell","bench"],subs:[{needs:["dumbbells"],name:"Explosive DB Floor Press"},{needs:["bodyweight"],name:"Explosive / Clap Push-up"}]},
+    "Med-Ball Chest Pass":{needs:["medball"],subs:[{needs:["bands"],name:"Band Explosive Press"},{needs:["bodyweight"],name:"Clap Push-up"}]},
+    "Cable Rotational Punch":{needs:["cable"],subs:[{needs:["bands"],name:"Band Rotational Punch"},{needs:["medball"],name:"Med-Ball Side Throw"},{needs:["bodyweight"],name:"Speed Russian Twist"}]},
+    "Landmine Rotation":{needs:["barbell"],subs:[{needs:["medball"],name:"Med-Ball Rotational Throw"},{needs:["bands"],name:"Band Rotation"},{needs:["bodyweight"],name:"Speed Russian Twist"}]},
+    "Hang Power Clean / KB Swing":{needs:["barbell"],subs:[{needs:["kettlebell"],name:"Kettlebell Swing"},{needs:["dumbbells"],name:"DB Swing / High Pull"},{needs:["bodyweight"],name:"Broad Jump"}]},
+    "Trap-Bar Deadlift":{needs:["trapbar"],subs:[{needs:["barbell"],name:"Barbell Deadlift"},{needs:["dumbbells"],name:"DB Romanian Deadlift"},{needs:["kettlebell"],name:"Kettlebell Deadlift"},{needs:["bodyweight"],name:"Single-leg RDL"}]},
+    "Rotational Med-Ball Throw":{needs:["medball"],subs:[{needs:["bands"],name:"Band Rotational Throw"},{needs:["cable"],name:"Cable Rotation"},{needs:["bodyweight"],name:"Speed Russian Twist"}]},
+    "Overspeed swing protocol":{needs:["speedsticks"],subs:[{needs:["bodyweight"],name:"Max-effort swings (light alignment stick or your driver)"}]}
+  };
+  function normName(n){ return n.replace(/\([^)]*\)/g,"").replace(/\s+/g," ").trim(); }
+  function have(k){ return !!planState.equip[k]; }
+  function resolveEx(rawName, sr){
+    var e = EX[normName(rawName)];
+    if(!e) return { name:rawName, sr:sr, status:"ok" };
+    if(e.needs.every(have)) return { name:rawName, sr:sr, status:"ok" };
+    for(var i=0;i<e.subs.length;i++){
+      if(e.subs[i].needs.every(have)) return { name:e.subs[i].name, sr:e.subs[i].sr||sr, status:"swap" };
+    }
+    return { name:rawName, sr:sr, status:"skip", need:e.needs };
+  }
+
+  var planState = { phase: 0, freq: 4, equip: {} };
+  EQUIPMENT.forEach(function(e){ planState.equip[e.key] = true; }); // default: full gym
   var phasebar = $("phasebar");
+
+  function renderEquip(){
+    var chips = EQUIPMENT.map(function(e){
+      var on = planState.equip[e.key];
+      var cls = "eq-chip" + (on?" on":"") + (e.locked?" locked":"");
+      return '<span class="'+cls+'" data-eq="'+e.key+'">'+e.label+'</span>';
+    }).join("");
+    var h="";
+    h+='<div class="equip-head"><h3>🏋️ Your Equipment <small>Tap what you have — the plan swaps exercises to match.</small></h3>'+
+       '<div class="equip-presets">'+
+       '<button type="button" data-preset="full">Full gym</button>'+
+       '<button type="button" data-preset="home">Home gym</button>'+
+       '<button type="button" data-preset="minimal">Minimal</button>'+
+       '</div></div>';
+    h+='<div class="equip-chips">'+chips+'</div>';
+    h+='<div class="equip-note">Bodyweight is always on. Deselect anything you don\'t own and every workout below updates automatically.</div>';
+    $("equipBar").innerHTML=h;
+  }
+  $("equipBar").addEventListener("click", function(e){
+    var preset=e.target.closest("[data-preset]");
+    if(preset){
+      var keys=EQ_PRESETS[preset.getAttribute("data-preset")];
+      EQUIPMENT.forEach(function(eq){ planState.equip[eq.key] = keys.indexOf(eq.key)!==-1; });
+      planState.equip.bodyweight=true;
+      renderEquip(); renderPhase(); return;
+    }
+    var chip=e.target.closest("[data-eq]");
+    if(chip){
+      var k=chip.getAttribute("data-eq");
+      if(k==="bodyweight") return; // locked
+      planState.equip[k] = !planState.equip[k];
+      renderEquip(); renderPhase();
+    }
+  });
 
   PHASES.forEach(function(p, i){
     var b=document.createElement("button");
@@ -858,15 +1002,23 @@
       }
       if(d.type==="speed"){
         var s=p.speed;
+        var sNotes=[];
+        if(!have("speedsticks")) sNotes.push("No <b>speed sticks</b>? Do the overspeed swings at max effort with a light alignment stick, a weighted club, or just your driver.");
+        if(!have("medball")) sNotes.push("No <b>medicine ball</b>? Use a heavy backpack, a band, or a dumbbell for the throws — toss into a wall or soft surface.");
+        var sNoteHtml = sNotes.length ? '<div class="equip-note">'+sNotes.map(function(n){return "• "+n;}).join("<br>")+'</div>' : "";
         html+='<div class="day"><div class="day-head">'+d.name+' <span class="tag '+(d.tag)+'">'+labelFor(d.tag)+'</span></div>'+
           '<div class="speed-callout" style="margin:0;border-radius:0;border:none;border-top:1px solid var(--line);">'+
-          '<h4>⚡ '+s.title+'</h4><p>'+s.intro+'</p><ul>'+s.bullets.map(function(b){return '<li>'+b+'</li>';}).join("")+'</ul></div></div>';
+          '<h4>⚡ '+s.title+'</h4><p>'+s.intro+'</p><ul>'+s.bullets.map(function(b){return '<li>'+b+'</li>';}).join("")+'</ul>'+sNoteHtml+'</div></div>';
         return;
       }
+      var rows = d.ex.map(function(row){
+        var r = resolveEx(row[0], row[1]);
+        if(r.status==="ok") return '<tr><td>'+row[0]+'</td><td class="sets">'+row[1]+'</td></tr>';
+        if(r.status==="swap") return '<tr class="swap"><td class="exname">'+r.name+' <span class="swap-badge">swap</span></td><td class="sets">'+r.sr+'</td></tr>';
+        return '<tr class="skip"><td class="exname"><span class="nm">'+row[0]+'</span><span class="need">needs '+r.need.map(eqLabel).join(" + ")+'</span></td><td class="sets">'+row[1]+'</td></tr>';
+      }).join("");
       html+='<div class="day"><div class="day-head">'+d.name+' <span class="tag '+(d.tag==="Lift"?"":d.tag)+'">'+labelFor(d.tag)+'</span></div>'+
-        '<table class="ex"><tr><th>Exercise</th><th style="text-align:right">Sets × Reps</th></tr>'+
-        d.ex.map(function(row){ return '<tr><td>'+row[0]+'</td><td class="sets">'+row[1]+'</td></tr>'; }).join("")+
-        '</table></div>';
+        '<table class="ex"><tr><th>Exercise</th><th style="text-align:right">Sets × Reps</th></tr>'+rows+'</table></div>';
     });
 
     // Speed methodology callout (always shown under the week)
@@ -898,6 +1050,7 @@
     return "Now it's all about rate of force development: moving light loads and your own body as fast as humanly possible, plus rotational throws and overspeed swings that train the exact pattern of the golf swing. This is the phase where strength becomes speed and speed becomes distance.";
   }
 
+  renderEquip();
   renderPhasebar();
   renderPhase();
 })();
