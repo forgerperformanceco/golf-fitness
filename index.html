@@ -2,7 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0b3d22" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="FairwayFuel" />
 <title>FairwayFuel — Golf Macro Calculator &amp; Mass + Speed Training Plan</title>
 <meta name="description" content="FairwayFuel: macro/TDEE calculator plus a 20-week mass &amp; clubhead-speed training plan for golfers. Build like a bodybuilder, move like a golfer — add 10 lb of muscle and swing faster." />
 <style>
@@ -37,9 +42,24 @@
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
-  .wrap { max-width: 1080px; margin: 0 auto; padding: 30px 20px 70px; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 30px 20px 70px; position: relative; z-index: 1; }
+
+  /* subtle mowed-fairway stripes behind the header */
+  body::before {
+    content:""; position:absolute; top:0; left:0; right:0; height:360px; z-index:0; pointer-events:none;
+    background: repeating-linear-gradient(115deg, rgba(255,255,255,.035) 0 38px, rgba(0,0,0,.03) 38px 76px);
+    -webkit-mask-image: linear-gradient(180deg, #000 0%, transparent 92%);
+    mask-image: linear-gradient(180deg, #000 0%, transparent 92%);
+  }
 
   header.hero { text-align: center; color: #eafff1; padding: 6px 0 30px; }
+
+  /* golf "kicker" label above card titles */
+  .kicker {
+    display:inline-flex; align-items:center; gap:5px; font-size:10.5px; font-weight:800;
+    letter-spacing:1.2px; text-transform:uppercase; color:var(--green-600);
+    background:#eef7f0; border:1px solid #d9ecdf; padding:4px 10px; border-radius:999px; margin-bottom:10px;
+  }
   .logo {
     display: inline-flex; align-items: center; gap: 9px;
     font-weight: 800; letter-spacing: 1.5px; font-size: 13px;
@@ -88,10 +108,11 @@
     display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #243a2c;
   }
   input[type="number"], select {
-    width: 100%; padding: 12px 13px; border: 1.5px solid var(--line);
-    border-radius: 10px; font-size: 15px; background: #fcfdfc; color: var(--ink);
-    transition: border-color .15s, box-shadow .15s;
+    width: 100%; padding: 13px 13px; border: 1.5px solid var(--line);
+    border-radius: 10px; font-size: 16px; background: #fcfdfc; color: var(--ink);
+    transition: border-color .15s, box-shadow .15s; -webkit-appearance: none; appearance: none;
   }
+  select { -webkit-appearance: none; background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%235b6b60' d='M6 8L0 0h12z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 14px center; padding-right:34px; }
   input[type="number"]:focus, select:focus {
     outline: none; border-color: var(--green-600); box-shadow: 0 0 0 3px rgba(34,197,94,.15);
   }
@@ -314,6 +335,13 @@
   table.ex tr.note td { font-size:11.5px; color:var(--muted); font-style:italic; border-top:none; padding-top:0; }
   .restday { padding:14px 15px; font-size:13px; color:var(--muted); }
 
+  /* speed day — same clean table as lifts, kept distinct with a warm accent */
+  .speedday .day-head { background:#fdf1e3; color:#9a5b1c; }
+  .speed-intro { padding:11px 15px; font-size:12.5px; color:#7a5320; background:#fffaf3; border-bottom:1px solid var(--line); line-height:1.45; }
+  .speedday table.ex td { vertical-align:top; }
+  .exname-main { font-weight:600; color:#243a2c; }
+  .exnote { font-size:11.5px; color:var(--muted); margin-top:2px; line-height:1.35; }
+
   .speed-callout {
     margin-top:8px; background:#fff4e8; border:1px solid #f3d6b0; border-radius:12px; padding:15px 16px;
   }
@@ -331,6 +359,46 @@
   footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 30px; padding-top: 22px; border-top: 1px solid var(--line); line-height: 1.6; }
   footer strong { color: var(--green-800); }
   footer .disc { max-width: 640px; margin: 8px auto 0; opacity:.8; font-size: 11.5px; }
+
+  /* ===== Mobile bottom tab bar (app-like nav) ===== */
+  .mobile-tabbar { display: none; }
+  @media (max-width: 760px) {
+    .mobile-tabbar {
+      display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+      background: rgba(255,255,255,.92); backdrop-filter: blur(10px);
+      border-top: 1px solid var(--line); box-shadow: 0 -4px 20px rgba(11,61,34,.10);
+      padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+    }
+    .mobile-tabbar button {
+      flex: 1; border: none; background: transparent; cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      padding: 7px 4px; border-radius: 12px; color: var(--muted);
+      font-size: 11px; font-weight: 700; transition: all .15s;
+    }
+    .mobile-tabbar button .ic { font-size: 19px; line-height: 1; }
+    .mobile-tabbar button.active { color: var(--green-700); background: #eef7f0; }
+    body { padding-bottom: 62px; }
+    .wrap { padding-bottom: 24px; }
+    .tabs { display: none; }            /* replaced by the bottom bar on phones */
+  }
+
+  /* ===== Phone polish: bigger tap targets, tighter header ===== */
+  @media (max-width: 600px) {
+    .wrap { padding: 22px 14px 70px; }
+    header.hero { padding: 4px 0 22px; }
+    h1 { font-size: clamp(28px, 8vw, 38px); }
+    header.hero p { font-size: 14.5px; }
+    .card { padding: 20px 16px 22px; border-radius: 16px; }
+    .seg button { padding: 12px 8px; min-height: 44px; }       /* ≥44px tap target */
+    .goal { padding: 14px; }
+    .eq-chip { padding: 10px 14px; }
+    .equip-presets button { padding: 9px 14px; }
+    .tabs button { padding: 11px 18px; }
+    .meal-seg button, .freqbar .seg button { min-height: 38px; }
+    .sched-time { flex-basis: 64px; }
+    .result-hero .kcal { font-size: 48px; }
+    input[type="number"], select { padding: 14px 13px; }      /* roomier fields */
+  }
 </style>
 </head>
 <body>
@@ -350,6 +418,7 @@
   <div class="view active" id="view-calc">
     <div class="grid">
       <section class="card" aria-label="Your details">
+        <div class="kicker">⛳ On the Tee</div>
         <h2>Your Numbers</h2>
         <p class="sub">Everything that feeds your TDEE — the engine behind your plan.</p>
 
@@ -442,6 +511,7 @@
       </section>
 
       <section class="card" aria-label="Your plan">
+        <div class="kicker">⛳ Your Game Plan</div>
         <h2>Your FairwayFuel Plan</h2>
         <p class="sub">Calculated live as you type.</p>
         <div id="results"></div>
@@ -453,6 +523,7 @@
   <div class="view" id="view-plan">
     <section class="card">
       <div class="plan-intro">
+        <div class="kicker">⛳ Range Session</div>
         <h2>The 20-Week Mass + Speed Blueprint</h2>
         <p class="sub">Build like a bodybuilder, move like a golfer.</p>
         <p class="lead">
@@ -490,6 +561,11 @@
     </section>
   </div>
 
+  <nav class="mobile-tabbar" id="mobileTabs">
+    <button data-view="calc" class="active"><span class="ic">🍽️</span>Fuel</button>
+    <button data-view="plan"><span class="ic">🏌️</span>Train</button>
+  </nav>
+
   <footer>
     <strong>FairwayFuel</strong> — Macros &amp; muscle, engineered for the long game.
     <div class="disc">
@@ -505,18 +581,74 @@
 (function () {
   "use strict";
 
-  /* ===================== TAB NAV ===================== */
+  /* ===================== TAB NAV (top + mobile bottom bar) ===================== */
   var tabs = document.getElementById("tabs");
-  tabs.addEventListener("click", function (e) {
-    var btn = e.target.closest("button");
-    if (!btn) return;
-    Array.prototype.forEach.call(tabs.querySelectorAll("button"), function (b) { b.classList.remove("active"); });
-    btn.classList.add("active");
-    var view = btn.getAttribute("data-view");
+  var mobileTabs = document.getElementById("mobileTabs");
+  function setView(view, scroll){
+    [tabs, mobileTabs].forEach(function(bar){
+      Array.prototype.forEach.call(bar.querySelectorAll("button"), function(b){
+        b.classList.toggle("active", b.getAttribute("data-view")===view);
+      });
+    });
     document.getElementById("view-calc").classList.toggle("active", view === "calc");
     document.getElementById("view-plan").classList.toggle("active", view === "plan");
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    if(scroll!==false) window.scrollTo({ top: 0, behavior: "smooth" });
+    try { persist(); } catch(e){}
+  }
+  [tabs, mobileTabs].forEach(function(bar){
+    bar.addEventListener("click", function(e){
+      var btn=e.target.closest("button"); if(!btn) return;
+      setView(btn.getAttribute("data-view"));
+    });
   });
+
+  /* ===================== PERSISTENCE (remember everything, per device) ===================== */
+  function persist(){
+    if (typeof planState === "undefined") return;     // not ready during first init render
+    try {
+      localStorage.setItem("fairwayfuel", JSON.stringify({
+        unit:state.unit, sex:state.sex, goal:state.goal, workout:state.workout, meals:state.meals,
+        age:$("age").value, weight:$("weight").value,
+        heightFt:$("heightFt").value, heightIn:$("heightIn").value, heightCm:$("heightCm").value,
+        activity:$("activity").value,
+        freq:planState.freq, equip:planState.equip,
+        view:(document.querySelector("#tabs button.active")||{getAttribute:function(){return "calc";}}).getAttribute("data-view")
+      }));
+    } catch(e){}
+  }
+  function restore(){
+    var data; try { data=JSON.parse(localStorage.getItem("fairwayfuel")||"null"); } catch(e){ data=null; }
+    if(!data) return;
+    ["age","weight","heightFt","heightIn","heightCm","activity"].forEach(function(id){
+      if(data[id]!=null && data[id]!=="" && $(id)) $(id).value=data[id];
+    });
+    function act(segId, attr, val){
+      var seg=$(segId); if(!seg||val==null) return;
+      Array.prototype.forEach.call(seg.querySelectorAll("button"), function(b){
+        b.classList.toggle("active", b.getAttribute(attr)===String(val));
+      });
+    }
+    if(data.unit){ state.unit=data.unit; act("unitSeg","data-unit",data.unit);
+      var imp=state.unit==="imperial";
+      $("heightImperial").style.display=imp?"":"none";
+      $("heightMetric").style.display=imp?"none":"";
+      $("weightUnit").textContent=imp?"lb":"kg";
+    }
+    if(data.sex){ state.sex=data.sex; act("sexSeg","data-sex",data.sex); }
+    if(data.workout){ state.workout=data.workout; act("workoutSeg","data-workout",data.workout); }
+    if(data.goal){ state.goal=data.goal;
+      Array.prototype.forEach.call($("goals").querySelectorAll(".goal"), function(b){
+        b.classList.toggle("active", b.getAttribute("data-goal")===data.goal);
+      });
+    }
+    if(typeof data.meals!=="undefined") state.meals=data.meals;
+    if(data.freq) planState.freq=data.freq;
+    if(data.equip && typeof data.equip==="object"){
+      EQUIPMENT.forEach(function(e){ if(typeof data.equip[e.key]!=="undefined") planState.equip[e.key]=!!data.equip[e.key]; });
+      planState.equip.bodyweight=true;
+    }
+    if(data.view) setView(data.view, false);
+  }
 
   /* ===================== MACRO CALCULATOR ===================== */
   var state = { unit: "imperial", sex: "male", goal: "leanbulk", workout: "morning", meals: null };
@@ -713,6 +845,7 @@
       proteinG:proteinG,fatG:fatG,carbG:carbG,
       proteinKcal:proteinKcal,fatKcal:fatKcal,carbKcal:carbKcal,
       goal:g,pct:g.pct, timing:timing, meal:meal });
+    persist();
   }
   function placeholder(){ return '<div class="placeholder"><div class="big">⛳</div>Enter your details to see your calorie target and macros.</div>'; }
 
@@ -824,14 +957,14 @@
       blurb: "One consistent week — run it for the full 20 weeks. Every week trains all three qualities together: heavy strength, hypertrophy volume, and power/speed. That builds just as much muscle as splitting them into separate blocks, and keeps your swing speed sharp the whole time. Add a little weight or a rep most weeks; take a lighter deload week every 6th week.",
       chips: ["Size + strength + speed each week", "Progressive overload", "Same week, 20 weeks", "Deload every 6th week"],
       speed: {
-        title: "Speed & power session (the priority for clubhead speed)",
-        intro: "Max-intent reps with full recovery. Do this dedicated session weekly, and add a 10-minute speed burst after one other lift day.",
-        bullets: [
-          "Overspeed swing protocol: 5 sets \u00d7 6 swings, light\u2192heavy stick progression, both sides \u2014 track on a radar",
-          "Ground-force footwork: lead-foot push drill \u2014 drive into the ground from the top, 4 \u00d7 5 / side",
-          "Rotational med-ball throws: side throw + step-behind, 5 \u00d7 4 / side, max effort",
-          "Box jump or broad jump: 5 \u00d7 3 (full recovery)",
-          "Lateral bound: 4 \u00d7 4 / side \u2014 explosive side-to-side push for the swing's lateral weight shift"
+        title: "Speed & Power",
+        intro: "Max-intent reps, full recovery. Do this weekly, plus a 10-min speed burst after one other lift day.",
+        ex: [
+          ["Overspeed swings", "5 \u00d7 6", "Light\u2192heavy stick progression, both sides. Track on a radar."],
+          ["Ground-force footwork", "4 \u00d7 5 / side", "Lead-foot push \u2014 drive into the ground from the top."],
+          ["Rotational med-ball throws", "5 \u00d7 4 / side", "Side throw + step-behind, max effort."],
+          ["Box or broad jump", "5 \u00d7 3", "Full recovery between jumps."],
+          ["Lateral bound", "4 \u00d7 4 / side", "Explosive side-to-side \u2014 the swing's weight shift."]
         ]
       },
       days4: [
@@ -866,8 +999,7 @@
     { key:"pullupbar",  label:"Pull-up bar" },
     { key:"kettlebell", label:"Kettlebell" },
     { key:"bands",      label:"Resistance bands" },
-    { key:"cable",      label:"Cable machine" },
-    { key:"machines",   label:"Weight machines" },
+    { key:"machines",   label:"Machines & cables", hint:"leg press, lat pulldown, leg curl, cable column, chest press, etc." },
     { key:"medball",    label:"Medicine ball" },
     { key:"box",        label:"Plyo box / step" }
   ];
@@ -891,30 +1023,30 @@
     "Seated DB Shoulder Press":{needs:["dumbbells"],subs:[{needs:["bands"],name:"Band Overhead Press"},{needs:["bodyweight"],name:"Pike Push-up"}]},
     "Standing Overhead Press":{needs:["barbell"],subs:[{needs:["dumbbells"],name:"Standing DB Press"},{needs:["bands"],name:"Band Overhead Press"},{needs:["bodyweight"],name:"Pike Push-up"}]},
     "Lateral Raise":{needs:["dumbbells"],subs:[{needs:["bands"],name:"Band Lateral Raise"}]},
-    "Cable Triceps Pushdown":{needs:["cable"],subs:[{needs:["bands"],name:"Band Triceps Pushdown"},{needs:["bodyweight"],name:"Diamond Push-up"}]},
-    "Cable Wood-chop":{needs:["cable"],subs:[{needs:["bands"],name:"Band Wood-chop"},{needs:["medball"],name:"Med-Ball Rotational Throw"},{needs:["bodyweight"],name:"Speed Russian Twist"}]},
+    "Cable Triceps Pushdown":{needs:["machines"],subs:[{needs:["bands"],name:"Band Triceps Pushdown"},{needs:["bodyweight"],name:"Diamond Push-up"}]},
+    "Cable Wood-chop":{needs:["machines"],subs:[{needs:["bands"],name:"Band Wood-chop"},{needs:["medball"],name:"Med-Ball Rotational Throw"},{needs:["bodyweight"],name:"Speed Russian Twist"}]},
     "Deadlift":{needs:["barbell"],subs:[{needs:["dumbbells"],name:"DB Romanian Deadlift"},{needs:["kettlebell"],name:"Kettlebell Deadlift"},{needs:["bodyweight"],name:"Single-leg RDL"}]},
     "Hip Thrust":{needs:["barbell","bench"],subs:[{needs:["dumbbells","bench"],name:"DB Hip Thrust"},{needs:["bodyweight"],name:"Single-leg Glute Bridge"}]},
     "Leg Curl":{needs:["machines"],subs:[{needs:["bands"],name:"Band Leg Curl"},{needs:["bodyweight"],name:"Nordic / Slider Leg Curl"}]},
-    "Pallof Press":{needs:["cable"],subs:[{needs:["bands"],name:"Band Pallof Press"},{needs:["bodyweight"],name:"Side Plank"}]},
+    "Pallof Press":{needs:["machines"],subs:[{needs:["bands"],name:"Band Pallof Press"},{needs:["bodyweight"],name:"Side Plank"}]},
     "Farmer Carry":{needs:["dumbbells"],subs:[{needs:["kettlebell"],name:"Kettlebell Carry"},{needs:["bodyweight"],name:"Loaded Carry (backpack / any heavy object)"}]},
     "Weighted Pull-up":{needs:["pullupbar"],subs:[{needs:["machines"],name:"Lat Pulldown"},{needs:["bands"],name:"Band Lat Pulldown"},{needs:["dumbbells"],name:"DB Row"},{needs:["bodyweight"],name:"Inverted Row (under a sturdy table)"}]},
     "Pull-up":{needs:["pullupbar"],subs:[{needs:["machines"],name:"Lat Pulldown"},{needs:["bands"],name:"Band Lat Pulldown"},{needs:["dumbbells"],name:"DB Row"},{needs:["bodyweight"],name:"Inverted Row"}]},
     "Chest-Supported Row":{needs:["dumbbells"],subs:[{needs:["bands"],name:"Band Row"},{needs:["bodyweight"],name:"Inverted Row"}]},
     "Lat Pulldown":{needs:["machines"],subs:[{needs:["pullupbar"],name:"Pull-up / Band-assisted Pull-up"},{needs:["bands"],name:"Band Lat Pulldown"},{needs:["bodyweight"],name:"Inverted Row"}]},
-    "Face Pull":{needs:["cable"],subs:[{needs:["bands"],name:"Band Face Pull"},{needs:["dumbbells"],name:"Rear-Delt Raise"},{needs:["bodyweight"],name:"Prone Y-T-W Raises"}]},
+    "Face Pull":{needs:["machines"],subs:[{needs:["bands"],name:"Band Face Pull"},{needs:["dumbbells"],name:"Rear-Delt Raise"},{needs:["bodyweight"],name:"Prone Y-T-W Raises"}]},
     "DB Curl":{needs:["dumbbells"],subs:[{needs:["bands"],name:"Band Curl"}]},
     "Hammer Curl":{needs:["dumbbells"],subs:[{needs:["bands"],name:"Band Hammer Curl"}]},
     "Weighted Dip":{needs:["bench"],subs:[{needs:["bodyweight"],name:"Push-up / Bench Dip"}]},
     "Pendlay Row":{needs:["barbell"],subs:[{needs:["dumbbells"],name:"DB Row"},{needs:["bands"],name:"Band Row"},{needs:["bodyweight"],name:"Inverted Row"}]},
     "Box Jump":{needs:["box"],subs:[{needs:["bodyweight"],name:"Squat Jump / Tuck Jump"}]},
-    "Anti-rotation Cable Hold":{needs:["cable"],subs:[{needs:["bands"],name:"Band Anti-rotation Hold"},{needs:["bodyweight"],name:"Plank Hold"}]},
+    "Anti-rotation Cable Hold":{needs:["machines"],subs:[{needs:["bands"],name:"Band Anti-rotation Hold"},{needs:["bodyweight"],name:"Plank Hold"}]},
     "Speed Bench":{needs:["barbell","bench"],subs:[{needs:["dumbbells"],name:"Explosive DB Floor Press"},{needs:["bodyweight"],name:"Explosive / Clap Push-up"}]},
     "Med-Ball Chest Pass":{needs:["medball"],subs:[{needs:["bands"],name:"Band Explosive Press"},{needs:["bodyweight"],name:"Clap Push-up"}]},
-    "Cable Rotational Punch":{needs:["cable"],subs:[{needs:["bands"],name:"Band Rotational Punch"},{needs:["medball"],name:"Med-Ball Side Throw"},{needs:["bodyweight"],name:"Speed Russian Twist"}]},
+    "Cable Rotational Punch":{needs:["machines"],subs:[{needs:["bands"],name:"Band Rotational Punch"},{needs:["medball"],name:"Med-Ball Side Throw"},{needs:["bodyweight"],name:"Speed Russian Twist"}]},
     "Landmine Rotation":{needs:["barbell"],subs:[{needs:["medball"],name:"Med-Ball Rotational Throw"},{needs:["bands"],name:"Band Rotation"},{needs:["bodyweight"],name:"Speed Russian Twist"}]},
     "Hang Power Clean / KB Swing":{needs:["barbell"],subs:[{needs:["kettlebell"],name:"Kettlebell Swing"},{needs:["dumbbells"],name:"DB Swing / High Pull"},{needs:["bodyweight"],name:"Broad Jump"}]},
-    "Rotational Med-Ball Throw":{needs:["medball"],subs:[{needs:["bands"],name:"Band Rotational Throw"},{needs:["cable"],name:"Cable Rotation"},{needs:["bodyweight"],name:"Speed Russian Twist"}]}
+    "Rotational Med-Ball Throw":{needs:["medball"],subs:[{needs:["bands"],name:"Band Rotational Throw"},{needs:["machines"],name:"Cable Rotation"},{needs:["bodyweight"],name:"Speed Russian Twist"}]}
   };
   function normName(n){ return n.replace(/\([^)]*\)/g,"").replace(/\s+/g," ").trim(); }
   function have(k){ return !!planState.equip[k]; }
@@ -935,7 +1067,8 @@
     var chips = EQUIPMENT.map(function(e){
       var on = planState.equip[e.key];
       var cls = "eq-chip" + (on?" on":"") + (e.locked?" locked":"");
-      return '<span class="'+cls+'" data-eq="'+e.key+'">'+e.label+'</span>';
+      var titleAttr = e.hint ? ' title="'+e.hint+'"' : '';
+      return '<span class="'+cls+'" data-eq="'+e.key+'"'+titleAttr+'>'+e.label+'</span>';
     }).join("");
     var h="";
     h+='<div class="equip-head"><h3>🏋️ Your Equipment <small>Tap what you have — the plan swaps exercises to match.</small></h3>'+
@@ -945,7 +1078,7 @@
        '<button type="button" data-preset="minimal">Minimal</button>'+
        '</div></div>';
     h+='<div class="equip-chips">'+chips+'</div>';
-    h+='<div class="equip-note">Bodyweight is always on — deselect anything you don\'t own.</div>';
+    h+='<div class="equip-note">Bodyweight is always on — deselect anything you don\'t own. <b>Machines &amp; cables</b> covers leg press, lat pulldown, leg curl, the cable column, etc.</div>';
     $("equipBar").innerHTML=h;
   }
   $("equipBar").addEventListener("click", function(e){
@@ -954,14 +1087,14 @@
       var keys=EQ_PRESETS[preset.getAttribute("data-preset")];
       EQUIPMENT.forEach(function(eq){ planState.equip[eq.key] = keys.indexOf(eq.key)!==-1; });
       planState.equip.bodyweight=true;
-      renderEquip(); renderPhase(); return;
+      renderEquip(); renderPhase(); persist(); return;
     }
     var chip=e.target.closest("[data-eq]");
     if(chip){
       var k=chip.getAttribute("data-eq");
       if(k==="bodyweight") return; // locked
       planState.equip[k] = !planState.equip[k];
-      renderEquip(); renderPhase();
+      renderEquip(); renderPhase(); persist();
     }
   });
 
@@ -994,13 +1127,15 @@
       }
       if(d.type==="speed"){
         var s=p.speed;
-        var sNotes=[];
-        sNotes.push("Overspeed swings need no gear — use a light alignment stick, a weighted club, or just your driver at max effort.");
-        if(!have("medball")) sNotes.push("No <b>medicine ball</b>? Use a heavy backpack, a band, or a dumbbell for the throws — toss into a wall or soft surface.");
-        var sNoteHtml = sNotes.length ? '<div class="equip-note">'+sNotes.map(function(n){return "• "+n;}).join("<br>")+'</div>' : "";
-        html+='<div class="day"><div class="day-head">'+d.name+' <span class="tag '+(d.tag)+'">'+labelFor(d.tag)+'</span></div>'+
-          '<div class="speed-callout" style="margin:0;border-radius:0;border:none;border-top:1px solid var(--line);">'+
-          '<h4>⚡ '+s.title+'</h4><p>'+s.intro+'</p><ul>'+s.bullets.map(function(b){return '<li>'+b+'</li>';}).join("")+'</ul>'+sNoteHtml+'</div></div>';
+        var srows = s.ex.map(function(e){
+          return '<tr><td><div class="exname-main">'+e[0]+'</div><div class="exnote">'+e[2]+'</div></td>'+
+                 '<td class="sets">'+e[1]+'</td></tr>';
+        }).join("");
+        var noGear = "No gear for overspeed? Use a light stick or your driver. No med ball? A heavy backpack, band, or dumbbell works.";
+        html+='<div class="day speedday"><div class="day-head">'+d.name+' <span class="tag '+(d.tag)+'">'+labelFor(d.tag)+'</span></div>'+
+          '<div class="speed-intro">'+s.intro+'</div>'+
+          '<table class="ex"><tr><th>Drill</th><th style="text-align:right">Sets × Reps</th></tr>'+srows+'</table>'+
+          '<div class="equip-note" style="padding:10px 15px 13px;">'+noGear+'</div></div>';
         return;
       }
       var rows = d.ex.map(function(row){
@@ -1025,7 +1160,7 @@
       freqSeg.addEventListener("click", function(e){
         var btn=e.target.closest("button"); if(!btn) return;
         planState.freq=parseInt(btn.getAttribute("data-freq"),10);
-        renderPhase();
+        renderPhase(); persist();
       });
     }
   }
@@ -1040,6 +1175,8 @@
     return "Each week you build force capacity (size + strength) <b>and</b> train it to fire fast (rate of force development), then transfer it with ground-force work and overspeed swings. Research shows training these qualities together builds just as much muscle as separate blocks — while keeping your speed sharp the whole time. The engine and the gas pedal, every week.";
   }
 
+  restore();      // bring back the user's saved inputs/equipment/tab
+  calc();
   renderEquip();
   renderPhase();
 })();
