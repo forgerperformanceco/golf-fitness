@@ -652,74 +652,73 @@
     if(carbG<0){ carbG=0; }
     carbKcal=carbG*4;
 
-    // ---- Nutrient timing: carve pre/post-workout carbs out of the daily total ----
-    var preG=roundEven(carbG*g.preFrac);
-    var postG=roundEven(carbG*g.postFrac);
-    if(preG+postG>carbG){ // safety for tiny carb totals
-      preG=roundEven(carbG*0.3); postG=carbG-preG;
-    }
-    var restG=carbG-preG-postG; if(restG<0) restG=0;
+    // ---- Meal plan + nutrient timing: one weighted distribution across the whole day ----
     var slot=WORKOUT_SLOTS[state.workout];
-    var timing={
-      slot: slot.label,
-      preG: preG, postG: postG, restG: restG,
-      preTime: formatTime(slot.anchor-1.5),   // ~90 min before
-      postTime: formatTime(slot.anchor+1.5),  // right after a ~75–90 min session
-      trainTime: formatTime(slot.anchor),
-      fasted: state.workout==="morning",
-      note: g.timing
-    };
-
-    // ---- Meal plan: distribute macros across meals the way people actually eat ----
     var mealN = state.meals || MEALS_REC[state.goal];
     var postT = slot.anchor + 1.5, preT = slot.anchor - 1.5;
     var FIRST = 7.5, LAST = 20.0;                 // eating window 7:30 AM – 8:00 PM
 
     var meals = [];
     for (var mi=0; mi<mealN; mi++){
-      meals.push({ time: mealN===1 ? 12.5 : FIRST + mi*(LAST-FIRST)/(mealN-1), post:0, isPost:false });
+      meals.push({ time: mealN===1 ? 12.5 : FIRST + mi*(LAST-FIRST)/(mealN-1), isPost:false });
     }
-    // Relocate the meal nearest the post-workout window so it lands right after training.
+    // The meal nearest the post-workout window becomes the post-workout meal.
     var ni=0, best=99; meals.forEach(function(m,i){ var d=Math.abs(m.time-postT); if(d<best){best=d;ni=i;} });
-    meals[ni].time = postT; meals[ni].post = postG; meals[ni].isPost = true;
+    meals[ni].time = postT; meals[ni].isPost = true;
     meals.sort(function(a,b){ return a.time-b.time; });
 
-    // Name each meal by time of day (Breakfast / Lunch / Dinner / Snack).
-    var usedLab={};
-    meals.forEach(function(m){
-      var lab = m.time<10.5 ? "Breakfast" : (m.time>=11 && m.time<14.5 ? "Lunch" : (m.time>=17.5 ? "Dinner" : "Snack"));
-      if(usedLab[lab] && lab!=="Snack") lab="Snack";
-      usedLab[lab]=true; m.label=lab;
+    // Name meals: first = Breakfast, last = Dinner, one midday Lunch, the rest Snacks.
+    var lunchUsed=false;
+    meals.forEach(function(m,i){
+      if(i===0) m.label="Breakfast";
+      else if(i===meals.length-1) m.label="Dinner";
+      else if(!lunchUsed && m.time>=11.5 && m.time<15){ m.label="Lunch"; lunchUsed=true; }
+      else m.label="Snack";
     });
-    // Relative weights — dinner is biggest, breakfast carries more fat (eggs), snacks are light,
-    // and the post-workout meal goes low-fat / high-carb (fat slows glycogen refill).
+    // Pre-workout: if a meal already sits within ~45 min of the pre window, that meal IS
+    // your pre-workout fuel; otherwise add a small separate pre-workout snack.
+    var preIdx=0, preDist=99;
+    meals.forEach(function(m,i){ var d=Math.abs(m.time-preT); if(d<preDist){ preDist=d; preIdx=i; } });
+    var preMerged = preDist<=0.75 && !meals[preIdx].isPost;
+    if(preMerged) meals[preIdx].isPreMeal=true;
+    // Relative weights — dinner biggest, breakfast carries more fat (eggs), snacks light.
     var ROLEW = {
       Breakfast:{p:0.95,c:1.05,f:1.25}, Lunch:{p:1.05,c:1.00,f:1.00},
-      Dinner:{p:1.15,c:0.80,f:1.35}, Snack:{p:0.70,c:0.85,f:0.55}
+      Dinner:{p:1.15,c:0.90,f:1.35}, Snack:{p:0.70,c:0.80,f:0.55}
     };
-    var pW=[],cW=[],fW=[];
-    meals.forEach(function(m){
-      var w=ROLEW[m.label]||ROLEW.Lunch, cw=w.c, fw=w.f;
-      if(m.isPost){ fw=w.f*0.35; cw=w.c*1.30; }
-      pW.push(w.p); cW.push(cw); fW.push(fw);
-    });
-    var pArr=distribute(proteinG,pW), fArr=distribute(fatG,fW), cArr=distribute(restG,cW);
-    meals.forEach(function(m,i){ m.p=pArr[i]; m.f=fArr[i]; m.c=cArr[i]+(m.post||0); });
+    // Protein & fat split across the main meals (post-workout meal goes low-fat).
+    var pArr=distribute(proteinG, meals.map(function(m){ return ROLEW[m.label].p; }));
+    var fArr=distribute(fatG, meals.map(function(m){ return m.isPost ? ROLEW[m.label].f*0.35 : ROLEW[m.label].f; }));
+    meals.forEach(function(m,i){ m.p=pArr[i]; m.f=fArr[i]; });
 
-    var feed = meals.map(function(m){
-      return { kind:"meal", time:m.time, label:m.label, isPost:m.isPost, p:m.p, c:m.c, f:m.f, post:m.post };
+    // Carbs split across ALL feedings (main meals + pre-workout snack) — so the pre and
+    // post amounts shrink naturally as you add meals, instead of being a fixed % of the day.
+    var pre = { kind:"pre", time:preT, label:"Pre-workout", p:0, f:0 };
+    var carbFeeds = meals.map(function(m){
+      var w = m.isPost ? 1.6 : ROLEW[m.label].c;
+      if(m.isPreMeal) w += 0.6;                   // this meal doubles as pre-workout fuel
+      return { ref:m, w:w };
     });
-    feed.push({ kind:"pre", time:preT, label:"Pre-workout", c:preG, p:0, f:0, post:0 });
-    feed.sort(function(a,b){ return a.time-b.time; });
-    var schedule = feed.map(function(f){
-      return { kind:f.kind, label:f.label, time:formatTime(f.time), isPost:!!f.isPost,
-        p:f.p||0, c:f.c||0, f:f.f||0, post:f.post||0 };
+    if(!preMerged) carbFeeds.push({ ref:pre, w:0.8 });   // separate top-off snack
+    var cArr=distribute(carbG, carbFeeds.map(function(f){ return f.w; }));
+    carbFeeds.forEach(function(f,i){ f.ref.c=cArr[i]; });
+
+    var postMeal=meals[0], preMeal=meals[0];
+    meals.forEach(function(m){ if(m.isPost) postMeal=m; if(m.isPreMeal) preMeal=m; });
+    var feedList = preMerged ? meals.slice() : meals.concat([pre]);
+    var schedule = feedList.sort(function(a,b){ return a.time-b.time; }).map(function(f){
+      return { kind:f.kind||"meal", label:f.label, time:formatTime(f.time),
+        isPost:!!f.isPost, isPre:!!f.isPreMeal, p:f.p||0, c:f.c||0, f:f.f||0 };
     });
 
-    var meal = {
-      n: mealN, recommended: MEALS_REC[state.goal],
-      preG: preG, postG: postG, slot: slot.label, schedule: schedule
+    var preCarbs = preMerged ? preMeal.c : pre.c;
+    var timing={
+      slot: slot.label,
+      preG: preCarbs, postG: postMeal.c, restG: Math.max(0, carbG - preCarbs - postMeal.c),
+      preTime: formatTime(preMerged ? preMeal.time : preT), postTime: formatTime(postT),
+      trainTime: formatTime(slot.anchor), fasted: state.workout==="morning", note: g.timing
     };
+    var meal = { n: mealN, recommended: MEALS_REC[state.goal], slot: slot.label, schedule: schedule };
 
     render({ bmr:bmr,tdee:tdee,target:target,activity:activity,
       proteinG:proteinG,fatG:fatG,carbG:carbG,
@@ -782,12 +781,13 @@
           '<div class="sched-body"><div class="sched-name">⚡ '+s.label+' <span class="sched-tag pre">snack</span></div>'+
           '<div class="sched-macros">'+s.c+'g carbs</div></div></div>';
       }
-      var tag = s.isPost ? ' <span class="sched-tag post">post-workout</span>' : '';
+      var tag = s.isPost ? ' <span class="sched-tag post">post-workout</span>'
+              : (s.isPre ? ' <span class="sched-tag pre">pre-workout</span>' : '');
       return '<div class="sched-row meal">'+
         '<div class="sched-time">'+s.time+'</div>'+
         '<div class="sched-body"><div class="sched-name">🍽️ '+s.label+tag+'</div>'+
         '<div class="sched-macros"><b>'+s.p+'</b>P · <b>'+s.c+'</b>C · <b>'+s.f+'</b>F'+
-        (s.post? ' <span class="sched-plus">(+'+s.post+'g post-workout carbs)</span>':'')+'</div></div></div>';
+        (s.isPost? ' <span class="sched-plus">— biggest carb meal</span>':'')+'</div></div></div>';
     }).join("");
 
     var h="";
