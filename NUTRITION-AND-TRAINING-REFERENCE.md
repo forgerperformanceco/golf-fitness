@@ -91,23 +91,24 @@ FairwayFuel sets macros in a fixed priority order: **protein → fat → carbs f
 rest.** This is the standard physique-athlete approach.
 
 ### The app's rules (user-tuned)
-1. **Protein = 1.0–1.2 g per lb of bodyweight (per goal), rounded to an even number** —
-   higher on a bulk/cut. See [§4](#4-protein-the-master-nutrient).
-2. **Fat is capped at a hard maximum — 65 g** (50 g on a cut). Never higher.
-3. **Carbs fill the remaining calories**, rounded to an even number, then **distributed
-   across the day** (bigger dinner, low-fat post-workout meal — see [§6](#6-meal-frequency--per-meal-distribution)).
+1. **Protein = a percentage of total calories** — **30%** on Lean Bulk / Bulk / Maintain,
+   **35%** on a cut. See [§4](#4-protein-the-master-nutrient).
+2. **Fat = a fixed gram target per goal** — **Cut 50 g · Maintain 55 g · Lean Bulk 65 g ·
+   Bulk 70 g.** A set number, not a percentage, so it stays predictable across bodyweights.
+3. **Carbs fill the remaining calories**, then everything is **distributed across the day**
+   (bigger dinner, low-fat post-workout meal — see [§6](#6-meal-frequency--per-meal-distribution)).
+4. **Every number is rounded to the nearest 5 g** (and calories to the nearest 5) so the
+   targets are clean and easy to hit — 200 g protein, not 197.
 
 ### Why this works
-- **Protein first** because it's the most important macro for body composition (see §4).
-- **Fat second, with a floor in mind.** Dietary fat supports hormones (including
-  testosterone) and the absorption of fat-soluble vitamins. The usual *minimum* is
-  ~0.3 g/lb (≈0.6–0.8 g/kg) or ~20% of calories. The app's fat **cap** is a deliberate
-  *ceiling*: it keeps fat from crowding out carbs, which are the macro that actually
-  fuels hard training and a long round of golf. For most people in the 180–220 lb range,
-  the **65 g** cap sits comfortably above the hormonal minimum while leaving room for carbs.
-  On a **cut the cap drops to 50 g** — on a deficit those ~135 calories are better spent on
-  protein (muscle retention) and carbs (training performance), and 50 g still lands near the
-  ~20%-of-calories floor for most cutters.
+- **Protein as a % of calories** scales with the whole plan: a bigger eater training harder
+  automatically gets more protein, and the **35% on a cut** pushes protein up exactly when
+  muscle is most at risk (deficit). For typical golfers this lands around **0.9–1.1 g/lb**
+  building and **1.0–1.3 g/lb** cutting — right where the evidence wants it (see §4).
+- **Fat as fixed grams** keeps it from creeping too high or dropping too low. The targets
+  (50/55/65/70 g) all sit **above the hormonal/health floor** (~0.3 g/lb or ~20% of calories
+  for most people) while leaving plenty of room for carbs. Fat steps **up as you eat more**
+  (bulk) and **down on a cut**, where those calories are better spent on protein and carbs.
 - **Carbs last** because they're the "performance and flexibility" macro — they fuel
   high-intensity work, refill muscle glycogen, and are easiest to flex up (bulk) or down
   (cut) without touching the protein/fat that protect muscle and hormones.
@@ -115,8 +116,8 @@ rest.** This is the standard physique-athlete approach.
 ### Standard evidence-based ranges (for context)
 | Macro | Common range | Notes |
 |---|---|---|
-| Protein | 0.7–1.0 g/lb (1.6–2.2 g/kg) | Higher end on a cut |
-| Fat | 0.3–0.5 g/lb (≈20–35% kcal) | Don't go below ~0.3 g/lb |
+| Protein | 30–35% kcal (≈0.7–1.0+ g/lb / 1.6–2.2 g/kg) | Higher % on a cut |
+| Fat | ≥0.3 g/lb (≈20–35% kcal) | App uses 50–70 g fixed — above the floor |
 | Carbs | Remainder | 3–5 g/kg general; 5–8+ g/kg for high-volume training |
 
 Calorie values: **protein 4 kcal/g, carbs 4 kcal/g, fat 9 kcal/g.**
@@ -139,18 +140,19 @@ overshooting the "optimal" number costs nothing but a little money.
 - **ISSN** position stand: 1.4–2.0 g/kg supports most athletes; for **fat loss, intakes
   >3.0 g/kg** are supported in lean, resistance-trained individuals.
 
-**What FairwayFuel uses** (per-goal, erring high — 1 g/lb minimum everywhere):
+**What FairwayFuel uses** (protein as a **% of total calories**, rounded to 5 g):
 
-| Goal | Protein |
+| Goal | Protein (% kcal) |
 |---|---|
-| In-Season Maintain | **1.0 g/lb** |
-| Lean Bulk | **1.1 g/lb** |
-| Bulk | **1.15 g/lb** |
-| Cut / Lean Out | **1.2 g/lb** |
+| In-Season Maintain | **30%** |
+| Lean Bulk | **30%** |
+| Bulk | **30%** |
+| Cut / Lean Out | **35%** |
 
-Protein ticks **up on a bulk** (to back the extra training volume) and is **highest on a
-cut** (muscle preservation in a deficit). For a 165 lb athlete that's ~166 g maintaining,
-182 g lean bulking, 190 g bulking, and 198 g cutting.
+Because protein scales with total calories, it ticks **up on a bulk** (more food, more
+training to support) and the **35% on a cut** drives it **highest exactly when muscle is
+most at risk**. In practice this lands most golfers around **0.9–1.1 g/lb** building and
+**1.0–1.3 g/lb** cutting — squarely inside the evidence above.
 
 - **~1 g/lb is the floor, not the ceiling.** Total daily intake is what matters most;
   hitting the number every day beats perfect timing.
@@ -337,24 +339,26 @@ So this file fully documents the data behind FairwayFuel.
 
 ### Macro logic (per day)
 ```
-protein_g = round_even( bodyweight_lb × protein_per_lb )    // per goal (1.0–1.2), even
-fat_g     = min( round(fat_per_kg × weight_kg), fat_cap )   // 65 g, or 50 g on a cut
-carb_kcal = target_kcal − (protein_g × 4) − (fat_g × 9)
-carb_g    = round_even( carb_kcal / 4 )           // fills the rest, even
+target_kcal = TDEE × (1 + calorie_adj)
+protein_g   = round5( target_kcal × protein_pct / 4 )   // % of calories, per goal
+fat_g       = fat_target_g                              // fixed grams, per goal
+carb_kcal   = target_kcal − (protein_g × 4) − (fat_g × 9)
+carb_g      = round5( carb_kcal / 4 )                   // fills the rest (never below 0)
 ```
-`round_even(n)` = round to the nearest even number (never below 0).
+`round5(n)` = round to the nearest multiple of 5. Calories are also shown rounded to 5.
 
 ### Per-goal settings
-| Goal | Calorie adj | Protein | Fat target (pre-cap) | Fat cap | Pre-WO carb % | Post-WO carb % | Rec. meals |
-|---|---|---|---|---|---|---|---|
-| Lean Bulk | +10% | 1.1 g/lb | 0.9 g/kg | 65 g | 25% | 30% | 4 |
-| Bulk | +20% | 1.15 g/lb | 1.0 g/kg | 65 g | 25% | 35% | 5 |
-| Maintain | ±0% | 1.0 g/lb | 0.9 g/kg | 65 g | 25% | 25% | 4 |
-| Cut / Lean Out | −20% | 1.2 g/lb | 0.8 g/kg | **50 g** | 30% | 35% | 3 |
+| Goal | Calorie adj | Protein (% kcal) | Fat (fixed g) | Weekly target | Post-WO carb wt | Rec. meals |
+|---|---|---|---|---|---|---|
+| Lean Bulk | +10% | 30% | 65 g | **+0.25–0.5%/wk** | 1.60 | 4 |
+| Bulk | +20% | 30% | 70 g | **+0.5–0.75%/wk** | 1.60 | 5 |
+| Maintain | ±0% | 30% | 55 g | hold (±0) | 1.60 | 4 |
+| Cut / Lean Out | −20% | 35% | 50 g | **−1 to −0.5%/wk** | 1.60 | 3 |
 
-> Fat target is pre-cap; the cap always wins. Pre/post carb % are taken from the **total
-> daily carbs**; the remainder is split across the main meals, which are then **clock-timed
-> across the day and anchored around your workout** — the meal nearest training becomes the
+> **Weekly target** is a % of bodyweight per week, shown in the app as a live lb/week band
+> (e.g. a 175 lb lean-bulker sees ≈ +0.4–0.9 lb/week). Carbs — including pre/post-workout —
+> are split across **every feeding by weight**, so portions shrink as you add meals. Meals
+> are **clock-timed and anchored around your workout**: the meal nearest training becomes the
 > post-workout meal, with a separate pre-workout carb feeding ~90 min before.
 
 ### Carb-timing clock anchors
