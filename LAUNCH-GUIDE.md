@@ -14,14 +14,14 @@ self-contained and tells you exactly what to click.
   works offline, and has a real app icon (PWA — already wired up).
 - ✅ **Shareable links** — the "🔗 Copy my plan link" button sends a friend the calculator
   pre-filled with someone's exact numbers.
-- ⬜ **Custom domain** — optional, ~$12/yr. Steps in §2.
-- ⬜ **Logins / cloud sync** — optional. Today every device remembers its own data
-  (localStorage). To sync across devices or add real accounts, see §3.
+- ✅ **Magic-link login + cloud sync is built in** — a "☁ Sign in to save" button is already
+  in the app. It's **dormant until you paste two Supabase keys** (5-min setup, §3). Once on,
+  friends log in with just their email and their calculator + full 20-week workout log sync
+  across all their devices.
+- ⬜ **Custom domain** — ~$12/yr. Steps in §2. (You said yes — go for it.)
 
-**Honest recommendation for a friends launch:** you do **not** need logins. The app already
-saves everything per-device and tracks all 20 weeks of workouts locally. Ship it as-is, add
-a custom domain if you want it to look polished, and only add accounts later if people
-actually ask to sync between their phone and laptop.
+**The two things left for you** are both quick: buy a domain (§2) and create a free Supabase
+project to flip on logins (§3). Everything else is done and tested.
 
 ---
 
@@ -97,110 +97,56 @@ the new domain with no changes.
 
 ---
 
-## 3. Logins & cloud sync (optional)
+## 3. Logins & cloud sync — already built, just add your keys
 
-### What you have today
-All data — calculator inputs, equipment, current week, and every logged set/rep/weight — is
-saved in the browser's **localStorage**. It survives refreshes and closing the app, but it's
-**per-device**: your phone and your laptop each keep their own copy, and clearing browser
-data wipes it. For a personal training app used by a friend group, this is genuinely fine.
+Magic-link login and cloud progress sync are **fully built into the app and tested**. There's
+a **"☁ Sign in to save"** button in the top-right corner. It stays dormant until you add two
+Supabase keys — so the live site looks and works exactly as now until you flip it on.
 
-### When to add real accounts
-Add auth + cloud sync only if friends want to:
-- See the **same workout history** on phone *and* laptop, or
-- Compare numbers with each other, or
-- Never lose data if they clear their browser.
+**What it does once enabled:** a friend taps the button, types their email, and gets a one-tap
+login link (no password). After they log in, their calculator settings **and** their entire
+20-week workout log sync to the cloud and follow them to any device. First login on a device
+seeds the cloud from whatever's already saved there, so nobody loses progress.
 
-### The recommended path: Supabase (free tier is plenty)
-[Supabase](https://supabase.com) gives you hosted Postgres + email/Google logins + a tiny JS
-client you drop into the page. No backend server to run. Free tier easily covers a friend
-group.
+### Turn it on (≈5 minutes)
 
-**Exact steps to enable it:**
-
-1. **Create the project** — sign in at supabase.com → **New project** → pick a name and a
-   strong DB password → wait ~2 min for it to spin up.
-2. **Grab your keys** — Project → **Settings → API**. Copy the **Project URL** and the
-   **anon public** key (the anon key is safe to ship in client-side code).
-3. **Turn on logins** — **Authentication → Providers** → enable **Email** (magic links are
-   easiest — no passwords). Optionally enable **Google** for one-tap sign-in.
-4. **Make a table** — **SQL Editor** → run:
+1. **Create a free project** at [supabase.com](https://supabase.com) → **New project** → pick a
+   name + strong DB password → wait ~2 min.
+2. **Enable email login** — **Authentication → Providers → Email** → make sure it's on. (Magic
+   links work out of the box; no extra config.)
+3. **Create the table** — **SQL Editor → New query** → paste and **Run**:
    ```sql
    create table profiles (
      id uuid references auth.users on delete cascade primary key,
-     data jsonb,                       -- the whole app state blob
+     data jsonb,
      updated_at timestamptz default now()
    );
    alter table profiles enable row level security;
    create policy "own row" on profiles
      for all using (auth.uid() = id) with check (auth.uid() = id);
    ```
-   That row-level-security policy means each person can only ever read/write their **own**
-   data.
-5. **Wire it into the app** — a drop-in scaffold is provided below as
-   [`cloud-sync.js`](#dropin-cloud-syncjs). Add your URL + anon key at the top, include it
-   from `index.html`, and it will mirror localStorage up to Supabase on save and pull it back
-   down on login. (It's written to be optional — if you never add the keys, the app behaves
-   exactly as it does now.)
+   (That row-level-security policy means each person can only ever touch **their own** data.)
+4. **Paste your keys** — **Settings → API**, copy the **Project URL** and **anon public** key,
+   then open **`cloud-sync.js`** in this repo and fill in the top two lines:
+   ```js
+   var SUPABASE_URL  = "https://YOUR-PROJECT.supabase.co";
+   var SUPABASE_ANON = "YOUR-ANON-PUBLIC-KEY";
+   ```
+   (The anon key is designed to be public/shipped in the browser — that's safe.)
+5. **Allow your domain to receive logins** — **Authentication → URL Configuration** → set
+   **Site URL** to your live URL (e.g. `https://fairwayfuel.app` or the GitHub Pages URL) and
+   add it under **Redirect URLs**. This is what makes the magic link return to your site.
+6. **Commit & push** `cloud-sync.js` — the button goes live on the next deploy. Test it:
+   sign in with your own email, click the link, log a workout, then open the site on your
+   phone and sign in — your log is there.
 
-> **Simpler alternative — no logins at all:** keep localStorage and just add an **Export /
-> Import** button (downloads a JSON backup, re-imports on another device). It's a fraction of
-> the work and covers "I don't want to lose my log." Say the word and I'll add it.
+That's the whole thing. If you'd rather not run Supabase at all, there's a no-account
+alternative: I can add an **Export / Import** button (downloads a JSON backup you can re-import
+on another device). Just ask.
 
-### <a name="dropin-cloud-syncjs"></a>Drop-in scaffold: `cloud-sync.js`
-This file is **not active yet** — it's here so the wiring is ready when you want it. To turn
-it on: fill in the two constants, save it as `cloud-sync.js` in the repo root, and add
-`<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>` then
-`<script src="cloud-sync.js"></script>` right before `</body>` in `index.html`.
-
-```js
-// cloud-sync.js — optional Supabase sync for FairwayFuel.
-// Leave SUPABASE_URL empty to disable (app falls back to local-only, no errors).
-const SUPABASE_URL = "";            // e.g. https://abcd.supabase.co
-const SUPABASE_ANON = "";           // your anon public key
-const KEYS = ["fairwayfuel", "ff_week", "ff_log", "ff_body"];  // everything the app stores
-
-if (SUPABASE_URL && window.supabase) {
-  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-
-  // Pull cloud data down after login, then keep local in sync on every change.
-  async function pull(user) {
-    const { data } = await sb.from("profiles").select("data").eq("id", user.id).single();
-    if (data && data.data) {
-      Object.entries(data.data).forEach(([k, v]) => localStorage.setItem(k, JSON.stringify(v)));
-      location.reload();   // re-render with the synced data
-    }
-  }
-  async function push(user) {
-    const blob = {};
-    KEYS.forEach(k => { try { blob[k] = JSON.parse(localStorage.getItem(k)); } catch (e) {} });
-    await sb.from("profiles").upsert({ id: user.id, data: blob, updated_at: new Date().toISOString() });
-  }
-
-  // Mirror localStorage writes up to the cloud (debounced).
-  let t, currentUser = null;
-  const _set = localStorage.setItem.bind(localStorage);
-  localStorage.setItem = function (k, v) {
-    _set(k, v);
-    if (currentUser && KEYS.includes(k)) { clearTimeout(t); t = setTimeout(() => push(currentUser), 800); }
-  };
-
-  sb.auth.onAuthStateChange((_e, session) => {
-    currentUser = session && session.user;
-    if (currentUser) pull(currentUser);
-  });
-
-  // Minimal sign-in UI: a magic-link prompt. Replace with a nicer button when ready.
-  window.ffSignIn = async () => {
-    const email = prompt("Email for your FairwayFuel login (magic link):");
-    if (email) { await sb.auth.signInWithOtp({ email }); alert("Check your email for the login link."); }
-  };
-  window.ffSignOut = () => sb.auth.signOut().then(() => location.reload());
-}
-```
-
-When you're ready to actually flip this on, tell me and I'll add the sign-in/out button to
-the header and test the full round-trip.
+> **Where the code lives:** all the login UI + sync logic is in **`cloud-sync.js`** (loaded at
+> the bottom of `index.html`). It's self-contained and a guaranteed no-op until the two keys
+> are set, so it can't break the live site before you're ready.
 
 ---
 

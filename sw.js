@@ -1,6 +1,6 @@
 /* FairwayFuel service worker — offline-first for the single-page app.
    Bump CACHE when you ship a new version so clients pull fresh files. */
-var CACHE = 'fairwayfuel-v3';
+var CACHE = 'fairwayfuel-v4';
 var ASSETS = [
   './',
   './index.html',
@@ -27,6 +27,8 @@ self.addEventListener('activate', function (e) {
 /* Network-first for the HTML (so updates land), cache-first for everything else. */
 self.addEventListener('fetch', function (e) {
   if (e.request.method !== 'GET') return;
+  // Only handle our own origin — let the Supabase SDK/API and any CDN go straight to network.
+  if (new URL(e.request.url).origin !== self.location.origin) return;
   var isDoc = e.request.mode === 'navigate' ||
     (e.request.headers.get('accept') || '').indexOf('text/html') !== -1;
   if (isDoc) {
