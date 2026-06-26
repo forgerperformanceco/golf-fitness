@@ -212,6 +212,21 @@
   .mm-l { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:#4a5a50; margin-top:2px; }
   .meal-foot { margin-top:13px; font-size:12.2px; color:#5b6b60; line-height:1.5; }
   .meal-foot b { color:#243a2c; }
+  .sched-title { margin:16px 0 8px; font-size:12.5px; font-weight:700; color:#243a2c; }
+  .sched-title b { color:var(--green-700); }
+  .sched { border:1px solid var(--line); border-radius:12px; overflow:hidden; }
+  .sched-row { display:flex; align-items:center; gap:12px; padding:10px 14px; }
+  .sched-row + .sched-row { border-top:1px solid var(--line); }
+  .sched-row.pre { background:#fef7e6; }
+  .sched-time { flex:0 0 72px; font-size:12.5px; font-weight:800; color:var(--green-800); font-variant-numeric:tabular-nums; }
+  .sched-body { flex:1; min-width:0; }
+  .sched-name { font-size:13px; font-weight:700; color:#243a2c; display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  .sched-macros { font-size:12px; color:var(--muted); margin-top:1px; }
+  .sched-macros b { color:#2b3a30; }
+  .sched-plus { color:var(--green-700); font-weight:600; }
+  .sched-tag { font-size:9.5px; font-weight:800; text-transform:uppercase; letter-spacing:.4px; padding:2px 7px; border-radius:999px; }
+  .sched-tag.post { background:#e3f5e9; color:var(--green-700); }
+  .sched-tag.pre { background:#f6e6bd; color:#9a6a16; }
 
   /* ---- Equipment selector ---- */
   .equip { background:#fff; border:1px solid var(--line); border-radius:16px; padding:16px 18px; box-shadow: var(--shadow-sm); margin-bottom:4px; }
@@ -524,7 +539,7 @@
       preFrac: 0.25, postFrac: 0.25,
       timing: "In-Season, split carbs <b>evenly around training</b> for steady energy, and save some for your round — fuel the swing on the course, not just in the gym.",
       note: "Hold your build and <b>keep steady energy across 4–5 hour rounds</b>. Carbs fuel focus and late-round decision-making — don't slash them during tournament weeks." },
-    cut: { label: "Lean Out", pct: -0.20, proteinKg: 2.4, fatKg: 0.8,
+    cut: { label: "Lean Out", pct: -0.20, proteinKg: 2.4, fatKg: 0.8, fatCap: 50,
       preFrac: 0.30, postFrac: 0.35,
       timing: "On a Lean Out, <b>concentrate your limited carbs around the workout</b> — fuel before, refill after, and stay lower the rest of the day. You get energy where it matters and burn fat everywhere else.",
       note: "A controlled deficit with <b>high protein to protect muscle</b> while you drop fat. A better power-to-weight ratio means more speed from the same strength. Don't crash — slow and steady protects your swing." }
@@ -606,8 +621,9 @@
     var weightLb=weightKg*2.20462;
     // Protein: ~1 g per lb of bodyweight, always an even number (e.g. 180 / 190 / 200).
     var proteinG=roundEven(weightLb);
-    // Fat: goal target, but NEVER higher than 65 g.
-    var fatG=Math.min(round(g.fatKg*weightKg), 65);
+    // Fat: goal target, but capped (65 g default; 50 g on a cut to free calories for protein & carbs).
+    var fatCap = g.fatCap || 65;
+    var fatG=Math.min(round(g.fatKg*weightKg), fatCap);
     var proteinKcal=proteinG*4, fatKcal=fatG*9;
     // Carbs fill the rest, also rounded to an even number.
     var carbKcal=target-proteinKcal-fatKcal, carbG=roundEven(carbKcal/4);
@@ -634,13 +650,36 @@
 
     // ---- Meal plan: split protein, fat, and the non-timing carbs across main meals ----
     var mealN = state.meals || MEALS_REC[state.goal];
+    var perP = round(proteinG/mealN), perF = round(fatG/mealN), perC = round(restG/mealN);
+
+    // ---- Schedule: clock-time each meal, anchored around the workout ----
+    var FIRST = 7.5, LAST = 20.0;                 // eating window 7:30 AM – 8:00 PM
+    var feed = [];
+    for (var mi=0; mi<mealN; mi++){
+      var t = mealN===1 ? 12.5 : FIRST + mi*(LAST-FIRST)/(mealN-1);
+      feed.push({ kind:"meal", time:t, p:perP, c:perC, f:perF, post:0 });
+    }
+    // Relocate the meal nearest the post-workout window so it lands right after training.
+    var postT = slot.anchor + 1.5, preT = slot.anchor - 1.5;
+    var ni=0, best=99; feed.forEach(function(m,i){ var d=Math.abs(m.time-postT); if(d<best){best=d;ni=i;} });
+    feed[ni].time = postT; feed[ni].post = postG; feed[ni].isPost = true;
+    // Pre-workout carb feeding (extra, on top of the main meals).
+    feed.push({ kind:"pre", time:preT, c:preG });
+    feed.sort(function(a,b){ return a.time-b.time; });
+    var mealNo=0;
+    var schedule = feed.map(function(f){
+      var label = f.kind==="pre" ? "Pre-workout" : "Meal "+(++mealNo);
+      return {
+        kind: f.kind, label: label, time: formatTime(f.time),
+        isPost: !!f.isPost,
+        p: f.p||0, c: (f.c||0)+(f.post||0), f: f.f||0, post: f.post||0
+      };
+    });
+
     var meal = {
-      n: mealN,
-      recommended: MEALS_REC[state.goal],
-      proteinG: round(proteinG/mealN),
-      fatG: round(fatG/mealN),
-      carbG: round(restG/mealN),   // pre/post carbs are fed separately around training
-      preG: preG, postG: postG
+      n: mealN, recommended: MEALS_REC[state.goal],
+      proteinG: perP, fatG: perF, carbG: perC,
+      preG: preG, postG: postG, slot: slot.label, schedule: schedule
     };
 
     render({ bmr:bmr,tdee:tdee,target:target,activity:activity,
@@ -676,7 +715,7 @@
       tr("Goal adjustment",deltaTxt)+
       tr("Daily target",round5(r.target)+" kcal")+
       tr("Protein","1 g/lb · even ("+r.proteinG+" g)")+
-      tr("Fat","capped at 65 g ("+r.fatG+" g)")+
+      tr("Fat","capped at "+(r.goal.fatCap||65)+" g ("+r.fatG+" g)")+
       tr("Carbs","fills remainder · even ("+r.carbG+" g)")+
       '</table></div>';
     html+='<div class="golf-note"><b>⛳ Golf focus:</b> '+r.goal.note+'</div>';
@@ -696,19 +735,36 @@
       opts+='<button type="button" data-meals="'+n+'"'+(n===m.n?' class="active"':'')+'>'+n+'</button>';
     });
     var recTxt = m.n===m.recommended ? "recommended for this plan" : "recommended: "+m.recommended;
+
+    var rows = m.schedule.map(function(s){
+      if(s.kind==="pre"){
+        return '<div class="sched-row pre">'+
+          '<div class="sched-time">'+s.time+'</div>'+
+          '<div class="sched-body"><div class="sched-name">⚡ '+s.label+' <span class="sched-tag pre">snack</span></div>'+
+          '<div class="sched-macros">'+s.c+'g carbs</div></div></div>';
+      }
+      var tag = s.isPost ? ' <span class="sched-tag post">post-workout</span>' : '';
+      return '<div class="sched-row meal">'+
+        '<div class="sched-time">'+s.time+'</div>'+
+        '<div class="sched-body"><div class="sched-name">🍽️ '+s.label+tag+'</div>'+
+        '<div class="sched-macros"><b>'+s.p+'</b>P · <b>'+s.c+'</b>C · <b>'+s.f+'</b>F'+
+        (s.post? ' <span class="sched-plus">(+'+s.post+'g post-workout carbs)</span>':'')+'</div></div></div>';
+    }).join("");
+
     var h="";
     h+='<div class="meals">';
     h+='<div class="meals-head"><span>🍽️ Meal Plan</span>'+
        '<span class="meal-pick"><span class="meal-pick-lbl">meals/day</span><span class="seg meal-seg">'+opts+'</span></span></div>';
     h+='<div class="meals-body">';
-    h+='<div class="meal-each">Each of your <b>'+m.n+' main meals</b> <span class="rec">('+recTxt+')</span></div>';
+    h+='<div class="meal-each">Each of your <b>'+m.n+' main meals</b> <span class="rec">('+recTxt+')</span> — base targets:</div>';
     h+='<div class="meal-macros">'+
        '<div class="mm p"><div class="mm-g">'+m.proteinG+'<small>g</small></div><div class="mm-l">Protein</div></div>'+
        '<div class="mm c"><div class="mm-g">'+m.carbG+'<small>g</small></div><div class="mm-l">Carbs</div></div>'+
        '<div class="mm f"><div class="mm-g">'+m.fatG+'<small>g</small></div><div class="mm-l">Fat</div></div>'+
        '</div>';
-    h+='<div class="meal-foot">Plus your <b>pre-workout '+m.preG+'g</b> and <b>post-workout '+m.postG+'g</b> carbs around training (see below). '+
-       '<b>Tip:</b> time one main meal to land right after your session so its protein doubles as your post-workout meal.</div>';
+    h+='<div class="sched-title">📅 Your day &mdash; timed for a <b>'+m.slot+'</b> workout</div>';
+    h+='<div class="sched">'+rows+'</div>';
+    h+='<div class="meal-foot"><b>Tip:</b> the meal nearest your session is set as your <b>post-workout meal</b>, so its protein doubles as recovery fuel. Times are guides — shift the whole day earlier or later to fit your schedule.</div>';
     h+='</div></div>';
     return h;
   }

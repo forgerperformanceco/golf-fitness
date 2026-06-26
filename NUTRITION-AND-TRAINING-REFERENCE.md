@@ -90,17 +90,20 @@ rest.** This is the standard physique-athlete approach.
 ### The app's rules (user-tuned)
 1. **Protein = ~1 g per lb of bodyweight, rounded to an even number** (lands on clean
    targets like 180 / 190 / 200 g).
-2. **Fat is capped at a hard 65 g maximum** — never higher.
+2. **Fat is capped at a hard maximum — 65 g** (50 g on a cut). Never higher.
 3. **Carbs fill the remaining calories**, rounded to an even number.
 
 ### Why this works
 - **Protein first** because it's the most important macro for body composition (see §4).
 - **Fat second, with a floor in mind.** Dietary fat supports hormones (including
   testosterone) and the absorption of fat-soluble vitamins. The usual *minimum* is
-  ~0.3 g/lb (≈0.6–0.8 g/kg) or ~20% of calories. The app's **65 g cap** is a deliberate
+  ~0.3 g/lb (≈0.6–0.8 g/kg) or ~20% of calories. The app's fat **cap** is a deliberate
   *ceiling*: it keeps fat from crowding out carbs, which are the macro that actually
   fuels hard training and a long round of golf. For most people in the 180–220 lb range,
-  65 g sits comfortably above the hormonal minimum while leaving plenty of room for carbs.
+  the **65 g** cap sits comfortably above the hormonal minimum while leaving room for carbs.
+  On a **cut the cap drops to 50 g** — on a deficit those ~135 calories are better spent on
+  protein (muscle retention) and carbs (training performance), and 50 g still lands near the
+  ~20%-of-calories floor for most cutters.
 - **Carbs last** because they're the "performance and flexibility" macro — they fuel
   high-intensity work, refill muscle glycogen, and are easiest to flex up (bulk) or down
   (cut) without touching the protein/fat that protect muscle and hormones.
@@ -276,22 +279,24 @@ So this file fully documents the data behind FairwayFuel.
 ### Macro logic (per day)
 ```
 protein_g = round_even( bodyweight_lb )           // ~1 g/lb, even
-fat_g     = min( round(fat_per_kg × weight_kg), 65 )   // hard 65 g cap
+fat_g     = min( round(fat_per_kg × weight_kg), fat_cap )   // 65 g, or 50 g on a cut
 carb_kcal = target_kcal − (protein_g × 4) − (fat_g × 9)
 carb_g    = round_even( carb_kcal / 4 )           // fills the rest, even
 ```
 `round_even(n)` = round to the nearest even number (never below 0).
 
 ### Per-goal settings
-| Goal | Calorie adj | Fat target (pre-cap) | Pre-WO carb % | Post-WO carb % | Rec. meals |
-|---|---|---|---|---|---|
-| Lean Bulk | +10% | 0.9 g/kg | 25% | 30% | 4 |
-| Bulk | +20% | 1.0 g/kg | 25% | 35% | 5 |
-| Maintain | ±0% | 0.9 g/kg | 25% | 25% | 4 |
-| Cut / Lean Out | −20% | 0.8 g/kg | 30% | 35% | 3 |
+| Goal | Calorie adj | Fat target (pre-cap) | Fat cap | Pre-WO carb % | Post-WO carb % | Rec. meals |
+|---|---|---|---|---|---|---|
+| Lean Bulk | +10% | 0.9 g/kg | 65 g | 25% | 30% | 4 |
+| Bulk | +20% | 1.0 g/kg | 65 g | 25% | 35% | 5 |
+| Maintain | ±0% | 0.9 g/kg | 65 g | 25% | 25% | 4 |
+| Cut / Lean Out | −20% | 0.8 g/kg | **50 g** | 30% | 35% | 3 |
 
-> Fat target is pre-cap; the 65 g ceiling always wins. Pre/post carb % are taken from the
-> **total daily carbs**; the remainder is split across the main meals.
+> Fat target is pre-cap; the cap always wins. Pre/post carb % are taken from the **total
+> daily carbs**; the remainder is split across the main meals, which are then **clock-timed
+> across the day and anchored around your workout** — the meal nearest training becomes the
+> post-workout meal, with a separate pre-workout carb feeding ~90 min before.
 
 ### Carb-timing clock anchors
 | Slot | Assumed training time | Pre-carbs (~90 min before) | Post-carbs (~90 min after) |
