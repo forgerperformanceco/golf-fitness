@@ -154,7 +154,17 @@
   .macro.c .mbar > i { background:#e6b13a; }
   .macro.f .mbar > i { background:#4a90e2; }
 
-  .breakdown { margin-top: 20px; background:#fafcf9; border:1px solid var(--line); border-radius:14px; padding: 6px 16px; }
+  /* collapsible disclosure */
+  details.fold { margin-top:16px; border:1px solid var(--line); border-radius:14px; background:#fafcf9; overflow:hidden; }
+  details.fold > summary { list-style:none; cursor:pointer; padding:12px 16px; font-size:12.5px; font-weight:700; color:var(--green-800); display:flex; justify-content:space-between; align-items:center; gap:8px; }
+  details.fold > summary::-webkit-details-marker { display:none; }
+  details.fold > summary::after { content:"▾"; color:var(--muted); transition:transform .2s; font-size:11px; }
+  details.fold[open] > summary::after { transform:rotate(180deg); }
+  details.fold .fold-body { padding:2px 16px 14px; }
+  details.fold .fold-body ul { margin:0; padding-left:18px; line-height:1.6; font-size:12.8px; color:#5a4f2b; }
+  details.fold .fold-body ul b { color:#3f3818; }
+
+  .breakdown { background:transparent; }
   .breakdown table { width:100%; border-collapse: collapse; font-size: 13px; }
   .breakdown td { padding: 9px 0; color: #2b3a30; }
   .breakdown td:last-child { text-align: right; font-weight: 700; color: var(--green-800); }
@@ -456,19 +466,16 @@
         <h2>The 20-Week Mass + Speed Blueprint</h2>
         <p class="sub">Build like a bodybuilder, move like a golfer.</p>
         <p class="lead">
-          Goal: <b>add ~10 lb of lean muscle</b> and convert it into <b>clubhead speed</b>. We front-load
-          bodybuilding-style hypertrophy to put real size on your frame, then teach that new muscle to produce
-          force — <b>fast</b> — and channel it through the ground and into rotation. The pros who've added 20+ mph
-          did it by roughly <b>doubling their force output</b>, then training the body to apply it quickly. Pair
-          this with the <b>Lean Bulk</b> macros — a clean, quality surplus, never a "dirty bulk."
+          <b>Add ~10 lb of lean muscle</b> and turn it into <b>clubhead speed</b> — build the size, then teach it
+          to fire fast through the ground and into rotation. Pair it with the <b>Lean Bulk</b> macros.
         </p>
         <div class="pillars">
           <div class="pillar"><div class="ico">🏗️</div><h3>Build the Mass</h3>
-            <p>High-volume hypertrophy on the big lifts puts 10 lb on your frame — bigger glutes, lats, quads and forearms are your force base. More muscle = a higher speed ceiling.</p></div>
+            <p>High-volume hypertrophy on the big lifts — more muscle, a higher speed ceiling.</p></div>
           <div class="pillar"><div class="ico">⚡</div><h3>Make it Fast</h3>
-            <p>Heavy strength then explosive Olympic-style and ballistic work teaches the new muscle to contract <em>fast</em>. Speed comes from <b>rate of force development</b>, not size alone.</p></div>
+            <p>Heavy then explosive work for <b>rate of force development</b> — speed, not just size.</p></div>
           <div class="pillar"><div class="ico">🌀</div><h3>Ground Force &amp; Rotate</h3>
-            <p>Push hard into the ground and fire the rotational chain. Ground-force footwork, med-ball throws, anti-rotation core and overspeed swings transfer raw power into the club.</p></div>
+            <p>Footwork, throws and overspeed swings transfer power into the club.</p></div>
         </div>
       </div>
 
@@ -477,18 +484,20 @@
       <div class="phasebar" id="phasebar"></div>
       <div class="phase-detail" id="phaseDetail"></div>
 
-      <div class="tracker">
-        <h3>📈 How to actually gain the 10 lb (and keep your swing)</h3>
-        <ul>
-          <li><b>Clean surplus, not a dirty bulk:</b> use the <b>Lean Bulk</b> setting (+10%) and gain <b>~0.5–0.75 lb/week</b>. Chasing 5,000 junk calories adds fat, wrecks your gut, and kills mobility — the leaner, faster body wins.</li>
-          <li><b>Hit protein every day:</b> ~1g per lb of bodyweight, spread across your meals. Muscle is built in the kitchen.</li>
-          <li><b>Quality food &amp; gut health:</b> whole foods over processed; if you bloat or feel sluggish, watch common triggers (gluten, dairy, excess sugar). A good gut is how you actually absorb the fuel.</li>
-          <li><b>Progressive overload:</b> add a little weight or a rep each week on the main lifts. Log every session.</li>
-          <li><b>Train the ground &amp; the turn:</b> push hard into the ground and rotate fast — that's where strength becomes clubhead speed. Never skip the 2–3 weekly speed/overspeed sessions.</li>
-          <li><b>Measure it:</b> track clubhead speed on a radar and chase a new top-end number — what gets measured gets faster.</li>
-          <li><b>Protect mobility &amp; sleep 7–9 hrs:</b> keep thoracic-rotation and hip drills; recovery is where mass and speed are actually made.</li>
-        </ul>
-      </div>
+      <details class="fold tracker-fold">
+        <summary>📈 How to gain the 10 lb (and keep your swing)</summary>
+        <div class="fold-body">
+          <ul>
+            <li><b>Clean surplus:</b> Lean Bulk (+10%), gain <b>~0.5–0.75 lb/week</b> — not a dirty bulk.</li>
+            <li><b>Protein daily:</b> ~1 g/lb, spread across meals.</li>
+            <li><b>Quality food &amp; gut health:</b> whole foods; watch triggers if you bloat.</li>
+            <li><b>Progressive overload:</b> add weight or a rep each week. Log it.</li>
+            <li><b>Ground &amp; turn:</b> never skip the 2–3 weekly speed/overspeed sessions.</li>
+            <li><b>Measure it:</b> track clubhead speed on a radar, chase a new number.</li>
+            <li><b>Mobility &amp; 7–9 hrs sleep:</b> recovery is where it's made.</li>
+          </ul>
+        </div>
+      </details>
     </section>
   </div>
 
@@ -529,20 +538,20 @@
   var GOALS = {
     leanbulk: { label: "Lean Bulk", pct: 0.10, proteinKg: 2.0, fatKg: 0.9,
       preFrac: 0.25, postFrac: 0.30,
-      timing: "On a Lean Bulk, the <b>post-workout window is your build window</b> — keep it the biggest carb feeding of the day to drive recovery and growth.",
-      note: "A modest, <b>clean surplus</b> builds quality mass and force without the fat that steals rotation and mobility — the lean, fast body out-drives the heavy, slow one. Keep carbs high around lifts and speed work to fuel adaptation." },
+      timing: "Post-workout is your <b>build window</b> — keep it the biggest carb feeding of the day.",
+      note: "A clean surplus builds <b>quality mass and force</b> — the lean, fast body out-drives the heavy one." },
     bulk: { label: "Bulk", pct: 0.20, proteinKg: 1.9, fatKg: 1.0,
       preFrac: 0.25, postFrac: 0.35,
-      timing: "On a Bulk, <b>load the post-workout window hard</b> — it's your single biggest glycogen-refill and growth opportunity. Eating most carbs around training keeps energy high without sitting heavy all day.",
-      note: "An aggressive off-season surplus to <b>maximize strength and clubhead-speed potential</b>. Keep it quality food, not a dirty bulk — too much junk wrecks your gut and mobility. Expect some fat gain and plan a Lean Out phase before your season." },
+      timing: "<b>Load post-workout hard</b> — your biggest glycogen-refill and growth window.",
+      note: "Aggressive surplus for <b>max strength &amp; speed</b>. Quality food, not a dirty bulk — plan a Lean Out after." },
     maintain: { label: "In-Season Maintain", pct: 0.0, proteinKg: 1.9, fatKg: 0.9,
       preFrac: 0.25, postFrac: 0.25,
-      timing: "In-Season, split carbs <b>evenly around training</b> for steady energy, and save some for your round — fuel the swing on the course, not just in the gym.",
-      note: "Hold your build and <b>keep steady energy across 4–5 hour rounds</b>. Carbs fuel focus and late-round decision-making — don't slash them during tournament weeks." },
+      timing: "Split carbs <b>evenly around training</b>, and save some to fuel your round.",
+      note: "Hold your build and <b>steady energy across a 4–5 hour round</b>. Don't slash carbs on tournament weeks." },
     cut: { label: "Lean Out", pct: -0.20, proteinKg: 2.4, fatKg: 0.8, fatCap: 50,
       preFrac: 0.30, postFrac: 0.35,
-      timing: "On a Lean Out, <b>concentrate your limited carbs around the workout</b> — fuel before, refill after, and stay lower the rest of the day. You get energy where it matters and burn fat everywhere else.",
-      note: "A controlled deficit with <b>high protein to protect muscle</b> while you drop fat. A better power-to-weight ratio means more speed from the same strength. Don't crash — slow and steady protects your swing." }
+      timing: "<b>Concentrate limited carbs around the workout</b>; stay lower the rest of the day.",
+      note: "High-protein deficit to <b>protect muscle</b> while you drop fat — better power-to-weight, more speed. Don't crash." }
   };
   var ACTIVITY_LABELS = { "1.2":"Sedentary","1.375":"Light","1.55":"Moderate","1.725":"Very Active","1.9":"Athlete" };
 
@@ -708,7 +717,8 @@
       macroCard("f","Fat",r.fatG,r.fatKcal,fPct)+'</div>';
     html+=mealBlock(r.meal);
     html+=timingBlock(r.timing);
-    html+='<div class="breakdown"><table>'+
+    html+='<div class="golf-note"><b>⛳ '+r.goal.label+':</b> '+r.goal.note+'</div>';
+    html+='<details class="fold"><summary>How this is calculated</summary><div class="fold-body breakdown"><table>'+
       tr("BMR (Mifflin–St Jeor)",round5(r.bmr)+" kcal")+
       tr("Activity multiplier","×"+r.activity+" ("+ACTIVITY_LABELS[String(r.activity)]+")")+
       tr("TDEE / Maintenance",round5(r.tdee)+" kcal")+
@@ -717,8 +727,7 @@
       tr("Protein","1 g/lb · even ("+r.proteinG+" g)")+
       tr("Fat","capped at "+(r.goal.fatCap||65)+" g ("+r.fatG+" g)")+
       tr("Carbs","fills remainder · even ("+r.carbG+" g)")+
-      '</table></div>';
-    html+='<div class="golf-note"><b>⛳ Golf focus:</b> '+r.goal.note+'</div>';
+      '</table></div></details>';
     $("results").innerHTML=html;
   }
   function macroCard(cls,label,grams,kcal,pct){
@@ -764,16 +773,16 @@
        '</div>';
     h+='<div class="sched-title">📅 Your day &mdash; timed for a <b>'+m.slot+'</b> workout</div>';
     h+='<div class="sched">'+rows+'</div>';
-    h+='<div class="meal-foot"><b>Tip:</b> the meal nearest your session is set as your <b>post-workout meal</b>, so its protein doubles as recovery fuel. Times are guides — shift the whole day earlier or later to fit your schedule.</div>';
+    h+='<div class="meal-foot">Times are guides — shift the day to fit your schedule.</div>';
     h+='</div></div>';
     return h;
   }
 
   function timingBlock(t){
     var preTip = t.fasted
-      ? "Training fasted? Have these carbs <b>as you start</b> (or sip a carb drink during) and make the post-workout meal your priority."
-      : "Fast-digesting carbs ~60–90 min before — oats, banana, rice, toast or a sports drink.";
-    var postTip = "Within ~60 min of finishing — pair with protein. Faster carbs (rice, potatoes, fruit) refill glycogen best.";
+      ? "Fasted? Take it as you start, or prioritize the post-workout meal."
+      : "Fast carbs ~60–90 min before (oats, banana, rice).";
+    var postTip = "Within ~60 min, with protein (rice, potatoes, fruit).";
     var h="";
     h+='<div class="timing">';
     h+='<div class="timing-head"><span>🕒 Carb Timing</span><span class="when">'+t.slot+' &middot; train ≈ '+t.trainTime+'</span></div>';
@@ -787,7 +796,7 @@
        '<div class="tclock">≈ '+t.postTime+'</div>'+
        '<div class="ttip">'+postTip+'</div></div>';
     h+='</div>';
-    h+='<div class="timing-foot"><b>'+t.restG+'g carbs</b> remaining for your other meals. '+t.note+'</div>';
+    h+='<div class="timing-foot"><b>'+t.restG+'g carbs</b> across your other meals. '+t.note+'</div>';
     h+='</div>';
     return h;
   }
@@ -798,7 +807,7 @@
   var PHASES = [
     {
       id: "base", weeks: "Weeks 1–8", name: "Mass Base", goal: "Bodybuilder hypertrophy — put the 10 lb on",
-      blurb: "Highest volume of the program. We chase muscle with moderate-heavy weight and 8–15 rep ranges across two passes per muscle each week. Speed work stays light here — just enough to keep the pattern sharp while the size goes on.",
+      blurb: "Highest volume of the program — chase muscle with 8–15 reps, twice per muscle each week. Speed work stays light while the size goes on.",
       chips: ["8–15 reps", "Highest volume", "1.5–3 min rest", "Eat in surplus"],
       speed: {
         title: "Speed primer (2×/week, ~10 min)",
@@ -833,7 +842,7 @@
     },
     {
       id: "strength", weeks: "Weeks 9–13", name: "Strength Convert", goal: "Turn new mass into raw force",
-      blurb: "We cut volume and add weight. Lower reps (3–6) on the main lifts build the maximal strength that underpins speed — a stronger muscle has a higher ceiling for fast force. Speed work ramps up.",
+      blurb: "Cut volume, add weight. Lower reps (3–6) build the maximal strength that raises your speed ceiling. Speed work ramps up.",
       chips: ["3–6 reps", "Heavy loads", "3–5 min rest", "Build the engine"],
       speed: {
         title: "Speed development (3×/week, ~15 min)",
@@ -867,7 +876,7 @@
     },
     {
       id: "power", weeks: "Weeks 14–20", name: "Power &amp; Speed", goal: "Convert force into clubhead speed",
-      blurb: "The payoff phase. Strength is maintained with a couple of heavy lifts, but the priority is explosive, ballistic and rotational work at maximal velocity. This is where new mass becomes new swing speed.",
+      blurb: "The payoff phase. Maintain strength, but prioritize explosive, ballistic and rotational work at max velocity — where new mass becomes swing speed.",
       chips: ["Max velocity", "Ballistic & Olympic", "Full recovery", "Speed > size"],
       speed: {
         title: "Max-velocity speed (3×/week, ~20 min — the priority)",
@@ -997,7 +1006,7 @@
        '<button type="button" data-preset="minimal">Minimal</button>'+
        '</div></div>';
     h+='<div class="equip-chips">'+chips+'</div>';
-    h+='<div class="equip-note">Bodyweight is always on. Deselect anything you don\'t own and every workout below updates automatically.</div>';
+    h+='<div class="equip-note">Bodyweight is always on — deselect anything you don\'t own.</div>';
     $("equipBar").innerHTML=h;
   }
   $("equipBar").addEventListener("click", function(e){
@@ -1077,10 +1086,10 @@
         '<table class="ex"><tr><th>Exercise</th><th style="text-align:right">Sets × Reps</th></tr>'+rows+'</table></div>';
     });
 
-    // Speed methodology callout (always shown under the week)
-    var sp=p.speed;
-    html+='<div class="speed-callout"><h4>🌀 Why this builds clubhead speed</h4>'+
-      '<p>Phase priority: <b>'+p.goal+'.</b> '+phaseWhy(p.id)+'</p></div>';
+    // Speed methodology — collapsed by default to keep the week scannable
+    html+='<details class="fold"><summary>🌀 Why this builds clubhead speed</summary>'+
+      '<div class="fold-body" style="font-size:12.8px;color:#5a4f2b;line-height:1.5;padding-top:8px;">'+
+      '<b>Priority: '+p.goal+'.</b> '+phaseWhy(p.id)+'</div></details>';
 
     $("phaseDetail").innerHTML=html;
 
@@ -1101,9 +1110,9 @@
     return "Lift";
   }
   function phaseWhy(id){
-    if(id==="base") return "Bigger muscles in the glutes, lats, core and forearms raise your total force potential — you can't fire a cannon from a canoe. Light speed work keeps the swing pattern fast while you add the size.";
-    if(id==="strength") return "Maximal strength raises the ceiling on how much force you can produce. A stronger squat and deadlift mean more ground force — the foundation of every fast swing — and the heavy work makes your new mass useful, not just for show.";
-    return "Now it's all about rate of force development: moving light loads and your own body as fast as humanly possible, plus rotational throws and overspeed swings that train the exact pattern of the golf swing. This is the phase where strength becomes speed and speed becomes distance.";
+    if(id==="base") return "Bigger glutes, lats, core and forearms raise your force potential — you can't fire a cannon from a canoe. Light speed work keeps the pattern fast.";
+    if(id==="strength") return "Maximal strength raises your force ceiling. A stronger squat and deadlift mean more ground force — the base of every fast swing.";
+    return "All about rate of force development: move light loads as fast as possible, plus throws and overspeed swings that train the swing pattern. Strength becomes speed.";
   }
 
   renderEquip();
