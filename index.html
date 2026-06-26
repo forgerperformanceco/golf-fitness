@@ -283,16 +283,6 @@
   .pillar h3 { margin:8px 0 4px; font-size:15px; }
   .pillar p { margin:0; font-size:12.8px; color:var(--muted); line-height:1.45; }
 
-  .phasebar { display:flex; gap:8px; margin: 24px 0 4px; flex-wrap:wrap; }
-  .phasebar button {
-    flex:1; min-width: 150px; text-align:left; border:1.5px solid var(--line); background:#fff;
-    border-radius:12px; padding:12px 14px; cursor:pointer; transition: all .15s;
-  }
-  .phasebar button:hover { border-color: var(--green-500); }
-  .phasebar button.active { border-color: var(--green-600); background:linear-gradient(180deg,#f1fdf4,#fff); box-shadow:0 4px 14px rgba(22,163,74,.16); }
-  .phasebar .pweeks { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.4px; color:var(--green-700); }
-  .phasebar .pname { font-size:15px; font-weight:800; margin-top:2px; }
-  .phasebar .pgoal { font-size:11.5px; color:var(--muted); margin-top:2px; }
 
   .phase-detail { margin-top:18px; }
   .phase-head {
@@ -466,8 +456,8 @@
         <h2>The 20-Week Mass + Speed Blueprint</h2>
         <p class="sub">Build like a bodybuilder, move like a golfer.</p>
         <p class="lead">
-          <b>Add ~10 lb of lean muscle</b> and turn it into <b>clubhead speed</b> — build the size, then teach it
-          to fire fast through the ground and into rotation. Pair it with the <b>Lean Bulk</b> macros.
+          <b>Add ~10 lb of lean muscle</b> and turn it into <b>clubhead speed</b> — one consistent week that builds
+          size, strength and speed together, all 20 weeks. Pair it with the <b>Lean Bulk</b> macros.
         </p>
         <div class="pillars">
           <div class="pillar"><div class="ico">🏗️</div><h3>Build the Mass</h3>
@@ -481,7 +471,6 @@
 
       <div class="equip" id="equipBar"></div>
 
-      <div class="phasebar" id="phasebar"></div>
       <div class="phase-detail" id="phaseDetail"></div>
 
       <details class="fold tracker-fold">
@@ -828,110 +817,41 @@
 
   /* ===================== TRAINING PLAN ===================== */
   // Each phase: a 4-day and 5-day weekly schedule. Days have a type + exercise list.
+  // One consistent, concurrent week — run for the full 20 weeks (see reference doc for the evidence).
   var PHASES = [
     {
-      id: "base", weeks: "Weeks 1–8", name: "Mass Base", goal: "Bodybuilder hypertrophy — put the 10 lb on",
-      blurb: "Highest volume of the program — chase muscle with 8–15 reps, twice per muscle each week. Speed work stays light while the size goes on.",
-      chips: ["8–15 reps", "Highest volume", "1.5–3 min rest", "Eat in surplus"],
+      id: "main", title: "Your Weekly Program", goal: "build mass and clubhead speed together",
+      blurb: "One consistent week — run it for the full 20 weeks. Every week trains all three qualities together: heavy strength, hypertrophy volume, and power/speed. That builds just as much muscle as splitting them into separate blocks, and keeps your swing speed sharp the whole time. Add a little weight or a rep most weeks; take a lighter deload week every 6th week.",
+      chips: ["Size + strength + speed each week", "Progressive overload", "Same week, 20 weeks", "Deload every 6th week"],
       speed: {
-        title: "Speed primer (2×/week, ~10 min)",
-        intro: "Keep it light while you build — the goal is to stay fast, not fatigue the swing.",
+        title: "Speed & power session (the priority for clubhead speed)",
+        intro: "Max-intent reps with full recovery. Do this dedicated session weekly, and add a 10-minute speed burst after one other lift day.",
         bullets: [
-          "Overspeed swings: 3 sets × 6 swings (light/training club or weighted-stick protocol), alternate lead/trail side",
-          "Seated chest pass with med ball: 3 × 8 (explosive)",
-          "Pogo hops: 3 × 12 (stiff, fast ground contact)"
+          "Overspeed swing protocol: 5 sets \u00d7 6 swings, light\u2192heavy stick progression, both sides \u2014 track on a radar",
+          "Ground-force footwork: lead-foot push drill \u2014 drive into the ground from the top, 4 \u00d7 5 / side",
+          "Rotational med-ball throws: side throw + step-behind, 5 \u00d7 4 / side, max effort",
+          "Box jump or broad jump: 5 \u00d7 3 (full recovery)"
         ]
       },
       days4: [
-        { name:"Day 1 — Lower (Quad/Glute focus)", tag:"Lift", ex:[
-          ["Back Squat","4 × 8–10"],["Romanian Deadlift","3 × 10"],["Walking Lunge","3 × 12 / leg"],
-          ["Leg Press","3 × 12–15"],["Standing Calf Raise","4 × 15"],["Hanging Leg Raise","3 × 12"]
+        { name:"Day 1 \u2014 Lower (Squat)", tag:"Lift", ex:[
+          ["Back Squat","4 \u00d7 5 (heavy)"],["Romanian Deadlift","3 \u00d7 8"],["Walking Lunge","3 \u00d7 10 / leg"],
+          ["Leg Curl","3 \u00d7 12"],["Standing Calf Raise","4 \u00d7 12"],["Hanging Leg Raise","3 \u00d7 12"]
         ]},
-        { name:"Day 2 — Upper (Push focus)", tag:"Lift", ex:[
-          ["Incline DB Press","4 × 8–10"],["Flat Barbell Bench","3 × 10"],["Seated DB Shoulder Press","3 × 10"],
-          ["Lateral Raise","3 × 15"],["Cable Triceps Pushdown","3 × 12"],["Cable Wood-chop (rotational core)","3 × 10 / side"]
+        { name:"Day 2 \u2014 Upper (Push)", tag:"Lift", ex:[
+          ["Barbell Bench Press","4 \u00d7 5 (heavy)"],["Incline DB Press","3 \u00d7 10"],["Standing Overhead Press","3 \u00d7 8"],
+          ["Lateral Raise","3 \u00d7 15"],["Cable Triceps Pushdown","3 \u00d7 12"],["Cable Wood-chop","3 \u00d7 10 / side"]
         ]},
-        { name:"Day 3 — Speed Primer + Mobility", tag:"speed", type:"speed" },
-        { name:"Day 4 — Lower (Posterior/Hinge)", tag:"Lift", ex:[
-          ["Deadlift","4 × 6–8"],["Hip Thrust","3 × 10"],["Bulgarian Split Squat","3 × 10 / leg"],
-          ["Leg Curl","3 × 12"],["Pallof Press (anti-rotation)","3 × 12 / side"],["Farmer Carry","3 × 40 yd"]
+        { name:"Day 3 \u2014 Speed & Power", tag:"speed", type:"speed" },
+        { name:"Day 4 \u2014 Lower (Hinge + Power)", tag:"Lift", ex:[
+          ["Box Jump","4 \u00d7 3 (explosive)"],["Deadlift","4 \u00d7 4 (heavy)"],["Hip Thrust","3 \u00d7 8"],
+          ["Bulgarian Split Squat","3 \u00d7 10 / leg"],["Pallof Press","3 \u00d7 12 / side"],["Farmer Carry","3 \u00d7 40 yd"]
         ]},
-        { name:"Day 5 — Upper (Pull focus)", tag:"Lift", ex:[
-          ["Weighted Pull-up","4 × 8"],["Chest-Supported Row","3 × 10"],["Lat Pulldown","3 × 12"],
-          ["Face Pull","3 × 15"],["DB Curl","3 × 12"],["Forearm/Wrist Roller","3 × failure"]
+        { name:"Day 5 \u2014 Upper (Pull + Rotate)", tag:"Lift", ex:[
+          ["Weighted Pull-up","4 \u00d7 6"],["Chest-Supported Row","3 \u00d7 10"],["Lat Pulldown","3 \u00d7 12"],
+          ["Rotational Med-Ball Throw","4 \u00d7 5 / side"],["Face Pull","3 \u00d7 15"],["DB Curl","3 \u00d7 12"]
         ]},
-        { name:"Day 6 & 7 — Rest / Golf / Walk", tag:"rest", type:"rest" }
-      ],
-      days5: null // 4-day doubles as the template; 5th lift day is Day 5 above
-    },
-    {
-      id: "strength", weeks: "Weeks 9–13", name: "Strength Convert", goal: "Turn new mass into raw force",
-      blurb: "Cut volume, add weight. Lower reps (3–6) build the maximal strength that raises your speed ceiling. Speed work ramps up.",
-      chips: ["3–6 reps", "Heavy loads", "3–5 min rest", "Build the engine"],
-      speed: {
-        title: "Speed development (3×/week, ~15 min)",
-        intro: "Now we start aggressively training the fast end of the curve.",
-        bullets: [
-          "Overspeed swing protocol: 4 sets × 6 swings, lead + trail + dominant, progress stick weight down",
-          "Rotational med-ball side throw: 4 × 5 / side (max intent into a wall)",
-          "Broad jump or box jump: 4 × 4 (full recovery)"
-        ]
-      },
-      days4: [
-        { name:"Day 1 — Squat Strength", tag:"Lift", ex:[
-          ["Back Squat","5 × 4 (heavy)"],["Front Squat","3 × 5"],["Romanian Deadlift","3 × 6"],
-          ["Weighted Plank","3 × 30 s"],["Standing Calf Raise","3 × 10"]
-        ]},
-        { name:"Day 2 — Press Strength", tag:"Lift", ex:[
-          ["Barbell Bench Press","5 × 4 (heavy)"],["Weighted Dip","3 × 6"],["Standing Overhead Press","4 × 5"],
-          ["Cable Wood-chop","3 × 8 / side"],["Lateral Raise","3 × 12"]
-        ]},
-        { name:"Day 3 — Speed + Power", tag:"power", type:"speed" },
-        { name:"Day 4 — Deadlift Strength", tag:"Lift", ex:[
-          ["Deadlift","5 × 3 (heavy)"],["Hip Thrust","4 × 6"],["Bulgarian Split Squat","3 × 6 / leg"],
-          ["Pallof Press","3 × 10 / side"],["Farmer Carry","4 × 30 yd (heavy)"]
-        ]},
-        { name:"Day 5 — Pull Strength", tag:"Lift", ex:[
-          ["Weighted Pull-up","5 × 4"],["Pendlay Row","4 × 5"],["Lat Pulldown","3 × 8"],
-          ["Heavy Wrist/Forearm work","3 × 8"],["Hammer Curl","3 × 8"]
-        ]},
-        { name:"Day 6 & 7 — Rest / Golf / Walk", tag:"rest", type:"rest" }
-      ]
-    },
-    {
-      id: "power", weeks: "Weeks 14–20", name: "Power &amp; Speed", goal: "Convert force into clubhead speed",
-      blurb: "The payoff phase. Maintain strength, but prioritize explosive, ballistic and rotational work at max velocity — where new mass becomes swing speed.",
-      chips: ["Max velocity", "Ballistic & Olympic", "Full recovery", "Speed > size"],
-      speed: {
-        title: "Max-velocity speed (3×/week, ~20 min — the priority)",
-        intro: "Every rep is max intent with full recovery. Quality over quantity — stop when speed drops.",
-        bullets: [
-          "Overspeed swing protocol: 5 sets × 6 swings, full step-down/step-up stick progression, both sides",
-          "Ground-force footwork: lead-foot push drill — drive into the ground from the top of the backswing, 4 × 5 / side (load the legs, fire up through rotation)",
-          "Rotational med-ball throws: standing side throw + step-behind throw, 5 × 4 / side, max effort",
-          "Med-ball overhead slam &amp; scoop toss: 4 × 5",
-          "Track clubhead speed weekly with a radar/speed device — chase a new top-end number"
-        ]
-      },
-      days4: [
-        { name:"Day 1 — Lower Power", tag:"power", ex:[
-          ["Box Jump","5 × 3 (max height)"],["Squat Jump","5 × 3"],["Back Squat (maintain)","3 × 4"],
-          ["Hip Thrust (explosive)","3 × 5"],["Anti-rotation Cable Hold","3 × 20 s / side"]
-        ]},
-        { name:"Day 2 — Upper Power", tag:"power", ex:[
-          ["Plyo / Clap Push-up","5 × 4"],["Speed Bench (50–60%, max bar speed)","6 × 3"],["Med-Ball Chest Pass","5 × 4"],
-          ["Cable Rotational Punch","4 × 6 / side"],["Landmine Rotation","3 × 8 / side"]
-        ]},
-        { name:"Day 3 — Speed + Rotational Power", tag:"speed", type:"speed" },
-        { name:"Day 4 — Total-Body Explosive", tag:"power", ex:[
-          ["Hang Power Clean / KB Swing","6 × 3"],["Deadlift (maintain)","3 × 3"],["Broad Jump","5 × 3"],
-          ["Rotational Med-Ball Throw","5 × 4 / side"],["Pallof Press (fast)","3 × 10 / side"]
-        ]},
-        { name:"Day 5 — Speed Session + Light Pull", tag:"speed", ex:[
-          ["Overspeed swing protocol","full session"],["Pull-up","3 × 6"],["Face Pull","3 × 15"],
-          ["Forearm/Grip work","3 × 12"],["Thoracic mobility flow","10 min"]
-        ]},
-        { name:"Day 6 & 7 — Rest / Play 18", tag:"rest", type:"rest" }
+        { name:"Day 6 & 7 \u2014 Rest / Play 18", tag:"rest", type:"rest" }
       ]
     }
   ];
@@ -1009,7 +929,6 @@
 
   var planState = { phase: 0, freq: 4, equip: {} };
   EQUIPMENT.forEach(function(e){ planState.equip[e.key] = true; }); // default: full gym
-  var phasebar = $("phasebar");
 
   function renderEquip(){
     var chips = EQUIPMENT.map(function(e){
@@ -1045,18 +964,6 @@
     }
   });
 
-  PHASES.forEach(function(p, i){
-    var b=document.createElement("button");
-    b.innerHTML = '<div class="pweeks">'+p.weeks+'</div><div class="pname">'+p.name+'</div><div class="pgoal">'+p.goal+'</div>';
-    b.addEventListener("click", function(){ planState.phase=i; renderPhasebar(); renderPhase(); });
-    phasebar.appendChild(b);
-  });
-
-  function renderPhasebar(){
-    Array.prototype.forEach.call(phasebar.children, function(c,i){
-      c.classList.toggle("active", i===planState.phase);
-    });
-  }
 
   function renderPhase(){
     var p = PHASES[planState.phase];
@@ -1070,7 +977,7 @@
     }
 
     var html="";
-    html+='<div class="phase-head"><h3>'+p.weeks+' · '+p.name+'</h3><p>'+p.blurb+'</p>'+
+    html+='<div class="phase-head"><h3>'+p.title+'</h3><p>'+p.blurb+'</p>'+
       '<div class="focuschips">'+p.chips.map(function(c){ return '<span>'+c+'</span>'; }).join("")+'</div></div>';
 
     html+='<div class="freqbar"><span>Training days per week:</span><div class="seg" id="freqSeg">'+
@@ -1108,7 +1015,7 @@
     // Speed methodology — collapsed by default to keep the week scannable
     html+='<details class="fold"><summary>🌀 Why this builds clubhead speed</summary>'+
       '<div class="fold-body" style="font-size:12.8px;color:#5a4f2b;line-height:1.5;padding-top:8px;">'+
-      '<b>Priority: '+p.goal+'.</b> '+phaseWhy(p.id)+'</div></details>';
+      phaseWhy()+'</div></details>';
 
     $("phaseDetail").innerHTML=html;
 
@@ -1128,14 +1035,11 @@
     if(tag==="power") return "Power";
     return "Lift";
   }
-  function phaseWhy(id){
-    if(id==="base") return "Bigger glutes, lats, core and forearms raise your force potential — you can't fire a cannon from a canoe. Light speed work keeps the pattern fast.";
-    if(id==="strength") return "Maximal strength raises your force ceiling. A stronger squat and deadlift mean more ground force — the base of every fast swing.";
-    return "All about rate of force development: move light loads as fast as possible, plus throws and overspeed swings that train the swing pattern. Strength becomes speed.";
+  function phaseWhy(){
+    return "Each week you build force capacity (size + strength) <b>and</b> train it to fire fast (rate of force development), then transfer it with ground-force work and overspeed swings. Research shows training these qualities together builds just as much muscle as separate blocks — while keeping your speed sharp the whole time. The engine and the gas pedal, every week.";
   }
 
   renderEquip();
-  renderPhasebar();
   renderPhase();
 })();
 </script>

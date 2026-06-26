@@ -244,19 +244,31 @@ The training side of adding muscle ("build like a bodybuilder").
 - **Rest:** 1.5–3 min for hypertrophy accessory work; 3–5 min for heavy strength sets.
 - **Recovery is where growth happens:** 7–9 h sleep, managed stress, and enough food.
   You don't grow in the gym — you grow recovering from it.
-- **Periodization:** cycling phases (hypertrophy → strength → power) lets you build size,
-  then make it strong, then make it fast. FairwayFuel's 20-week plan uses exactly this
-  arc: Mass Base → Strength Convert → Power & Speed.
+- **Periodization — consistent & concurrent beats block-switching here.** You do *not*
+  need to spend weeks on pure hypertrophy, then switch to a pure strength block, then a
+  pure power block. The evidence is clear:
+  - **For muscle growth, the periodization model barely matters when volume is equated.**
+    Meta-analyses (Schoenfeld/Grgic; linear vs. daily-undulating) find essentially *no
+    difference* in hypertrophy between block, linear, and undulating models.
+  - **For strength, undulating/concurrent is equal or slightly better**, especially as you
+    advance (~3–5% better 1RM in trained lifters when volume is matched).
+  - **Block periodization mainly helps advanced/elite athletes** who need novel stimuli.
+    For everyone else, a **consistent week that trains all qualities together** is just as
+    effective for size, a touch better for strength, and keeps speed sharp year-round.
+  - You **don't lose muscle** training this way — there's no "interference" between lifting
+    for size and lifting for strength/power, and brief intensity shifts don't detrain you.
+- **So FairwayFuel uses one consistent, concurrent week for all 20 weeks** — heavy strength,
+  hypertrophy volume, and power/speed in every week — progressed by **progressive overload**
+  (add a little weight or a rep most weeks) with a **deload every 6th week.**
 
-### Strength → Power → Speed (why order matters)
-- **Strength** = max force you can produce. Build it with heavy, lower-rep work.
-- **Power** = force × velocity — applying force *fast.* Built with explosive, ballistic,
-  and Olympic-style lifts at high intent.
-- **Rate of Force Development (RFD)** = how quickly you can reach high force. This is the
-  quality most tied to throwing/striking/swinging speed, trained with jumps, throws, and
-  light-load max-velocity work.
-- You convert mass → strength → power → **speed** in sequence. Pure size that can't fire
-  fast doesn't move a golf club (or a barbell) quickly.
+### Strength · Power · Speed (the qualities you train together)
+- **Strength** = max force you can produce. Built with heavy, lower-rep compound work.
+- **Power** = force × velocity — applying force *fast.* Explosive/ballistic lifts and jumps.
+- **Rate of Force Development (RFD)** = how quickly you reach high force — the quality most
+  tied to swing speed, trained with jumps, throws, and overspeed swings.
+- These aren't a strict sequence — **train them concurrently.** More muscle raises your
+  force ceiling, strength makes that muscle useful, and power/speed work turns it into
+  clubhead speed. Pure size that can't fire fast doesn't move a club (or a barbell) quickly.
 
 ---
 
@@ -341,19 +353,34 @@ carb_g    = round_even( carb_kcal / 4 )           // fills the rest, even
 | Afternoon | 4:00 PM | ~2:30 PM | ~5:30 PM |
 | Evening | 7:00 PM | ~5:30 PM | ~8:30 PM |
 
-### Meal plan
-```
-per_main_meal_protein = round( protein_g / meals )
-per_main_meal_fat     = round( fat_g / meals )
-per_main_meal_carbs   = round( rest_carbs / meals )   // rest = total − pre − post
-```
+### Meal plan (role-weighted, not even)
+Macros are **distributed by meal role**, not split evenly, then summed to match the daily
+total exactly. All carbs (including pre/post-workout) are split across every feeding by
+weight, so portions shrink as you add meals:
 
-### 20-week training arc
-| Phase | Weeks | Focus | Rep range |
+| Meal role | Protein wt | Carb wt | Fat wt |
 |---|---|---|---|
-| Mass Base | 1–8 | Bodybuilder hypertrophy | 8–15 |
-| Strength Convert | 9–13 | Maximal strength | 3–6 |
-| Power & Speed | 14–20 | Explosive / overspeed | Max velocity |
+| Breakfast | 0.95 | 1.05 | 1.25 |
+| Lunch | 1.05 | 1.00 | 1.00 |
+| Dinner | 1.15 | 0.90 | 1.35 |
+| Snack | 0.70 | 0.80 | 0.55 |
+| Post-workout meal | (by role) | 1.60 | role × 0.35 |
+| Pre-workout snack | 0 | 0.80 | 0 |
+
+### 20-week training: one consistent, concurrent week
+Run the **same week for all 20 weeks** (4 or 5 training days). Every week trains all three
+qualities — no block-switching (see §7 for the evidence).
+
+| Day | Focus | Rep ranges |
+|---|---|---|
+| Day 1 — Lower (Squat) | Heavy squat + hypertrophy accessories | 4–5 heavy, 8–15 |
+| Day 2 — Upper (Push) | Heavy press + hypertrophy | 4–5 heavy, 8–15 |
+| Day 3 — Speed & Power | Overspeed swings, throws, jumps, ground force | max velocity |
+| Day 4 — Lower (Hinge + Power) | Jump + heavy deadlift/hinge + accessories | power, 4 heavy, 8–12 |
+| Day 5 — Upper (Pull + Rotate) | Pulls + rotational power | 6–15 |
+
+Progress by **progressive overload** (add weight or a rep most weeks); **deload every 6th
+week** (lighter loads/volume). Eat in a **Lean Bulk** the whole time.
 
 ---
 
@@ -444,6 +471,11 @@ principles; their numbers don't survive scrutiny.
 - **Mifflin–St Jeor (1990)** — the BMR equation used here.
 - **Schoenfeld B.** (hypertrophy research); **Helms E.** *Muscle & Strength Pyramids*;
   **Stronger by Science** (Greg Nuckols) — evidence reviews.
+- **Periodization (for §7):** systematic reviews/meta-analyses on **linear vs. daily
+  undulating periodization** (similar hypertrophy when volume is equated; undulating ≈ or
+  slightly better for strength); **concurrent-training "interference"** reviews (no
+  meaningful interference between resistance modalities). See Stronger by Science,
+  *"Periodization: What the Data Say."*
 
 **Practitioner macro calculators (credible, used for the §12 comparison):**
 - RippedBody (Andy Morgan): https://rippedbody.com/macro-calculator/ and /updated-bulking-guidelines/
