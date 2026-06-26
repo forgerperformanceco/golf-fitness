@@ -360,6 +360,66 @@
   footer strong { color: var(--green-800); }
   footer .disc { max-width: 640px; margin: 8px auto 0; opacity:.8; font-size: 11.5px; }
 
+  /* ===== Workout logger ===== */
+  .weekbar { display:flex; align-items:center; justify-content:space-between; gap:10px;
+    background:linear-gradient(160deg,#0f2417,#14532d); color:#eafff1; border-radius:14px; padding:12px 16px; margin-bottom:14px; }
+  .weekbar .wk-label { font-size:13px; font-weight:700; line-height:1.3; }
+  .weekbar .wk-label b { color:var(--accent); font-size:15px; }
+  .weekbar .wk-label span { display:block; font-size:11px; opacity:.8; font-weight:500; }
+  .weekbar select { width:auto; background:rgba(255,255,255,.14); color:#fff; border:1px solid rgba(255,255,255,.25);
+    padding:9px 30px 9px 12px; font-size:14px; font-weight:700; border-radius:10px; }
+  .weekbar select option { color:#143; }
+  .day-foot { padding:11px 15px 13px; border-top:1px solid var(--line); display:flex; justify-content:flex-end; align-items:center; gap:10px; }
+  .logbtn { display:inline-flex; align-items:center; gap:6px; border:none; cursor:pointer; font-weight:700; font-size:13px;
+    border-radius:10px; padding:11px 16px; background:var(--green-600); color:#fff; transition:all .15s; }
+  .logbtn:hover { background:var(--green-700); }
+  .logbtn.logged { background:#eef7f0; color:var(--green-700); border:1px solid #cfe9d8; }
+
+  .modal-back { position:fixed; inset:0; background:rgba(8,24,15,.55); z-index:100;
+    display:flex; align-items:flex-end; justify-content:center; opacity:0; pointer-events:none; transition:opacity .2s; }
+  .modal-back.open { opacity:1; pointer-events:auto; }
+  .modal { background:var(--paper); width:100%; max-width:560px; max-height:94vh; border-radius:20px 20px 0 0;
+    overflow:hidden; display:flex; flex-direction:column; transform:translateY(24px); transition:transform .22s; }
+  @media(min-width:560px){ .modal-back{ align-items:center; } .modal{ border-radius:20px; max-height:90vh; } }
+  .modal-back.open .modal { transform:none; }
+  .modal-head { background:linear-gradient(160deg,var(--green-800),var(--green-600)); color:#fff; padding:16px 18px;
+    display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+  .modal-head h3 { margin:0; font-size:17px; letter-spacing:-.3px; }
+  .modal-head .mh-sub { font-size:12px; opacity:.9; margin-top:3px; }
+  .modal-close { background:rgba(255,255,255,.2); border:none; color:#fff; width:34px; height:34px; border-radius:50%;
+    font-size:19px; line-height:1; cursor:pointer; flex-shrink:0; }
+  .modal-body { overflow-y:auto; -webkit-overflow-scrolling:touch; padding:14px 16px 18px; }
+  .logx { background:#fff; border:1px solid var(--line); border-radius:14px; padding:13px 14px; margin-bottom:12px; box-shadow: var(--shadow-sm); }
+  .logx-name { font-weight:700; font-size:14.5px; color:#243a2c; }
+  .logx-target { font-size:11.5px; color:var(--muted); }
+  .logx-last { font-size:11px; color:var(--green-700); margin:6px 0 9px; background:#f1fdf4; padding:5px 9px; border-radius:7px; display:inline-block; }
+  .setlabels { display:grid; grid-template-columns:32px 1fr 1fr 44px; gap:8px; font-size:9.5px; text-transform:uppercase;
+    letter-spacing:.4px; color:var(--muted); margin:8px 0 5px; padding:0 2px; font-weight:700; }
+  .setrow { display:grid; grid-template-columns:32px 1fr 1fr 44px; gap:8px; align-items:center; margin-bottom:7px; }
+  .setrow .snum { font-size:13px; font-weight:800; color:var(--muted); text-align:center; }
+  .setrow input { padding:11px 6px; font-size:16px; text-align:center; border-radius:9px; }
+  .setrow .donebtn { width:44px; height:44px; border-radius:10px; border:1.5px solid var(--line); background:#fff;
+    font-size:17px; cursor:pointer; color:#c2cabb; }
+  .setrow .donebtn.on { background:var(--green-600); border-color:var(--green-600); color:#fff; }
+  .setrow.is-done input { background:#f1fdf4; border-color:#cfe9d8; }
+  .addset { background:none; border:1.5px dashed var(--line); border-radius:9px; padding:9px; width:100%; font-size:12px;
+    color:var(--muted); cursor:pointer; font-weight:700; margin-top:3px; }
+  .modal-foot { padding:12px 16px calc(12px + env(safe-area-inset-bottom)); border-top:1px solid var(--line); background:#fff;
+    display:flex; gap:10px; }
+  .modal-foot button { flex:1; background:var(--green-700); color:#fff; border:none; border-radius:12px; padding:15px;
+    font-size:15px; font-weight:800; cursor:pointer; }
+  .modal-foot button.ghost { flex:0 0 auto; background:#eef3ee; color:var(--muted); padding:15px 18px; }
+
+  /* progress */
+  .prog-row { display:grid; grid-template-columns:1fr 1fr auto; gap:9px; align-items:end; margin-bottom:12px; }
+  .prog-row label { font-size:11px; font-weight:700; color:#243a2c; }
+  .prog-row .addp { background:var(--green-600); color:#fff; border:none; border-radius:10px; padding:13px 16px; font-weight:800; cursor:pointer; font-size:14px; }
+  .prog-list { font-size:12.5px; }
+  .prog-list .pe { display:flex; justify-content:space-between; padding:7px 0; border-top:1px dashed var(--line); color:#2b3a30; }
+  .prog-list .pe b { color:var(--green-800); }
+  .prog-empty { font-size:12.5px; color:var(--muted); }
+  .spark { display:block; margin:6px 0 4px; }
+
   /* ===== Mobile bottom tab bar (app-like nav) ===== */
   .mobile-tabbar { display: none; }
   @media (max-width: 760px) {
@@ -565,6 +625,20 @@
     <button data-view="calc" class="active"><span class="ic">🍽️</span>Fuel</button>
     <button data-view="plan"><span class="ic">🏌️</span>Train</button>
   </nav>
+
+  <!-- Workout logging modal -->
+  <div class="modal-back" id="logModal">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-head">
+        <div><h3 id="logTitle">Workout</h3><div class="mh-sub" id="logSub"></div></div>
+        <button class="modal-close" id="logClose" aria-label="Close">×</button>
+      </div>
+      <div class="modal-body" id="logBody"></div>
+      <div class="modal-foot">
+        <button id="logDone">Done ✓</button>
+      </div>
+    </div>
+  </div>
 
   <footer>
     <strong>FairwayFuel</strong> — Macros &amp; muscle, engineered for the long game.
@@ -1114,6 +1188,11 @@
     html+='<div class="phase-head"><h3>'+p.title+'</h3><p>'+p.blurb+'</p>'+
       '<div class="focuschips">'+p.chips.map(function(c){ return '<span>'+c+'</span>'; }).join("")+'</div></div>';
 
+    var wk=curWeek(), wkOpts="";
+    for(var wi=1; wi<=20; wi++){ wkOpts+='<option value="'+wi+'"'+(wi===wk?' selected':'')+'>Week '+wi+'</option>'; }
+    html+='<div class="weekbar"><div class="wk-label"><b>Week '+wk+'</b><span>tap a workout to log it live</span></div>'+
+      '<select id="weekSel" aria-label="Current week">'+wkOpts+'</select></div>';
+
     html+='<div class="freqbar"><span>Training days per week:</span><div class="seg" id="freqSeg">'+
       '<button type="button" data-freq="4" '+(planState.freq===4?'class="active"':'')+'>4 days</button>'+
       '<button type="button" data-freq="5" '+(planState.freq===5?'class="active"':'')+'>5 days</button>'+
@@ -1135,7 +1214,7 @@
         html+='<div class="day speedday"><div class="day-head">'+d.name+' <span class="tag '+(d.tag)+'">'+labelFor(d.tag)+'</span></div>'+
           '<div class="speed-intro">'+s.intro+'</div>'+
           '<table class="ex"><tr><th>Drill</th><th style="text-align:right">Sets × Reps</th></tr>'+srows+'</table>'+
-          '<div class="equip-note" style="padding:10px 15px 13px;">'+noGear+'</div></div>';
+          '<div class="equip-note" style="padding:10px 15px 8px;">'+noGear+'</div>'+logFoot(d.name)+'</div>';
         return;
       }
       var rows = d.ex.map(function(row){
@@ -1145,8 +1224,10 @@
         return '<tr class="skip"><td class="exname"><span class="nm">'+row[0]+'</span><span class="need">needs '+r.need.map(eqLabel).join(" + ")+'</span></td><td class="sets">'+row[1]+'</td></tr>';
       }).join("");
       html+='<div class="day"><div class="day-head">'+d.name+' <span class="tag '+(d.tag==="Lift"?"":d.tag)+'">'+labelFor(d.tag)+'</span></div>'+
-        '<table class="ex"><tr><th>Exercise</th><th style="text-align:right">Sets × Reps</th></tr>'+rows+'</table></div>';
+        '<table class="ex"><tr><th>Exercise</th><th style="text-align:right">Sets × Reps</th></tr>'+rows+'</table>'+logFoot(d.name)+'</div>';
     });
+
+    html+=renderProgressFold();
 
     // Speed methodology — collapsed by default to keep the week scannable
     html+='<details class="fold"><summary>🌀 Why this builds clubhead speed</summary>'+
@@ -1174,6 +1255,134 @@
   function phaseWhy(){
     return "Each week you build force capacity (size + strength) <b>and</b> train it to fire fast (rate of force development), then transfer it with ground-force work and overspeed swings. Research shows training these qualities together builds just as much muscle as separate blocks — while keeping your speed sharp the whole time. The engine and the gas pedal, every week.";
   }
+
+  /* ===================== WORKOUT LOGGER ===================== */
+  function lsGet(k,def){ try{ var v=JSON.parse(localStorage.getItem(k)); return v==null?def:v; }catch(e){ return def; } }
+  function lsSet(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+  function escAttr(s){ return String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;"); }
+  function curWeek(){ return lsGet("ff_week",1); }
+  function getLog(){ return lsGet("ff_log",{}); }
+  function getSession(w,d){ return getLog()[w+"|"+d]||null; }
+  function saveSession(w,d,s){ var L=getLog(); L[w+"|"+d]=s; lsSet("ff_log",L); }
+  function parseSets(t){ var m=String(t).match(/(\d+)\s*[×x]/); return m?Math.min(8,Math.max(1,parseInt(m[1],10))):3; }
+  function findDay(name){ var f=null; PHASES[0].days4.forEach(function(d){ if(d.name===name) f=d; }); return f; }
+  function todayStr(){ try{ return new Date().toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"}); }catch(e){ return ""; } }
+  function lastSessionFor(day, beforeW){
+    var L=getLog(), best=null, bw=-1;
+    Object.keys(L).forEach(function(k){ var i=k.indexOf("|"); var w=parseInt(k.slice(0,i),10), dn=k.slice(i+1);
+      if(dn===day && w<beforeW && w>bw){ bw=w; best=L[k]; } });
+    return best;
+  }
+  function logFoot(name){
+    var done=!!getSession(curWeek(), name);
+    return '<div class="day-foot"><button class="logbtn'+(done?" logged":"")+'" data-logday="'+escAttr(name)+'">'+
+      (done?"✓ Logged — tap to edit":"▶ Log workout")+'</button></div>';
+  }
+
+  var logState=null;
+  function buildSession(day, week){
+    var existing=getSession(week, day.name);
+    if(existing) return JSON.parse(JSON.stringify(existing));
+    var ex;
+    if(day.type==="speed"){
+      ex = PHASES[0].speed.ex.map(function(e){ var n=parseSets(e[1]), sets=[]; for(var i=0;i<n;i++) sets.push({w:"",r:"",done:false});
+        return { name:e[0], target:e[1], sets:sets }; });
+    } else {
+      ex = day.ex.map(function(row){ var r=resolveEx(row[0],row[1]); var nm=(r.status==="swap")?r.name:row[0]; var tgt=r.sr||row[1];
+        var n=parseSets(tgt), sets=[]; for(var i=0;i<n;i++) sets.push({w:"",r:"",done:false});
+        return { name:nm, target:tgt, sets:sets }; });
+    }
+    return { date:"", ex:ex };
+  }
+  function openLogger(dayName){
+    var day=findDay(dayName); if(!day) return;
+    var week=curWeek();
+    logState={ week:week, day:dayName, sess:buildSession(day, week) };
+    $("logTitle").textContent=dayName;
+    $("logSub").textContent="Week "+week+" of 20";
+    renderLogBody();
+    $("logModal").classList.add("open");
+    document.body.style.overflow="hidden";
+  }
+  function closeLogger(){ $("logModal").classList.remove("open"); document.body.style.overflow=""; logState=null; renderPhase(); }
+  function renderLogBody(){
+    var s=logState.sess, week=logState.week, day=logState.day;
+    var last=lastSessionFor(day, week), html="";
+    s.ex.forEach(function(x, xi){
+      var lastTxt="";
+      if(last){ var lx=null; last.ex.forEach(function(e){ if(e.name===x.name) lx=e; });
+        if(lx){ var d=lx.sets.filter(function(st){return st.w||st.r;}).map(function(st){return (st.w||"–")+"×"+(st.r||"–");}).join(", ");
+          if(d) lastTxt='<div class="logx-last">Last time: '+d+'</div>'; } }
+      html+='<div class="logx"><div class="logx-name">'+x.name+'</div><div class="logx-target">Target: '+x.target+'</div>'+lastTxt+
+        '<div class="setlabels"><div>Set</div><div>Weight</div><div>Reps</div><div></div></div>';
+      x.sets.forEach(function(st, si){
+        html+='<div class="setrow'+(st.done?" is-done":"")+'">'+
+          '<div class="snum">'+(si+1)+'</div>'+
+          '<input type="number" inputmode="decimal" placeholder="–" value="'+(st.w||"")+'" data-x="'+xi+'" data-s="'+si+'" data-f="w" />'+
+          '<input type="number" inputmode="numeric" placeholder="–" value="'+(st.r||"")+'" data-x="'+xi+'" data-s="'+si+'" data-f="r" />'+
+          '<button class="donebtn'+(st.done?" on":"")+'" data-x="'+xi+'" data-s="'+si+'" data-done="1" aria-label="set done">✓</button></div>';
+      });
+      html+='<button class="addset" data-x="'+xi+'" data-add="1">+ Add set</button></div>';
+    });
+    $("logBody").innerHTML=html;
+  }
+  function saveLog(){ if(!logState) return; if(!logState.sess.date) logState.sess.date=todayStr(); saveSession(logState.week, logState.day, logState.sess); }
+
+  $("logBody").addEventListener("input", function(e){
+    var t=e.target; if(t.tagName!=="INPUT") return;
+    logState.sess.ex[+t.getAttribute("data-x")].sets[+t.getAttribute("data-s")][t.getAttribute("data-f")]=t.value;
+    saveLog();
+  });
+  $("logBody").addEventListener("click", function(e){
+    var dn=e.target.closest("[data-done]");
+    if(dn){ var st=logState.sess.ex[+dn.getAttribute("data-x")].sets[+dn.getAttribute("data-s")]; st.done=!st.done; saveLog(); renderLogBody(); return; }
+    var ad=e.target.closest("[data-add]");
+    if(ad){ logState.sess.ex[+ad.getAttribute("data-x")].sets.push({w:"",r:"",done:false}); saveLog(); renderLogBody(); }
+  });
+  $("logClose").addEventListener("click", closeLogger);
+  $("logDone").addEventListener("click", closeLogger);
+  $("logModal").addEventListener("click", function(e){ if(e.target===$("logModal")) closeLogger(); });
+
+  /* ----- Progress (bodyweight + clubhead speed) ----- */
+  function sparkline(vals){
+    var pts=vals.filter(function(v){ return v!=null && !isNaN(v); });
+    if(pts.length<2) return "";
+    var w=240,h=42,mn=Math.min.apply(null,pts),mx=Math.max.apply(null,pts),rng=(mx-mn)||1,step=w/(pts.length-1);
+    var d=pts.map(function(v,i){ return (i?"L":"M")+(i*step).toFixed(1)+","+(h-3-((v-mn)/rng)*(h-9)).toFixed(1); }).join(" ");
+    return '<svg class="spark" width="100%" height="42" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none">'+
+      '<path d="'+d+'" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  }
+  function renderProgressFold(){
+    var body=lsGet("ff_body",[]), sessCount=Object.keys(getLog()).length;
+    var rows = body.slice(-8).reverse().map(function(e){
+      return '<div class="pe"><span>'+e.date+'</span><span><b>'+(e.w||"–")+'</b> lb &middot; <b>'+(e.s||"–")+'</b> mph</span></div>';
+    }).join("") || '<div class="prog-empty">No entries yet — log your weight and clubhead speed to watch the trend.</div>';
+    var spark = sparkline(body.map(function(e){ return parseFloat(e.s); }));
+    return '<details class="fold" id="progFold"><summary>📊 Progress &amp; history</summary><div class="fold-body">'+
+      '<div class="prog-row">'+
+        '<div><label>Bodyweight (lb)</label><input type="number" inputmode="decimal" id="pBody" placeholder="185" /></div>'+
+        '<div><label>Clubhead speed (mph)</label><input type="number" inputmode="decimal" id="pSpeed" placeholder="112" /></div>'+
+        '<button class="addp" id="pAdd">Add</button></div>'+
+      (spark?'<div class="prog-empty" style="margin:2px 0 -2px;">Clubhead speed trend</div>'+spark:"")+
+      '<div class="prog-list">'+rows+'</div>'+
+      '<div class="prog-empty" style="margin-top:10px;">🏋️ Workouts logged: <b>'+sessCount+'</b></div>'+
+      '</div></details>';
+  }
+
+  /* ----- Delegated plan events (week select, log buttons, progress add) ----- */
+  $("phaseDetail").addEventListener("change", function(e){
+    if(e.target.id==="weekSel"){ lsSet("ff_week", parseInt(e.target.value,10)); renderPhase(); }
+  });
+  $("phaseDetail").addEventListener("click", function(e){
+    var lb=e.target.closest("[data-logday]");
+    if(lb){ openLogger(lb.getAttribute("data-logday")); return; }
+    if(e.target.id==="pAdd"){
+      var wv=$("pBody").value, sv=$("pSpeed").value;
+      if(!wv && !sv) return;
+      var body=lsGet("ff_body",[]); body.push({ date:todayStr(), w:wv, s:sv }); lsSet("ff_body", body);
+      renderPhase(); var pf=$("progFold"); if(pf) pf.open=true;
+    }
+  });
 
   restore();      // bring back the user's saved inputs/equipment/tab
   calc();
