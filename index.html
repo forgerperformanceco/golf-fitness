@@ -273,6 +273,10 @@
   .eq-chip.on { border-color:var(--green-600); background:linear-gradient(180deg,#f1fdf4,#fff); color:var(--green-800); }
   .eq-chip.on::before { content:"✓"; font-weight:800; color:var(--green-600); font-size:11px; }
   .eq-chip.locked { opacity:.65; cursor:default; }
+  .eq-chip .mach-count { font-size:10px; background:var(--green-600); color:#fff; border-radius:999px; padding:1px 6px; margin-left:2px; }
+  .mach-expand { background:none; border:none; color:var(--green-700); font-size:12px; font-weight:700; cursor:pointer; padding:8px 2px 4px; }
+  .mach-sub { display:flex; flex-wrap:wrap; gap:7px; padding:4px 0 2px 12px; border-left:2px solid #e2ebe2; margin:2px 0 2px 4px; }
+  .eq-chip.sm { padding:6px 11px; font-size:12px; }
   .equip-note { font-size:11.5px; color:var(--muted); margin-top:11px; line-height:1.45; }
   .equip-note b { color:var(--green-800); }
 
@@ -696,7 +700,7 @@
     if(typeof data.meals!=="undefined") state.meals=data.meals;
     if(data.freq) planState.freq=data.freq;
     if(data.equip && typeof data.equip==="object"){
-      EQUIPMENT.forEach(function(e){ if(typeof data.equip[e.key]!=="undefined") planState.equip[e.key]=!!data.equip[e.key]; });
+      Object.keys(data.equip).forEach(function(k){ planState.equip[k]=!!data.equip[k]; });
       planState.equip.bodyweight=true;
     }
     if(data.view) setView(data.view, false);
@@ -1037,23 +1041,34 @@
     { key:"pullupbar",  label:"Pull-up bar" },
     { key:"kettlebell", label:"Kettlebell" },
     { key:"bands",      label:"Resistance bands" },
-    { key:"machines",   label:"Machines & cables", hint:"leg press, lat pulldown, leg curl, cable column, chest press, etc." },
     { key:"medball",    label:"Medicine ball" },
     { key:"box",        label:"Plyo box / step" }
   ];
+  // Gym machines/cables — grouped under one master chip, individually selectable.
+  var MACHINES = [
+    { key:"legpress",    label:"Leg press" },
+    { key:"latpulldown", label:"Lat pulldown" },
+    { key:"legcurl",     label:"Leg / ham curl" },
+    { key:"cable",       label:"Cable column" }
+  ];
+  var MACHINE_KEYS = MACHINES.map(function(m){ return m.key; });
   var EQ_PRESETS = {
-    full:    EQUIPMENT.map(function(e){return e.key;}),                          // everything
+    full:    EQUIPMENT.map(function(e){return e.key;}).concat(MACHINE_KEYS),     // everything
     home:    ["bodyweight","dumbbells","bench","pullupbar","kettlebell","bands","box"], // typical home setup
     minimal: ["bodyweight","bands"]                                             // bodyweight + a band
   };
-  function eqLabel(k){ for(var i=0;i<EQUIPMENT.length;i++){ if(EQUIPMENT[i].key===k) return EQUIPMENT[i].label; } return k; }
+  function eqLabel(k){
+    var i; for(i=0;i<EQUIPMENT.length;i++){ if(EQUIPMENT[i].key===k) return EQUIPMENT[i].label; }
+    for(i=0;i<MACHINES.length;i++){ if(MACHINES[i].key===k) return MACHINES[i].label; }
+    return k;
+  }
 
   // Exercise -> required equipment + ordered fallbacks. Keyed by base name (parentheticals stripped).
   var EX = {
     "Back Squat":{needs:["barbell"],subs:[{needs:["dumbbells"],name:"Goblet Squat"},{needs:["bodyweight"],name:"Tempo Bodyweight Squat (3-1-1, +1.5 reps)"}]},
     "Front Squat":{needs:["barbell"],subs:[{needs:["dumbbells"],name:"Goblet Squat"},{needs:["bodyweight"],name:"Tempo Bodyweight Squat"}]},
     "Romanian Deadlift":{needs:["barbell"],subs:[{needs:["dumbbells"],name:"DB Romanian Deadlift"},{needs:["kettlebell"],name:"Kettlebell RDL"},{needs:["bodyweight"],name:"Single-leg RDL"}]},
-    "Leg Press":{needs:["machines"],subs:[{needs:["dumbbells"],name:"Goblet Squat"},{needs:["bodyweight"],name:"Walking Lunge"}]},
+    "Leg Press":{needs:["legpress"],subs:[{needs:["dumbbells"],name:"Goblet Squat"},{needs:["bodyweight"],name:"Walking Lunge"}]},
     "Hanging Leg Raise":{needs:["pullupbar"],subs:[{needs:["bodyweight"],name:"Lying Leg Raise"}]},
     "Incline DB Press":{needs:["dumbbells"],subs:[{needs:["bodyweight"],name:"Decline / Feet-elevated Push-up"}]},
     "Flat Barbell Bench":{needs:["barbell","bench"],subs:[{needs:["dumbbells","bench"],name:"Flat DB Bench Press"},{needs:["dumbbells"],name:"Floor DB Press"},{needs:["bodyweight"],name:"Push-up (weighted / feet-elevated)"}]},
@@ -1061,30 +1076,30 @@
     "Seated DB Shoulder Press":{needs:["dumbbells"],subs:[{needs:["bands"],name:"Band Overhead Press"},{needs:["bodyweight"],name:"Pike Push-up"}]},
     "Standing Overhead Press":{needs:["barbell"],subs:[{needs:["dumbbells"],name:"Standing DB Press"},{needs:["bands"],name:"Band Overhead Press"},{needs:["bodyweight"],name:"Pike Push-up"}]},
     "Lateral Raise":{needs:["dumbbells"],subs:[{needs:["bands"],name:"Band Lateral Raise"}]},
-    "Cable Triceps Pushdown":{needs:["machines"],subs:[{needs:["bands"],name:"Band Triceps Pushdown"},{needs:["bodyweight"],name:"Diamond Push-up"}]},
-    "Cable Wood-chop":{needs:["machines"],subs:[{needs:["bands"],name:"Band Wood-chop"},{needs:["medball"],name:"Med-Ball Rotational Throw"},{needs:["bodyweight"],name:"Speed Russian Twist"}]},
+    "Cable Triceps Pushdown":{needs:["cable"],subs:[{needs:["bands"],name:"Band Triceps Pushdown"},{needs:["bodyweight"],name:"Diamond Push-up"}]},
+    "Cable Wood-chop":{needs:["cable"],subs:[{needs:["bands"],name:"Band Wood-chop"},{needs:["medball"],name:"Med-Ball Rotational Throw"},{needs:["bodyweight"],name:"Speed Russian Twist"}]},
     "Deadlift":{needs:["barbell"],subs:[{needs:["dumbbells"],name:"DB Romanian Deadlift"},{needs:["kettlebell"],name:"Kettlebell Deadlift"},{needs:["bodyweight"],name:"Single-leg RDL"}]},
     "Hip Thrust":{needs:["barbell","bench"],subs:[{needs:["dumbbells","bench"],name:"DB Hip Thrust"},{needs:["bodyweight"],name:"Single-leg Glute Bridge"}]},
-    "Leg Curl":{needs:["machines"],subs:[{needs:["bands"],name:"Band Leg Curl"},{needs:["bodyweight"],name:"Nordic / Slider Leg Curl"}]},
-    "Pallof Press":{needs:["machines"],subs:[{needs:["bands"],name:"Band Pallof Press"},{needs:["bodyweight"],name:"Side Plank"}]},
+    "Leg Curl":{needs:["legcurl"],subs:[{needs:["bands"],name:"Band Leg Curl"},{needs:["bodyweight"],name:"Nordic / Slider Leg Curl"}]},
+    "Pallof Press":{needs:["cable"],subs:[{needs:["bands"],name:"Band Pallof Press"},{needs:["bodyweight"],name:"Side Plank"}]},
     "Farmer Carry":{needs:["dumbbells"],subs:[{needs:["kettlebell"],name:"Kettlebell Carry"},{needs:["bodyweight"],name:"Loaded Carry (backpack / any heavy object)"}]},
-    "Weighted Pull-up":{needs:["pullupbar"],subs:[{needs:["machines"],name:"Lat Pulldown"},{needs:["bands"],name:"Band Lat Pulldown"},{needs:["dumbbells"],name:"DB Row"},{needs:["bodyweight"],name:"Inverted Row (under a sturdy table)"}]},
-    "Pull-up":{needs:["pullupbar"],subs:[{needs:["machines"],name:"Lat Pulldown"},{needs:["bands"],name:"Band Lat Pulldown"},{needs:["dumbbells"],name:"DB Row"},{needs:["bodyweight"],name:"Inverted Row"}]},
+    "Weighted Pull-up":{needs:["pullupbar"],subs:[{needs:["latpulldown"],name:"Lat Pulldown"},{needs:["bands"],name:"Band Lat Pulldown"},{needs:["dumbbells"],name:"DB Row"},{needs:["bodyweight"],name:"Inverted Row (under a sturdy table)"}]},
+    "Pull-up":{needs:["pullupbar"],subs:[{needs:["latpulldown"],name:"Lat Pulldown"},{needs:["bands"],name:"Band Lat Pulldown"},{needs:["dumbbells"],name:"DB Row"},{needs:["bodyweight"],name:"Inverted Row"}]},
     "Chest-Supported Row":{needs:["dumbbells"],subs:[{needs:["bands"],name:"Band Row"},{needs:["bodyweight"],name:"Inverted Row"}]},
-    "Lat Pulldown":{needs:["machines"],subs:[{needs:["pullupbar"],name:"Pull-up / Band-assisted Pull-up"},{needs:["bands"],name:"Band Lat Pulldown"},{needs:["bodyweight"],name:"Inverted Row"}]},
-    "Face Pull":{needs:["machines"],subs:[{needs:["bands"],name:"Band Face Pull"},{needs:["dumbbells"],name:"Rear-Delt Raise"},{needs:["bodyweight"],name:"Prone Y-T-W Raises"}]},
+    "Lat Pulldown":{needs:["latpulldown"],subs:[{needs:["pullupbar"],name:"Pull-up / Band-assisted Pull-up"},{needs:["bands"],name:"Band Lat Pulldown"},{needs:["bodyweight"],name:"Inverted Row"}]},
+    "Face Pull":{needs:["cable"],subs:[{needs:["bands"],name:"Band Face Pull"},{needs:["dumbbells"],name:"Rear-Delt Raise"},{needs:["bodyweight"],name:"Prone Y-T-W Raises"}]},
     "DB Curl":{needs:["dumbbells"],subs:[{needs:["bands"],name:"Band Curl"}]},
     "Hammer Curl":{needs:["dumbbells"],subs:[{needs:["bands"],name:"Band Hammer Curl"}]},
     "Weighted Dip":{needs:["bench"],subs:[{needs:["bodyweight"],name:"Push-up / Bench Dip"}]},
     "Pendlay Row":{needs:["barbell"],subs:[{needs:["dumbbells"],name:"DB Row"},{needs:["bands"],name:"Band Row"},{needs:["bodyweight"],name:"Inverted Row"}]},
     "Box Jump":{needs:["box"],subs:[{needs:["bodyweight"],name:"Squat Jump / Tuck Jump"}]},
-    "Anti-rotation Cable Hold":{needs:["machines"],subs:[{needs:["bands"],name:"Band Anti-rotation Hold"},{needs:["bodyweight"],name:"Plank Hold"}]},
+    "Anti-rotation Cable Hold":{needs:["cable"],subs:[{needs:["bands"],name:"Band Anti-rotation Hold"},{needs:["bodyweight"],name:"Plank Hold"}]},
     "Speed Bench":{needs:["barbell","bench"],subs:[{needs:["dumbbells"],name:"Explosive DB Floor Press"},{needs:["bodyweight"],name:"Explosive / Clap Push-up"}]},
     "Med-Ball Chest Pass":{needs:["medball"],subs:[{needs:["bands"],name:"Band Explosive Press"},{needs:["bodyweight"],name:"Clap Push-up"}]},
-    "Cable Rotational Punch":{needs:["machines"],subs:[{needs:["bands"],name:"Band Rotational Punch"},{needs:["medball"],name:"Med-Ball Side Throw"},{needs:["bodyweight"],name:"Speed Russian Twist"}]},
+    "Cable Rotational Punch":{needs:["cable"],subs:[{needs:["bands"],name:"Band Rotational Punch"},{needs:["medball"],name:"Med-Ball Side Throw"},{needs:["bodyweight"],name:"Speed Russian Twist"}]},
     "Landmine Rotation":{needs:["barbell"],subs:[{needs:["medball"],name:"Med-Ball Rotational Throw"},{needs:["bands"],name:"Band Rotation"},{needs:["bodyweight"],name:"Speed Russian Twist"}]},
     "Hang Power Clean / KB Swing":{needs:["barbell"],subs:[{needs:["kettlebell"],name:"Kettlebell Swing"},{needs:["dumbbells"],name:"DB Swing / High Pull"},{needs:["bodyweight"],name:"Broad Jump"}]},
-    "Rotational Med-Ball Throw":{needs:["medball"],subs:[{needs:["bands"],name:"Band Rotational Throw"},{needs:["machines"],name:"Cable Rotation"},{needs:["bodyweight"],name:"Speed Russian Twist"}]}
+    "Rotational Med-Ball Throw":{needs:["medball"],subs:[{needs:["bands"],name:"Band Rotational Throw"},{needs:["cable"],name:"Cable Rotation"},{needs:["bodyweight"],name:"Speed Russian Twist"}]}
   };
   function normName(n){ return n.replace(/\([^)]*\)/g,"").replace(/\s+/g," ").trim(); }
   function have(k){ return !!planState.equip[k]; }
@@ -1098,16 +1113,27 @@
     return { name:rawName, sr:sr, status:"skip", need:e.needs };
   }
 
-  var planState = { phase: 0, freq: 4, equip: {} };
-  EQUIPMENT.forEach(function(e){ planState.equip[e.key] = true; }); // default: full gym
+  var planState = { phase: 0, freq: 4, equip: {}, machOpen: false };
+  EQUIPMENT.forEach(function(e){ planState.equip[e.key] = true; });
+  MACHINE_KEYS.forEach(function(k){ planState.equip[k] = true; });   // default: full gym
 
   function renderEquip(){
     var chips = EQUIPMENT.map(function(e){
       var on = planState.equip[e.key];
-      var cls = "eq-chip" + (on?" on":"") + (e.locked?" locked":"");
-      var titleAttr = e.hint ? ' title="'+e.hint+'"' : '';
-      return '<span class="'+cls+'" data-eq="'+e.key+'"'+titleAttr+'>'+e.label+'</span>';
+      return '<span class="eq-chip'+(on?" on":"")+(e.locked?" locked":"")+'" data-eq="'+e.key+'">'+e.label+'</span>';
     }).join("");
+    // Machines master chip — on if any machine is selected; shows count when partial.
+    var machOn = MACHINE_KEYS.filter(have).length, machAll = machOn===MACHINE_KEYS.length;
+    chips += '<span class="eq-chip'+(machOn>0?" on":"")+'" data-eq="machines-master">Machines &amp; cables'+
+      (machOn>0 && !machAll ? ' <span class="mach-count">'+machOn+'/'+MACHINE_KEYS.length+'</span>' : '')+'</span>';
+
+    var sub = '';
+    if(planState.machOpen){
+      sub = '<div class="mach-sub">'+MACHINES.map(function(m){
+        return '<span class="eq-chip sm'+(have(m.key)?" on":"")+'" data-eq="'+m.key+'">'+m.label+'</span>';
+      }).join("")+'</div>';
+    }
+
     var h="";
     h+='<div class="equip-head"><h3>🏋️ Your Equipment <small>Tap what you have — the plan swaps exercises to match.</small></h3>'+
        '<div class="equip-presets">'+
@@ -1116,14 +1142,17 @@
        '<button type="button" data-preset="minimal">Minimal</button>'+
        '</div></div>';
     h+='<div class="equip-chips">'+chips+'</div>';
-    h+='<div class="equip-note">Bodyweight is always on — deselect anything you don\'t own. <b>Machines &amp; cables</b> covers leg press, lat pulldown, leg curl, the cable column, etc.</div>';
+    h+='<button type="button" class="mach-expand" data-machexpand="1">'+(planState.machOpen?"▴ hide specific machines":"▾ pick specific machines")+'</button>'+sub;
+    h+='<div class="equip-note">Bodyweight is always on — deselect anything you don\'t own. The <b>Machines &amp; cables</b> chip toggles all of them; tap “pick specific machines” to fine-tune.</div>';
     $("equipBar").innerHTML=h;
   }
   $("equipBar").addEventListener("click", function(e){
+    if(e.target.closest("[data-machexpand]")){ planState.machOpen=!planState.machOpen; renderEquip(); return; }
     var preset=e.target.closest("[data-preset]");
     if(preset){
       var keys=EQ_PRESETS[preset.getAttribute("data-preset")];
       EQUIPMENT.forEach(function(eq){ planState.equip[eq.key] = keys.indexOf(eq.key)!==-1; });
+      MACHINE_KEYS.forEach(function(mk){ planState.equip[mk] = keys.indexOf(mk)!==-1; });
       planState.equip.bodyweight=true;
       renderEquip(); renderPhase(); persist(); return;
     }
@@ -1131,6 +1160,11 @@
     if(chip){
       var k=chip.getAttribute("data-eq");
       if(k==="bodyweight") return; // locked
+      if(k==="machines-master"){
+        var allOn = MACHINE_KEYS.every(have);
+        MACHINE_KEYS.forEach(function(mk){ planState.equip[mk] = !allOn; });
+        renderEquip(); renderPhase(); persist(); return;
+      }
       planState.equip[k] = !planState.equip[k];
       renderEquip(); renderPhase(); persist();
     }
