@@ -419,6 +419,7 @@
   function num(id){ var v=parseFloat($(id).value); return isNaN(v)?0:v; }
   function round(n){ return Math.round(n); }
   function round5(n){ return Math.round(n/5)*5; }
+  function roundEven(n){ var e=Math.round(n/2)*2; return e<0?0:e; }
 
   function wireSeg(segId, attr, key, onChange){
     var seg=$(segId);
@@ -464,10 +465,16 @@
     var g=GOALS[state.goal];
     var target=tdee*(1+g.pct);
 
-    var proteinG=g.proteinKg*weightKg, fatG=g.fatKg*weightKg;
+    var weightLb=weightKg*2.20462;
+    // Protein: ~1 g per lb of bodyweight, always an even number (e.g. 180 / 190 / 200).
+    var proteinG=roundEven(weightLb);
+    // Fat: goal target, but NEVER higher than 65 g.
+    var fatG=Math.min(round(g.fatKg*weightKg), 65);
     var proteinKcal=proteinG*4, fatKcal=fatG*9;
-    var carbKcal=target-proteinKcal-fatKcal, carbG=carbKcal/4;
-    if(carbG<0){ carbG=0; carbKcal=0; }
+    // Carbs fill the rest, also rounded to an even number.
+    var carbKcal=target-proteinKcal-fatKcal, carbG=roundEven(carbKcal/4);
+    if(carbG<0){ carbG=0; }
+    carbKcal=carbG*4;
 
     render({ bmr:bmr,tdee:tdee,target:target,activity:activity,
       proteinG:proteinG,fatG:fatG,carbG:carbG,
@@ -485,9 +492,9 @@
 
     var html="";
     html+='<div class="result-hero">'+
-      '<div class="kcal">'+round5(r.target)+' <small>kcal/day</small></div>'+
+      '<div class="kcal">'+round(totalK)+' <small>kcal/day</small></div>'+
       '<div class="goal-label">'+r.goal.label+' &middot; '+pctTxt+'</div>'+
-      '<div class="tdee-line">Maintenance (TDEE): <b>'+round5(r.tdee)+' kcal</b> &nbsp;·&nbsp; Target: <b>'+deltaTxt+'</b></div>'+
+      '<div class="tdee-line">Maintenance (TDEE): <b>'+round5(r.tdee)+' kcal</b> &nbsp;·&nbsp; Goal target: <b>'+round5(r.target)+' kcal</b> ('+deltaTxt+')</div>'+
       '</div>';
     html+='<div class="macros">'+
       macroCard("p","Protein",r.proteinG,r.proteinKcal,pPct)+
@@ -500,7 +507,9 @@
       tr("TDEE / Maintenance",round5(r.tdee)+" kcal")+
       tr("Goal adjustment",deltaTxt)+
       tr("Daily target",round5(r.target)+" kcal")+
-      tr("Protein per kg bodyweight",r.goal.proteinKg+" g/kg")+
+      tr("Protein","1 g/lb · even ("+r.proteinG+" g)")+
+      tr("Fat","capped at 65 g ("+r.fatG+" g)")+
+      tr("Carbs","fills remainder · even ("+r.carbG+" g)")+
       '</table></div>';
     html+='<div class="golf-note"><b>⛳ Golf focus:</b> '+r.goal.note+'</div>';
     $("results").innerHTML=html;
