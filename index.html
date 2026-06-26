@@ -211,7 +211,7 @@
   .seg.meal-seg button.active { background:#fff; color:#14532d; }
   .meals-body { padding:15px 16px; }
   .meal-each { font-size:13px; color:#2b3a30; margin-bottom:12px; }
-  .meal-each .rec { color:var(--muted); font-size:11.5px; }
+  .rec { color:var(--muted); font-size:11.5px; font-weight:500; }
   .meal-macros { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
   .mm { border-radius:14px; padding:13px 12px; text-align:center; border:1.5px solid var(--line); }
   .mm.p { background:#fdf1f1; border-color:#f6d6d6; }
@@ -536,19 +536,19 @@
   var MEALS_REC = { leanbulk: 4, bulk: 5, maintain: 4, cut: 3 };
 
   var GOALS = {
-    leanbulk: { label: "Lean Bulk", pct: 0.10, proteinKg: 2.0, fatKg: 0.9,
+    leanbulk: { label: "Lean Bulk", pct: 0.10, proteinLb: 1.1, fatKg: 0.9,
       preFrac: 0.25, postFrac: 0.30,
       timing: "Post-workout is your <b>build window</b> — keep it the biggest carb feeding of the day.",
       note: "A clean surplus builds <b>quality mass and force</b> — the lean, fast body out-drives the heavy one." },
-    bulk: { label: "Bulk", pct: 0.20, proteinKg: 1.9, fatKg: 1.0,
+    bulk: { label: "Bulk", pct: 0.20, proteinLb: 1.15, fatKg: 1.0,
       preFrac: 0.25, postFrac: 0.35,
       timing: "<b>Load post-workout hard</b> — your biggest glycogen-refill and growth window.",
-      note: "Aggressive surplus for <b>max strength &amp; speed</b>. Quality food, not a dirty bulk — plan a Lean Out after." },
-    maintain: { label: "In-Season Maintain", pct: 0.0, proteinKg: 1.9, fatKg: 0.9,
+      note: "Aggressive surplus for <b>max strength &amp; speed</b>. Protein ticks up to back the extra training. Quality food, not a dirty bulk." },
+    maintain: { label: "In-Season Maintain", pct: 0.0, proteinLb: 1.0, fatKg: 0.9,
       preFrac: 0.25, postFrac: 0.25,
       timing: "Split carbs <b>evenly around training</b>, and save some to fuel your round.",
       note: "Hold your build and <b>steady energy across a 4–5 hour round</b>. Don't slash carbs on tournament weeks." },
-    cut: { label: "Lean Out", pct: -0.20, proteinKg: 2.4, fatKg: 0.8, fatCap: 50,
+    cut: { label: "Lean Out", pct: -0.20, proteinLb: 1.2, fatKg: 0.8, fatCap: 50,
       preFrac: 0.30, postFrac: 0.35,
       timing: "<b>Concentrate limited carbs around the workout</b>; stay lower the rest of the day.",
       note: "High-protein deficit to <b>protect muscle</b> while you drop fat — better power-to-weight, more speed. Don't crash." }
@@ -568,6 +568,18 @@
   function round(n){ return Math.round(n); }
   function round5(n){ return Math.round(n/5)*5; }
   function roundEven(n){ var e=Math.round(n/2)*2; return e<0?0:e; }
+  // Split a whole-gram total across meals by weight, integers that sum exactly (largest-remainder).
+  function distribute(total, weights){
+    total=Math.max(0, Math.round(total));
+    var sum=0; weights.forEach(function(w){ sum+=w; });
+    if(sum<=0) return weights.map(function(){ return 0; });
+    var raw=weights.map(function(w){ return total*w/sum; });
+    var fl=raw.map(function(v){ return Math.floor(v); });
+    var used=0; fl.forEach(function(v){ used+=v; });
+    var order=raw.map(function(v,i){ return [v-fl[i], i]; }).sort(function(a,b){ return b[0]-a[0]; });
+    for(var k=0;k<total-used;k++){ fl[order[k%order.length][1]]++; }
+    return fl;
+  }
   function formatTime(h){
     h=((h%24)+24)%24;
     var hr=Math.floor(h), min=Math.round((h-hr)*60);
@@ -628,8 +640,9 @@
     var target=tdee*(1+g.pct);
 
     var weightLb=weightKg*2.20462;
-    // Protein: ~1 g per lb of bodyweight, always an even number (e.g. 180 / 190 / 200).
-    var proteinG=roundEven(weightLb);
+    // Protein: per-goal g/lb of bodyweight (higher on a bulk/cut), always an even number.
+    var proteinLb = g.proteinLb || 1.0;
+    var proteinG=roundEven(weightLb*proteinLb);
     // Fat: goal target, but capped (65 g default; 50 g on a cut to free calories for protein & carbs).
     var fatCap = g.fatCap || 65;
     var fatG=Math.min(round(g.fatKg*weightKg), fatCap);
@@ -657,37 +670,54 @@
       note: g.timing
     };
 
-    // ---- Meal plan: split protein, fat, and the non-timing carbs across main meals ----
+    // ---- Meal plan: distribute macros across meals the way people actually eat ----
     var mealN = state.meals || MEALS_REC[state.goal];
-    var perP = round(proteinG/mealN), perF = round(fatG/mealN), perC = round(restG/mealN);
-
-    // ---- Schedule: clock-time each meal, anchored around the workout ----
+    var postT = slot.anchor + 1.5, preT = slot.anchor - 1.5;
     var FIRST = 7.5, LAST = 20.0;                 // eating window 7:30 AM – 8:00 PM
-    var feed = [];
+
+    var meals = [];
     for (var mi=0; mi<mealN; mi++){
-      var t = mealN===1 ? 12.5 : FIRST + mi*(LAST-FIRST)/(mealN-1);
-      feed.push({ kind:"meal", time:t, p:perP, c:perC, f:perF, post:0 });
+      meals.push({ time: mealN===1 ? 12.5 : FIRST + mi*(LAST-FIRST)/(mealN-1), post:0, isPost:false });
     }
     // Relocate the meal nearest the post-workout window so it lands right after training.
-    var postT = slot.anchor + 1.5, preT = slot.anchor - 1.5;
-    var ni=0, best=99; feed.forEach(function(m,i){ var d=Math.abs(m.time-postT); if(d<best){best=d;ni=i;} });
-    feed[ni].time = postT; feed[ni].post = postG; feed[ni].isPost = true;
-    // Pre-workout carb feeding (extra, on top of the main meals).
-    feed.push({ kind:"pre", time:preT, c:preG });
+    var ni=0, best=99; meals.forEach(function(m,i){ var d=Math.abs(m.time-postT); if(d<best){best=d;ni=i;} });
+    meals[ni].time = postT; meals[ni].post = postG; meals[ni].isPost = true;
+    meals.sort(function(a,b){ return a.time-b.time; });
+
+    // Name each meal by time of day (Breakfast / Lunch / Dinner / Snack).
+    var usedLab={};
+    meals.forEach(function(m){
+      var lab = m.time<10.5 ? "Breakfast" : (m.time>=11 && m.time<14.5 ? "Lunch" : (m.time>=17.5 ? "Dinner" : "Snack"));
+      if(usedLab[lab] && lab!=="Snack") lab="Snack";
+      usedLab[lab]=true; m.label=lab;
+    });
+    // Relative weights — dinner is biggest, breakfast carries more fat (eggs), snacks are light,
+    // and the post-workout meal goes low-fat / high-carb (fat slows glycogen refill).
+    var ROLEW = {
+      Breakfast:{p:0.95,c:1.05,f:1.25}, Lunch:{p:1.05,c:1.00,f:1.00},
+      Dinner:{p:1.15,c:0.80,f:1.35}, Snack:{p:0.70,c:0.85,f:0.55}
+    };
+    var pW=[],cW=[],fW=[];
+    meals.forEach(function(m){
+      var w=ROLEW[m.label]||ROLEW.Lunch, cw=w.c, fw=w.f;
+      if(m.isPost){ fw=w.f*0.35; cw=w.c*1.30; }
+      pW.push(w.p); cW.push(cw); fW.push(fw);
+    });
+    var pArr=distribute(proteinG,pW), fArr=distribute(fatG,fW), cArr=distribute(restG,cW);
+    meals.forEach(function(m,i){ m.p=pArr[i]; m.f=fArr[i]; m.c=cArr[i]+(m.post||0); });
+
+    var feed = meals.map(function(m){
+      return { kind:"meal", time:m.time, label:m.label, isPost:m.isPost, p:m.p, c:m.c, f:m.f, post:m.post };
+    });
+    feed.push({ kind:"pre", time:preT, label:"Pre-workout", c:preG, p:0, f:0, post:0 });
     feed.sort(function(a,b){ return a.time-b.time; });
-    var mealNo=0;
     var schedule = feed.map(function(f){
-      var label = f.kind==="pre" ? "Pre-workout" : "Meal "+(++mealNo);
-      return {
-        kind: f.kind, label: label, time: formatTime(f.time),
-        isPost: !!f.isPost,
-        p: f.p||0, c: (f.c||0)+(f.post||0), f: f.f||0, post: f.post||0
-      };
+      return { kind:f.kind, label:f.label, time:formatTime(f.time), isPost:!!f.isPost,
+        p:f.p||0, c:f.c||0, f:f.f||0, post:f.post||0 };
     });
 
     var meal = {
       n: mealN, recommended: MEALS_REC[state.goal],
-      proteinG: perP, fatG: perF, carbG: perC,
       preG: preG, postG: postG, slot: slot.label, schedule: schedule
     };
 
@@ -724,7 +754,7 @@
       tr("TDEE / Maintenance",round5(r.tdee)+" kcal")+
       tr("Goal adjustment",deltaTxt)+
       tr("Daily target",round5(r.target)+" kcal")+
-      tr("Protein","1 g/lb · even ("+r.proteinG+" g)")+
+      tr("Protein",(r.goal.proteinLb||1)+" g/lb · even ("+r.proteinG+" g)")+
       tr("Fat","capped at "+(r.goal.fatCap||65)+" g ("+r.fatG+" g)")+
       tr("Carbs","fills remainder · even ("+r.carbG+" g)")+
       '</table></div></details>';
@@ -765,13 +795,7 @@
     h+='<div class="meals-head"><span>🍽️ Meal Plan</span>'+
        '<span class="meal-pick"><span class="meal-pick-lbl">meals/day</span><span class="seg meal-seg">'+opts+'</span></span></div>';
     h+='<div class="meals-body">';
-    h+='<div class="meal-each">Each of your <b>'+m.n+' main meals</b> <span class="rec">('+recTxt+')</span> — base targets:</div>';
-    h+='<div class="meal-macros">'+
-       '<div class="mm p"><div class="mm-g">'+m.proteinG+'<small>g</small></div><div class="mm-l">Protein</div></div>'+
-       '<div class="mm c"><div class="mm-g">'+m.carbG+'<small>g</small></div><div class="mm-l">Carbs</div></div>'+
-       '<div class="mm f"><div class="mm-g">'+m.fatG+'<small>g</small></div><div class="mm-l">Fat</div></div>'+
-       '</div>';
-    h+='<div class="sched-title">📅 Your day &mdash; timed for a <b>'+m.slot+'</b> workout</div>';
+    h+='<div class="sched-title">📅 Your day &mdash; <b>'+m.n+' meals</b> <span class="rec">('+recTxt+')</span>, portioned for a <b>'+m.slot+'</b> workout</div>';
     h+='<div class="sched">'+rows+'</div>';
     h+='<div class="meal-foot">Times are guides — shift the day to fit your schedule.</div>';
     h+='</div></div>';
@@ -891,7 +915,7 @@
       },
       days4: [
         { name:"Day 1 — Lower Power", tag:"power", ex:[
-          ["Box Jump","5 × 3 (max height)"],["Trap-Bar Jump / Squat Jump","5 × 3"],["Back Squat (maintain)","3 × 4"],
+          ["Box Jump","5 × 3 (max height)"],["Squat Jump","5 × 3"],["Back Squat (maintain)","3 × 4"],
           ["Hip Thrust (explosive)","3 × 5"],["Anti-rotation Cable Hold","3 × 20 s / side"]
         ]},
         { name:"Day 2 — Upper Power", tag:"power", ex:[
@@ -900,7 +924,7 @@
         ]},
         { name:"Day 3 — Speed + Rotational Power", tag:"speed", type:"speed" },
         { name:"Day 4 — Total-Body Explosive", tag:"power", ex:[
-          ["Hang Power Clean / KB Swing","6 × 3"],["Trap-Bar Deadlift (maintain)","3 × 3"],["Broad Jump","5 × 3"],
+          ["Hang Power Clean / KB Swing","6 × 3"],["Deadlift (maintain)","3 × 3"],["Broad Jump","5 × 3"],
           ["Rotational Med-Ball Throw","5 × 4 / side"],["Pallof Press (fast)","3 × 10 / side"]
         ]},
         { name:"Day 5 — Speed Session + Light Pull", tag:"speed", ex:[
@@ -914,24 +938,22 @@
 
   /* ---- Equipment & exercise substitution ---- */
   var EQUIPMENT = [
-    { key:"bodyweight", label:"Bodyweight", locked:true },
+    { key:"bodyweight", label:"Bodyweight only", locked:true },
     { key:"dumbbells",  label:"Dumbbells" },
-    { key:"barbell",    label:"Barbell + Rack" },
-    { key:"bench",      label:"Bench" },
-    { key:"pullupbar",  label:"Pull-up Bar" },
-    { key:"cable",      label:"Cable Machine" },
-    { key:"machines",   label:"Weight Machines" },
+    { key:"barbell",    label:"Barbell & plates" },
+    { key:"bench",      label:"Adjustable bench" },
+    { key:"pullupbar",  label:"Pull-up bar" },
     { key:"kettlebell", label:"Kettlebell" },
-    { key:"trapbar",    label:"Trap / Hex Bar" },
-    { key:"medball",    label:"Medicine Ball" },
-    { key:"bands",      label:"Resistance Bands" },
-    { key:"box",        label:"Plyo Box" },
-    { key:"speedsticks",label:"Speed Sticks" }
+    { key:"bands",      label:"Resistance bands" },
+    { key:"cable",      label:"Cable machine" },
+    { key:"machines",   label:"Weight machines" },
+    { key:"medball",    label:"Medicine ball" },
+    { key:"box",        label:"Plyo box / step" }
   ];
   var EQ_PRESETS = {
-    full:    EQUIPMENT.map(function(e){return e.key;}),
-    home:    ["bodyweight","dumbbells","bench","pullupbar","kettlebell","bands","medball","box"],
-    minimal: ["bodyweight","bands"]
+    full:    EQUIPMENT.map(function(e){return e.key;}),                          // everything
+    home:    ["bodyweight","dumbbells","bench","pullupbar","kettlebell","bands","box"], // typical home setup
+    minimal: ["bodyweight","bands"]                                             // bodyweight + a band
   };
   function eqLabel(k){ for(var i=0;i<EQUIPMENT.length;i++){ if(EQUIPMENT[i].key===k) return EQUIPMENT[i].label; } return k; }
 
@@ -950,7 +972,7 @@
     "Lateral Raise":{needs:["dumbbells"],subs:[{needs:["bands"],name:"Band Lateral Raise"}]},
     "Cable Triceps Pushdown":{needs:["cable"],subs:[{needs:["bands"],name:"Band Triceps Pushdown"},{needs:["bodyweight"],name:"Diamond Push-up"}]},
     "Cable Wood-chop":{needs:["cable"],subs:[{needs:["bands"],name:"Band Wood-chop"},{needs:["medball"],name:"Med-Ball Rotational Throw"},{needs:["bodyweight"],name:"Speed Russian Twist"}]},
-    "Deadlift":{needs:["barbell"],subs:[{needs:["trapbar"],name:"Trap-Bar Deadlift"},{needs:["dumbbells"],name:"DB Romanian Deadlift"},{needs:["kettlebell"],name:"Kettlebell Deadlift"},{needs:["bodyweight"],name:"Single-leg RDL"}]},
+    "Deadlift":{needs:["barbell"],subs:[{needs:["dumbbells"],name:"DB Romanian Deadlift"},{needs:["kettlebell"],name:"Kettlebell Deadlift"},{needs:["bodyweight"],name:"Single-leg RDL"}]},
     "Hip Thrust":{needs:["barbell","bench"],subs:[{needs:["dumbbells","bench"],name:"DB Hip Thrust"},{needs:["bodyweight"],name:"Single-leg Glute Bridge"}]},
     "Leg Curl":{needs:["machines"],subs:[{needs:["bands"],name:"Band Leg Curl"},{needs:["bodyweight"],name:"Nordic / Slider Leg Curl"}]},
     "Pallof Press":{needs:["cable"],subs:[{needs:["bands"],name:"Band Pallof Press"},{needs:["bodyweight"],name:"Side Plank"}]},
@@ -965,16 +987,13 @@
     "Weighted Dip":{needs:["bench"],subs:[{needs:["bodyweight"],name:"Push-up / Bench Dip"}]},
     "Pendlay Row":{needs:["barbell"],subs:[{needs:["dumbbells"],name:"DB Row"},{needs:["bands"],name:"Band Row"},{needs:["bodyweight"],name:"Inverted Row"}]},
     "Box Jump":{needs:["box"],subs:[{needs:["bodyweight"],name:"Squat Jump / Tuck Jump"}]},
-    "Trap-Bar Jump / Squat Jump":{needs:["trapbar"],subs:[{needs:["bodyweight"],name:"Squat Jump"}]},
     "Anti-rotation Cable Hold":{needs:["cable"],subs:[{needs:["bands"],name:"Band Anti-rotation Hold"},{needs:["bodyweight"],name:"Plank Hold"}]},
     "Speed Bench":{needs:["barbell","bench"],subs:[{needs:["dumbbells"],name:"Explosive DB Floor Press"},{needs:["bodyweight"],name:"Explosive / Clap Push-up"}]},
     "Med-Ball Chest Pass":{needs:["medball"],subs:[{needs:["bands"],name:"Band Explosive Press"},{needs:["bodyweight"],name:"Clap Push-up"}]},
     "Cable Rotational Punch":{needs:["cable"],subs:[{needs:["bands"],name:"Band Rotational Punch"},{needs:["medball"],name:"Med-Ball Side Throw"},{needs:["bodyweight"],name:"Speed Russian Twist"}]},
     "Landmine Rotation":{needs:["barbell"],subs:[{needs:["medball"],name:"Med-Ball Rotational Throw"},{needs:["bands"],name:"Band Rotation"},{needs:["bodyweight"],name:"Speed Russian Twist"}]},
     "Hang Power Clean / KB Swing":{needs:["barbell"],subs:[{needs:["kettlebell"],name:"Kettlebell Swing"},{needs:["dumbbells"],name:"DB Swing / High Pull"},{needs:["bodyweight"],name:"Broad Jump"}]},
-    "Trap-Bar Deadlift":{needs:["trapbar"],subs:[{needs:["barbell"],name:"Barbell Deadlift"},{needs:["dumbbells"],name:"DB Romanian Deadlift"},{needs:["kettlebell"],name:"Kettlebell Deadlift"},{needs:["bodyweight"],name:"Single-leg RDL"}]},
-    "Rotational Med-Ball Throw":{needs:["medball"],subs:[{needs:["bands"],name:"Band Rotational Throw"},{needs:["cable"],name:"Cable Rotation"},{needs:["bodyweight"],name:"Speed Russian Twist"}]},
-    "Overspeed swing protocol":{needs:["speedsticks"],subs:[{needs:["bodyweight"],name:"Max-effort swings (light alignment stick or your driver)"}]}
+    "Rotational Med-Ball Throw":{needs:["medball"],subs:[{needs:["bands"],name:"Band Rotational Throw"},{needs:["cable"],name:"Cable Rotation"},{needs:["bodyweight"],name:"Speed Russian Twist"}]}
   };
   function normName(n){ return n.replace(/\([^)]*\)/g,"").replace(/\s+/g," ").trim(); }
   function have(k){ return !!planState.equip[k]; }
@@ -1068,7 +1087,7 @@
       if(d.type==="speed"){
         var s=p.speed;
         var sNotes=[];
-        if(!have("speedsticks")) sNotes.push("No <b>speed sticks</b>? Do the overspeed swings at max effort with a light alignment stick, a weighted club, or just your driver.");
+        sNotes.push("Overspeed swings need no gear — use a light alignment stick, a weighted club, or just your driver at max effort.");
         if(!have("medball")) sNotes.push("No <b>medicine ball</b>? Use a heavy backpack, a band, or a dumbbell for the throws — toss into a wall or soft surface.");
         var sNoteHtml = sNotes.length ? '<div class="equip-note">'+sNotes.map(function(n){return "• "+n;}).join("<br>")+'</div>' : "";
         html+='<div class="day"><div class="day-head">'+d.name+' <span class="tag '+(d.tag)+'">'+labelFor(d.tag)+'</span></div>'+
