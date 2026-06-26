@@ -314,6 +314,18 @@ This is the short list — almost everything above is general fitness. Golf only
    golf swing. (This is training, not nutrition — but it's the golf-specific payoff of the
    mass you build.)
 
+### Golf-strength exercise selection (what credible sources agree on)
+Reputable golf-fitness sources (University of Utah Health's golf clinic, Golf Digest,
+Par4Success) converge on the same priorities — which this program already covers:
+- **Hips + thoracic-spine rotation/mobility** — the two joints built for the swing's turn.
+- **Ground-up power** — force starts at the ground: squat, deadlift, jumps, lateral bound.
+- **Core as conduit AND brake** — anti-rotation (Pallof, plank) to *decelerate* and create
+  the whip, not endless crunches.
+- **Hip hinge / RDL** — Golf Digest calls the Romanian deadlift "one of golf's magic exercises."
+- **Rotational power** — med-ball rotational throws and slams.
+- **Single-leg & lateral work** — stability plus the swing's lateral weight shift. *(A lateral
+  bound was added to the speed day for exactly this.)*
+
 Everything else — TDEE, macros, protein targets, surplus/deficit size, nutrient timing,
 meal frequency — is **the same as for any fit, muscle-building athlete.**
 
@@ -483,6 +495,12 @@ principles; their numbers don't survive scrutiny.
 - Bodybuilding.com — *The 3 Keys for Counting Macronutrient Ratios*
 - MyProtein — *Nutrition Guide for Bodybuilders*
 - University of Toledo, Endocrinology — *Macronutrient Considerations* (PDF handout)
+
+**Golf-strength training (credible):**
+- University of Utah Health — *Your Strength Training Guide for a Better Golf Game* (golf-clinic DPT).
+- Golf Digest — *10 of our favorite exercises for golfers*; *Golf is a ground-up sport*.
+- Par4Success — golf-specific home-gym workouts (golf-fitness specialists).
+- Hydrow — *15 best strength exercises for golfers* (content marketing, but the exercises are standard/sound).
 
 **Bryson DeChambeau (use with judgement — see §13 for what's vetted):**
 - Golf Digest — *Bryson bulks up for distance* and Joel Beall's *"Being Like Bryson"
