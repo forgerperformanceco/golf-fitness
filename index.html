@@ -52,7 +52,12 @@
     mask-image: linear-gradient(180deg, #000 0%, transparent 92%);
   }
 
-  header.hero { text-align: center; color: #eafff1; padding: 6px 0 30px; }
+  header.hero { text-align: center; color: #eafff1; padding: 16px 0 34px; position: relative; }
+  header.hero::after {
+    content:""; position:absolute; top:24px; left:50%; transform:translateX(-50%);
+    width:min(720px,94%); height:300px; pointer-events:none; z-index:-1;
+    background: radial-gradient(closest-side, rgba(244,197,66,.16), rgba(244,197,66,0) 70%);
+  }
 
   /* golf "kicker" label above card titles */
   .kicker {
@@ -60,21 +65,26 @@
     letter-spacing:1.2px; text-transform:uppercase; color:var(--green-600);
     background:#eef7f0; border:1px solid #d9ecdf; padding:4px 10px; border-radius:999px; margin-bottom:10px;
   }
-  .logo {
-    display: inline-flex; align-items: center; gap: 9px;
-    font-weight: 800; letter-spacing: 1.5px; font-size: 13px;
+  .brand-kicker {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-weight: 800; letter-spacing: 2.4px; font-size: 12px;
     text-transform: uppercase; color: var(--accent);
-    background: rgba(244,197,66,.12); padding: 6px 14px; border-radius: 999px;
-    border: 1px solid rgba(244,197,66,.25);
+    background: rgba(244,197,66,.10); padding: 8px 18px; border-radius: 999px;
+    border: 1px solid rgba(244,197,66,.28);
   }
-  .logo .ball {
-    width: 18px; height: 18px; border-radius: 50%;
+  .brand-kicker .ball {
+    width: 15px; height: 15px; border-radius: 50%;
     background: radial-gradient(circle at 35% 30%, #fff, #d7e2d7);
     box-shadow: inset -2px -2px 4px rgba(0,0,0,.15);
   }
-  h1 { margin: 16px 0 8px; font-size: clamp(32px, 5.2vw, 50px); line-height: 1.02; color: #fff; letter-spacing: -1.2px; font-weight: 800; }
-  h1 .em { color: var(--accent); }
-  header.hero p { margin: 0 auto; max-width: 600px; color: #bfe3cc; font-size: 16px; line-height: 1.55; }
+  .brand {
+    margin: 22px 0 16px; font-weight: 900; line-height: 0.9; color: #fff;
+    font-size: clamp(44px, 12vw, 118px); letter-spacing: -0.045em;
+    text-shadow: 0 6px 38px rgba(0,0,0,.30);
+  }
+  .brand .em { color: var(--accent); text-shadow: 0 0 46px rgba(244,197,66,.5); }
+  .tagline { margin: 0 auto; max-width: 600px; color: #c9e8d3; font-size: 17px; line-height: 1.55; }
+  .tagline b { color: #fff; }
 
   /* Tabs */
   .tabs {
@@ -469,9 +479,9 @@
 <div class="wrap">
 
   <header class="hero">
-    <div class="logo"><span class="ball"></span> FairwayFuel</div>
-    <h1>Fuel &amp; Build the <span class="em">Long Game</span></h1>
-    <p>Macros and a training plan engineered for golfers. Build like a bodybuilder, move like a golfer — add lean mass and turn it into clubhead speed.</p>
+    <div class="brand-kicker"><span class="ball"></span> The Golfer's Mass &amp; Speed System</div>
+    <h1 class="brand">Fairway<span class="em">Fuel</span></h1>
+    <p class="tagline">Build like a bodybuilder, move like a golfer — add lean mass and turn it into <b>clubhead speed</b>.</p>
     <div class="tabs" id="tabs">
       <button data-view="calc" class="active">Macro Calculator</button>
       <button data-view="plan">Mass + Speed Plan</button>
@@ -713,19 +723,19 @@
   var MEALS_REC = { leanbulk: 4, bulk: 5, maintain: 4, cut: 3 };
 
   var GOALS = {
-    leanbulk: { label: "Lean Bulk", pct: 0.10, proteinPct: 0.30, fatPct: 0.15,
+    leanbulk: { label: "Lean Bulk", pct: 0.10, proteinPct: 0.30, fatG: 65,
       preFrac: 0.25, postFrac: 0.30,
       timing: "Post-workout is your <b>build window</b> — keep it the biggest carb feeding of the day.",
       note: "A clean surplus builds <b>quality mass and force</b> — the lean, fast body out-drives the heavy one." },
-    bulk: { label: "Bulk", pct: 0.20, proteinPct: 0.30, fatPct: 0.15,
+    bulk: { label: "Bulk", pct: 0.20, proteinPct: 0.30, fatG: 70,
       preFrac: 0.25, postFrac: 0.35,
       timing: "<b>Load post-workout hard</b> — your biggest glycogen-refill and growth window.",
-      note: "Aggressive surplus for <b>max strength &amp; speed</b>. High protein, high carb, lower fat. Quality food, not a dirty bulk." },
-    maintain: { label: "In-Season Maintain", pct: 0.0, proteinPct: 0.30, fatPct: 0.15,
+      note: "Aggressive surplus for <b>max strength &amp; speed</b>. High protein, high carb, plenty of fat. Quality food, not a dirty bulk." },
+    maintain: { label: "In-Season Maintain", pct: 0.0, proteinPct: 0.30, fatG: 55,
       preFrac: 0.25, postFrac: 0.25,
       timing: "Split carbs <b>evenly around training</b>, and save some to fuel your round.",
       note: "Hold your build and <b>steady energy across a 4–5 hour round</b>. Don't slash carbs on tournament weeks." },
-    cut: { label: "Lean Out", pct: -0.20, proteinPct: 0.35, fatPct: 0.20,
+    cut: { label: "Lean Out", pct: -0.20, proteinPct: 0.35, fatG: 50,
       preFrac: 0.30, postFrac: 0.35,
       timing: "<b>Concentrate limited carbs around the workout</b>; stay lower the rest of the day.",
       note: "High-protein deficit to <b>protect muscle</b> while you drop fat — better power-to-weight, more speed. Don't crash." }
@@ -756,6 +766,10 @@
     var order=raw.map(function(v,i){ return [v-fl[i], i]; }).sort(function(a,b){ return b[0]-a[0]; });
     for(var k=0;k<total-used;k++){ fl[order[k%order.length][1]]++; }
     return fl;
+  }
+  // Split a total (a multiple of 5) across meals in clean 5 g increments that sum exactly.
+  function distribute5(total, weights){
+    return distribute(Math.round(total/5), weights).map(function(u){ return u*5; });
   }
   function formatTime(h){
     h=((h%24)+24)%24;
@@ -807,11 +821,11 @@
     var g=GOALS[state.goal];
     var target=tdee*(1+g.pct);
 
-    // Macros as a % of calories — high protein, high carb, lower fat (golfer-friendly).
-    var proteinG=roundEven(target*g.proteinPct/4);
-    var fatG=round(target*g.fatPct/9);
+    // Protein = % of calories; fat = fixed grams per goal; carbs fill the rest. All rounded to 5 g.
+    var proteinG=round5(target*g.proteinPct/4);
+    var fatG=g.fatG;
     var proteinKcal=proteinG*4, fatKcal=fatG*9;
-    var carbKcal=target - proteinKcal - fatKcal, carbG=roundEven(carbKcal/4);
+    var carbKcal=target - proteinKcal - fatKcal, carbG=round5(carbKcal/4);
     if(carbG<0){ carbG=0; }
     carbKcal=carbG*4;
 
@@ -850,8 +864,8 @@
       Dinner:{p:1.15,c:0.90,f:1.35}, Snack:{p:0.70,c:0.80,f:0.55}
     };
     // Protein & fat split across the main meals (post-workout meal goes low-fat).
-    var pArr=distribute(proteinG, meals.map(function(m){ return ROLEW[m.label].p; }));
-    var fArr=distribute(fatG, meals.map(function(m){ return m.isPost ? ROLEW[m.label].f*0.35 : ROLEW[m.label].f; }));
+    var pArr=distribute5(proteinG, meals.map(function(m){ return ROLEW[m.label].p; }));
+    var fArr=distribute5(fatG, meals.map(function(m){ return m.isPost ? ROLEW[m.label].f*0.35 : ROLEW[m.label].f; }));
     meals.forEach(function(m,i){ m.p=pArr[i]; m.f=fArr[i]; });
 
     // Carbs split across ALL feedings (main meals + pre-workout snack) — so the pre and
@@ -863,7 +877,7 @@
       return { ref:m, w:w };
     });
     if(!preMerged) carbFeeds.push({ ref:pre, w:0.8 });   // separate top-off snack
-    var cArr=distribute(carbG, carbFeeds.map(function(f){ return f.w; }));
+    var cArr=distribute5(carbG, carbFeeds.map(function(f){ return f.w; }));
     carbFeeds.forEach(function(f,i){ f.ref.c=cArr[i]; });
 
     var postMeal=meals[0], preMeal=meals[0];
@@ -918,7 +932,7 @@
       tr("Goal adjustment",deltaTxt)+
       tr("Daily target",round5(r.target)+" kcal")+
       tr("Protein",Math.round(r.goal.proteinPct*100)+"% of calories ("+r.proteinG+" g)")+
-      tr("Fat",Math.round(r.goal.fatPct*100)+"% of calories ("+r.fatG+" g)")+
+      tr("Fat","set target ("+r.fatG+" g)")+
       tr("Carbs","the rest ("+r.carbG+" g)")+
       '</table></div></details>';
     $("results").innerHTML=html;
