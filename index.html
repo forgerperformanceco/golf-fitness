@@ -584,29 +584,39 @@
     border-radius:999px; padding:8px 14px; font:700 12.5px system-ui; cursor:pointer; white-space:nowrap; }
   .ws-chip.done { color:var(--green-700); border-color:#cfe9d8; }
   .ws-chip.cur { background:#11643a; color:#fff; border-color:#11643a; }
-  /* Inline logger (log as you train) */
-  .ilogwrap { padding:6px 0 2px; }
-  .il-prog { height:6px; background:var(--line); border-radius:99px; overflow:hidden; margin:0 15px 9px; }
-  .il-progbar { height:100%; background:linear-gradient(90deg,#37a866,#8be9ac); border-radius:99px; transition:width .3s; }
-  .il-hint { font-size:11.5px; color:var(--muted); padding:0 15px 13px; line-height:1.4; }
-  .il-ex { padding:0 15px 14px; border-bottom:1px solid var(--line); margin-bottom:14px; }
-  .il-ex:last-child { border-bottom:0; margin-bottom:4px; }
+  /* Inline logger — Hevy-style exercise cards */
+  .ilogwrap { padding:4px 0 2px; }
+  .il-prog { height:5px; background:var(--line); border-radius:99px; overflow:hidden; margin:0 0 14px; }
+  .il-progbar { height:100%; background:#16a34a; border-radius:99px; transition:width .35s; }
+  .il-ex { background:#fff; border:1px solid var(--line); border-radius:14px; padding:14px 14px 11px; margin-bottom:12px; box-shadow:0 1px 3px rgba(11,40,24,.05); }
   .il-exhead { display:flex; align-items:center; justify-content:space-between; gap:8px; }
-  .il-name { font-size:14.5px; font-weight:700; color:var(--ink); }
-  .il-swap { background:#eef7f0; border:1px solid #cfe9d8; color:var(--green-700); border-radius:999px; padding:5px 11px; font:700 11px system-ui; cursor:pointer; white-space:nowrap; flex:0 0 auto; }
-  .il-tgt { font-size:11.5px; color:var(--muted); margin:1px 0 8px; }
-  .il-nudge { font-size:12px; color:var(--green-700); background:#eef7f0; border-radius:8px; padding:6px 10px; margin-bottom:9px; }
-  .il-last { font-size:11.5px; color:var(--muted); margin-bottom:9px; }
-  .il-set { display:flex; align-items:center; gap:9px; margin-bottom:6px; }
-  .il-sn { width:16px; text-align:center; font-weight:800; color:var(--muted); font-size:13px; flex:0 0 auto; }
-  .il-set .il-in { flex:1 1 0; min-width:0; width:auto; border:1.5px solid var(--line); border-radius:9px; padding:11px 6px; font-size:16px; text-align:center; box-sizing:border-box; }
-  .il-mult { color:var(--muted); font-weight:700; flex:0 0 auto; }
-  .il-check { flex:0 0 44px; height:44px; border:1.5px solid #cdddd2; background:#fff; color:#b3c4b8; border-radius:10px; font-size:18px; cursor:pointer; }
-  .il-check.on { background:#11643a; border-color:#11643a; color:#fff; }
-  .il-set.done .il-in { background:#f3faf5; border-color:#cfe9d8; }
-  .il-plates { font-size:11px; color:#8a6d1c; padding-left:25px; margin:-1px 0 9px; }
-  .il-exfoot { display:flex; gap:16px; margin-top:3px; }
-  .il-add, .il-fill { background:none; border:0; color:var(--green-700); font:700 12px system-ui; cursor:pointer; padding:2px 0; }
+  .il-name { font-size:15.5px; font-weight:800; color:var(--green-800); letter-spacing:-.2px; }
+  .il-swap { background:none; border:0; color:var(--muted); font:700 12px system-ui; cursor:pointer; flex:0 0 auto; }
+  .il-sub { font-size:11.5px; color:var(--muted); margin:2px 0 11px; }
+  .il-up { color:var(--green-700); font-weight:800; }
+  .il-cols, .il-set { display:grid; grid-template-columns:26px minmax(54px,1fr) 60px 60px 40px; gap:8px; align-items:center; }
+  .il-cols { font-size:9.5px; font-weight:800; letter-spacing:.6px; color:#9bb0a3; padding:0 2px 7px; }
+  .il-cols span:nth-child(3),.il-cols span:nth-child(4){ text-align:center; }
+  .il-set { padding:5px 2px; border-radius:9px; margin-bottom:2px; }
+  .il-set.done { background:#eafaf0; }
+  .il-sn { text-align:center; font-weight:800; color:var(--muted); font-size:13px; }
+  .il-prev { background:none; border:0; color:var(--muted); font:600 12.5px system-ui; cursor:pointer; text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:0; }
+  .il-prev:disabled { opacity:.45; cursor:default; }
+  .il-set .il-in { width:100%; min-width:0; border:1.5px solid var(--line); border-radius:9px; padding:10px 4px; font-size:15px; text-align:center; box-sizing:border-box; background:#fff; }
+  .il-set.done .il-in { background:transparent; border-color:transparent; font-weight:800; color:var(--green-800); }
+  .il-check { width:40px; height:40px; border:1.5px solid #d3e0d8; background:#fff; color:#c2d3c8; border-radius:9px; font-size:17px; cursor:pointer; }
+  .il-check.on { background:#16a34a; border-color:#16a34a; color:#fff; }
+  .il-plates { grid-column:1 / -1; font-size:10.5px; color:#8a6d1c; padding:1px 0 5px 34px; }
+  .il-add { width:100%; margin-top:9px; background:#f1f6f2; border:0; color:var(--green-700); border-radius:9px; padding:11px; font:800 13px system-ui; cursor:pointer; }
+  .il-add:active { transform:translateY(1px); }
+  /* Warm-up & primer, collapsed above the lifts */
+  .prelift { background:#fff; border:1px solid var(--line); border-radius:12px; margin-bottom:13px; overflow:hidden; }
+  .prelift > summary { list-style:none; cursor:pointer; padding:13px 15px; font-size:13px; font-weight:700; color:var(--green-800); }
+  .prelift > summary::-webkit-details-marker { display:none; }
+  .prelift > summary::after { content:"▾"; float:right; color:var(--muted); }
+  .prelift[open] > summary::after { content:"▴"; }
+  .prelift .prelift-body { padding:0 4px 4px; }
+  .prelift .warm, .prelift .primer { border-radius:0; }
   /* Rest-timer pill */
   .rest-pill { position:fixed; left:50%; transform:translateX(-50%); bottom:78px; z-index:75; display:flex; align-items:center; gap:10px;
     background:#11643a; color:#fff; border-radius:999px; padding:9px 9px 9px 16px; box-shadow:0 8px 24px rgba(8,40,22,.42); }
@@ -1851,11 +1861,11 @@
     var warmPrimer = '<div class="warm"><b>Warm-up (5 min):</b> '+warmupFor(d.name)+'</div>'+
       '<div class="primer"><b>⚡ Power primer — do this first, fresh:</b> '+primerFor(d.name)+'.<span class="primer-sub"> Max intent · full rest between reps · ~5 min.</span>'+pNote+'</div>';
     if(interactive){
-      // Featured card: no day-header (the hero already names the workout).
+      // Featured card: no day-header (hero names it); warm-up + primer collapsed so lifts lead.
       ilog = { week: curWeek(), day: d.name, sess: buildSession(d, curWeek()) };
-      return '<div class="day day-focus">'+warmPrimer+
-        '<div class="ilogwrap" id="ilogBox">'+ilogBodyHtml()+'</div>'+
-        '<div class="romcue">Full range every rep — <b>control the lowering (~3 sec)</b>, own the lockout. The range you train is the range you can swing with.</div></div>';
+      return '<div class="day-focus">'+
+        '<details class="prelift"><summary>🔥 Warm-up &amp; power primer — do these first</summary><div class="prelift-body">'+warmPrimer+'</div></details>'+
+        '<div class="ilogwrap" id="ilogBox">'+ilogBodyHtml()+'</div></div>';
     }
     var head = '<div class="day"><div class="day-head">'+d.name+' <span class="tag '+(d.tag==="Lift"?"":d.tag)+'">'+labelFor(d.tag)+'</span></div>'+warmPrimer;
     return head +
@@ -2148,31 +2158,31 @@
     var s=ilog.sess, week=ilog.week, day=ilog.day, last=lastSessionFor(day, week), html="", tot=0, done=0;
     s.ex.forEach(function(x, xi){
       var lx=null; if(last) last.ex.forEach(function(e){ if(e.name===x.name) lx=e; });
-      var nudge="";
-      if(progressReady(lx, x.target)) nudge='<div class="il-nudge">✅ Hit all reps last week — go up ~'+incFor(x.name)+'</div>';
-      else if(lx){ var d=lx.sets.filter(function(st){return st.w||st.r;}).map(function(st){return (st.w||"–")+"×"+(st.r||"–");}).join(", "); if(d) nudge='<div class="il-last">Last week: '+d+'</div>'; }
+      var ready=progressReady(lx, x.target);
       var setsHtml="";
       x.sets.forEach(function(st, si){
         tot++; if(st.done) done++;
-        var lw=(lx&&lx.sets[si]&&lx.sets[si].w)?lx.sets[si].w:"–", lr=(lx&&lx.sets[si]&&lx.sets[si].r)?lx.sets[si].r:"–";
+        var pw=(lx&&lx.sets[si]&&lx.sets[si].w)?lx.sets[si].w:null, pr=(lx&&lx.sets[si]&&lx.sets[si].r)?lx.sets[si].r:null;
+        var prev = pw ? (pw+' × '+(pr||'–')) : '–';
         var pm=(isBarbell(x.name)&&st.w)?platesFor(st.w):"";
         setsHtml+='<div class="il-set'+(st.done?" done":"")+'">'+
           '<span class="il-sn">'+(si+1)+'</span>'+
-          '<input class="il-in" type="number" inputmode="decimal" placeholder="'+escAttr(lw)+'" value="'+(st.w||"")+'" data-x="'+xi+'" data-s="'+si+'" data-f="w"/>'+
-          '<span class="il-mult">×</span>'+
-          '<input class="il-in" type="number" inputmode="numeric" placeholder="'+escAttr(lr)+'" value="'+(st.r||"")+'" data-x="'+xi+'" data-s="'+si+'" data-f="r"/>'+
+          '<button class="il-prev" data-x="'+xi+'" data-s="'+si+'" data-prevfill="1"'+(pw?'':' disabled')+'>'+prev+'</button>'+
+          '<input class="il-in" type="number" inputmode="decimal" placeholder="'+escAttr(pw||"")+'" value="'+(st.w||"")+'" data-x="'+xi+'" data-s="'+si+'" data-f="w"/>'+
+          '<input class="il-in" type="number" inputmode="numeric" placeholder="'+escAttr(pr||"")+'" value="'+(st.r||"")+'" data-x="'+xi+'" data-s="'+si+'" data-f="r"/>'+
           '<button class="il-check'+(st.done?" on":"")+'" data-x="'+xi+'" data-s="'+si+'" data-idone="1" aria-label="set done">✓</button></div>'+
           (pm?'<div class="il-plates">🏋️ '+pm+'</div>':'');
       });
-      html+='<div class="il-ex"><div class="il-exhead"><span class="il-name">'+purposeFor(x.name)+' '+x.name+'</span>'+
-        '<button class="il-swap" data-swapx="'+escAttr(x.name)+'" title="Swap this lift">⇄ swap</button></div>'+
-        '<div class="il-tgt">Target '+x.target+'</div>'+nudge+setsHtml+
-        '<div class="il-exfoot"><button class="il-add" data-x="'+xi+'" data-iadd="1">+ set</button>'+
-        ((lx&&lx.sets.some(function(st){return st.w;}))?'<button class="il-fill" data-x="'+xi+'" data-ifill="1">↻ fill last week</button>':'')+'</div></div>';
+      html+='<div class="il-ex">'+
+        '<div class="il-exhead"><span class="il-name">'+purposeFor(x.name)+' '+x.name+'</span>'+
+          '<button class="il-swap" data-swapx="'+escAttr(x.name)+'" title="Swap this lift">⇄ Swap</button></div>'+
+        '<div class="il-sub">'+x.target+(ready?' · <span class="il-up">↑ go up '+incFor(x.name)+'</span>':'')+'</div>'+
+        '<div class="il-cols"><span>SET</span><span>PREVIOUS</span><span>LBS</span><span>REPS</span><span></span></div>'+
+        setsHtml+
+        '<button class="il-add" data-x="'+xi+'" data-iadd="1">＋ Add set</button></div>';
     });
     var pct = tot? Math.round(done/tot*100):0;
-    return '<div class="il-prog"><div class="il-progbar" style="width:'+pct+'%"></div></div>'+
-      '<div class="il-hint">Tap ✓ as you finish each set — your rest timer starts automatically. Auto-saved.</div>'+html;
+    return '<div class="il-prog"><div class="il-progbar" style="width:'+pct+'%"></div></div>'+html;
   }
   function renderILog(){ var el=$("ilogBox"); if(el && ilog) el.innerHTML=ilogBodyHtml(); }
   function saveILog(){ if(!ilog) return; if(!ilog.sess.date) ilog.sess.date=todayStr(); saveSession(ilog.week, ilog.day, ilog.sess); }
@@ -2470,6 +2480,11 @@
     if(ifl && ilog){ var xi=+ifl.getAttribute("data-x"), x=ilog.sess.ex[xi], ls=lastSessionFor(ilog.day, ilog.week), lx=null;
       if(ls) ls.ex.forEach(function(e2){ if(e2.name===x.name) lx=e2; });
       if(lx){ x.sets.forEach(function(s2, si){ if(lx.sets[si]&&lx.sets[si].w) s2.w=lx.sets[si].w; }); saveILog(); renderILog(); } return; }
+    var pfl=e.target.closest("[data-prevfill]");
+    if(pfl && ilog){ var px=+pfl.getAttribute("data-x"), ps=+pfl.getAttribute("data-s"), pex=ilog.sess.ex[px];
+      var pls=lastSessionFor(ilog.day, ilog.week), plx=null;
+      if(pls) pls.ex.forEach(function(e2){ if(e2.name===pex.name) plx=e2; });
+      if(plx && plx.sets[ps]){ if(plx.sets[ps].w) pex.sets[ps].w=plx.sets[ps].w; if(plx.sets[ps].r) pex.sets[ps].r=plx.sets[ps].r; saveILog(); renderILog(); } return; }
     var isw=e.target.closest("[data-swapx]");
     if(isw){ var nm=isw.getAttribute("data-swapx");
       if(window.FFCoach && window.FFCoach.ready()){
