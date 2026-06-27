@@ -4,7 +4,7 @@
 // The browser POSTs the user's question + a compact snapshot of their own app
 // data (macro targets, recent log, clubhead-speed trend). This function:
 //   1. Verifies the caller's Supabase JWT (must be a logged-in user).
-//   2. Checks the user has an active subscription / trial (entitlement gate).
+//   2. (No paywall during early access — every signed-in golfer gets the coach.)
 //   3. Calls Claude with the cached knowledge base as the system prompt and the
 //      user's own numbers as context, then streams the answer back as SSE.
 //
@@ -53,12 +53,9 @@ Deno.serve(async (req) => {
   const { data: { user }, error: authErr } = await supabase.auth.getUser();
   if (authErr || !user) return json({ error: "Invalid session" }, 401);
 
-  // ── 2. Entitlement gate: active subscription or live trial ───────────────
-  const { data: subscribed } = await supabase.rpc("is_subscribed", { uid: user.id });
-  if (!subscribed) {
-    return json({ error: "subscription_required",
-      message: "The AI coach is part of FairwayFuel Pro. Start your free trial to chat." }, 402);
-  }
+  // ── 2. Access: open to all signed-in users (no paywall during early access) ─
+  // The cost gate is intentionally removed for now — any logged-in golfer gets
+  // the full coach. To re-introduce paid tiers later, gate on is_subscribed here.
 
   // ── 3. Build the prompt ──────────────────────────────────────────────────
   let body: CoachRequest;

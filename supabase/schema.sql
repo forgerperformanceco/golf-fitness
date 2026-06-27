@@ -114,6 +114,57 @@ returns boolean language sql stable as $$
 $$;
 
 -- ============================================================================
+-- Leaderboard — opt-in, public, normalized golf-relevant boards.
+--
+-- One row per user who chooses to compete. Stores a self-chosen HANDLE (never
+-- the email) plus the metrics the app already computes: FairwayFuel Score,
+-- 7-iron clubhead speed, weekly streak, total sessions, and goal/division.
+-- Anyone (even signed-out) may READ opted-in rows; a user may only write their
+-- own row. No private data is exposed.
+-- ============================================================================
+create table if not exists public.leaderboard (
+  user_id     uuid primary key references auth.users (id) on delete cascade,
+  handle      text not null,
+  opted_in    boolean not null default true,
+  score       int,                 -- FairwayFuel Score (0–100)
+  speed       numeric,             -- latest 7-iron clubhead speed (mph)
+  speed_gain  numeric,             -- % gain since baseline
+  streak      int,                 -- consecutive active weeks
+  sessions    int,                 -- total workouts logged
+  goal        text,                -- division: leanbulk | bulk | maintain | cut
+  updated_at  timestamptz not null default now()
+);
+
+alter table public.leaderboard enable row level security;
+
+-- Public read — but only of rows the user has opted into showing.
+drop policy if exists "leaderboard_read_optedin" on public.leaderboard;
+create policy "leaderboard_read_optedin"
+  on public.leaderboard for select
+  using (opted_in = true);
+
+-- A user may insert/update/delete only their own row.
+drop policy if exists "leaderboard_insert_own" on public.leaderboard;
+create policy "leaderboard_insert_own"
+  on public.leaderboard for insert
+  with check (auth.uid() = user_id);
+
+drop policy if exists "leaderboard_update_own" on public.leaderboard;
+create policy "leaderboard_update_own"
+  on public.leaderboard for update
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+drop policy if exists "leaderboard_delete_own" on public.leaderboard;
+create policy "leaderboard_delete_own"
+  on public.leaderboard for delete
+  using (auth.uid() = user_id);
+
+create index if not exists leaderboard_score_idx  on public.leaderboard (score  desc) where opted_in;
+create index if not exists leaderboard_speed_idx  on public.leaderboard (speed  desc) where opted_in;
+create index if not exists leaderboard_streak_idx on public.leaderboard (streak desc) where opted_in;
+
+-- ============================================================================
 -- Phase 3 (deep repositories) — normalized tables, scaffolded for later.
 -- Left commented until we migrate off the single `data` blob.
 -- ============================================================================

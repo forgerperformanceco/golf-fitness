@@ -17,7 +17,7 @@
 
   // Everything the app persists to localStorage — the full progress blob.
   // ff_start = the plan's start date (so the calendar/week follows you across devices).
-  var KEYS = ["fairwayfuel", "ff_week", "ff_log", "ff_body", "ff_start", "ff_planview", "ff_swaps", "ff_onboarded"];
+  var KEYS = ["fairwayfuel", "ff_week", "ff_log", "ff_body", "ff_start", "ff_planview", "ff_swaps", "ff_onboarded", "ff_handle"];
 
   // Disabled until configured, or if the Supabase SDK didn't load (e.g. offline).
   if (!SUPABASE_URL || !SUPABASE_ANON || !window.supabase) return;
@@ -39,6 +39,41 @@
   };
   window.FF.signIn = function () { try { openModal(); } catch (e) {} };
   window.FF.signOut = function () { try { sb.auth.signOut(); } catch (e) {} };
+
+  // ---- Opt-in public leaderboard (handles only, never email) ----
+  // Reads work for anyone (anon read of opted-in rows via RLS); writes require
+  // a signed-in user and only ever touch that user's own row.
+  window.FF.leaderboard = {
+    list: async function (board, limit) {
+      var col = board === "speed" ? "speed" : (board === "streak" ? "streak" : "score");
+      try {
+        var r = await sb.from("leaderboard")
+          .select("handle,score,speed,streak,sessions,goal,speed_gain")
+          .eq("opted_in", true).not(col, "is", null)
+          .order(col, { ascending: false }).limit(limit || 50);
+        return r.error ? [] : (r.data || []);
+      } catch (e) { return []; }
+    },
+    getMine: async function () {
+      if (!user) return null;
+      try {
+        var r = await sb.from("leaderboard").select("*").eq("user_id", user.id).maybeSingle();
+        return r.data || null;
+      } catch (e) { return null; }
+    },
+    publish: async function (row) {
+      if (!user) return { error: "not signed in" };
+      try {
+        var rec = Object.assign({ user_id: user.id, opted_in: true, updated_at: new Date().toISOString() }, row);
+        var r = await sb.from("leaderboard").upsert(rec, { onConflict: "user_id" });
+        return r.error ? { error: r.error.message } : { ok: true };
+      } catch (e) { return { error: String(e) }; }
+    },
+    leave: async function () {
+      if (!user) return;
+      try { await sb.from("leaderboard").delete().eq("user_id", user.id); } catch (e) {}
+    }
+  };
 
   var user = null;
   var lastSnapshot = null;   // JSON of the last state we know matches the cloud

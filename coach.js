@@ -112,8 +112,8 @@
     var note = document.createElement("div");
     note.className = "ffc-msg note";
     note.innerHTML = signedIn()
-      ? "The coach is part of <b>FairwayFuel Pro</b> — almost ready. You'll start a free trial right here soon."
-      : "Sign in (the <b>You</b> tab) so the coach can read your plan.";
+      ? "The coach turns on once the backend is deployed. Everything else in the app works now."
+      : "Sign in (the <b>You</b> tab) so the coach can read your plan — it's free, full access.";
     log.appendChild(note);
     setComposer(false);
   }
@@ -161,7 +161,7 @@
       if (res.status === 402) {
         var j = await res.json().catch(function () { return {}; });
         typing.classList.remove("bot"); typing.classList.add("note");
-        typing.innerHTML = (j.message || "The coach is part of FairwayFuel Pro.") + "<br><br><b>Pro is almost here</b> — you're on the early-access list.";
+        typing.innerHTML = j.message || "The coach is temporarily unavailable — try again shortly.";
         busy = false; return;
       }
       if (res.status === 401) { typing.textContent = "Please sign in again (You tab)."; busy = false; return; }
