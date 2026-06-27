@@ -164,6 +164,11 @@ create index if not exists leaderboard_score_idx  on public.leaderboard (score  
 create index if not exists leaderboard_speed_idx  on public.leaderboard (speed  desc) where opted_in;
 create index if not exists leaderboard_streak_idx on public.leaderboard (streak desc) where opted_in;
 
+-- Table-level privileges (RLS still governs which rows each role can touch).
+-- Explicit so reads/writes work regardless of project default-privilege config.
+grant select on public.leaderboard to anon, authenticated;
+grant insert, update, delete on public.leaderboard to authenticated;
+
 -- ============================================================================
 -- Phase 3 (deep repositories) — normalized tables, scaffolded for later.
 -- Left commented until we migrate off the single `data` blob.
