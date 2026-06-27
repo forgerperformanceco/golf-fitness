@@ -581,6 +581,35 @@
     border-radius:999px; padding:8px 14px; font:700 12.5px system-ui; cursor:pointer; white-space:nowrap; }
   .ws-chip.done { color:var(--green-700); border-color:#cfe9d8; }
   .ws-chip.cur { background:#11643a; color:#fff; border-color:#11643a; }
+  /* Inline logger (log as you train) */
+  .ilogwrap { padding:6px 0 2px; }
+  .il-prog { height:6px; background:var(--line); border-radius:99px; overflow:hidden; margin:0 15px 9px; }
+  .il-progbar { height:100%; background:linear-gradient(90deg,#37a866,#8be9ac); border-radius:99px; transition:width .3s; }
+  .il-hint { font-size:11.5px; color:var(--muted); padding:0 15px 13px; line-height:1.4; }
+  .il-ex { padding:0 15px 14px; border-bottom:1px solid var(--line); margin-bottom:14px; }
+  .il-ex:last-child { border-bottom:0; margin-bottom:4px; }
+  .il-exhead { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .il-name { font-size:14.5px; font-weight:700; color:var(--ink); }
+  .il-swap { background:#eef7f0; border:1px solid #cfe9d8; color:var(--green-700); border-radius:999px; padding:5px 11px; font:700 11px system-ui; cursor:pointer; white-space:nowrap; flex:0 0 auto; }
+  .il-tgt { font-size:11.5px; color:var(--muted); margin:1px 0 8px; }
+  .il-nudge { font-size:12px; color:var(--green-700); background:#eef7f0; border-radius:8px; padding:6px 10px; margin-bottom:9px; }
+  .il-last { font-size:11.5px; color:var(--muted); margin-bottom:9px; }
+  .il-set { display:flex; align-items:center; gap:9px; margin-bottom:6px; }
+  .il-sn { width:16px; text-align:center; font-weight:800; color:var(--muted); font-size:13px; flex:0 0 auto; }
+  .il-set .il-in { flex:1 1 0; min-width:0; width:auto; border:1.5px solid var(--line); border-radius:9px; padding:11px 6px; font-size:16px; text-align:center; box-sizing:border-box; }
+  .il-mult { color:var(--muted); font-weight:700; flex:0 0 auto; }
+  .il-check { flex:0 0 44px; height:44px; border:1.5px solid #cdddd2; background:#fff; color:#b3c4b8; border-radius:10px; font-size:18px; cursor:pointer; }
+  .il-check.on { background:#11643a; border-color:#11643a; color:#fff; }
+  .il-set.done .il-in { background:#f3faf5; border-color:#cfe9d8; }
+  .il-plates { font-size:11px; color:#8a6d1c; padding-left:25px; margin:-1px 0 9px; }
+  .il-exfoot { display:flex; gap:16px; margin-top:3px; }
+  .il-add, .il-fill { background:none; border:0; color:var(--green-700); font:700 12px system-ui; cursor:pointer; padding:2px 0; }
+  /* Rest-timer pill */
+  .rest-pill { position:fixed; left:50%; transform:translateX(-50%); bottom:78px; z-index:75; display:flex; align-items:center; gap:10px;
+    background:#11643a; color:#fff; border-radius:999px; padding:9px 9px 9px 16px; box-shadow:0 8px 24px rgba(8,40,22,.42); }
+  .rest-pill .rp-label { font-size:12px; font-weight:700; opacity:.85; }
+  .rest-pill .rp-time { font-size:17px; font-weight:800; font-variant-numeric:tabular-nums; min-width:48px; text-align:center; }
+  .rest-pill .rp-btn { background:rgba(255,255,255,.18); border:0; color:#fff; border-radius:999px; padding:7px 12px; font:700 12px system-ui; cursor:pointer; }
   .day-foot { padding:11px 15px 13px; border-top:1px solid var(--line); display:flex; justify-content:flex-end; align-items:center; gap:10px; }
   .logbtn { display:inline-flex; align-items:center; gap:6px; border:none; cursor:pointer; font-weight:700; font-size:13px;
     border-radius:10px; padding:11px 16px; background:var(--green-600); color:#fff; transition:all .15s; }
@@ -1762,7 +1791,8 @@
     return String(sr).replace(/^(\s*)(\d+)/, function(_, sp, n){ return sp + Math.max(2, parseInt(n,10)-1); });
   }
   // One day's full card (rest / speed / lift) — used by both Today and Full-week views.
-  function dayCardHtml(d, showPrimerNote){
+  // interactive=true → the featured "today" lift day renders the inline logger.
+  function dayCardHtml(d, showPrimerNote, interactive){
     var p = PHASES[planState.phase];
     if(d.type==="rest"){
       return '<div class="day"><div class="day-head">'+d.name+' <span class="tag rest">Recover</span></div>'+
@@ -1786,13 +1816,19 @@
       var eff = '<div class="effort">'+effortNote(row[1])+'</div>';
       var pe = purposeFor(row[0])+' ';
       if(r.status==="ok") return '<tr><td>'+pe+row[0]+'</td><td class="sets">'+adjSets(row[1],row[0])+eff+'</td></tr>';
-      if(r.status==="swap") return '<tr class="swap"><td class="exname">'+pe+r.name+' <span class="swap-badge">swap</span></td><td class="sets">'+adjSets(r.sr,r.name)+eff+'</td></tr>';
+      if(r.status==="swap") return '<tr class="swap"><td class="exname">'+pe+r.name+' <span class="swap-badge">⇄ subbed for '+escAttr(row[0])+' (your gear)</span></td><td class="sets">'+adjSets(r.sr,r.name)+eff+'</td></tr>';
       return '<tr class="skip"><td class="exname"><span class="nm">'+pe+row[0]+'</span><span class="need">needs '+r.need.map(eqLabel).join(" + ")+'</span></td><td class="sets">'+row[1]+'</td></tr>';
     }).join("");
     var pNote = showPrimerNote ? '<span class="primer-cue">New to jumps and throws? Master a soft, balanced landing before you add height — start with 2 sets and a low box, add a set every couple of weeks. Stop the moment reps slow down: power work only counts when every rep is crisp and fast.</span>' : '';
-    return '<div class="day"><div class="day-head">'+d.name+' <span class="tag '+(d.tag==="Lift"?"":d.tag)+'">'+labelFor(d.tag)+'</span></div>'+
+    var head = '<div class="day"><div class="day-head">'+d.name+' <span class="tag '+(d.tag==="Lift"?"":d.tag)+'">'+labelFor(d.tag)+'</span></div>'+
       '<div class="warm"><b>Warm-up (5 min):</b> '+warmupFor(d.name)+'</div>'+
-      '<div class="primer"><b>⚡ Power primer — do this first, fresh:</b> '+primerFor(d.name)+'.<span class="primer-sub"> Max intent · full rest between reps · ~5 min.</span>'+pNote+'</div>'+
+      '<div class="primer"><b>⚡ Power primer — do this first, fresh:</b> '+primerFor(d.name)+'.<span class="primer-sub"> Max intent · full rest between reps · ~5 min.</span>'+pNote+'</div>';
+    if(interactive){
+      ilog = { week: curWeek(), day: d.name, sess: buildSession(d, curWeek()) };
+      return head + '<div class="ilogwrap" id="ilogBox">'+ilogBodyHtml()+'</div>'+
+        '<div class="romcue">Full range every rep — <b>control the lowering (~3 sec)</b>, own the lockout. The range you train is the range you can swing with.</div></div>';
+    }
+    return head +
       '<table class="ex"><tr><th>Exercise</th><th style="text-align:right">Sets × Reps</th></tr>'+rows+'</table>'+
       '<div class="romcue">Full range every rep — <b>control the lowering (~3 sec)</b>, own the lockout. That eccentric control builds muscle and armors the deceleration your downswing punishes. The range you train is the range you can swing with.</div>'+
       logFoot(d.name)+'</div>';
@@ -1808,6 +1844,7 @@
   function planViewMode(){ return planStart() ? lsGet("ff_planview","today") : "week"; }
 
   function renderPhase(){
+    ilog=null;                       // reset; the interactive day re-sets it
     var p = PHASES[planState.phase];
     var shown = activeDays();
 
@@ -1871,7 +1908,7 @@
           (done?"✓ ":"")+wsShort(d)+'</button>';
       }).join("");
       html+='<div class="weekstrip">'+strip+'</div>';
-      html+=dayCardHtml(featured, true);
+      html+=dayCardHtml(featured, true, true);   // interactive inline logger
     } else {
       html+='<div class="planview-seg"><button data-planview="today"'+(planStart()?'':' disabled')+'>Today</button>'+
         '<button data-planview="week" class="active">Full week</button></div>';
@@ -2061,6 +2098,58 @@
   $("logClose").addEventListener("click", closeLogger);
   $("logDone").addEventListener("click", closeLogger);
   $("logModal").addEventListener("click", function(e){ if(e.target===$("logModal")) closeLogger(); });
+
+  /* ===================== INLINE LOGGER (log as you train, in the card) ===================== */
+  var ilog=null, restEnd=0, restTimer=null;
+  function isBarbell(n){ return /Back Squat|Front Squat|Barbell|Bench Press|Deadlift|Overhead Press|Romanian|Hip Thrust|Pendlay|Bent.?Over Row|Hang Power Clean/i.test(n) && !/\bDB\b|Dumbbell|Cable|Machine|Smith|Band/i.test(n); }
+  function platesFor(total){
+    var per=(parseFloat(total)-45)/2; if(!(per>0)) return parseFloat(total)===45?"just the bar":"";
+    var plates=[45,35,25,10,5,2.5], out=[], rem=per;
+    plates.forEach(function(pl){ while(rem>=pl-0.01){ out.push(pl); rem-=pl; } });
+    return rem>0.1 ? "" : out.join(" + ")+" /side";
+  }
+  function restSecsFor(target){ var top=topReps(target); return (top && top<=6) ? 180 : 90; }
+  function ilogBodyHtml(){
+    var s=ilog.sess, week=ilog.week, day=ilog.day, last=lastSessionFor(day, week), html="", tot=0, done=0;
+    s.ex.forEach(function(x, xi){
+      var lx=null; if(last) last.ex.forEach(function(e){ if(e.name===x.name) lx=e; });
+      var nudge="";
+      if(progressReady(lx, x.target)) nudge='<div class="il-nudge">✅ Hit all reps last week — go up ~'+incFor(x.name)+'</div>';
+      else if(lx){ var d=lx.sets.filter(function(st){return st.w||st.r;}).map(function(st){return (st.w||"–")+"×"+(st.r||"–");}).join(", "); if(d) nudge='<div class="il-last">Last week: '+d+'</div>'; }
+      var setsHtml="";
+      x.sets.forEach(function(st, si){
+        tot++; if(st.done) done++;
+        var lw=(lx&&lx.sets[si]&&lx.sets[si].w)?lx.sets[si].w:"–", lr=(lx&&lx.sets[si]&&lx.sets[si].r)?lx.sets[si].r:"–";
+        var pm=(isBarbell(x.name)&&st.w)?platesFor(st.w):"";
+        setsHtml+='<div class="il-set'+(st.done?" done":"")+'">'+
+          '<span class="il-sn">'+(si+1)+'</span>'+
+          '<input class="il-in" type="number" inputmode="decimal" placeholder="'+escAttr(lw)+'" value="'+(st.w||"")+'" data-x="'+xi+'" data-s="'+si+'" data-f="w"/>'+
+          '<span class="il-mult">×</span>'+
+          '<input class="il-in" type="number" inputmode="numeric" placeholder="'+escAttr(lr)+'" value="'+(st.r||"")+'" data-x="'+xi+'" data-s="'+si+'" data-f="r"/>'+
+          '<button class="il-check'+(st.done?" on":"")+'" data-x="'+xi+'" data-s="'+si+'" data-idone="1" aria-label="set done">✓</button></div>'+
+          (pm?'<div class="il-plates">🏋️ '+pm+'</div>':'');
+      });
+      html+='<div class="il-ex"><div class="il-exhead"><span class="il-name">'+purposeFor(x.name)+' '+x.name+'</span>'+
+        '<button class="il-swap" data-swapx="'+escAttr(x.name)+'" title="Swap this lift">⇄ swap</button></div>'+
+        '<div class="il-tgt">Target '+x.target+'</div>'+nudge+setsHtml+
+        '<div class="il-exfoot"><button class="il-add" data-x="'+xi+'" data-iadd="1">+ set</button>'+
+        ((lx&&lx.sets.some(function(st){return st.w;}))?'<button class="il-fill" data-x="'+xi+'" data-ifill="1">↻ fill last week</button>':'')+'</div></div>';
+    });
+    var pct = tot? Math.round(done/tot*100):0;
+    return '<div class="il-prog"><div class="il-progbar" style="width:'+pct+'%"></div></div>'+
+      '<div class="il-hint">Tap ✓ as you finish each set — your rest timer starts automatically. Auto-saved.</div>'+html;
+  }
+  function renderILog(){ var el=$("ilogBox"); if(el && ilog) el.innerHTML=ilogBodyHtml(); }
+  function saveILog(){ if(!ilog) return; if(!ilog.sess.date) ilog.sess.date=todayStr(); saveSession(ilog.week, ilog.day, ilog.sess); }
+  // ---- rest timer (floating pill) ----
+  function startRest(secs){ restEnd=Date.now()+secs*1000; if(!restTimer) restTimer=setInterval(tickRest,250); var pill=$("restPill"); if(pill) pill.hidden=false; tickRest(); }
+  function stopRest(){ if(restTimer){ clearInterval(restTimer); restTimer=null; } var pill=$("restPill"); if(pill) pill.hidden=true; }
+  function tickRest(){
+    var pill=$("restPill"); if(!pill) return;
+    var left=Math.ceil((restEnd-Date.now())/1000), t=pill.querySelector(".rp-time");
+    if(left<=0){ clearInterval(restTimer); restTimer=null; if(t) t.textContent="GO 💥"; try{ navigator.vibrate&&navigator.vibrate(180);}catch(e){} setTimeout(stopRest,1600); return; }
+    if(t){ var m=Math.floor(left/60), sc=left%60; t.textContent=(m>0?m+":":"")+(m>0&&sc<10?"0":"")+sc; }
+  }
 
   /* ----- FairwayFuel Score — one number for build-to-speed progress -----
      A composite of the data the app already records: showing up (consistency),
@@ -2328,11 +2417,44 @@
     if(pv && !pv.disabled){ lsSet("ff_planview", pv.getAttribute("data-planview")); focusDay=null; renderPhase(); return; }
     var fdc=e.target.closest("[data-focusday]");
     if(fdc){ focusDay=fdc.getAttribute("data-focusday"); renderPhase(); return; }
+    // ---- inline logger ----
+    var idn=e.target.closest("[data-idone]");
+    if(idn && ilog){ var st=ilog.sess.ex[+idn.getAttribute("data-x")].sets[+idn.getAttribute("data-s")];
+      st.done=!st.done; saveILog();
+      if(st.done) startRest(restSecsFor(ilog.sess.ex[+idn.getAttribute("data-x")].target));
+      renderILog(); return; }
+    var iad=e.target.closest("[data-iadd]");
+    if(iad && ilog){ ilog.sess.ex[+iad.getAttribute("data-x")].sets.push({w:"",r:"",done:false}); saveILog(); renderILog(); return; }
+    var ifl=e.target.closest("[data-ifill]");
+    if(ifl && ilog){ var xi=+ifl.getAttribute("data-x"), x=ilog.sess.ex[xi], ls=lastSessionFor(ilog.day, ilog.week), lx=null;
+      if(ls) ls.ex.forEach(function(e2){ if(e2.name===x.name) lx=e2; });
+      if(lx){ x.sets.forEach(function(s2, si){ if(lx.sets[si]&&lx.sets[si].w) s2.w=lx.sets[si].w; }); saveILog(); renderILog(); } return; }
+    var isw=e.target.closest("[data-swapx]");
+    if(isw){ var nm=isw.getAttribute("data-swapx");
+      if(window.FFCoach && window.FFCoach.ready()){
+        window.FFCoach.ask("Swap "+nm+" for me. Give me 1–2 lifts that hit the SAME muscles just as hard — no easy/weakling substitutes — that I can do with the equipment in my profile. One line each on why it's a legit replacement, with sets×reps.", "Swap: "+nm);
+      }
+      return; }
     if(e.target.id==="pAdd"){
       var wv=$("pBody").value, sv=$("pSpeed").value;
       if(!wv && !sv) return;
       var body=lsGet("ff_body",[]); body.push({ date:todayStr(), w:wv, s:sv }); lsSet("ff_body", body);
       renderPhase(); var pf=$("progFold"); if(pf) pf.open=true;
+    }
+  });
+  // Inline logger inputs: save on every keystroke and update plate math IN PLACE
+  // (never re-render while typing — that would steal focus when moving weight → reps).
+  $("phaseDetail").addEventListener("input", function(e){
+    var t=e.target; if(!ilog || !t.classList.contains("il-in")) return;
+    var xi=+t.getAttribute("data-x");
+    ilog.sess.ex[xi].sets[+t.getAttribute("data-s")][t.getAttribute("data-f")]=t.value;
+    saveILog();
+    if(t.getAttribute("data-f")==="w"){
+      var row=t.closest(".il-set"); if(!row) return;
+      var pm = isBarbell(ilog.sess.ex[xi].name) ? platesFor(t.value) : "";
+      var next=row.nextElementSibling, hasP=next && next.classList && next.classList.contains("il-plates");
+      if(pm){ if(hasP) next.textContent="🏋️ "+pm; else { var d=document.createElement("div"); d.className="il-plates"; d.textContent="🏋️ "+pm; row.parentNode.insertBefore(d, row.nextSibling); } }
+      else if(hasP){ next.remove(); }
     }
   });
 
@@ -2341,6 +2463,19 @@
   if(fd) fd.addEventListener("click", function(e){
     if(e.target.closest("#foodSwap") && lastFood){ foodRoll++; updateFoodTargets(lastFood.p, lastFood.c, lastFood.m); }
   });
+
+  // Floating rest-timer pill for the inline logger.
+  (function(){
+    var pill=document.createElement("div");
+    pill.id="restPill"; pill.className="rest-pill"; pill.hidden=true;
+    pill.innerHTML='<span class="rp-label">⏱ Rest</span><span class="rp-time">0:00</span>'+
+      '<button class="rp-btn" id="rpAdd" type="button">+15s</button><button class="rp-btn" id="rpSkip" type="button">Skip</button>';
+    document.body.appendChild(pill);
+    pill.addEventListener("click", function(e){
+      if(e.target.id==="rpAdd"){ restEnd+=15000; tickRest(); }
+      else if(e.target.id==="rpSkip"){ stopRest(); }
+    });
+  })();
 
   // Dashboard tiles jump to the relevant tab; quick-add logs weight + speed from home.
   var db=$("dashBody");
