@@ -30,8 +30,9 @@ bodybuilding principles it's built on.
 11. [Supplements: the few that actually work](#11-supplements-the-few-that-actually-work)
 12. [How FairwayFuel compares to other calculators](#12-how-fairwayfuel-compares-to-other-calculators)
 13. [Applied example: Bryson DeChambeau (vetted)](#13-applied-example-bryson-dechambeau-vetted)
-14. [Sources & further reading](#14-sources--further-reading)
-15. [Disclaimer](#15-disclaimer)
+14. [Applied example: Rory McIlroy — 2025 Masters (vetted)](#14-applied-example-rory-mcilroy--2025-masters-vetted)
+15. [Sources & further reading](#15-sources--further-reading)
+16. [Disclaimer](#16-disclaimer)
 
 ---
 
@@ -82,6 +83,13 @@ over leanness, and should be followed by a cut.
 **Deficit size matters too.** A ~20% deficit (~0.5–1% bodyweight/week loss) is
 aggressive enough to lose fat steadily but moderate enough — with high protein and hard
 training — to retain muscle. Crash deficits cost muscle and performance.
+
+> **The throughline: this is a mass-and-clubhead-speed program first.** Every goal serves
+> that. Lean Bulk/Bulk add the muscle that raises your force (and speed) ceiling;
+> Maintain holds it in-season. **A cut is not an aesthetics phase — it's a speed phase:**
+> dropping fat while protecting muscle raises **power-to-weight**, so you swing **as fast
+> or faster at a lighter, more athletic bodyweight** (see [§9](#9-where-golf-actually-changes-things)).
+> Keep protein high and the speed/power work in even on a cut so the deficit costs fat, not mph.
 
 ---
 
@@ -294,6 +302,10 @@ The training side of adding muscle ("build like a bodybuilder").
 ## 9. Where golf actually changes things
 
 This is the short list — almost everything above is general fitness. Golf only adds:
+
+> **The full "what physically produces clubhead speed" breakdown** — the kinetic chain,
+> X-factor, ground force, the driver→exercise map, and public speed benchmarks — lives in
+> its companion doc [`CLUBHEAD-SPEED-REFERENCE.md`](./CLUBHEAD-SPEED-REFERENCE.md).
 
 1. **Power-to-weight ratio.** Clubhead speed comes from power *relative to bodyweight* and
    how fast you rotate — not raw size. Don't bulk into immobility. A leaner, more powerful
@@ -536,7 +548,56 @@ principles; their numbers don't survive scrutiny.
 
 ---
 
-## 14. Sources & further reading
+## 14. Applied example: Rory McIlroy — 2025 Masters (vetted)
+
+McIlroy's 2025 Masters win — completing the career Grand Slam — is the clearest modern
+proof of the "train like an athlete, for years, to play better golf" thesis. His
+publicly-reported program lines up almost exactly with what FairwayFuel already
+prescribes. *(Facts below are drawn from mainstream reporting and trainer/recovery-coach
+interviews — Golf Monthly, WHOOP, and similar — not from any single proprietary source;
+where a claim mattered it was cross-checked against multiple outlets.)*
+
+**✅ Worth copying (credible, evidence-aligned, already in this plan):**
+- **Long-horizon, phase-based development.** He began structured training with exercise
+  physiologist Dr. Steve McGregor around **2010**, on a **stability → strength → power**
+  progression; the green jacket arrived ~**15 years** later. The lesson is the one in
+  [§8](#8-gaining-10-lb-of-muscle-realistic-rate--timeline): real athleticism is built
+  over **months and years, not weeks** — which is exactly why FairwayFuel runs repeatable
+  20-week blocks, not a "12-week transformation."
+- **A concurrent in-season micro-split.** In tournament weeks he reportedly runs ~3
+  quality gym touches — a **heavy strength day** (trap-bar deadlifts, weighted pull-ups),
+  a **golf-only day**, and an **explosive power day** (box jumps, medicine-ball throws,
+  light loads moved fast) — then mobility/activation the rest of the week. This is the
+  same **concurrent, low-volume/high-intensity in-season** model in our in-season panel
+  ([§10](#10-the-apps-exact-formulas--config)).
+- **Power trained explosively and fresh.** Box and broad jumps, rotational and overhead
+  medicine-ball throws, landmine rotations and cable work — for **ground force** and
+  **anti-rotation**. These are the same rate-of-force-development, rotational-power, and
+  "core as a brake" priorities in our speed day and lift-day **power primers**
+  ([§7](#7-bodybuilding--hypertrophy-principles), [§9](#9-where-golf-actually-changes-things)).
+- **Recovery treated as training.** Post-round easy bike spin, pneumatic compression
+  (Normatec), percussion (Theragun), and sleep/strain monitoring (WHOOP) — mirroring our
+  "recovery is where growth happens, **7–9 h sleep**" rule ([§7](#7-bodybuilding--hypertrophy-principles)).
+
+**🚩 Treat with caution (don't copy blindly):**
+- **Exact "celebrity routines" are reconstructions.** The specific sets/reps/loads in
+  aggregator articles are inferred, not gospel. Use the *principles*; set your own loads
+  by **double progression** ([§10](#10-the-apps-exact-formulas--config)).
+- **The gear is optimization, not the cause.** Normatec/Theragun/WHOOP help him recover —
+  they don't create the result. Sleep, food, and progressive overload do ~95% of it
+  ([§11](#11-supplements-the-few-that-actually-work)).
+- **Don't chase his numbers.** Tour-pro loads and speeds are the product of 15 years of
+  training and full-time support. The **transfer principle** copies; the absolute numbers
+  don't.
+
+**Bottom line:** McIlroy's program is an elite, well-resourced version of the *same*
+concurrent, power-biased, recovery-anchored approach FairwayFuel encodes — built
+patiently over years. It validates the method; the specific routine numbers are not the
+point.
+
+---
+
+## 15. Sources & further reading
 
 **Primary / authoritative (highest confidence):**
 - **Morton RW, et al. (2018)** — meta-analysis of protein & resistance training, *Br J
@@ -583,7 +644,7 @@ principles; their numbers don't survive scrutiny.
 
 ---
 
-## 15. Disclaimer
+## 16. Disclaimer
 
 This document is educational and reflects general, evidence-based ranges — not
 individualized medical or dietetic advice. Energy and macro estimates carry inherent

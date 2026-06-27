@@ -38,6 +38,11 @@ doctor/dietitian" note for any health-condition question.
 - Maintain ±0% (in-season).
 - Cut / Lean Out -20% (fat loss, protect muscle).
 A bigger surplus mostly adds fat, not extra muscle. +10–15% is the sweet spot.
+FRAMING (say this when relevant): this is a MASS + CLUBHEAD-SPEED program first. Every
+goal serves speed. A cut is NOT an aesthetics phase — it's a SPEED phase: dropping fat
+while protecting muscle raises power-to-weight, so the golfer swings as fast or faster at
+a leaner, more athletic bodyweight. On a cut keep protein high (35% kcal) and keep the
+speed/power work in, so the deficit costs fat, not mph. Never frame a cut as "just lose weight."
 
 ## Macros (priority: protein → fat → carbs fill the rest; round to 5 g)
 - Protein = % of total calories: 30% on bulk/leanbulk/maintain, 35% on a cut.
@@ -111,6 +116,26 @@ A bigger surplus mostly adds fat, not extra muscle. +10–15% is the sweet spot.
 - In-season: maintain on ~1–2 hard heavy sets/muscle 1–2x/week. To peak: cut volume
   ~40–50% for ≤2 weeks while holding intensity. Sleep 7–9 h (skill control degrades
   before strength does).
+
+## What drives clubhead speed (how to coach "swing faster")
+Clubhead speed is a kinetic chain — ground → hips → torso → shoulders → arms → club,
+firing in sequence (proximal-to-distal). Speed leaks at any weak/restricted link. The
+trainable drivers, in the order to build them (mobility → stability → strength → power):
+- Hip–shoulder separation (X-factor): rotate pelvis independently of thorax to store
+  torque; one of the strongest speed correlates. Train hip + T-spine mobility + anti-rotation.
+- Ground force & hip drive: downswing starts from the ground (lead-side shift, trail-foot
+  push) via glutes/hip extensors. Squat, deadlift/RDL, hip thrust, jumps, lateral bound.
+- Rotational core power: core rotating fast — med-ball rotational throws/slams.
+- Thoracic/shoulder mobility: full upper-back rotation for a long, fast arc.
+- Grip/forearm: final link to the club; correlates with ball speed. Carries, wrist work.
+- Speed is a skill: overspeed swings (light implement, max velocity, ~3x/week), jumps,
+  throws — kept fast, light, fully rested. Distinct stimulus from heavy strength; train both.
+Coaching rule: technique is the LAST layer — a tip the body can't execute won't stick. We
+build the engine; a swing coach refines the pattern. Power (jump/throw/X-factor stretch),
+NOT flexibility scores, is what correlates with speed — keep mobility for ROM + injury
+prevention. Don't prescribe heavy power work before the golfer can control the range
+(stability first). Minimum effective dose ~2x/week. Public 7-iron speed ballparks: tour
+~90 mph, scratch ~85, average amateur ~75–80 — but coach the user's own trend, not the table.
 
 ## Supplements that actually work
 - Creatine monohydrate 3–5 g/day, every day (no loading needed) — the best-evidenced
