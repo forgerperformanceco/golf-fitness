@@ -1,9 +1,20 @@
-name: Deploy Supabase Functions
+name: Deploy Supabase (schema + functions)
 
-# Browser-only deploy: no local tools needed.
-# 1. Add repo secrets SUPABASE_ACCESS_TOKEN and ANTHROPIC_API_KEY (Settings → Secrets).
-# 2. Actions tab → "Deploy Supabase Functions" → Run workflow.
+# Hands-off backend deploy. Runs automatically whenever anything under
+# supabase/ changes on main, and can also be triggered manually.
+#
+# Secrets used (Settings → Secrets and variables → Actions):
+#   SUPABASE_ACCESS_TOKEN  (required)  — personal access token; also applies SQL.
+#   ANTHROPIC_API_KEY      (optional)  — needed only to deploy the AI coach.
+#
+# The database schema is applied through the Supabase Management API using the
+# access token you already have — no database password required.
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/**'
+      - '.github/workflows/deploy-functions.yml'
   workflow_dispatch:
 
 jobs:
@@ -15,22 +26,59 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check required secrets are set
+      - name: Require the Supabase access token
         run: |
           if [ -z "${{ secrets.SUPABASE_ACCESS_TOKEN }}" ]; then
             echo "::error::Missing repo secret SUPABASE_ACCESS_TOKEN"; exit 1; fi
-          if [ -z "${{ secrets.ANTHROPIC_API_KEY }}" ]; then
-            echo "::error::Missing repo secret ANTHROPIC_API_KEY"; exit 1; fi
 
+      - name: Detect optional secrets
+        id: chk
+        run: |
+          if [ -n "${{ secrets.ANTHROPIC_API_KEY }}" ]; then
+            echo "has_anthropic=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_anthropic=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::ANTHROPIC_API_KEY not set — schema will apply, but the AI coach won't be (re)deployed."
+          fi
+
+      # ── Apply the database schema (profiles, leaderboard, RLS, functions) ──
+      # Uses the Management API "run query" endpoint with the access token, so
+      # no DB password is needed. schema.sql is idempotent, so this is safe to
+      # re-run on every push.
+      - name: Apply database schema
+        run: |
+          echo "Applying supabase/schema.sql via the Supabase Management API…"
+          PAYLOAD=$(jq -Rs '{query: .}' supabase/schema.sql)
+          HTTP=$(curl -sS -w "%{http_code}" -o /tmp/resp.json \
+            -X POST "https://api.supabase.com/v1/projects/${PROJECT_REF}/database/query" \
+            -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+            -H "Content-Type: application/json" \
+            --data-binary "$PAYLOAD")
+          echo "HTTP ${HTTP}"
+          echo "----- response -----"; cat /tmp/resp.json; echo
+          if [ "${HTTP}" -ge 300 ]; then
+            echo "::error::Schema apply failed (HTTP ${HTTP}). See response above."; exit 1; fi
+          echo "✅ Database schema applied (leaderboard + profiles + RLS)."
+
+      # ── Deploy the Edge Function (only if the Anthropic key is present) ──
       - uses: supabase/setup-cli@v1
+        if: steps.chk.outputs.has_anthropic == 'true'
         with:
           version: latest
 
       - name: Set the Anthropic key as a server-side function secret
+        if: steps.chk.outputs.has_anthropic == 'true'
         run: supabase secrets set ANTHROPIC_API_KEY="${{ secrets.ANTHROPIC_API_KEY }}" --project-ref "$PROJECT_REF"
 
       - name: Deploy the AI coach function
+        if: steps.chk.outputs.has_anthropic == 'true'
         run: supabase functions deploy ai-coach --project-ref "$PROJECT_REF"
 
-      - name: Done
-        run: echo "✅ ai-coach deployed to https://$PROJECT_REF.supabase.co/functions/v1/ai-coach"
+      - name: Summary
+        run: |
+          echo "✅ Schema applied to https://${PROJECT_REF}.supabase.co"
+          if [ "${{ steps.chk.outputs.has_anthropic }}" = "true" ]; then
+            echo "✅ ai-coach deployed → https://${PROJECT_REF}.supabase.co/functions/v1/ai-coach"
+          else
+            echo "ℹ️ AI coach not deployed (add ANTHROPIC_API_KEY to enable it)."
+          fi
