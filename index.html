@@ -334,6 +334,9 @@
     font-size: 15px; color: #2b3a30; line-height: 1.55; margin: 0 0 16px;
   }
   .plan-intro .lead b { color: var(--green-800); }
+  .plan-phase { display:inline-block; margin:2px 0 12px; padding:5px 12px; border-radius:999px;
+    background:#eef7f0; color:var(--green-700); border:1px solid #cfe9d8; font-size:12px; font-weight:700; }
+  .plan-phase b { color:var(--green-800); }
   .pillars { display:flex; flex-direction:column; gap:9px; }
   .pillar { display:flex; align-items:flex-start; gap:13px; background:#fff; border:1px solid var(--line);
     border-radius:13px; padding:12px 15px; box-shadow: var(--shadow); }
@@ -827,10 +830,10 @@
     <section class="card">
       <div class="plan-intro">
         <div class="kicker">⛳ Range Session</div>
-        <h2>The 20-Week Mass + Speed Blueprint</h2>
-        <p class="lead">
-          <b>Add ~10 lb of lean muscle</b> and turn it into <b>clubhead speed</b> — one consistent week, all 20 weeks.
-          Pair it with the <b>Lean Bulk</b> macros.
+        <h2>The 20-Week Speed Blueprint</h2>
+        <div class="plan-phase" id="planPhase"></div>
+        <p class="lead" id="planLead">
+          <b>Add lean muscle</b> and turn it into <b>clubhead speed</b> — one consistent week, all 20 weeks.
         </p>
         <div class="pillars">
           <div class="pillar"><div class="ico">🏗️</div><div><h3>Build the Mass</h3>
@@ -847,10 +850,10 @@
       <div class="phase-detail" id="phaseDetail"></div>
 
       <details class="fold tracker-fold">
-        <summary>📈 How to gain the 10 lb (and keep your swing)</summary>
+        <summary id="planFoldTitle">📈 How to make it work (and keep your swing)</summary>
         <div class="fold-body">
           <ul>
-            <li><b>Clean surplus:</b> Lean Bulk (+10%), gain <b>~0.5–0.75 lb/week</b> — not a dirty bulk.</li>
+            <li id="planRateBullet"><b>Clean surplus:</b> Lean Bulk (+10%), gain <b>~0.5–0.75 lb/week</b> — not a dirty bulk.</li>
             <li><b>Protein daily:</b> ~1 g/lb, spread across meals.</li>
             <li><b>Quality food &amp; gut health:</b> whole foods; watch triggers if you bloat.</li>
             <li><b>Progressive overload:</b> add weight or a rep each week. Log it.</li>
@@ -995,6 +998,38 @@
       note: "A cut here is <b>in service of speed</b>: a high-protein deficit that protects muscle while you drop fat, so you <b>keep or gain clubhead speed</b> at a lighter, more powerful bodyweight. Don't crash — that costs muscle and speed." }
   };
   var ACTIVITY_LABELS = { "1.2":"Sedentary","1.375":"Light","1.55":"Moderate","1.725":"Very Active","1.9":"Athlete" };
+
+  // Training-page copy that matches the chosen macro goal (the workout itself is the
+  // same for now — only the framing changes so it doesn't always say "gain 10 lb").
+  var GOAL_TRAIN = {
+    leanbulk: {
+      phase: "🏗️ Build phase · matches your <b>Lean Bulk</b> macros",
+      lead: "<b>Add lean muscle</b> and turn it into <b>clubhead speed</b> — one consistent week that builds size, strength and speed together, all 20 weeks.",
+      foldTitle: "📈 How to add the muscle (and keep your swing)",
+      rate: "<b>Clean surplus:</b> Lean Bulk (+10%), gain <b>~0.5–0.75 lb/week</b> — not a dirty bulk." },
+    bulk: {
+      phase: "💪 Mass phase · matches your <b>Bulk</b> macros",
+      lead: "<b>Pack on size and strength</b> and convert it to <b>clubhead speed</b> — the same week, fueled by a bigger surplus. Plan a Lean Out afterward to reveal it.",
+      foldTitle: "📈 How to gain the mass (and keep your swing)",
+      rate: "<b>Surplus:</b> Bulk (+20%), faster scale gain — <b>plan a Lean Out after</b> to show the muscle." },
+    maintain: {
+      phase: "⛳ In-season · matches your <b>Maintain</b> macros",
+      lead: "<b>Hold your muscle and sharpen your speed</b> — the in-season week: heavy enough to keep strength, lighter on volume, all the speed work intact.",
+      foldTitle: "📈 How to hold size &amp; speed in-season",
+      rate: "<b>Maintenance calories:</b> hold your weight — the scale stays roughly flat while you keep strength and speed." },
+    cut: {
+      phase: "🔻 Lean-out phase · matches your <b>Lean Out</b> macros",
+      lead: "<b>Keep your muscle and clubhead speed while you lean out</b> — train heavy to protect strength, keep the power work, let the deficit drop the fat. Leaner = better power-to-weight = more speed.",
+      foldTitle: "📈 How to lean out without losing speed",
+      rate: "<b>Moderate deficit:</b> Lean Out (−20%), ~<b>0.5–1%/week</b> — high protein + heavy lifting protect muscle and speed." }
+  };
+  function updatePlanCopy(){
+    var g = GOAL_TRAIN[state.goal] || GOAL_TRAIN.leanbulk;
+    var pe=$("planPhase"); if(pe) pe.innerHTML=g.phase;
+    var pl=$("planLead"); if(pl) pl.innerHTML=g.lead;
+    var pf=$("planFoldTitle"); if(pf) pf.innerHTML=g.foldTitle;
+    var rb=$("planRateBullet"); if(rb) rb.innerHTML=g.rate;
+  }
 
   // Anchor training hour (24h) per slot. Pre = 90 min before, post ≈ 90 min after start.
   var WORKOUT_SLOTS = {
@@ -1216,6 +1251,7 @@
       proteinKcal:proteinKcal,fatKcal:fatKcal,carbKcal:carbKcal,
       goal:g,pct:g.pct, timing:timing, meal:meal, weekly:weekly });
     updateFoodTargets(proteinG, carbG, mealN);
+    updatePlanCopy();                 // keep the Train-tab framing in step with the goal
     // Stash the computed targets so the AI coach can use the user's exact numbers.
     try {
       localStorage.setItem("ff_targets", JSON.stringify({
