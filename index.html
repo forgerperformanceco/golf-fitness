@@ -552,6 +552,24 @@
   .weekbar select { width:auto; background:rgba(255,255,255,.14); color:#fff; border:1px solid rgba(255,255,255,.25);
     padding:9px 30px 9px 12px; font-size:14px; font-weight:700; border-radius:10px; }
   .weekbar select option { color:#143; }
+  .wk-adjust { background:rgba(255,255,255,.16); color:#fff; border:0; border-radius:9px; padding:9px 14px; font:700 12.5px system-ui; cursor:pointer; }
+  .wk-adjust:active { transform:translateY(1px); }
+  .wk-adjrow { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:-6px 0 14px; padding:11px 12px;
+    background:#f3f7f3; border:1px solid var(--line); border-radius:11px; }
+  .wk-adjrow select { flex:1; min-width:120px; padding:9px 10px; }
+  /* Calendar start card (before the plan is started) */
+  .startbar { background:linear-gradient(160deg,#0f2417,#14532d); color:#eafff1; border-radius:14px; padding:16px; margin-bottom:14px; }
+  .startbar .sb-top { display:flex; flex-direction:column; gap:4px; margin-bottom:12px; }
+  .startbar .sb-top b { font-size:16px; color:#fff; }
+  .startbar .sb-top span { font-size:12px; color:#bfe6cd; line-height:1.45; }
+  .startbar .sb-go { width:100%; background:var(--accent); color:#143a26; border:0; border-radius:11px; padding:13px; font:800 15px system-ui; cursor:pointer; }
+  .startbar .sb-go:active { transform:translateY(1px); }
+  .startbar .sb-alt { font-size:12px; color:#bfe6cd; margin-top:11px; text-align:center; }
+  .sb-link { background:none; border:0; color:#9fe7bb; font:700 12px system-ui; cursor:pointer; text-decoration:underline; padding:0; }
+  .wk-adjrow .sb-link { color:var(--green-700); }
+  .startbar .sb-jump { display:flex; gap:8px; margin-top:11px; }
+  .startbar .sb-jump select { flex:1; }
+  .sb-go2 { background:var(--accent); color:#143a26; border:0; border-radius:9px; padding:9px 15px; font:800 13px system-ui; cursor:pointer; }
   .day-foot { padding:11px 15px 13px; border-top:1px solid var(--line); display:flex; justify-content:flex-end; align-items:center; gap:10px; }
   .logbtn { display:inline-flex; align-items:center; gap:6px; border:none; cursor:pointer; font-weight:700; font-size:13px;
     border-radius:10px; padding:11px 16px; background:var(--green-600); color:#fff; transition:all .15s; }
@@ -1548,10 +1566,23 @@
   ];
   // Gym machines/cables — grouped under one master chip, individually selectable.
   var MACHINES = [
-    { key:"legpress",    label:"Leg press" },
-    { key:"latpulldown", label:"Lat pulldown" },
-    { key:"legcurl",     label:"Leg / ham curl" },
-    { key:"cable",       label:"Cable column" }
+    { key:"legpress",     label:"Leg press" },
+    { key:"hacksquat",    label:"Hack squat" },
+    { key:"legext",       label:"Leg extension" },
+    { key:"legcurl",      label:"Leg / ham curl" },
+    { key:"hipthrustm",   label:"Hip thrust machine" },
+    { key:"abductor",     label:"Hip ab / adductor" },
+    { key:"calfmachine",  label:"Calf machine" },
+    { key:"smith",        label:"Smith machine" },
+    { key:"latpulldown",  label:"Lat pulldown" },
+    { key:"seatedrow",    label:"Seated cable row" },
+    { key:"tbarrow",      label:"T-bar row" },
+    { key:"chestpress",   label:"Chest press" },
+    { key:"pecdeck",      label:"Pec deck / fly" },
+    { key:"shoulderpress",label:"Shoulder press" },
+    { key:"assisted",     label:"Assisted pull-up / dip" },
+    { key:"preacher",     label:"Preacher / arm curl" },
+    { key:"cable",        label:"Cable column" }
   ];
   var MACHINE_KEYS = MACHINES.map(function(m){ return m.key; });
   var EQ_PRESETS = {
@@ -1727,10 +1758,28 @@
     html+='<div class="phase-head"><h3>'+p.title+'</h3><p>'+p.blurb+'</p>'+
       '<div class="focuschips">'+p.chips.map(function(c){ return '<span>'+c+'</span>'; }).join("")+'</div></div>';
 
-    var wk=curWeek(), wkOpts="";
-    for(var wi=1; wi<=20; wi++){ wkOpts+='<option value="'+wi+'"'+(wi===wk?' selected':'')+'>Week '+wi+'</option>'; }
-    html+='<div class="weekbar"><div class="wk-label"><b>Week '+wk+'</b><span>tap a workout to log it live</span></div>'+
-      '<select id="weekSel" aria-label="Current week">'+wkOpts+'</select></div>';
+    var wk=curWeek(), started=!!planStart();
+    if(!started){
+      // Not started yet → start the plan; it then tracks your week automatically.
+      html+='<div class="startbar"><div class="sb-top"><b>▶ Start your 20-week plan</b>'+
+        '<span>Most people start on a Monday — but jump in any day. It tracks your week from here, no fiddling.</span></div>'+
+        '<button class="sb-go" data-startweek="1">Start the plan today</button>'+
+        '<div class="sb-alt">Already mid-plan? <button class="sb-link" data-jump="1">Pick your current week ▾</button></div>'+
+        '<div class="sb-jump" id="sbJump" hidden><select id="weekSel" aria-label="Current week">'+
+          (function(){ var o=""; for(var wi=1;wi<=20;wi++) o+='<option value="'+wi+'">Week '+wi+'</option>'; return o; })()+
+          '</select><button class="sb-go2" data-startweek="sel">Set</button></div></div>';
+    } else {
+      var dp=dayOfPlan();
+      var nw=nextWorkout();
+      var sub = nw ? ('Up next: <b>'+nw.replace(/Day \d+ — /,'')+'</b>') : 'Tap a workout to log it live';
+      html+='<div class="weekbar"><div class="wk-label"><b>Week '+wk+' of 20</b><span>Day '+dp+' · '+sub+'</span></div>'+
+        '<button class="wk-adjust" data-wkadjust="1">Adjust</button></div>'+
+        '<div class="wk-adjrow" id="wkAdjRow" hidden>'+
+          '<select id="weekSel" aria-label="Jump to week">'+
+          (function(){ var o=""; for(var wi=1;wi<=20;wi++) o+='<option value="'+wi+'"'+(wi===wk?' selected':'')+'>Week '+wi+'</option>'; return o; })()+
+          '</select><button class="sb-go2" data-startweek="sel">Jump</button>'+
+          '<button class="sb-link" data-reset="1">Restart from week 1</button></div>';
+    }
 
     html+='<div class="freqbar"><span>Training days per week:</span><div class="seg" id="freqSeg">'+
       '<button type="button" data-freq="4" '+(planState.freq===4?'class="active"':'')+'>4 days</button>'+
@@ -1837,7 +1886,29 @@
   function lsGet(k,def){ try{ var v=JSON.parse(localStorage.getItem(k)); return v==null?def:v; }catch(e){ return def; } }
   function lsSet(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
   function escAttr(s){ return String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;"); }
-  function curWeek(){ return lsGet("ff_week",1); }
+  // The plan runs off a START DATE: once you start, it auto-knows your week. No dropdown.
+  function planStart(){ return lsGet("ff_start", null); }
+  function curWeek(){
+    var s = planStart();
+    if(s){
+      var days = Math.floor((Date.now() - new Date(s).getTime()) / 864e5);
+      return Math.max(1, Math.min(20, Math.floor(days/7) + 1));
+    }
+    return lsGet("ff_week", 1);   // legacy fallback before the plan is started
+  }
+  function dayOfPlan(){            // 1–7 within the current week
+    var s = planStart(); if(!s) return null;
+    var days = Math.floor((Date.now() - new Date(s).getTime()) / 864e5);
+    return (days % 7) + 1;
+  }
+  // Start (or re-anchor) the plan so that "today" lands in the given week.
+  function startPlanAtWeek(n){
+    var back = (Math.max(1, n) - 1) * 7;
+    var d = new Date(Date.now() - back * 864e5);
+    lsSet("ff_start", d.toISOString());
+    renderPhase(); if(typeof renderDash==="function") renderDash();
+  }
+  function resetPlan(){ try{ localStorage.removeItem("ff_start"); }catch(e){} renderPhase(); if(typeof renderDash==="function") renderDash(); }
   function getLog(){ return lsGet("ff_log",{}); }
   function getSession(w,d){ return getLog()[w+"|"+d]||null; }
   function saveSession(w,d,s){ var L=getLog(); L[w+"|"+d]=s; lsSet("ff_log",L); }
@@ -2197,13 +2268,17 @@
       '</div></details>';
   }
 
-  /* ----- Delegated plan events (week select, log buttons, progress add) ----- */
-  $("phaseDetail").addEventListener("change", function(e){
-    if(e.target.id==="weekSel"){ lsSet("ff_week", parseInt(e.target.value,10)); renderPhase(); }
-  });
+  /* ----- Delegated plan events (calendar start, log buttons, progress add) ----- */
   $("phaseDetail").addEventListener("click", function(e){
     var lb=e.target.closest("[data-logday]");
     if(lb){ openLogger(lb.getAttribute("data-logday")); return; }
+    var sw=e.target.closest("[data-startweek]");
+    if(sw){ var v=sw.getAttribute("data-startweek");
+      var n = v==="sel" ? parseInt(($("weekSel")||{}).value||"1",10) : parseInt(v,10);
+      startPlanAtWeek(n||1); return; }
+    if(e.target.closest("[data-jump]")){ var j=$("sbJump"); if(j) j.hidden=!j.hidden; return; }
+    if(e.target.closest("[data-wkadjust]")){ var a=$("wkAdjRow"); if(a) a.hidden=!a.hidden; return; }
+    if(e.target.closest("[data-reset]")){ if(confirm("Restart the plan from week 1?")) resetPlan(); return; }
     if(e.target.id==="pAdd"){
       var wv=$("pBody").value, sv=$("pSpeed").value;
       if(!wv && !sv) return;

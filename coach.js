@@ -41,19 +41,25 @@
       + '.ffc-wrap{position:fixed;inset:0;background:rgba(8,24,15,.5);z-index:80;display:flex;align-items:flex-end;'
       + 'justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}'
       + '.ffc-wrap.open{opacity:1;pointer-events:auto;}'
-      + '.ffc-sheet{background:#f7faf7;width:100%;max-width:560px;height:78vh;max-height:78vh;border-radius:20px 20px 0 0;'
-      + 'display:flex;flex-direction:column;overflow:hidden;transform:translateY(26px);transition:transform .22s;}'
+      + '.ffc-sheet{background:#f6faf6;width:100%;max-width:560px;height:88vh;max-height:88vh;border-radius:22px 22px 0 0;'
+      + 'display:flex;flex-direction:column;overflow:hidden;transform:translateY(26px);transition:transform .22s;box-shadow:0 -8px 40px rgba(8,30,18,.35);}'
       + '.ffc-wrap.open .ffc-sheet{transform:none;}'
-      + '.ffc-head{background:linear-gradient(160deg,#0f2417,#14532d);color:#fff;padding:14px 18px;display:flex;'
+      + '.ffc-grab{width:38px;height:4px;border-radius:99px;background:rgba(255,255,255,.45);margin:8px auto 0;}'
+      + '.ffc-head{background:linear-gradient(160deg,#0f2417,#14532d);color:#fff;padding:6px 18px 14px;display:flex;'
       + 'align-items:center;justify-content:space-between;}'
       + '.ffc-head h3{margin:0;font-size:15px;display:flex;align-items:center;gap:8px;}'
       + '.ffc-head .ffc-ctx{margin:2px 0 0;font-size:11px;color:#bfe6cd;}'
-      + '.ffc-x{background:rgba(255,255,255,.14);border:0;color:#fff;width:30px;height:30px;border-radius:50%;font-size:16px;cursor:pointer;}'
-      + '.ffc-log{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:11px;}'
-      + '.ffc-msg{max-width:88%;padding:11px 14px;border-radius:14px;font-size:14px;line-height:1.5;white-space:pre-wrap;}'
-      + '.ffc-msg.user{align-self:flex-end;background:#11643a;color:#fff;border-bottom-right-radius:5px;}'
-      + '.ffc-msg.bot{align-self:flex-start;background:#fff;color:#16301f;border:1px solid #dce8e0;border-bottom-left-radius:5px;}'
-      + '.ffc-msg.note{align-self:center;background:#eef6f0;color:#3f6450;font-size:12.5px;text-align:center;max-width:96%;}'
+      + '.ffc-x{background:rgba(255,255,255,.16);border:0;color:#fff;width:32px;height:32px;border-radius:50%;font-size:17px;cursor:pointer;}'
+      + '.ffc-log{flex:1;overflow-y:auto;padding:18px 16px;display:flex;flex-direction:column;gap:14px;}'
+      + '.ffc-msg{font-size:14.5px;line-height:1.62;}'
+      + '.ffc-msg.user{align-self:flex-end;max-width:85%;background:#11643a;color:#fff;padding:10px 14px;border-radius:15px;border-bottom-right-radius:5px;white-space:pre-wrap;}'
+      + '.ffc-msg.bot{align-self:stretch;color:#16301f;padding:2px 2px 2px 13px;border-left:3px solid #cfe6d6;}'
+      + '.ffc-msg.bot p{margin:0 0 9px;} .ffc-msg.bot p:last-child{margin-bottom:0;}'
+      + '.ffc-msg.bot p.h{margin:13px 0 5px;font-size:14px;}'
+      + '.ffc-msg.bot strong{color:#0f5132;font-weight:700;}'
+      + '.ffc-msg.bot ul,.ffc-msg.bot ol{margin:5px 0 10px;padding-left:20px;} .ffc-msg.bot li{margin:4px 0;}'
+      + '.ffc-msg.bot code{background:#eaf3ec;padding:1px 5px;border-radius:5px;font-size:13px;}'
+      + '.ffc-msg.note{align-self:center;background:#eef6f0;color:#3f6450;font-size:12.5px;text-align:center;max-width:96%;padding:11px 14px;border-radius:12px;line-height:1.5;}'
       + '.ffc-cta{background:#11643a;color:#fff;border:0;border-radius:10px;padding:11px 16px;font:700 14px system-ui;cursor:pointer;margin-top:4px;}'
       + '.ffc-in{display:flex;gap:8px;padding:12px;border-top:1px solid #e2ece5;background:#fff;}'
       + '.ffc-in textarea{flex:1;resize:none;border:1.5px solid #cdddd2;border-radius:12px;padding:11px 13px;font:15px system-ui;max-height:96px;}'
@@ -65,9 +71,38 @@
     var s = document.createElement("style"); s.textContent = css; document.head.appendChild(s);
   }
 
+  // --- tiny, safe markdown → HTML for the coach's replies (readability) ---
+  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function inlineMd(s) {
+    return s
+      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+      .replace(/__(.+?)__/g, "<strong>$1</strong>")
+      .replace(/(^|[^*])\*(?!\s)([^*]+?)\*(?!\*)/g, "$1<em>$2</em>")
+      .replace(/`([^`]+?)`/g, "<code>$1</code>");
+  }
+  function mdToHtml(src) {
+    var lines = esc(src).split(/\r?\n/), out = [], list = null, para = [];
+    function flushPara() { if (para.length) { out.push("<p>" + para.join("<br>") + "</p>"); para = []; } }
+    function closeList() { if (list) { out.push("</" + list + ">"); list = null; } }
+    for (var i = 0; i < lines.length; i++) {
+      var ln = lines[i];
+      var ol = ln.match(/^\s*\d+\.\s+(.*)$/), ul = ln.match(/^\s*[-*•]\s+(.*)$/), h = ln.match(/^\s*#{1,6}\s+(.*)$/);
+      if (ol) { flushPara(); if (list !== "ol") { closeList(); list = "ol"; out.push("<ol>"); } out.push("<li>" + inlineMd(ol[1]) + "</li>"); continue; }
+      if (ul) { flushPara(); if (list !== "ul") { closeList(); list = "ul"; out.push("<ul>"); } out.push("<li>" + inlineMd(ul[1]) + "</li>"); continue; }
+      closeList();
+      if (ln.trim() === "") { flushPara(); continue; }
+      if (h) { flushPara(); out.push("<p class='h'><strong>" + inlineMd(h[1]) + "</strong></p>"); continue; }
+      para.push(inlineMd(ln));
+    }
+    flushPara(); closeList();
+    return out.join("");
+  }
+  function render(d, role, text) {
+    if (role === "bot") d.innerHTML = mdToHtml(text); else d.textContent = text;
+  }
   function bubble(role, text) {
     var d = document.createElement("div");
-    d.className = "ffc-msg " + role; d.textContent = text;
+    d.className = "ffc-msg " + role; render(d, role, text);
     log.appendChild(d); log.scrollTop = log.scrollHeight; return d;
   }
 
@@ -147,7 +182,7 @@
           if (!line) continue;
           try {
             var ev = JSON.parse(line);
-            if (ev.text) { if (!started) { typing.textContent = ""; started = true; } acc += ev.text; typing.textContent = acc; log.scrollTop = log.scrollHeight; }
+            if (ev.text) { if (!started) { typing.textContent = ""; started = true; } acc += ev.text; typing.innerHTML = mdToHtml(acc); log.scrollTop = log.scrollHeight; }
             else if (ev.error && !started) typing.textContent = "Sorry — the coach hit an error. Try again.";
           } catch (e) {}
         }
@@ -167,6 +202,7 @@
     wrap = document.createElement("div"); wrap.className = "ffc-wrap";
     wrap.innerHTML =
       '<div class="ffc-sheet">'
+      + '<div class="ffc-grab"></div>'
       + '<div class="ffc-head"><div><h3>⛳ FairwayFuel Coach</h3><div class="ffc-ctx">Personal to your plan</div></div>'
       + '<button class="ffc-x" aria-label="Close">×</button></div>'
       + '<div class="ffc-log"></div>'
