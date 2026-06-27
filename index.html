@@ -729,6 +729,15 @@
   .il-why-box .why-cue b { color:var(--green-700); }
   .il-why-box .why-coach { margin-top:11px; width:100%; background:#11643a; color:#fff; border:0; border-radius:9px; padding:10px; font:700 12.5px system-ui; cursor:pointer; }
   .il-why-box .why-coach:active { transform:translateY(1px); }
+  /* read-only "why this lift" affordance in the plan/speed tables — quiet by default */
+  .exwhy-btn { background:none; border:0; padding:0; margin:0; font:inherit; color:inherit; cursor:pointer; text-align:left; }
+  .exwhy-i { color:var(--muted); font-size:11px; opacity:.5; margin-left:1px; }
+  .exwhy-btn[aria-expanded="true"] .exwhy-i { opacity:1; color:var(--green-700); }
+  .exwhy-row > td { padding:0 14px 12px !important; }
+  .exwhy-panel { background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:12px 13px; }
+  .exwhy-panel .why-why { font-size:12.6px; line-height:1.5; color:var(--ink); }
+  .exwhy-panel .why-cue { font-size:12.3px; color:var(--green-800); margin-top:8px; }
+  .exwhy-panel .why-cue b { color:var(--green-700); }
   .il-sub { font-size:11.5px; color:var(--muted); margin:2px 0 11px; }
   .il-up { color:var(--green-700); font-weight:800; }
   .il-cols, .il-set { display:grid; grid-template-columns:26px minmax(54px,1fr) 60px 60px 40px; gap:8px; align-items:center; }
@@ -2016,8 +2025,11 @@
     if(d.type==="speed"){
       var s=p.speed;
       var srows = s.ex.map(function(e){
-        return '<tr><td><div class="exname-main">'+purposeFor(e[0])+' '+e[0]+'</div><div class="exnote">'+e[2]+'</div></td>'+
-               '<td class="sets">'+e[1]+'</td></tr>';
+        var id="why"+(whyId++);
+        return '<tr><td><button class="exwhy-btn" type="button" data-whyrow="'+id+'" aria-expanded="false"><span class="exname-main">'+purposeFor(e[0])+' '+e[0]+'</span> <span class="exwhy-i">ⓘ</span></button>'+
+               '<div class="exnote">'+e[2]+'</div></td>'+
+               '<td class="sets">'+e[1]+'</td></tr>'+
+               '<tr class="exwhy-row" id="'+id+'" hidden><td colspan="2"><div class="exwhy-panel">'+whyHtml(e[0],false)+'</div></td></tr>';
       }).join("");
       var noGear = "No gear for overspeed? Use a light stick or your driver. No med ball? A heavy backpack, band, or dumbbell works.";
       return '<div class="day speedday"><div class="day-head">'+d.name+' <span class="tag '+(d.tag)+'">'+labelFor(d.tag)+'</span></div>'+
@@ -2032,8 +2044,8 @@
       var eff = '<div class="effort">'+effortNote(row[1])+'</div>';
       var pe = purposeFor(base)+' ';
       var us = base!==row[0] ? ' <span class="swap-badge">⇄ your swap</span>' : '';
-      if(r.status==="ok") return '<tr><td>'+pe+base+us+'</td><td class="sets">'+adjSets(row[1],base)+eff+'</td></tr>';
-      if(r.status==="swap") return '<tr class="swap"><td class="exname">'+pe+r.name+' <span class="swap-badge">⇄ subbed for '+escAttr(base)+' (your gear)</span></td><td class="sets">'+adjSets(r.sr,r.name)+eff+'</td></tr>';
+      if(r.status==="ok"){ var c=exNameCell(pe, base, us); return '<tr>'+c.cell+'<td class="sets">'+adjSets(row[1],base)+eff+'</td></tr>'+c.row; }
+      if(r.status==="swap"){ var cs=exNameCell(pe, r.name, ' <span class="swap-badge">⇄ subbed for '+escAttr(base)+' (your gear)</span>'); return '<tr class="swap">'+cs.cell+'<td class="sets">'+adjSets(r.sr,r.name)+eff+'</td></tr>'+cs.row; }
       return '<tr class="skip"><td class="exname"><span class="nm">'+pe+base+'</span><span class="need">needs '+r.need.map(eqLabel).join(" + ")+'</span></td><td class="sets">'+row[1]+'</td></tr>';
     }).join("");
     var pNote = showPrimerNote ? '<span class="primer-cue">New to jumps and throws? Master a soft, balanced landing before you add height — start with 2 sets and a low box, add a set every couple of weeks. Stop the moment reps slow down: power work only counts when every rep is crisp and fast.</span>' : '';
@@ -2401,6 +2413,17 @@
   // offline — no AI, so it's instant and can't hallucinate.
   function liftWhy(name){
     var n=name||""; function m(re){ return re.test(n); }
+    // Speed-day drills first (most direct clubhead-speed transfer).
+    if(m(/Overspeed|Speed Stick|SuperSpeed|Swing Trainer|Whoosh/i))
+      return { why:"Overspeed training tells your nervous system it's allowed to move faster than your normal swing — the most direct way to raise your speed ceiling. Light beats heavy here; you're training pure velocity.", cue:"Swing as fast as you physically can — speed is the only goal, both sides." };
+    if(m(/Footwork|Ground.?force/i))
+      return { why:"Clubhead speed starts from the ground up. Drilling the lead-foot push grooves the pressure shift that fires your hips — the move that turns leg drive into speed.", cue:"Drive hard into the ground from the top, like pushing the floor away." };
+    if(m(/Med.?ball|Throw|Slam|Chest Pass|Punch|Scoop/i))
+      return { why:"Explosive throws are rotational power with no brakes — you accelerate all the way through the release, exactly like a fast swing. The most transferable power work there is.", cue:"Throw violently and follow all the way through — hold nothing back." };
+    if(m(/Jump|Bound|Broad|Hop|Plyo|Pogo/i))
+      return { why:"Jumps train rate of force development — how fast you produce force. Quicker force into the ground means faster hips and a faster club. Power is strength expressed fast.", cue:"Minimum ground contact, maximum effort — explode, don't grind." };
+    if(m(/Clean|Snatch|High Pull/i))
+      return { why:"Olympic-style pulls train full-body triple extension — ankles, knees and hips firing together, fast. That's the same explosive sequence that powers the downswing.", cue:"Be aggressive and snappy — bar speed is the point." };
     if(m(/Pallof|Chop|Russian|Wood ?chop|Rotation|Rotational|Twist|Landmine/i))
       return { why:"Your core is the transmission between the ground and the club. Rotational and anti-rotation work teaches the trunk to transfer leg drive into the clubhead instead of leaking it — that's where X-factor separation becomes speed.", cue:"Brace first, then turn hard from the hips — keep the spine stacked." };
     if(m(/Squat|Leg Press|Hack/i))
@@ -2425,11 +2448,18 @@
       return { why:"Arms guide the club; the body powers it. This is support work — healthy, strong elbows and wrists handle the speed your big lifts build.", cue:"Strict and controlled — armor, not ego." };
     return { why:"Every lift here feeds the chain that turns ground force into clubhead speed — build the muscle, then the speed work converts it.", cue:"Full range, max intent up, controlled down." };
   }
-  function whyHtml(name){
+  function whyHtml(name, withCoach){
     var w=liftWhy(name);
     return '<div class="why-why">'+w.why+'</div>'+
       '<div class="why-cue">⚡ <b>Power cue:</b> '+w.cue+'</div>'+
-      '<button class="why-coach" data-whycoach="'+escAttr(name)+'">💬 Go deeper with the coach</button>';
+      (withCoach!==false ? '<button class="why-coach" data-whycoach="'+escAttr(name)+'">💬 Go deeper with the coach</button>' : '');
+  }
+  // Stable-enough unique ids for read-only "why" rows (DOM is replaced each render).
+  var whyId=0;
+  function exNameCell(pe, name, extra){
+    var id="why"+(whyId++);
+    return { cell:'<td><button class="exwhy-btn" type="button" data-whyrow="'+id+'" aria-expanded="false">'+pe+name+(extra||"")+' <span class="exwhy-i">ⓘ</span></button></td>',
+             row:'<tr class="exwhy-row" id="'+id+'" hidden><td colspan="2"><div class="exwhy-panel">'+whyHtml(name,false)+'</div></td></tr>' };
   }
   function renderILog(){ var el=$("ilogBox"); if(el && ilog) el.innerHTML=ilogBodyHtml(); }
   function saveILog(){ if(!ilog) return; if(!ilog.sess.date) ilog.sess.date=todayStr(); saveSession(ilog.week, ilog.day, ilog.sess); }
@@ -2998,6 +3028,9 @@
     if(isw){ openSwap(parseInt(isw.getAttribute("data-swapix"),10), isw.getAttribute("data-swapx"), isw.getAttribute("data-swapcur")); return; }
     var why=e.target.closest("[data-why]");
     if(why){ var wk=why.getAttribute("data-why"); openWhy[wk]=!openWhy[wk]; renderILog(); return; }
+    var wrow=e.target.closest("[data-whyrow]");
+    if(wrow){ var row=document.getElementById(wrow.getAttribute("data-whyrow"));
+      if(row){ row.hidden=!row.hidden; wrow.setAttribute("aria-expanded", row.hidden?"false":"true"); } return; }
     var wco=e.target.closest("[data-whycoach]");
     if(wco){ var ln=wco.getAttribute("data-whycoach");
       if(window.FFCoach && window.FFCoach.ready()) window.FFCoach.ask("Why does "+ln+" build my clubhead speed, and how do I execute it for maximum power transfer into the swing? Keep it specific and practical.", "Why this lift");
