@@ -424,6 +424,28 @@
   .speed-callout p { margin:0 0 8px; font-size:12.8px; color:#7a5320; line-height:1.5; }
   .speed-callout ul { margin:0; padding-left:18px; font-size:12.8px; color:#7a5320; line-height:1.6; }
 
+  /* ===== FairwayFuel Score ===== */
+  .ffscore { margin-bottom:14px; background:linear-gradient(160deg,#0f2417,#14532d); color:#eafff1;
+    border-radius:16px; padding:16px 18px; box-shadow:0 6px 20px rgba(8,40,22,.18); }
+  .ffscore-top { display:flex; align-items:center; gap:15px; }
+  .ffscore-gauge { position:relative; width:128px; flex:0 0 auto; }
+  .ffscore-gauge .num { position:absolute; left:0; right:0; bottom:2px; text-align:center;
+    font-weight:800; font-size:23px; line-height:1; color:#fff; }
+  .ffscore-gauge .num small { display:block; font-size:8.5px; font-weight:700; opacity:.65; letter-spacing:1px; margin-top:3px; }
+  .ffscore-head h3 { margin:0 0 3px; font-size:15px; color:#fff; display:flex; align-items:center; gap:7px; }
+  .ffscore-head p { margin:0; font-size:12px; color:#bfe6cd; line-height:1.45; }
+  .ffscore-bars { margin-top:14px; display:flex; flex-direction:column; gap:9px; }
+  .ffbar { font-size:12px; }
+  .ffbar-l { display:flex; justify-content:space-between; margin-bottom:3px; color:#d6f0de; }
+  .ffbar-l b { color:#fff; }
+  .ffbar-track { height:7px; background:rgba(255,255,255,.14); border-radius:99px; overflow:hidden; }
+  .ffbar-fill { height:100%; background:linear-gradient(90deg,#3fae6b,#7be0a0); border-radius:99px; transition:width .4s; }
+  .ffbar.locked .ffbar-l { color:#8fb6a0; }
+  .ffbar.locked .ffbar-fill { background:rgba(255,255,255,.22); }
+  .ffscore-note { margin:13px 0 0; font-size:11.8px; color:#cfeed9; line-height:1.5;
+    border-top:1px solid rgba(255,255,255,.13); padding-top:11px; }
+  .ffscore-note b { color:#fff; }
+
   .tracker {
     margin-top:22px; background:var(--sand); border:1px solid var(--sand-dark); border-radius:14px; padding:18px 20px;
   }
@@ -1101,6 +1123,13 @@
       proteinKcal:proteinKcal,fatKcal:fatKcal,carbKcal:carbKcal,
       goal:g,pct:g.pct, timing:timing, meal:meal, weekly:weekly });
     updateFoodTargets(proteinG, carbG, mealN);
+    // Stash the computed targets so the AI coach can use the user's exact numbers.
+    try {
+      localStorage.setItem("ff_targets", JSON.stringify({
+        goal: g.label, kcal: target, proteinG: proteinG, carbG: carbG, fatG: fatG,
+        mealN: mealN, tdee: Math.round(tdee)
+      }));
+    } catch(e){}
     persist();
   }
   function placeholder(){ return '<div class="placeholder"><div class="big">⛳</div>Enter your details to see your calorie target and macros.</div>'; }
@@ -1540,6 +1569,8 @@
       '<button type="button" data-freq="5" '+(planState.freq===5?'class="active"':'')+'>5 days</button>'+
       '</div></div>';
 
+    html+=renderScoreCard();
+
     if(wk%6===0){ html+='<div class="deload-banner">🪫 <b>Deload week (Week '+wk+').</b> Take ~60% of your usual working weights, drop the last set of every lift, and keep the speed drills sharp but submaximal. This is planned recovery — you grow now. Full loads resume next week.</div>'; }
 
     html+='<div class="exlegend"><b>What each move builds:</b> 🏋️ strength · 💪 mass · ⚡ power/speed · 🌀 golf rotation</div>';
@@ -1739,6 +1770,139 @@
   $("logDone").addEventListener("click", closeLogger);
   $("logModal").addEventListener("click", function(e){ if(e.target===$("logModal")) closeLogger(); });
 
+  /* ----- FairwayFuel Score — one number for build-to-speed progress -----
+     A composite of the data the app already records: showing up (consistency),
+     getting faster (7-iron speed), getting stronger (logged e1RM), and turning
+     mass into speed (power-to-weight). It scores YOUR trajectory + consistency —
+     not a leaderboard — and only counts pillars you've given data for. */
+  function e1RM(w, r){ w=parseFloat(w); r=parseInt(r,10);
+    if(!w||!r||r<1) return 0; return w*(1+r/30); }            // Epley estimate
+  function sessionsByWeek(){
+    var L=getLog(), out=[];
+    Object.keys(L).forEach(function(k){ var i=k.indexOf("|");
+      out.push({ w:parseInt(k.slice(0,i),10), day:k.slice(i+1), s:L[k] }); });
+    out.sort(function(a,b){ return a.w-b.w; });
+    return out;
+  }
+  function strengthGain(){
+    // First vs best-recent estimated 1RM on the main compound lifts.
+    var sess=sessionsByWeek(), first={}, best={}, KEY=/Squat|Deadlift|Bench|Press|Row|Romanian|Hinge|Hip Thrust|Pull-?up|Chin/i;
+    sess.forEach(function(se){ (se.s.ex||[]).forEach(function(x){
+      if(!KEY.test(x.name)) return;
+      var top=0; (x.sets||[]).forEach(function(st){ top=Math.max(top, e1RM(st.w, st.r)); });
+      if(top<=0) return;
+      if(first[x.name]==null) first[x.name]=top;
+      best[x.name]=Math.max(best[x.name]||0, top);
+    }); });
+    var gains=[]; Object.keys(first).forEach(function(n){
+      if(best[n]>0 && first[n]>0) gains.push((best[n]-first[n])/first[n]); });
+    if(!gains.length) return null;
+    return gains.reduce(function(a,b){return a+b;},0)/gains.length;       // avg fractional gain
+  }
+  function clamp(n,lo,hi){ return Math.max(lo, Math.min(hi, n)); }
+  function ffScore(){
+    var freq = (typeof planState!=="undefined" && planState.freq) ? planState.freq : 4;
+    var week = curWeek();
+    var sess = sessionsByWeek();
+    var loggedWeeks = {}; sess.forEach(function(s){ loggedWeeks[s.w]=(loggedWeeks[s.w]||0)+1; });
+    var body = lsGet("ff_body", []);
+    var speeds = body.map(function(e){ return parseFloat(e.s); }).filter(function(v){ return !isNaN(v); });
+    var weights = body.map(function(e){ return parseFloat(e.w); }).filter(function(v){ return !isNaN(v); });
+
+    var parts = [];
+
+    // 1) Consistency (35) — sessions logged vs. expected over the weeks you've been at it.
+    var weeksIn = Math.max(1, Math.min(week, 8));
+    var expected = freq * weeksIn;
+    var done = sess.length;
+    if(done > 0){
+      var cons = clamp(done/expected, 0, 1);
+      parts.push({ key:"consistency", label:"Consistency", have:true, max:35,
+        pts: Math.round(35*cons), detail: done+" session"+(done===1?"":"s")+" logged" });
+    } else {
+      parts.push({ key:"consistency", label:"Consistency", have:false, max:35, pts:0,
+        detail:"Log a workout to start" });
+    }
+
+    // 2) Speed (30) — 7-iron clubhead speed gain from your first entry.
+    if(speeds.length >= 2){
+      var sg = (speeds[speeds.length-1]-speeds[0])/speeds[0];
+      parts.push({ key:"speed", label:"Clubhead speed", have:true, max:30,
+        pts: Math.round(clamp(15 + sg*220, 0, 30)),
+        detail: (sg>=0?"+":"")+(sg*100).toFixed(1)+"% 7-iron" });
+    } else {
+      parts.push({ key:"speed", label:"Clubhead speed", have:false, max:30, pts:0,
+        detail: speeds.length===1 ? "Log again to trend" : "Add a 7-iron speed" });
+    }
+
+    // 3) Strength (25) — estimated 1RM progress on the big lifts.
+    var stg = strengthGain();
+    if(stg!=null){
+      parts.push({ key:"strength", label:"Strength (e1RM)", have:true, max:25,
+        pts: Math.round(clamp(10 + stg*150, 0, 25)),
+        detail: (stg>=0?"+":"")+(stg*100).toFixed(1)+"% on big lifts" });
+    } else {
+      parts.push({ key:"strength", label:"Strength (e1RM)", have:false, max:25, pts:0,
+        detail:"Log weights across weeks" });
+    }
+
+    // 4) Power-to-weight (10) — are you getting faster per pound? (speed up vs weight up)
+    if(speeds.length>=2 && weights.length>=2){
+      var sgn=(speeds[speeds.length-1]-speeds[0])/speeds[0];
+      var wgn=(weights[weights.length-1]-weights[0])/weights[0];
+      var edge = sgn - wgn;                       // speed outpacing weight = leaner, faster
+      parts.push({ key:"p2w", label:"Power-to-weight", have:true, max:10,
+        pts: Math.round(clamp(5 + edge*250, 0, 10)),
+        detail: edge>=0 ? "Speed outpacing weight" : "Weight rising faster" });
+    } else {
+      parts.push({ key:"p2w", label:"Power-to-weight", have:false, max:10, pts:0,
+        detail:"Track weight + speed" });
+    }
+
+    var have = parts.filter(function(p){ return p.have; });
+    var gotPts = have.reduce(function(a,p){ return a+p.pts; }, 0);
+    var gotMax = have.reduce(function(a,p){ return a+p.max; }, 0);
+    var score = gotMax>0 ? Math.round(gotPts/gotMax*100) : null;   // rescale to pillars with data
+    return { score:score, parts:parts, pillars:have.length };
+  }
+  function ffScoreSummary(r){
+    if(r.score==null) return "Log a workout and add your bodyweight + 7-iron speed to unlock your Score — it blends showing up, getting faster, and getting stronger into one number.";
+    if(r.pillars<2) return "Your Score grows more accurate as you add data — log across a few weeks so it can read your <b>trend</b>, not just a snapshot.";
+    if(r.score>=80) return "Dialed in — you're showing up and trending up. Keep progressive overload honest and protect the speed work.";
+    if(r.score>=55) return "Solid trajectory. The fastest lever now is the <b>lowest bar below</b> — close that gap to move the number.";
+    return "Early days. Consistency is worth the most points — string together logged sessions and the rest follows.";
+  }
+  function renderScoreCard(){
+    var r = ffScore();
+    var pct = r.score==null ? 0 : r.score;
+    // Fuel gauge: semicircular arc from E (left) to F (right) with a needle.
+    var ARC=Math.PI*48, off=ARC*(1-pct/100);          // fill the arc left→right
+    var ang=(pct/100)*180 - 90;                        // needle: -90°=E, +90°=F
+    var ring = '<div class="ffscore-gauge"><svg width="128" height="74" viewBox="0 0 128 74">'+
+      '<path d="M16 64 A48 48 0 0 1 112 64" fill="none" stroke="rgba(255,255,255,.16)" stroke-width="9" stroke-linecap="round"/>'+
+      '<path d="M16 64 A48 48 0 0 1 112 64" fill="none" stroke="#7be0a0" stroke-width="9" stroke-linecap="round" '+
+        'stroke-dasharray="'+ARC.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/>'+
+      '<text x="13" y="73" fill="#9fc6ad" font-size="11" font-weight="700">E</text>'+
+      '<text x="109" y="73" fill="#9fc6ad" font-size="11" font-weight="700">F</text>'+
+      '<g transform="rotate('+ang.toFixed(1)+' 64 64)">'+
+        '<line x1="64" y1="64" x2="64" y2="26" stroke="#fff" stroke-width="3" stroke-linecap="round"/></g>'+
+      '<circle cx="64" cy="64" r="4.5" fill="#fff"/></svg>'+
+      '<div class="num">'+(r.score==null?"–":r.score)+'<small>FUEL · 0–100</small></div></div>';
+    var bars = r.parts.map(function(p){
+      var w = p.max>0 ? Math.round(p.pts/p.max*100) : 0;
+      return '<div class="ffbar'+(p.have?"":" locked")+'">'+
+        '<div class="ffbar-l"><span>'+p.label+'</span><b>'+(p.have? p.pts+"/"+p.max : p.detail)+'</b></div>'+
+        (p.have?'<div class="ffbar-track"><div class="ffbar-fill" style="width:'+w+'%"></div></div>'+
+          '<div class="ffbar-l" style="margin-top:3px;font-size:11px;"><span>'+p.detail+'</span><span></span></div>':'')+
+        '</div>';
+    }).join("");
+    return '<div class="ffscore"><div class="ffscore-top">'+ring+
+      '<div class="ffscore-head"><h3>⛳ FairwayFuel Score</h3>'+
+      '<p>Your build-to-speed progress in one number — consistency, speed, strength &amp; power-to-weight.</p></div></div>'+
+      '<div class="ffscore-bars">'+bars+'</div>'+
+      '<p class="ffscore-note">'+ffScoreSummary(r)+'</p></div>';
+  }
+
   /* ----- Progress (bodyweight + clubhead speed) ----- */
   function sparkline(vals){
     var pts=vals.filter(function(v){ return v!=null && !isNaN(v); });
@@ -1798,5 +1962,7 @@ if ('serviceWorker' in navigator) {
 <!-- Optional cloud login + progress sync. Inactive until you add Supabase keys in cloud-sync.js. -->
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script defer src="cloud-sync.js"></script>
+<!-- AI coach chat. Degrades gracefully until the Edge Function is deployed. -->
+<script defer src="coach.js"></script>
 </body>
 </html>

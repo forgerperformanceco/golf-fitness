@@ -25,6 +25,19 @@
     auth: { persistSession: true, detectSessionInUrl: true, autoRefreshToken: true }
   });
 
+  // Expose a tiny auth surface so other modules (e.g. coach.js) can call our
+  // backend with the user's JWT. We never expose the service-role key here —
+  // only the publishable anon key and the current user's access token.
+  window.FF = window.FF || {};
+  window.FF.supabaseUrl = SUPABASE_URL;
+  window.FF.anonKey = SUPABASE_ANON;
+  window.FF.user = null;
+  window.FF.getAccessToken = async function () {
+    try { var r = await sb.auth.getSession(); return (r.data.session && r.data.session.access_token) || null; }
+    catch (e) { return null; }
+  };
+  window.FF.signIn = function () { try { openModal(); } catch (e) {} };
+
   var user = null;
   var lastSnapshot = null;   // JSON of the last state we know matches the cloud
   var pushing = false;
@@ -187,8 +200,11 @@
 
   sb.auth.onAuthStateChange(function (event, session) {
     user = session && session.user;
+    window.FF.user = user;
     renderPill();
     closeModal();
+    // Let coach.js (and anything else) react to login/logout.
+    try { window.dispatchEvent(new CustomEvent("ff-auth", { detail: { user: user } })); } catch (e) {}
     if (event === "SIGNED_IN" && user) syncOnLogin();
   });
 
