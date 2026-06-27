@@ -1,0 +1,36 @@
+name: Deploy Supabase Functions
+
+# Browser-only deploy: no local tools needed.
+# 1. Add repo secrets SUPABASE_ACCESS_TOKEN and ANTHROPIC_API_KEY (Settings → Secrets).
+# 2. Actions tab → "Deploy Supabase Functions" → Run workflow.
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      PROJECT_REF: tbwmckmyzoxzhpqlomsp
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check required secrets are set
+        run: |
+          if [ -z "${{ secrets.SUPABASE_ACCESS_TOKEN }}" ]; then
+            echo "::error::Missing repo secret SUPABASE_ACCESS_TOKEN"; exit 1; fi
+          if [ -z "${{ secrets.ANTHROPIC_API_KEY }}" ]; then
+            echo "::error::Missing repo secret ANTHROPIC_API_KEY"; exit 1; fi
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Set the Anthropic key as a server-side function secret
+        run: supabase secrets set ANTHROPIC_API_KEY="${{ secrets.ANTHROPIC_API_KEY }}" --project-ref "$PROJECT_REF"
+
+      - name: Deploy the AI coach function
+        run: supabase functions deploy ai-coach --project-ref "$PROJECT_REF"
+
+      - name: Done
+        run: echo "✅ ai-coach deployed to https://$PROJECT_REF.supabase.co/functions/v1/ai-coach"
