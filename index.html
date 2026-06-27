@@ -60,6 +60,16 @@
   .wordmark .ball { width: 14px; height: 14px; border-radius: 50%;
     background: radial-gradient(circle at 35% 30%, #fff, #d7e2d7); box-shadow: inset -2px -2px 4px rgba(0,0,0,.18); }
 
+  /* Big brand hero — Dashboard (Home) only */
+  .dash-hero {
+    position: relative; overflow: hidden; text-align: center; color: #eafff1;
+    background: radial-gradient(900px 360px at 50% -120px, #2a7d49 0%, rgba(31,107,58,0) 60%), linear-gradient(160deg, #0f2417, #14532d);
+    border-radius: 18px; padding: 24px 20px 26px; margin-bottom: 16px;
+    box-shadow: 0 10px 28px rgba(8,40,22,.22);
+  }
+  .dash-hero .brand { margin: 16px 0 12px; font-size: clamp(42px, 13vw, 70px); }
+  .dash-hero .tagline { font-size: 14.5px; color: #cdebd6; max-width: 460px; }
+
   /* golf "kicker" label above card titles */
   .kicker {
     display:inline-flex; align-items:center; gap:5px; font-size:10.5px; font-weight:800;
@@ -645,6 +655,23 @@
   .settings-body .set-jump { display:flex; gap:8px; margin-bottom:13px; }
   .settings-body .set-jump select { flex:1; padding:9px 10px; }
   .day-focus { margin-top:2px; }
+
+  /* Swap picker modal */
+  .swap-modal { position:fixed; inset:0; z-index:90; background:rgba(8,24,15,.55); display:flex; align-items:flex-end; justify-content:center; }
+  .swap-card { background:#f7faf7; width:100%; max-width:520px; border-radius:20px 20px 0 0; max-height:82vh; overflow-y:auto; }
+  .swap-head { position:sticky; top:0; background:linear-gradient(160deg,#0f2417,#14532d); color:#fff; padding:15px 18px;
+    display:flex; align-items:center; justify-content:space-between; font-size:16px; font-weight:700; }
+  .swap-x { background:rgba(255,255,255,.16); border:0; color:#fff; width:30px; height:30px; border-radius:50%; font-size:16px; cursor:pointer; }
+  .swap-body { padding:14px 16px 22px; }
+  .swap-sub { font-size:12.5px; color:var(--muted); margin-bottom:12px; line-height:1.45; }
+  .swap-opt { display:flex; align-items:center; justify-content:space-between; width:100%; text-align:left; background:#fff;
+    border:1.5px solid var(--line); border-radius:12px; padding:14px 15px; margin-bottom:9px; font:700 14.5px system-ui; color:var(--ink); cursor:pointer; }
+  .swap-opt:active { transform:translateY(1px); }
+  .swap-opt.cur { border-color:#11643a; background:#eef7f0; color:var(--green-800); }
+  .swap-opt.reset { font-weight:600; color:var(--muted); }
+  .swap-now { font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:var(--green-700); }
+  .swap-coach { width:100%; margin-top:6px; background:#eef7f0; border:1px solid #cfe9d8; color:var(--green-700);
+    border-radius:12px; padding:13px; font:700 13.5px system-ui; cursor:pointer; }
   .day-foot { padding:11px 15px 13px; border-top:1px solid var(--line); display:flex; justify-content:flex-end; align-items:center; gap:10px; }
   .logbtn { display:inline-flex; align-items:center; gap:6px; border:none; cursor:pointer; font-weight:700; font-size:13px;
     border-radius:10px; padding:11px 16px; background:var(--green-600); color:#fff; transition:all .15s; }
@@ -758,6 +785,11 @@
 
   <!-- ============ VIEW 0: DASHBOARD ============ -->
   <div class="view active" id="view-dash">
+    <div class="dash-hero">
+      <div class="brand-kicker"><span class="ball"></span> The Golfer's Mass &amp; Speed System</div>
+      <h1 class="brand">Fairway<span class="em">Fuel</span></h1>
+      <p class="tagline">Build like a bodybuilder, move like a golfer — add lean mass and turn it into <b>clubhead speed</b>.</p>
+    </div>
     <div id="dashBody"></div>
   </div>
 
@@ -1845,12 +1877,14 @@
         '<div class="equip-note" style="padding:10px 15px 8px;">'+noGear+'</div>'+logFoot(d.name)+'</div>';
     }
     var rows = d.ex.map(function(row){
-      var r = resolveEx(row[0], row[1]);
+      var base = applySwapName(row[0]);
+      var r = resolveEx(base, row[1]);
       var eff = '<div class="effort">'+effortNote(row[1])+'</div>';
-      var pe = purposeFor(row[0])+' ';
-      if(r.status==="ok") return '<tr><td>'+pe+row[0]+'</td><td class="sets">'+adjSets(row[1],row[0])+eff+'</td></tr>';
-      if(r.status==="swap") return '<tr class="swap"><td class="exname">'+pe+r.name+' <span class="swap-badge">⇄ subbed for '+escAttr(row[0])+' (your gear)</span></td><td class="sets">'+adjSets(r.sr,r.name)+eff+'</td></tr>';
-      return '<tr class="skip"><td class="exname"><span class="nm">'+pe+row[0]+'</span><span class="need">needs '+r.need.map(eqLabel).join(" + ")+'</span></td><td class="sets">'+row[1]+'</td></tr>';
+      var pe = purposeFor(base)+' ';
+      var us = base!==row[0] ? ' <span class="swap-badge">⇄ your swap</span>' : '';
+      if(r.status==="ok") return '<tr><td>'+pe+base+us+'</td><td class="sets">'+adjSets(row[1],base)+eff+'</td></tr>';
+      if(r.status==="swap") return '<tr class="swap"><td class="exname">'+pe+r.name+' <span class="swap-badge">⇄ subbed for '+escAttr(base)+' (your gear)</span></td><td class="sets">'+adjSets(r.sr,r.name)+eff+'</td></tr>';
+      return '<tr class="skip"><td class="exname"><span class="nm">'+pe+base+'</span><span class="need">needs '+r.need.map(eqLabel).join(" + ")+'</span></td><td class="sets">'+row[1]+'</td></tr>';
     }).join("");
     var pNote = showPrimerNote ? '<span class="primer-cue">New to jumps and throws? Master a soft, balanced landing before you add height — start with 2 sets and a low box, add a set every couple of weeks. Stop the moment reps slow down: power work only counts when every rep is crisp and fast.</span>' : '';
     var warmPrimer = '<div class="warm"><b>Warm-up (5 min):</b> '+warmupFor(d.name)+'</div>'+
@@ -2058,6 +2092,33 @@
       (done?"✓ Logged — tap to edit":"▶ Log workout")+'</button></div>';
   }
 
+  // ---- User lift swaps: pick a valid same-muscle replacement; it sticks in the plan ----
+  function getSwaps(){ return lsGet("ff_swaps", {}); }
+  function applySwapName(name){ var s=getSwaps(); return s[name] || name; }
+  function setSwap(orig, neu){ var s=getSwaps(); if(!neu || neu===orig) delete s[orig]; else s[orig]=neu; lsSet("ff_swaps", s); }
+  // Valid, equally-hard alternatives by movement pattern (no weakling subs).
+  function swapOptionsFor(n){
+    if(/Back Squat|Front Squat|Goblet|Hack Squat|Leg Press/i.test(n)) return ["Back Squat","Front Squat","Hack Squat","Leg Press","Bulgarian Split Squat"];
+    if(/Romanian|RDL/i.test(n)) return ["Romanian Deadlift","Single-Leg RDL","Good Morning","Trap-Bar Deadlift","Hip Thrust"];
+    if(/Deadlift|Trap.?Bar|Good Morning/i.test(n)) return ["Conventional Deadlift","Trap-Bar Deadlift","Romanian Deadlift","Rack Pull","Good Morning"];
+    if(/Hip Thrust|Glute Bridge/i.test(n)) return ["Barbell Hip Thrust","Single-Leg Hip Thrust","Romanian Deadlift","Glute-Ham Raise"];
+    if(/Bench Press|Incline|Chest Press|Dip|Chest Pass|Push-?up/i.test(n)) return ["Barbell Bench Press","Incline DB Press","Flat DB Press","Weighted Dip","Machine Chest Press"];
+    if(/Overhead Press|Shoulder Press|Arnold|Push Press/i.test(n)) return ["Standing Overhead Press","Seated DB Shoulder Press","Push Press","Arnold Press"];
+    if(/Pull-?up|Chin-?up|Pulldown/i.test(n)) return ["Weighted Pull-up","Lat Pulldown","Chin-up","Neutral-Grip Pulldown"];
+    if(/Row|Pendlay/i.test(n)) return ["Chest-Supported Row","Barbell Row","Seated Cable Row","T-Bar Row","Single-Arm DB Row"];
+    if(/Lunge|Split Squat|Step.?up/i.test(n)) return ["Walking Lunge","Bulgarian Split Squat","Reverse Lunge","Step-up"];
+    if(/Leg Curl|Ham/i.test(n)) return ["Lying Leg Curl","Seated Leg Curl","Nordic Curl","Romanian Deadlift"];
+    if(/Calf/i.test(n)) return ["Standing Calf Raise","Seated Calf Raise","Leg-Press Calf Raise"];
+    if(/Triceps|Pushdown|Skull/i.test(n)) return ["Cable Triceps Pushdown","Overhead Triceps Extension","Close-Grip Bench","Weighted Dip"];
+    if(/Curl/i.test(n)) return ["DB Curl","Barbell Curl","Hammer Curl","Cable Curl"];
+    if(/Pallof|Wood-?chop|Rotation|Landmine|Russian Twist|Punch/i.test(n)) return ["Pallof Press","Cable Wood-chop","Landmine Rotation","Med-Ball Rotational Throw"];
+    if(/Carry/i.test(n)) return ["Farmer Carry","Suitcase Carry","Trap-Bar Carry"];
+    if(/Face Pull|Lateral Raise|Rear.?Delt/i.test(n)) return ["Face Pull","Lateral Raise","Rear-Delt Fly","Cable Lateral Raise"];
+    if(/Leg Raise|Crunch|Plank|Ab/i.test(n)) return ["Hanging Leg Raise","Cable Crunch","Ab Wheel","Plank"];
+    if(/Wrist|Forearm|Grip/i.test(n)) return ["Wrist Curl + Reverse","Plate Pinch","Dead Hang","Farmer Carry"];
+    return ["Back Squat","Romanian Deadlift","Weighted Pull-up","Barbell Bench Press"];
+  }
+
   var logState=null;
   function buildSession(day, week){
     var existing=getSession(week, day.name);
@@ -2067,10 +2128,11 @@
       ex = PHASES[0].speed.ex.map(function(e){ var n=parseSets(e[1]), sets=[]; for(var i=0;i<n;i++) sets.push({w:"",r:"",done:false});
         return { name:e[0], target:e[1], sets:sets }; });
     } else {
-      ex = day.ex.map(function(row){ var r=resolveEx(row[0],row[1]); var nm=(r.status==="swap")?r.name:row[0];
+      ex = day.ex.map(function(row){ var base=applySwapName(row[0]);   // user swap first
+        var r=resolveEx(base,row[1]); var nm=(r.status==="swap")?r.name:base;
         var tgt=adjSets(r.sr||row[1], nm);     // Retain mode trims accessory sets — log to match
         var n=parseSets(tgt), sets=[]; for(var i=0;i<n;i++) sets.push({w:"",r:"",done:false});
-        return { name:nm, target:tgt, sets:sets }; });
+        return { name:nm, orig:row[0], target:tgt, sets:sets }; });
     }
     return { date:"", ex:ex };
   }
@@ -2170,7 +2232,7 @@
       });
       html+='<div class="il-ex">'+
         '<div class="il-exhead"><span class="il-name">'+purposeFor(x.name)+' '+x.name+'</span>'+
-          '<button class="il-swap" data-swapx="'+escAttr(x.name)+'" title="Swap this lift">⇄ Swap</button></div>'+
+          '<button class="il-swap" data-swapx="'+escAttr(x.orig||x.name)+'" data-swapcur="'+escAttr(x.name)+'" data-swapix="'+xi+'" title="Swap this lift">⇄ Swap</button></div>'+
         '<div class="il-sub">'+x.target+(ready?' · <span class="il-up">↑ go up '+incFor(x.name)+'</span>':'')+'</div>'+
         '<div class="il-cols"><span>SET</span><span>PREVIOUS</span><span>LBS</span><span>REPS</span><span></span></div>'+
         setsHtml+
@@ -2181,6 +2243,29 @@
   }
   function renderILog(){ var el=$("ilogBox"); if(el && ilog) el.innerHTML=ilogBodyHtml(); }
   function saveILog(){ if(!ilog) return; if(!ilog.sess.date) ilog.sess.date=todayStr(); saveSession(ilog.week, ilog.day, ilog.sess); }
+  // ---- swap picker ----
+  var swapCtx=null;
+  function openSwap(xi, orig, cur){
+    swapCtx={ xi:xi, orig:orig };
+    var opts=swapOptionsFor(orig), html='<div class="swap-sub">Pick a valid replacement — same muscles, equally hard. It sticks in your plan.</div>';
+    opts.forEach(function(o){ var active=(o===cur);
+      html+='<button class="swap-opt'+(active?" cur":"")+'" data-swapchoose="'+escAttr(o)+'">'+o+(active?' <span class="swap-now">current</span>':'')+'</button>'; });
+    if(cur!==orig) html+='<button class="swap-opt reset" data-swapchoose="'+escAttr(orig)+'">↩ Reset to original ('+orig+')</button>';
+    html+='<button class="swap-coach" data-swapcoach="1">💬 Ask the coach for another idea</button>';
+    $("swapBody").innerHTML=html; $("swapTitle").textContent="Swap "+cur;
+    var m=$("swapModal"); m.hidden=false; document.body.style.overflow="hidden";
+  }
+  function closeSwap(){ var m=$("swapModal"); if(m) m.hidden=true; document.body.style.overflow=""; swapCtx=null; }
+  function applySwapChoice(chosen){
+    if(!swapCtx) return;
+    setSwap(swapCtx.orig, chosen);
+    if(ilog && ilog.sess.ex[swapCtx.xi]){
+      var ex=ilog.sess.ex[swapCtx.xi]; ex.name=chosen; ex.orig=swapCtx.orig;
+      ex.sets=ex.sets.map(function(){ return {w:"",r:"",done:false}; });
+      saveILog(); renderILog();
+    } else { renderPhase(); }
+    closeSwap();
+  }
   // ---- rest timer (floating pill) ----
   function startRest(secs){ restEnd=Date.now()+secs*1000; if(!restTimer) restTimer=setInterval(tickRest,250); var pill=$("restPill"); if(pill) pill.hidden=false; tickRest(); }
   function stopRest(){ if(restTimer){ clearInterval(restTimer); restTimer=null; } var pill=$("restPill"); if(pill) pill.hidden=true; }
@@ -2481,11 +2566,7 @@
       if(pls) pls.ex.forEach(function(e2){ if(e2.name===pex.name) plx=e2; });
       if(plx && plx.sets[ps]){ if(plx.sets[ps].w) pex.sets[ps].w=plx.sets[ps].w; if(plx.sets[ps].r) pex.sets[ps].r=plx.sets[ps].r; saveILog(); renderILog(); } return; }
     var isw=e.target.closest("[data-swapx]");
-    if(isw){ var nm=isw.getAttribute("data-swapx");
-      if(window.FFCoach && window.FFCoach.ready()){
-        window.FFCoach.ask("Swap "+nm+" for me. Give me 1–2 lifts that hit the SAME muscles just as hard — no easy/weakling substitutes — that I can do with the equipment in my profile. One line each on why it's a legit replacement, with sets×reps.", "Swap: "+nm);
-      }
-      return; }
+    if(isw){ openSwap(parseInt(isw.getAttribute("data-swapix"),10), isw.getAttribute("data-swapx"), isw.getAttribute("data-swapcur")); return; }
     if(e.target.id==="pAdd"){
       var wv=$("pBody").value, sv=$("pSpeed").value;
       if(!wv && !sv) return;
@@ -2525,6 +2606,20 @@
     pill.addEventListener("click", function(e){
       if(e.target.id==="rpAdd"){ restEnd+=15000; tickRest(); }
       else if(e.target.id==="rpSkip"){ stopRest(); }
+    });
+  })();
+
+  // Swap-picker modal
+  (function(){
+    var m=document.createElement("div"); m.id="swapModal"; m.className="swap-modal"; m.hidden=true;
+    m.innerHTML='<div class="swap-card"><div class="swap-head"><span id="swapTitle">Swap lift</span>'+
+      '<button class="swap-x" id="swapX" type="button">×</button></div><div class="swap-body" id="swapBody"></div></div>';
+    document.body.appendChild(m);
+    m.addEventListener("click", function(e){
+      if(e.target===m || e.target.closest("#swapX")){ closeSwap(); return; }
+      var ch=e.target.closest("[data-swapchoose]"); if(ch){ applySwapChoice(ch.getAttribute("data-swapchoose")); return; }
+      if(e.target.closest("[data-swapcoach]")){ var c=swapCtx; closeSwap();
+        if(window.FFCoach && window.FFCoach.ready()) window.FFCoach.ask("Suggest a hard, same-muscle replacement for "+(c?c.orig:"this lift")+" using my equipment — no weakling subs, with sets×reps.", "Swap idea"); }
     });
   })();
 
