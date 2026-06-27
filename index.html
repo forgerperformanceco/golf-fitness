@@ -384,6 +384,8 @@
   .deload-banner { background:#eef3ff; border:1px solid #cfdbf2; color:#2c3e66; border-radius:12px; padding:11px 14px; font-size:12.5px; line-height:1.45; margin-bottom:14px; }
   .deload-banner b { color:#1f2f57; }
   .romcue { padding:8px 15px 2px; font-size:11px; color:var(--muted); font-style:italic; line-height:1.4; }
+  .exlegend { font-size:11px; color:var(--muted); margin:-4px 0 14px; padding:0 2px; line-height:1.4; }
+  .exlegend b { color:#3f3818; }
   .primer { padding:10px 15px; font-size:11.8px; color:#7a4a12; background:#fff6ec; border-bottom:1px solid var(--line); line-height:1.5; }
   .primer b { color:#b4540f; }
   .primer-sub { color:#9a7a52; }
@@ -1362,6 +1364,14 @@
     if(/Lower/.test(name)) return "Box or squat jump — 4 × 3 (land soft, reset every rep)";
     return "Box or squat jump — 4 × 3";
   }
+  // One-glance purpose tag per exercise: 🏋️ strength · 💪 mass · ⚡ power/speed · 🌀 golf rotation
+  function purposeFor(n){
+    if(/Single-Arm/i.test(n)) return "🌀";
+    if(/Jump|Bound|Slam|Chest Pass|Overspeed|Footwork|Swing|Broad|Plyo/i.test(n)) return "⚡";
+    if(/Wood-?chop|Rotation|Rotational|Pallof|Landmine|Punch|Russian Twist/i.test(n)) return "🌀";
+    if(/Back Squat|Front Squat|Bench Press|Deadlift|Overhead Press|Pull-up|Romanian/i.test(n)) return "🏋️";
+    return "💪";
+  }
   function renderPhase(){
     var p = PHASES[planState.phase];
     var shown = activeDays();
@@ -1382,6 +1392,8 @@
 
     if(wk%6===0){ html+='<div class="deload-banner">🪫 <b>Deload week (Week '+wk+').</b> Take ~60% of your usual working weights, drop the last set of every lift, and keep the speed drills sharp but submaximal. This is planned recovery — you grow now. Full loads resume next week.</div>'; }
 
+    html+='<div class="exlegend"><b>What each move builds:</b> 🏋️ strength · 💪 mass · ⚡ power/speed · 🌀 golf rotation</div>';
+
     var primerNoteShown=false;
     shown.forEach(function(d){
       if(d.type==="rest"){
@@ -1392,7 +1404,7 @@
       if(d.type==="speed"){
         var s=p.speed;
         var srows = s.ex.map(function(e){
-          return '<tr><td><div class="exname-main">'+e[0]+'</div><div class="exnote">'+e[2]+'</div></td>'+
+          return '<tr><td><div class="exname-main">'+purposeFor(e[0])+' '+e[0]+'</div><div class="exnote">'+e[2]+'</div></td>'+
                  '<td class="sets">'+e[1]+'</td></tr>';
         }).join("");
         var noGear = "No gear for overspeed? Use a light stick or your driver. No med ball? A heavy backpack, band, or dumbbell works.";
@@ -1406,9 +1418,10 @@
       var rows = d.ex.map(function(row){
         var r = resolveEx(row[0], row[1]);
         var eff = '<div class="effort">'+effortNote(row[1])+'</div>';
-        if(r.status==="ok") return '<tr><td>'+row[0]+'</td><td class="sets">'+row[1]+eff+'</td></tr>';
-        if(r.status==="swap") return '<tr class="swap"><td class="exname">'+r.name+' <span class="swap-badge">swap</span></td><td class="sets">'+r.sr+eff+'</td></tr>';
-        return '<tr class="skip"><td class="exname"><span class="nm">'+row[0]+'</span><span class="need">needs '+r.need.map(eqLabel).join(" + ")+'</span></td><td class="sets">'+row[1]+'</td></tr>';
+        var pe = purposeFor(row[0])+' ';
+        if(r.status==="ok") return '<tr><td>'+pe+row[0]+'</td><td class="sets">'+row[1]+eff+'</td></tr>';
+        if(r.status==="swap") return '<tr class="swap"><td class="exname">'+pe+r.name+' <span class="swap-badge">swap</span></td><td class="sets">'+r.sr+eff+'</td></tr>';
+        return '<tr class="skip"><td class="exname"><span class="nm">'+pe+row[0]+'</span><span class="need">needs '+r.need.map(eqLabel).join(" + ")+'</span></td><td class="sets">'+row[1]+'</td></tr>';
       }).join("");
       var pNote = primerNoteShown ? '' : '<span class="primer-cue">New to jumps and throws? Start with 2 sets, a low box and a lighter ball, and add a set every couple of weeks. Always stop well short of fatigue — these build speed only when every rep is crisp and fast.</span>';
       primerNoteShown = true;
