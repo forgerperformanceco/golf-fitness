@@ -76,6 +76,15 @@
     pushing = false;
   }
 
+  // Stable, key-sorted JSON so cosmetic ordering never looks like a real change.
+  function stable(v) {
+    if (v === null || typeof v !== "object") return JSON.stringify(v);
+    if (Array.isArray(v)) return "[" + v.map(stable).join(",") + "]";
+    return "{" + Object.keys(v).sort().map(function (k) {
+      return JSON.stringify(k) + ":" + stable(v[k]);
+    }).join(",") + "}";
+  }
+
   // On login: seed the cloud from this device if empty, otherwise pull the cloud down.
   async function syncOnLogin() {
     var row;
@@ -89,13 +98,19 @@
       return;
     }
     var cloudStr = JSON.stringify(row.data);
-    if (cloudStr === snapshot()) {              // already in sync → nothing to do
+    var localObj; try { localObj = JSON.parse(snapshot()); } catch (e) { localObj = {}; }
+    if (stable(row.data) === stable(localObj)) { // already in sync (ignoring key order)
       lastSnapshot = cloudStr;
       return;
     }
     writeBlob(cloudStr);                        // cloud wins on login
     lastSnapshot = cloudStr;
-    location.reload();                          // re-render with the synced data
+    // Re-render once with the synced data. Guarded with sessionStorage so the app's own
+    // startup writes can never turn this into an endless reload loop.
+    if (!sessionStorage.getItem("ff_synced_once")) {
+      try { sessionStorage.setItem("ff_synced_once", "1"); } catch (e) {}
+      location.reload();
+    }
   }
 
   // ---- Tiny auth UI (injected so index.html needs no markup) ----
