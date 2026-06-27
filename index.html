@@ -1125,26 +1125,32 @@
   }
   // Role-tuned food pools for example meals (post-workout = fast carbs + lean protein, etc.)
   var MEAL_PROT = {
-    Breakfast:[{one:"1 cup Greek yogurt",g:23},{one:"3 eggs",g:18},{one:"1 scoop whey",g:25}],
+    Breakfast:[{one:"1 scoop whey",g:25},{one:"1 cup Greek yogurt",g:23},{one:"3 eggs",g:18}],
+    Lunch:[{one:"4 oz chicken or turkey",g:35},{one:"4 oz lean beef",g:30}],
     Dinner:[{one:"6 oz chicken or steak",g:50},{one:"4 oz salmon",g:29}],
+    Snack:[{one:"a whey shake",g:25},{one:"1 cup Greek yogurt",g:23},{one:"½ cup cottage cheese",g:13}],
     post:[{one:"4 oz chicken breast",g:35},{one:"1 scoop whey",g:25}],
-    def:[{one:"4 oz chicken breast",g:35},{one:"1 cup Greek yogurt",g:23},{one:"3 eggs",g:18}]
+    def:[{one:"4 oz chicken breast",g:35},{one:"4 oz lean beef",g:30},{one:"3 eggs",g:18}]
   };
   var MEAL_CARB = {
-    Breakfast:[{one:"1 cup oats",g:54},{one:"1 banana",g:27},{one:"1 cup berries",g:15}],
+    Breakfast:[{one:"1 cup oats",g:54},{one:"1 banana",g:27},{one:"2 slices toast",g:30},{one:"1 cup berries",g:15}],
+    Lunch:[{one:"1 cup rice",g:45},{one:"a wrap or 2 slices bread",g:30},{one:"a baked potato",g:37}],
     Dinner:[{one:"1 cup rice",g:45},{one:"a baked potato",g:37}],
+    Snack:[{one:"a banana",g:27},{one:"an apple",g:25},{one:"some granola",g:30},{one:"rice cakes",g:14}],
     post:[{one:"1 cup white rice",g:45},{one:"1 banana",g:27},{one:"1 tbsp honey",g:17}],
     pre:[{one:"1 banana",g:27},{one:"½ cup oats",g:27},{one:"1 tbsp honey",g:17}],
     def:[{one:"1 cup rice",g:45},{one:"a baked potato",g:37},{one:"1 banana",g:27}]
   };
   function exampleMeal(s){
-    var key = s.kind==="pre" ? "pre" : (s.isPost ? "post" : s.label);
+    // Breakfast keeps breakfast foods even when it doubles as the post-workout meal —
+    // nobody eats chicken & rice at 7am. (Dynamic, user-chosen options come with the AI phase.)
+    var key = s.kind==="pre" ? "pre" : (s.label==="Breakfast" ? "Breakfast" : (s.isPost ? "post" : s.label));
     var cPool = MEAL_CARB[key] || MEAL_CARB.def;
     var c = buildCombo(s.c||0, cPool);
     if(s.kind==="pre" || !s.p) return c.text + " (fast carbs)";
     var pPool = MEAL_PROT[key] || MEAL_PROT.def;
     var p = buildCombo(s.p, pPool);
-    var fat = (s.f>=12) ? " + a little fat (avocado / nuts / olive oil)" : "";
+    var fat = (s.f>=12) ? " + a little healthy fat (eggs, avocado, nuts or olive oil)" : "";
     var veg = (key==="Dinner"||key==="Lunch") ? " + veg" : "";
     return p.text + " + " + c.text + veg + fat;
   }
