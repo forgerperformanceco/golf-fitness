@@ -452,6 +452,49 @@
   .ffp.locked .ffp-val { color:#9fe7bb; font-size:15px; line-height:1; }
   .ffp.locked .ffp-fill { background:rgba(255,255,255,.14); box-shadow:none; }
 
+  /* ===== Dashboard ===== */
+  .dash-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:11px; }
+  .dtile { display:flex; flex-direction:column; align-items:flex-start; gap:3px; text-align:left;
+    background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:14px 13px;
+    box-shadow:var(--shadow); cursor:pointer; transition:transform .12s, box-shadow .12s; }
+  .dtile:active { transform:translateY(1px); }
+  .dt-ic { font-size:20px; line-height:1; }
+  .dt-label { font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; margin-top:5px; }
+  .dt-big { font-size:16px; font-weight:700; color:var(--ink); line-height:1.15; }
+  .dt-big b { color:var(--green-700); }
+  .dt-sub { font-size:11px; color:var(--muted); line-height:1.3; }
+  @media(max-width:520px){ .dash-grid{ grid-template-columns:1fr; }
+    .dtile{ flex-direction:row; align-items:center; flex-wrap:wrap; gap:4px 10px; padding:13px 15px; }
+    .dt-ic{ font-size:22px; } .dt-label{ flex:1; margin:0; order:1; }
+    .dt-big{ order:2; width:100%; font-size:17px; } .dt-sub{ order:3; width:100%; } }
+
+  /* ===== Account ===== */
+  .acct-card { background:var(--paper); border:1px solid var(--line); border-radius:16px; padding:18px;
+    box-shadow:var(--shadow); margin-bottom:13px; }
+  .acct-card.center { text-align:center; }
+  .acct-bigico { font-size:34px; }
+  .acct-card.center h3 { margin:8px 0 5px; font-size:18px; color:var(--green-800); }
+  .acct-card.center p { margin:0 0 15px; font-size:13px; color:var(--muted); line-height:1.5; }
+  .acct-id { display:flex; align-items:center; gap:13px; margin-bottom:14px; }
+  .acct-ava { width:46px; height:46px; flex:0 0 auto; border-radius:50%; background:#11643a; color:#fff;
+    display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:800; }
+  .acct-email { font-size:15px; font-weight:700; color:var(--ink); word-break:break-all; }
+  .acct-synced { font-size:12px; color:var(--green-700); margin-top:2px; }
+  .acct-head { font-size:14px; font-weight:800; color:var(--green-800); margin-bottom:6px; }
+  .acct-p { margin:0 0 12px; font-size:12.8px; color:var(--muted); line-height:1.5; }
+  .acct-plan { font-size:13px; color:var(--ink); margin-bottom:12px; }
+  .acct-plan b { color:var(--green-700); }
+  .acct-btn { width:100%; background:#11643a; color:#fff; border:0; border-radius:11px; padding:13px;
+    font:700 14px system-ui; cursor:pointer; }
+  .acct-btn:active { transform:translateY(1px); }
+  .acct-btn.ghost { background:#eef7f0; color:var(--green-700); border:1px solid #cfe9d8; }
+  .acct-list { margin-bottom:13px; }
+  .acct-li { display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid var(--line); font-size:13px; }
+  .acct-li:last-child { border-bottom:0; }
+  .acct-li span { color:var(--muted); }
+  .acct-li b { color:var(--ink); }
+  .acct-foot { text-align:center; font-size:11.5px; color:var(--muted); line-height:1.6; margin-top:4px; padding-bottom:8px; }
+
   .tracker {
     margin-top:22px; background:var(--sand); border:1px solid var(--sand-dark); border-radius:14px; padding:18px 20px;
   }
@@ -578,13 +621,20 @@
     <h1 class="brand">Fairway<span class="em">Fuel</span></h1>
     <p class="tagline">Build like a bodybuilder, move like a golfer — add lean mass and turn it into <b>clubhead speed</b>.</p>
     <div class="tabs" id="tabs">
-      <button data-view="calc" class="active">Macro Calculator</button>
-      <button data-view="plan">Mass + Speed Plan</button>
+      <button data-view="dash" class="active">Dashboard</button>
+      <button data-view="calc">Fuel</button>
+      <button data-view="plan">Train</button>
+      <button data-view="account">Account</button>
     </div>
   </header>
 
+  <!-- ============ VIEW 0: DASHBOARD ============ -->
+  <div class="view active" id="view-dash">
+    <div id="dashBody"></div>
+  </div>
+
   <!-- ============ VIEW 1: CALCULATOR ============ -->
-  <div class="view active" id="view-calc">
+  <div class="view" id="view-calc">
     <div class="grid">
       <section class="card" aria-label="Your details">
         <div class="kicker">⛳ On the Tee</div>
@@ -785,9 +835,16 @@
     </section>
   </div>
 
+  <!-- ============ VIEW 3: ACCOUNT ============ -->
+  <div class="view" id="view-account">
+    <div id="accountBody"></div>
+  </div>
+
   <nav class="mobile-tabbar" id="mobileTabs">
-    <button data-view="calc" class="active"><span class="ic">🍽️</span>Fuel</button>
+    <button data-view="dash" class="active"><span class="ic">📊</span>Home</button>
+    <button data-view="calc"><span class="ic">🍽️</span>Fuel</button>
     <button data-view="plan"><span class="ic">🏌️</span>Train</button>
+    <button data-view="account"><span class="ic">👤</span>You</button>
   </nav>
 
   <!-- Workout logging modal -->
@@ -828,8 +885,11 @@
         b.classList.toggle("active", b.getAttribute("data-view")===view);
       });
     });
-    document.getElementById("view-calc").classList.toggle("active", view === "calc");
-    document.getElementById("view-plan").classList.toggle("active", view === "plan");
+    Array.prototype.forEach.call(document.querySelectorAll(".view"), function(v){
+      v.classList.toggle("active", v.id === "view-" + view);
+    });
+    if(view==="dash") { try{ renderDash(); }catch(e){} }
+    if(view==="account") { try{ renderAccount(); }catch(e){} }
     if(scroll!==false) window.scrollTo({ top: 0, behavior: "smooth" });
     try { persist(); } catch(e){}
   }
@@ -1131,7 +1191,7 @@
     // Stash the computed targets so the AI coach can use the user's exact numbers.
     try {
       localStorage.setItem("ff_targets", JSON.stringify({
-        goal: g.label, kcal: target, proteinG: proteinG, carbG: carbG, fatG: fatG,
+        goal: g.label, kcal: Math.round(target/5)*5, proteinG: proteinG, carbG: carbG, fatG: fatG,
         mealN: mealN, tdee: Math.round(tdee)
       }));
     } catch(e){}
@@ -1596,8 +1656,6 @@
       '<button type="button" data-freq="5" '+(planState.freq===5?'class="active"':'')+'>5 days</button>'+
       '</div></div>';
 
-    html+=renderScoreCard();
-
     if(wk%6===0){ html+='<div class="deload-banner">🪫 <b>Deload week (Week '+wk+').</b> Take ~60% of your usual working weights, drop the last set of every lift, and keep the speed drills sharp but submaximal. This is planned recovery — you grow now. Full loads resume next week.</div>'; }
 
     html+='<div class="exlegend"><b>What each move builds:</b> 🏋️ strength · 💪 mass · ⚡ power/speed · 🌀 golf rotation</div>';
@@ -1942,6 +2000,72 @@
       '<div class="ffscore-bars">'+bars+'</div></div>';
   }
 
+  /* ----- Dashboard (home overview) ----- */
+  function nextWorkout(){
+    var wk=curWeek(), days=activeDays(), L=getLog();
+    for(var i=0;i<days.length;i++){ if(!L[wk+"|"+days[i].name]) return days[i].name; }
+    return days.length ? days[0].name : null;
+  }
+  function dTile(icon, label, big, sub, goview){
+    return '<button class="dtile" data-goview="'+goview+'"><span class="dt-ic">'+icon+'</span>'+
+      '<span class="dt-label">'+label+'</span><span class="dt-big">'+big+'</span>'+
+      '<span class="dt-sub">'+sub+'</span></button>';
+  }
+  function renderDash(){
+    var el=$("dashBody"); if(!el) return;
+    var t=lsGet("ff_targets",null), wk=curWeek();
+    var body=lsGet("ff_body",[]), lastSpeed=body.length?body[body.length-1].s:null;
+    var sess=Object.keys(getLog()).length, nw=nextWorkout();
+    var fuel = t ? ('<b>'+t.kcal+'</b> kcal' ) : 'Set up →';
+    var fuelSub = t ? (t.proteinG+'p · '+t.carbG+'c · '+t.fatG+'f') : 'tap to calculate';
+    var html = renderScoreCard();
+    html += '<div class="dash-grid">'+
+      dTile('🍽️','Daily fuel', fuel, fuelSub, 'calc')+
+      dTile('🏌️','This week', 'Week <b>'+wk+'</b>', nw?('Next: '+nw.replace(/Day \d+ — /,'')):'open plan', 'plan')+
+      dTile('⚡','7-iron speed', lastSpeed?('<b>'+lastSpeed+'</b> mph'):'—', sess+' workouts logged', 'plan')+
+      '</div>';
+    el.innerHTML=html;
+  }
+
+  /* ----- Account ----- */
+  function acctRow(k,v){ return '<div class="acct-li"><span>'+k+'</span><b>'+v+'</b></div>'; }
+  function renderAccount(){
+    var el=$("accountBody"); if(!el) return;
+    var user = window.FF && window.FF.user;
+    var html='';
+    if(user){
+      var email=user.email||'your account', initial=(email[0]||'⛳').toUpperCase();
+      html+='<div class="acct-card"><div class="acct-id"><div class="acct-ava">'+initial+'</div>'+
+        '<div class="acct-idtext"><div class="acct-email">'+email+'</div>'+
+        '<div class="acct-synced">☁ Synced across your devices</div></div></div>'+
+        '<button class="acct-btn ghost" id="acctSignOut">Sign out</button></div>';
+    } else {
+      html+='<div class="acct-card center"><div class="acct-bigico">☁</div>'+
+        '<h3>Save &amp; sync your progress</h3>'+
+        '<p>One-tap email login — no password. Your calculator, workout log and Score follow you across devices.</p>'+
+        '<button class="acct-btn" id="acctSignIn">Sign in / Create account</button></div>';
+    }
+    html+='<div class="acct-card"><div class="acct-head">⛳ FairwayFuel Pro</div>'+
+      '<p class="acct-p">Unlimited AI coaching, dynamic meal &amp; training adaptation, and your full progress history.</p>'+
+      '<div class="acct-plan">Current plan: <b>Free</b></div>'+
+      '<button class="acct-btn" id="acctPro">Start free trial — coming soon</button></div>';
+    var t=lsGet("ff_targets",null), prof=lsGet("fairwayfuel",null);
+    if(prof || t){
+      html+='<div class="acct-card"><div class="acct-head">Your profile</div><div class="acct-list">'+
+        acctRow('Goal', t?t.goal:((prof&&prof.goal)||'—'))+
+        acctRow('Bodyweight', (prof&&prof.weight)?prof.weight+' lb':'—')+
+        acctRow('Training', ((prof&&prof.freq)||4)+' days/week')+
+        acctRow('Daily target', t?t.kcal+' kcal':'—')+
+        '</div><button class="acct-btn ghost" id="acctEdit">Edit my numbers</button></div>';
+    }
+    html+='<div class="acct-foot">FairwayFuel · installs &amp; works offline<br>Evidence-based starting points — not medical advice.</div>';
+    el.innerHTML=html;
+    var si=$("acctSignIn"); if(si) si.onclick=function(){ if(window.FF&&window.FF.signIn) window.FF.signIn(); else alert("Sign-in needs an internet connection."); };
+    var so=$("acctSignOut"); if(so) so.onclick=function(){ if(window.FF&&window.FF.signOut) window.FF.signOut(); };
+    var pro=$("acctPro"); if(pro) pro.onclick=function(){ alert("FairwayFuel Pro is almost here — you'll be able to start a free trial right here, and unlock the AI coach."); };
+    var ed=$("acctEdit"); if(ed) ed.onclick=function(){ setView("calc"); };
+  }
+
   /* ----- Progress (bodyweight + clubhead speed) ----- */
   function sparkline(vals){
     var pts=vals.filter(function(v){ return v!=null && !isNaN(v); });
@@ -1990,11 +2114,23 @@
     if(e.target.closest("#foodSwap") && lastFood){ foodRoll++; updateFoodTargets(lastFood.p, lastFood.c, lastFood.m); }
   });
 
+  // Dashboard tiles jump to the relevant tab.
+  var db=$("dashBody");
+  if(db) db.addEventListener("click", function(e){
+    var t=e.target.closest("[data-goview]"); if(t) setView(t.getAttribute("data-goview"));
+  });
+  // Re-render account + dashboard when cloud login state changes.
+  window.addEventListener("ff-auth", function(){
+    if($("view-account") && $("view-account").classList.contains("active")) renderAccount();
+    renderDash();
+  });
+
   restore();      // bring back the user's saved inputs/equipment/tab
   applyShareParams();   // a shared ?link= overrides local state so friends see your numbers
   calc();
   renderEquip();
   renderPhase();
+  renderDash();         // home overview (default landing tab)
 })();
 
 /* Register the service worker so the app installs to the home screen and works offline. */
@@ -2004,6 +2140,8 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+<!-- Login lives in the Account tab, so cloud-sync should skip its floating pill. -->
+<script>window.FF_ACCOUNT_TAB = true;</script>
 <!-- Optional cloud login + progress sync. Inactive until you add Supabase keys in cloud-sync.js. -->
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script defer src="cloud-sync.js"></script>

@@ -37,6 +37,7 @@
     catch (e) { return null; }
   };
   window.FF.signIn = function () { try { openModal(); } catch (e) {} };
+  window.FF.signOut = function () { try { sb.auth.signOut(); } catch (e) {} };
 
   var user = null;
   var lastSnapshot = null;   // JSON of the last state we know matches the cloud
@@ -133,6 +134,7 @@
 
   var pill, modal;
   function renderPill() {
+    if (!pill) return;     // pill suppressed when the app has a dedicated Account tab
     if (user) {
       var name = (user.email || "account").split("@")[0];
       pill.className = "ff-pill in";
@@ -185,7 +187,9 @@
   }
 
   function mount() {
-    injectStyles();
+    injectStyles();   // styles power the sign-in modal too, so always inject them
+    // If the host app has its own Account tab, skip the floating pill — login lives there.
+    if (window.FF_ACCOUNT_TAB) return;
     var box = el("div", { class: "ff-auth" });
     pill = el("button", { class: "ff-pill", type: "button" }, "☁ Sign in to save");
     pill.addEventListener("click", onPillClick);
