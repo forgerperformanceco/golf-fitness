@@ -1,0 +1,12 @@
+# Secrets — never commit real env values (only .env.example is tracked)
+.env
+.env.local
+.env.*.local
+
+# Supabase local state
+supabase/.branches
+supabase/.temp
+
+# Node / tooling artifacts
+node_modules/
+.DS_Store

@@ -1,0 +1,133 @@
+-- ============================================================================
+-- FairwayFuel — database schema (Supabase / Postgres)
+--
+-- Apply in Supabase → SQL Editor, or via the Supabase CLI:
+--   supabase db push
+--
+-- This is idempotent-ish: it uses IF NOT EXISTS / ADD COLUMN IF NOT EXISTS so
+-- it can be re-run as the schema evolves. It supersedes the inline `profiles`
+-- snippet from LAUNCH-GUIDE.md by adding the subscription columns Phase 1 needs.
+-- ============================================================================
+
+-- ── profiles: one row per authenticated user ────────────────────────────────
+-- `data` is the synced localStorage blob (fairwayfuel / ff_week / ff_log / ff_body).
+-- The subscription columns are written ONLY by the Stripe webhook (service role).
+create table if not exists public.profiles (
+  id                    uuid primary key references auth.users (id) on delete cascade,
+  data                  jsonb       not null default '{}'::jsonb,
+  updated_at            timestamptz not null default now(),
+
+  -- Billing / entitlement (Phase 1). Client may READ these; only the
+  -- service-role webhook may WRITE them (enforced by RLS below).
+  stripe_customer_id    text,
+  subscription_status   text        not null default 'free',   -- free | trialing | active | past_due | canceled
+  plan                  text,                                   -- e.g. 'pro_monthly' | 'pro_annual'
+  current_period_end    timestamptz,
+  trial_ends_at         timestamptz,
+
+  created_at            timestamptz not null default now()
+);
+
+comment on table  public.profiles is 'Per-user sync blob + subscription/entitlement state.';
+comment on column public.profiles.data is 'Synced app state: fairwayfuel, ff_week, ff_log, ff_body.';
+comment on column public.profiles.subscription_status is 'free|trialing|active|past_due|canceled — webhook-written only.';
+
+-- ── Row-level security ───────────────────────────────────────────────────────
+alter table public.profiles enable row level security;
+
+-- A user can SELECT their own row.
+drop policy if exists "profiles_select_own" on public.profiles;
+create policy "profiles_select_own"
+  on public.profiles for select
+  using (auth.uid() = id);
+
+-- A user can INSERT their own row (first sync) — but NOT pre-set a paid status.
+drop policy if exists "profiles_insert_own" on public.profiles;
+create policy "profiles_insert_own"
+  on public.profiles for insert
+  with check (
+    auth.uid() = id
+    and subscription_status = 'free'      -- can't self-grant a subscription
+    and stripe_customer_id is null
+  );
+
+-- A user can UPDATE their own row, but the billing columns must stay unchanged.
+-- (Only the service-role key, which bypasses RLS, may change them — that's the webhook.)
+drop policy if exists "profiles_update_own" on public.profiles;
+create policy "profiles_update_own"
+  on public.profiles for update
+  using (auth.uid() = id)
+  with check (
+    auth.uid() = id
+    and subscription_status = (select p.subscription_status from public.profiles p where p.id = auth.uid())
+    and plan                is not distinct from (select p.plan                from public.profiles p where p.id = auth.uid())
+    and stripe_customer_id  is not distinct from (select p.stripe_customer_id  from public.profiles p where p.id = auth.uid())
+    and current_period_end  is not distinct from (select p.current_period_end  from public.profiles p where p.id = auth.uid())
+  );
+
+-- Note: the service-role key (used by the stripe-webhook Edge Function) bypasses
+-- RLS entirely, so it can write the billing columns. The browser cannot.
+
+-- ── Keep updated_at fresh on write ───────────────────────────────────────────
+create or replace function public.touch_updated_at()
+returns trigger language plpgsql as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
+drop trigger if exists profiles_touch_updated_at on public.profiles;
+create trigger profiles_touch_updated_at
+  before update on public.profiles
+  for each row execute function public.touch_updated_at();
+
+-- ── Auto-create a profile row when a user signs up ───────────────────────────
+create or replace function public.handle_new_user()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  insert into public.profiles (id) values (new.id)
+  on conflict (id) do nothing;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_user();
+
+-- Helper the client/Edge Function can call to check entitlement.
+create or replace function public.is_subscribed(uid uuid)
+returns boolean language sql stable as $$
+  select exists (
+    select 1 from public.profiles
+    where id = uid
+      and (
+        subscription_status in ('active', 'trialing')
+        or (trial_ends_at is not null and trial_ends_at > now())
+      )
+  );
+$$;
+
+-- ============================================================================
+-- Phase 3 (deep repositories) — normalized tables, scaffolded for later.
+-- Left commented until we migrate off the single `data` blob.
+-- ============================================================================
+-- create table if not exists public.workout_logs (
+--   id uuid primary key default gen_random_uuid(),
+--   user_id uuid not null references auth.users(id) on delete cascade,
+--   logged_at timestamptz not null default now(),
+--   week int, day text, exercise text, set_no int, reps int, weight numeric
+-- );
+-- create table if not exists public.speed_tests (
+--   id uuid primary key default gen_random_uuid(),
+--   user_id uuid not null references auth.users(id) on delete cascade,
+--   tested_at timestamptz not null default now(), club text, mph numeric
+-- );
+-- create table if not exists public.body_metrics (
+--   id uuid primary key default gen_random_uuid(),
+--   user_id uuid not null references auth.users(id) on delete cascade,
+--   measured_at timestamptz not null default now(), weight_lb numeric
+-- );
+-- (RLS "own row" policies would mirror profiles.)
