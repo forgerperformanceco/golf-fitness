@@ -384,6 +384,10 @@
   .deload-banner { background:#eef3ff; border:1px solid #cfdbf2; color:#2c3e66; border-radius:12px; padding:11px 14px; font-size:12.5px; line-height:1.45; margin-bottom:14px; }
   .deload-banner b { color:#1f2f57; }
   .romcue { padding:8px 15px 2px; font-size:11px; color:var(--muted); font-style:italic; line-height:1.4; }
+  .primer { padding:10px 15px; font-size:11.8px; color:#7a4a12; background:#fff6ec; border-bottom:1px solid var(--line); line-height:1.5; }
+  .primer b { color:#b4540f; }
+  .primer-sub { color:#9a7a52; }
+  .primer-cue { display:block; margin-top:5px; font-size:11px; color:#8a7a60; font-style:italic; }
 
   .speed-callout {
     margin-top:8px; background:#fff4e8; border:1px solid #f3d6b0; border-radius:12px; padding:15px 16px;
@@ -1147,12 +1151,12 @@
         ]},
         { name:"Day 3 \u2014 Speed & Power", tag:"speed", type:"speed" },
         { name:"Day 4 \u2014 Lower (Hinge + Power)", tag:"Lift", ex:[
-          ["Box Jump","4 \u00d7 3 (explosive)"],["Deadlift","4 \u00d7 4 (heavy)"],["Hip Thrust","3 \u00d7 8"],
+          ["Deadlift","4 \u00d7 4 (heavy)"],["Hip Thrust","3 \u00d7 8"],
           ["Bulgarian Split Squat","3 \u00d7 10 / leg"],["Pallof Press","3 \u00d7 12 / side"],["Farmer Carry","3 \u00d7 40 yd"]
         ]},
         { name:"Day 5 \u2014 Upper (Pull + Rotate)", tag:"Lift", ex:[
           ["Weighted Pull-up","4 \u00d7 6"],["Chest-Supported Row","3 \u00d7 10"],["Lat Pulldown","3 \u00d7 12"],["Single-Arm DB Row","3 \u00d7 8 / side"],
-          ["Rotational Med-Ball Throw","4 \u00d7 5 / side"],["Face Pull","3 \u00d7 15"],["DB Curl","3 \u00d7 12"]
+          ["Face Pull","3 \u00d7 15"],["DB Curl","3 \u00d7 12"]
         ]},
         { name:"Day 6 & 7 \u2014 Rest / Play 18", tag:"rest", type:"rest" }
       ],
@@ -1168,7 +1172,7 @@
         { name:"Day 3 \u2014 Speed & Power", tag:"speed", type:"speed" },
         { name:"Day 4 \u2014 Upper (Pull + Rotate)", tag:"Lift", ex:[
           ["Weighted Pull-up","4 \u00d7 6"],["Chest-Supported Row","3 \u00d7 10"],["Lat Pulldown","3 \u00d7 12"],["Single-Arm DB Row","3 \u00d7 8 / side"],
-          ["Rotational Med-Ball Throw","4 \u00d7 5 / side"],["Face Pull","3 \u00d7 15"],["DB Curl","3 \u00d7 12"]
+          ["Face Pull","3 \u00d7 15"],["DB Curl","3 \u00d7 12"]
         ]},
         { name:"Days 5\u20137 \u2014 Rest / Play 18", tag:"rest", type:"rest" }
       ]
@@ -1334,6 +1338,14 @@
     if(/Lower|Squat|Hinge/.test(name)) return "Hips & legs — leg swings ×10/side, 90/90 hip switches ×8/side, world's greatest stretch ×5/side, then 2 light ramp-up sets.";
     return "5-min dynamic flow — raise the heart rate, mobilize hips & T-spine, then ramp up to working weight.";
   }
+  function primerFor(name){
+    if(/Pull|Rotate/.test(name)) return "Rotational med-ball throw — 4 × 4 / side (no ball? band or cable rotation)";
+    if(/Push/.test(name)) return "Explosive med-ball chest pass — 4 × 4 (no ball? clap / explosive push-up)";
+    if(/Squat/.test(name)) return "Box or squat jump — 4 × 3 (land soft, reset every rep)";
+    if(/Hinge/.test(name)) return "Russian kettlebell swing — 5 × 5 (no kettlebell? swing a dumbbell)";
+    if(/Lower/.test(name)) return "Box or squat jump — 4 × 3 (land soft, reset every rep)";
+    return "Box or squat jump — 4 × 3";
+  }
   function renderPhase(){
     var p = PHASES[planState.phase];
     var shown = activeDays();
@@ -1354,6 +1366,7 @@
 
     if(wk%6===0){ html+='<div class="deload-banner">🪫 <b>Deload week (Week '+wk+').</b> Take ~60% of your usual working weights, drop the last set of every lift, and keep the speed drills sharp but submaximal. This is planned recovery — you grow now. Full loads resume next week.</div>'; }
 
+    var primerNoteShown=false;
     shown.forEach(function(d){
       if(d.type==="rest"){
         html+='<div class="day"><div class="day-head">'+d.name+' <span class="tag rest">Recover</span></div>'+
@@ -1381,8 +1394,11 @@
         if(r.status==="swap") return '<tr class="swap"><td class="exname">'+r.name+' <span class="swap-badge">swap</span></td><td class="sets">'+r.sr+eff+'</td></tr>';
         return '<tr class="skip"><td class="exname"><span class="nm">'+row[0]+'</span><span class="need">needs '+r.need.map(eqLabel).join(" + ")+'</span></td><td class="sets">'+row[1]+'</td></tr>';
       }).join("");
+      var pNote = primerNoteShown ? '' : '<span class="primer-cue">New to jumps and throws? Start with 2 sets, a low box and a lighter ball, and add a set every couple of weeks. Always stop well short of fatigue — these build speed only when every rep is crisp and fast.</span>';
+      primerNoteShown = true;
       html+='<div class="day"><div class="day-head">'+d.name+' <span class="tag '+(d.tag==="Lift"?"":d.tag)+'">'+labelFor(d.tag)+'</span></div>'+
         '<div class="warm"><b>Warm-up (5 min):</b> '+warmupFor(d.name)+'</div>'+
+        '<div class="primer"><b>⚡ Power primer — do this first, fresh:</b> '+primerFor(d.name)+'.<span class="primer-sub"> Max intent · full rest between reps · ~5 min.</span>'+pNote+'</div>'+
         '<table class="ex"><tr><th>Exercise</th><th style="text-align:right">Sets × Reps</th></tr>'+rows+'</table>'+
         '<div class="romcue">Full range every rep — control the stretch, own the lockout. The range you train is the range you can swing with.</div>'+
         logFoot(d.name)+'</div>';

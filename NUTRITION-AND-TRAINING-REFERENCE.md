@@ -411,6 +411,16 @@ on every set**, then add ~2.5–5 lb (upper) / 5–10 lb (lower). **Deload every
 (weeks 6, 12, 18: ~60% loads, drop the last set, speed work submaximal) — the app shows a
 deload banner automatically on those weeks. Eat in a **Lean Bulk** the whole time.
 
+**Power primers (speed on every lift day).** Each lift day now opens with a single explosive
+"primer" done **first, fresh** — a jump (squat day), explosive med-ball chest pass (push day),
+Russian kettlebell swing (hinge day), or rotational med-ball throw (pull day) — kept to a few
+max-intent reps with full rest (~5 min). This trains speed **3–4×/week** instead of once,
+potentiates the heavy lift that follows, and adds **no** metabolic fatigue, so it doesn't cost
+hypertrophy. The dedicated **Speed & Power day stays** for focused overspeed-swing volume —
+primers supplement it, they don't replace it. The rule that makes it work: stay low-rep, max
+intent, fully rested, and always first. Beginners ramp in (start at 2 sets / low box, add a
+set every couple of weeks) and stop well short of fatigue.
+
 **Tracking the payoff:** log **7-iron clubhead speed** weekly in the app's Progress panel.
 7-iron is more repeatable than driver, so the week-to-week trend is a cleaner signal that the
 mass you're building is converting into speed.
