@@ -498,6 +498,57 @@
   .dash-log .dl-row button:active { transform:translateY(1px); }
   .dash-log .dl-hint { font-size:11.5px; color:var(--muted); margin-top:8px; line-height:1.4; }
   .dash-log .dl-hint b { color:var(--green-700); }
+
+  /* ---- First-run onboarding wizard ---- */
+  .ob { position:fixed; inset:0; z-index:200; background:linear-gradient(165deg,#0f2417,#14532d 58%,#0c2c1a);
+    display:flex; flex-direction:column; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+  .ob-top { padding:18px 18px 0; }
+  .ob-prog { height:6px; background:rgba(255,255,255,.14); border-radius:999px; overflow:hidden; max-width:560px; margin:0 auto; }
+  .ob-prog > span { display:block; height:100%; background:linear-gradient(90deg,#34d27b,#7ef0a8); border-radius:999px; transition:width .35s cubic-bezier(.4,0,.2,1); }
+  .ob-skip { max-width:560px; margin:10px auto 0; text-align:right; }
+  .ob-skip button { background:none; border:0; color:rgba(255,255,255,.5); font:600 12.5px system-ui; cursor:pointer; }
+  .ob-main { flex:1; display:flex; flex-direction:column; justify-content:center; padding:14px 18px 24px; }
+  .ob-card { width:100%; max-width:560px; margin:0 auto; color:#fff; }
+  .ob-kicker { font:800 11.5px/1.2 system-ui; letter-spacing:1.2px; text-transform:uppercase; color:#7ef0a8; margin-bottom:12px; display:flex; align-items:center; gap:7px; }
+  .ob-h { font:800 26px/1.18 system-ui; margin:0 0 8px; letter-spacing:-.5px; }
+  .ob-p { font:400 14.5px/1.5 system-ui; color:#cdebd6; margin:0 0 20px; max-width:450px; }
+  .ob-p b { color:#fff; }
+  .ob-brand { font:900 clamp(46px,15vw,74px)/1 system-ui; letter-spacing:-1.5px; margin:6px 0 16px; }
+  .ob-brand .em { color:#7ef0a8; }
+  .ob-opts { display:grid; gap:10px; }
+  .ob-opt { display:flex; align-items:center; gap:13px; width:100%; text-align:left; cursor:pointer;
+    background:rgba(255,255,255,.06); border:1.5px solid rgba(255,255,255,.16); border-radius:15px; padding:15px 16px; color:#fff; transition:all .14s; }
+  .ob-opt:active { transform:scale(.99); }
+  .ob-opt.sel { background:rgba(126,240,168,.16); border-color:#7ef0a8; box-shadow:0 0 0 3px rgba(126,240,168,.18); }
+  .ob-opt .obo-ic { font-size:24px; flex:0 0 auto; width:34px; text-align:center; }
+  .ob-opt .obo-tx { flex:1; min-width:0; }
+  .ob-opt .obo-t { font:800 15.5px system-ui; display:flex; align-items:center; gap:8px; }
+  .ob-opt .obo-tag { font:800 10px system-ui; padding:2px 7px; border-radius:999px; background:rgba(126,240,168,.2); color:#7ef0a8; }
+  .ob-opt .obo-d { font:400 12.5px/1.4 system-ui; color:#bfe3cd; margin-top:3px; }
+  .ob-seg { display:flex; gap:8px; flex-wrap:wrap; }
+  .ob-seg button { flex:1 1 auto; min-width:70px; background:rgba(255,255,255,.07); border:1.5px solid rgba(255,255,255,.16);
+    color:#fff; border-radius:12px; padding:13px 10px; font:700 14px system-ui; cursor:pointer; transition:all .14s; }
+  .ob-seg button.sel { background:#7ef0a8; border-color:#7ef0a8; color:#0f2417; }
+  .ob-field { margin-bottom:16px; }
+  .ob-field > label { display:block; font:700 13px system-ui; color:#cdebd6; margin-bottom:8px; }
+  .ob-field > label span { opacity:.6; font-weight:600; }
+  .ob-row { display:flex; gap:10px; }
+  .ob-in { width:100%; box-sizing:border-box; background:rgba(255,255,255,.95); border:1.5px solid transparent; border-radius:12px;
+    padding:14px; font:600 16px system-ui; color:#0f2417; }
+  .ob-in:focus { outline:none; border-color:#7ef0a8; }
+  .ob-select { width:100%; box-sizing:border-box; background:rgba(255,255,255,.95); border:0; border-radius:12px; padding:14px; font:600 15px system-ui; color:#0f2417; }
+  .ob-sum { display:flex; gap:10px; margin:2px 0 18px; }
+  .ob-sumv { flex:1; background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.14); border-radius:14px; padding:14px 10px; text-align:center; }
+  .ob-sumv .v { font:800 23px system-ui; color:#fff; }
+  .ob-sumv .v small { font-size:13px; font-weight:700; color:#bfe3cd; }
+  .ob-sumv .k { font:700 10.5px system-ui; color:#9ccfb0; text-transform:uppercase; letter-spacing:.6px; margin-top:3px; }
+  .ob-nav { display:flex; gap:10px; align-items:center; max-width:560px; margin:18px auto 0; width:100%; }
+  .ob-next { flex:1; background:#7ef0a8; color:#0f2417; border:0; border-radius:14px; padding:16px; font:800 16px system-ui; cursor:pointer; }
+  .ob-next:active { transform:translateY(1px); }
+  .ob-back { flex:0 0 auto; background:none; border:0; color:rgba(255,255,255,.6); font:700 14px system-ui; padding:14px 8px; cursor:pointer; }
+  .ob-later { display:block; max-width:560px; margin:12px auto 0; width:100%; background:none; border:0; color:rgba(255,255,255,.55); font:600 13px system-ui; cursor:pointer; }
+  .ob-err { color:#ffd27e; font:600 12.5px system-ui; margin-top:10px; min-height:16px; }
+  @media(min-width:560px){ .ob-h{ font-size:30px; } }
   /* In-context AI entry points */
   .dash-ai { margin-top:13px; width:100%; display:flex; align-items:center; gap:13px; text-align:left;
     background:linear-gradient(110deg,#11643a,#0e4f30); color:#fff; border:0; border-radius:14px; padding:14px 16px;
@@ -1039,6 +1090,15 @@
   /* ===================== TAB NAV (top + mobile bottom bar) ===================== */
   var tabs = document.getElementById("tabs");
   var mobileTabs = document.getElementById("mobileTabs");
+
+  // Snapshot whether this is a brand-new user NOW — before init's calc() writes
+  // any default targets/profile to localStorage (which would mask a first run).
+  var FF_FRESH = !lsGet("ff_onboarded", false)
+    && !localStorage.getItem("fairwayfuel")
+    && !localStorage.getItem("ff_targets")
+    && Object.keys(getLog()).length === 0
+    && lsGet("ff_body", []).length === 0
+    && !localStorage.getItem("ff_start");
   function setView(view, scroll){
     [tabs, mobileTabs].forEach(function(bar){
       Array.prototype.forEach.call(bar.querySelectorAll("button"), function(b){
@@ -2490,7 +2550,8 @@
         acctRow('Bodyweight', (prof&&prof.weight)?prof.weight+' lb':'—')+
         acctRow('Training', ((prof&&prof.freq)||4)+' days/week')+
         acctRow('Daily target', t?t.kcal+' kcal':'—')+
-        '</div><button class="acct-btn ghost" id="acctEdit">Edit my numbers</button></div>';
+        '</div><button class="acct-btn ghost" id="acctEdit">Edit my numbers</button>'+
+        '<button class="acct-btn ghost" id="acctSetup">↻ Re-run guided setup</button></div>';
     }
     html+='<div class="acct-card"><div class="acct-head">Your training plan</div>'+
       '<p class="acct-p">Start over — clears your plan start date and logged workouts so the plan resets to week 1. Your bodyweight &amp; 7-iron history and your calculator stay put.</p>'+
@@ -2504,6 +2565,7 @@
     var so=$("acctSignOut"); if(so) so.onclick=function(){ if(window.FF&&window.FF.signOut) window.FF.signOut(); };
     var pro=$("acctPro"); if(pro) pro.onclick=function(){ alert("FairwayFuel Pro is almost here — you'll be able to start a free trial right here, and unlock the AI coach."); };
     var ed=$("acctEdit"); if(ed) ed.onclick=function(){ setView("calc"); };
+    var su=$("acctSetup"); if(su) su.onclick=function(){ startOnboarding(true); };
   }
 
   /* ----- Progress (bodyweight + clubhead speed) ----- */
@@ -2655,12 +2717,211 @@
     if(window.FFCoach && window.FFCoach.ready()) window.FFCoach.ask(ASK_PROMPTS[k]||"", ASK_LABELS[k]||"");
   });
 
+  /* ===================== FIRST-RUN ONBOARDING ===================== */
+  // A guided wizard that writes into the SAME state/inputs the Calc tab uses
+  // (single source of truth) then runs calc(), so the plan, macros and Score
+  // are correct from the very first tap. The Calc tab stays the "edit" surface.
+  function obSetSeg(id, attr, val){
+    var seg=$(id); if(!seg) return;
+    Array.prototype.forEach.call(seg.querySelectorAll("button"), function(b){
+      b.classList.toggle("active", b.getAttribute(attr)===String(val)); });
+  }
+  function obSetGoal(val){
+    var g=$("goals"); if(!g) return;
+    Array.prototype.forEach.call(g.querySelectorAll(".goal"), function(b){
+      b.classList.toggle("active", b.getAttribute("data-goal")===val); });
+  }
+  function maybeOnboard(shared){
+    if(shared) return;                          // friend viewing a shared ?link= plan
+    if(lsGet("ff_onboarded", false)) return;    // already onboarded
+    if(!FF_FRESH){ lsSet("ff_onboarded", true); return; }   // returning user → grandfather, don't pop
+    startOnboarding();
+  }
+  function startOnboarding(seed){
+    var ob={ step:0, total:6, goal:"leanbulk", sex:"male", age:"", weight:"",
+             hf:"5", hin:"10", activity:"1.55", workout:"morning", freq:4, speed:"", based:false };
+    // On a re-run (from Account) seed every field from saved numbers. On a brand-new
+    // first run, leave age & weight blank so the user gives real answers (biggest macro
+    // drivers) — height/activity keep sensible soft defaults they can tweak.
+    if(seed){
+      if($("age")&&$("age").value) ob.age=$("age").value;
+      if($("weight")&&$("weight").value) ob.weight=$("weight").value;
+      if($("heightFt")&&$("heightFt").value) ob.hf=$("heightFt").value;
+      if($("heightIn")&&$("heightIn").value) ob.hin=$("heightIn").value;
+      if($("activity")&&$("activity").value) ob.activity=$("activity").value;
+      ob.goal=state.goal||"leanbulk"; ob.sex=state.sex||"male"; ob.workout=state.workout||"morning";
+      if(typeof planState!=="undefined" && planState.freq) ob.freq=planState.freq;
+    }
+
+    var root=document.createElement("div");
+    root.className="ob"; root.id="obRoot";
+    document.body.appendChild(root);
+    document.body.style.overflow="hidden";
+    function close(){ document.body.style.overflow=""; root.remove(); }
+
+    var GOAL_CARDS=[
+      {v:"leanbulk", ic:"🏗️", t:"Lean Bulk", tag:"+10%", d:"Slow, quality mass — add power and keep your swing mobile. Best default."},
+      {v:"bulk", ic:"💪", t:"Bulk", tag:"+20%", d:"Aggressive off-season size & strength to max out speed potential."},
+      {v:"maintain", ic:"⛳", t:"In-Season", tag:"Maintain", d:"Hold your build & energy through a tournament stretch."},
+      {v:"cut", ic:"🔥", t:"Lean Out", tag:"−20%", d:"Drop fat, protect muscle — better power-to-weight = more speed."}
+    ];
+
+    // Push profile into the real app state + recompute. Idempotent: safe to call repeatedly.
+    function applyProfile(){
+      state.sex=ob.sex; state.goal=ob.goal; state.workout=ob.workout;
+      if(ob.age) $("age").value=ob.age;
+      if(ob.weight) $("weight").value=ob.weight;
+      $("heightFt").value=ob.hf||5; $("heightIn").value=ob.hin||10;
+      $("activity").value=ob.activity;
+      if(typeof planState!=="undefined") planState.freq=ob.freq;
+      obSetSeg("sexSeg","data-sex",ob.sex);
+      obSetSeg("workoutSeg","data-workout",ob.workout);
+      obSetGoal(ob.goal);
+      try{ calc(); }catch(e){}
+      try{ persist(); }catch(e){}
+    }
+    // Seed the first bodyweight/speed entry once, as the Score's baseline.
+    function pushBaseline(){
+      if(ob.based) return; ob.based=true;
+      if(ob.weight || ob.speed){
+        var body=lsGet("ff_body",[]);
+        body.push({ date:todayStr(), w:ob.weight||"", s:ob.speed||"" });
+        lsSet("ff_body", body);
+      }
+    }
+    function finish(startNow){
+      applyProfile(); pushBaseline(); lsSet("ff_onboarded", true);
+      close();
+      if(startNow){ try{ startPlanAtWeek(1); }catch(e){} setView("plan"); try{ renderPhase(); }catch(e){} }
+      else setView("dash");
+      renderDash();
+    }
+
+    function segPick(id, set){
+      var seg=$(id); if(!seg) return;
+      Array.prototype.forEach.call(seg.querySelectorAll("button"), function(b){
+        b.onclick=function(){
+          Array.prototype.forEach.call(seg.querySelectorAll("button"), function(x){ x.classList.remove("sel"); });
+          b.classList.add("sel"); set(b.getAttribute("data-v"));
+        };
+      });
+    }
+    function readStep(s){
+      if(s===2){
+        ob.age=($("obAge").value||"").trim();
+        ob.weight=($("obWeight").value||"").trim();
+        ob.hf=($("obHf").value||"").trim()||"5";
+        ob.hin=($("obHin").value||"").trim()||"10";
+      }
+      if(s===3) ob.activity=$("obAct").value;
+      if(s===4) ob.speed=($("obSpeed").value||"").trim();
+    }
+    function advance(s){
+      readStep(s);
+      var err=$("obErr");
+      if(s===2){
+        if(!ob.weight || +ob.weight<60 || +ob.weight>500){ if(err) err.textContent="Enter your bodyweight so we can size your fuel."; return; }
+        if(ob.age && (+ob.age<14 || +ob.age>90)){ if(err) err.textContent="Enter a real age (14–90)."; return; }
+      }
+      if(s===4) applyProfile();   // compute targets so the summary can show them
+      if(s===5){ finish(true); return; }
+      ob.step++; render();
+    }
+
+    function render(){
+      var s=ob.step, pct=Math.round((s/(ob.total-1))*100);
+      var kicker="", title="", body="", nextLabel="Continue";
+      var showBack=s>0, showSkip=s>0 && s<5;
+
+      if(s===0){
+        body='<div class="ob-kicker"><span class="ball"></span> The Golfer’s Mass &amp; Speed System</div>'+
+          '<div class="ob-brand">Fairway<span class="em">Fuel</span></div>'+
+          '<p class="ob-p">Build like a bodybuilder, move like a golfer. Six quick taps and your fueling, training and FairwayFuel Score are dialed to <b>you</b>.</p>';
+        nextLabel="Let’s build my plan →";
+      } else if(s===1){
+        kicker="Step 1 of 5 · Goal"; title="What are you chasing right now?";
+        body='<div class="ob-opts">'+GOAL_CARDS.map(function(g){
+          return '<button type="button" class="ob-opt'+(ob.goal===g.v?' sel':'')+'" data-goal="'+g.v+'">'+
+            '<span class="obo-ic">'+g.ic+'</span><span class="obo-tx">'+
+            '<span class="obo-t">'+g.t+' <span class="obo-tag">'+g.tag+'</span></span>'+
+            '<span class="obo-d">'+g.d+'</span></span></button>';
+        }).join("")+'</div>';
+      } else if(s===2){
+        kicker="Step 2 of 5 · About you"; title="The engine behind your numbers";
+        body='<div class="ob-field"><label>Sex <span>(BMR formula)</span></label>'+
+            '<div class="ob-seg" id="obSex">'+
+            '<button type="button" data-v="male" class="'+(ob.sex==="male"?"sel":"")+'">Male</button>'+
+            '<button type="button" data-v="female" class="'+(ob.sex==="female"?"sel":"")+'">Female</button></div></div>'+
+          '<div class="ob-row"><div class="ob-field" style="flex:1"><label>Age</label>'+
+            '<input class="ob-in" id="obAge" type="number" inputmode="numeric" placeholder="32" value="'+ob.age+'" /></div>'+
+            '<div class="ob-field" style="flex:1"><label>Weight (lb)</label>'+
+            '<input class="ob-in" id="obWeight" type="number" inputmode="decimal" placeholder="180" value="'+ob.weight+'" /></div></div>'+
+          '<div class="ob-field"><label>Height</label><div class="ob-row">'+
+            '<input class="ob-in" id="obHf" type="number" inputmode="numeric" placeholder="ft" value="'+ob.hf+'" />'+
+            '<input class="ob-in" id="obHin" type="number" inputmode="numeric" placeholder="in" value="'+ob.hin+'" /></div></div>';
+      } else if(s===3){
+        kicker="Step 3 of 5 · Training"; title="How you train";
+        body='<div class="ob-field"><label>Activity level</label><select class="ob-select" id="obAct">'+
+            [["1.2","Sedentary — desk job, little exercise"],["1.375","Light — range/play + light lifting"],
+             ["1.55","Moderate — gym 3–5×/wk + golf"],["1.725","Very Active — hard training 6–7×/wk, walking 18s"],
+             ["1.9","Athlete — 2-a-days, walking + speed work"]].map(function(o){
+              return '<option value="'+o[0]+'"'+(ob.activity===o[0]?" selected":"")+'>'+o[1]+'</option>'; }).join("")+'</select></div>'+
+          '<div class="ob-field"><label>When do you usually train?</label><div class="ob-seg" id="obWk">'+
+            [["morning","Morning"],["midday","Midday"],["afternoon","Afternoon"],["evening","Evening"]].map(function(o){
+              return '<button type="button" data-v="'+o[0]+'" class="'+(ob.workout===o[0]?"sel":"")+'">'+o[1]+'</button>'; }).join("")+'</div></div>'+
+          '<div class="ob-field"><label>Lifting days per week</label><div class="ob-seg" id="obFreq">'+
+            [["4","4 days"],["5","5 days"]].map(function(o){
+              return '<button type="button" data-v="'+o[0]+'" class="'+(String(ob.freq)===o[0]?"sel":"")+'">'+o[1]+'</button>'; }).join("")+'</div></div>';
+      } else if(s===4){
+        kicker="Step 4 of 5 · Baseline"; title="Your speed starting line";
+        body='<p class="ob-p" style="margin-top:-4px">Your <b>7-iron clubhead speed</b> is the truest sign training is working. Drop in today’s number to set your baseline — or skip and add it later.</p>'+
+          '<div class="ob-field"><label>7-iron clubhead speed (mph)</label>'+
+            '<input class="ob-in" id="obSpeed" type="number" inputmode="decimal" placeholder="e.g. 85" value="'+ob.speed+'" /></div>'+
+          '<p class="ob-p" style="font-size:12.5px;color:#9ccfb0;margin:0">Test it on a launch monitor — 7-iron is more repeatable than driver, so the weekly trend is a cleaner signal.</p>';
+        nextLabel="Finish →";
+      } else if(s===5){
+        var t=lsGet("ff_targets",null);
+        kicker="You’re set"; title="Your plan is dialed in";
+        body='<div class="ob-sum">'+
+            '<div class="ob-sumv"><div class="v">'+(t?t.kcal:"—")+'</div><div class="k">kcal / day</div></div>'+
+            '<div class="ob-sumv"><div class="v">'+(t?t.proteinG:"—")+'<small>g</small></div><div class="k">protein</div></div>'+
+            '<div class="ob-sumv"><div class="v">'+(t?t.carbG:"—")+'<small>g</small></div><div class="k">carbs</div></div></div>'+
+          '<p class="ob-p">That’s your daily fuel for <b>'+((GOALS[ob.goal]&&GOALS[ob.goal].label)||"your goal")+'</b>. Your 20-week training plan and FairwayFuel Score are ready. Start Week 1 today, or look around first.</p>';
+        nextLabel="Start Week 1 →";
+      }
+
+      root.innerHTML=
+        '<div class="ob-top"><div class="ob-prog"><span style="width:'+pct+'%"></span></div>'+
+          (showSkip?'<div class="ob-skip"><button type="button" id="obSkip">Skip setup</button></div>':'')+'</div>'+
+        '<div class="ob-main"><div class="ob-card">'+
+          (kicker?'<div class="ob-kicker">'+kicker+'</div>':'')+
+          (title?'<h2 class="ob-h">'+title+'</h2>':'')+ body+
+          '<div class="ob-err" id="obErr"></div>'+
+          '<div class="ob-nav">'+
+            (showBack?'<button type="button" class="ob-back" id="obBack">Back</button>':'')+
+            '<button type="button" class="ob-next" id="obNext">'+nextLabel+'</button></div>'+
+          (s===5?'<button type="button" class="ob-later" id="obLater">I’ll start later — just look around</button>':'')+
+        '</div></div>';
+
+      var skip=$("obSkip"); if(skip) skip.onclick=function(){ lsSet("ff_onboarded",true); close(); };
+      var back=$("obBack"); if(back) back.onclick=function(){ readStep(s); ob.step--; render(); };
+      var later=$("obLater"); if(later) later.onclick=function(){ finish(false); };
+      if(s===1) Array.prototype.forEach.call(root.querySelectorAll("[data-goal]"), function(b){
+        b.onclick=function(){ ob.goal=b.getAttribute("data-goal"); render(); }; });
+      if(s===2) segPick("obSex", function(v){ ob.sex=v; });
+      if(s===3){ segPick("obWk", function(v){ ob.workout=v; }); segPick("obFreq", function(v){ ob.freq=parseInt(v,10); }); }
+      var next=$("obNext"); if(next) next.onclick=function(){ advance(s); };
+    }
+    render();
+  }
+
   restore();      // bring back the user's saved inputs/equipment/tab
-  applyShareParams();   // a shared ?link= overrides local state so friends see your numbers
+  var sharedLink = applyShareParams();   // a shared ?link= overrides local state so friends see your numbers
   calc();
   renderEquip();
   renderPhase();
   renderDash();         // home overview (default landing tab)
+  maybeOnboard(sharedLink);   // first-run guided setup (no-op for returning users)
 })();
 
 /* Register the service worker so the app installs to the home screen and works offline. */
