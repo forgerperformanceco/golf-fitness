@@ -525,6 +525,8 @@
     font:700 14px system-ui; cursor:pointer; }
   .acct-btn:active { transform:translateY(1px); }
   .acct-btn.ghost { background:#eef7f0; color:var(--green-700); border:1px solid #cfe9d8; }
+  .acct-btn.danger { background:#fff; color:#b3402f; border:1.5px solid #eccac4; }
+  .acct-btn.danger:active { background:#fbeeeb; }
   .acct-list { margin-bottom:13px; }
   .acct-li { display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid var(--line); font-size:13px; }
   .acct-li:last-child { border-bottom:0; }
@@ -1991,6 +1993,14 @@
     renderPhase(); if(typeof renderDash==="function") renderDash();
   }
   function resetPlan(){ try{ localStorage.removeItem("ff_start"); }catch(e){} renderPhase(); if(typeof renderDash==="function") renderDash(); }
+  // Full plan reset: start date + logged workouts (keeps body/speed history + calculator).
+  function resetPlanFull(){
+    ["ff_start","ff_log","ff_week","ff_planview"].forEach(function(k){ try{ localStorage.removeItem(k); }catch(e){} });
+    focusDay=null;
+    renderPhase();
+    if(typeof renderDash==="function") renderDash();
+    if(typeof renderAccount==="function") renderAccount();
+  }
   function getLog(){ return lsGet("ff_log",{}); }
   function getSession(w,d){ return getLog()[w+"|"+d]||null; }
   function saveSession(w,d,s){ var L=getLog(); L[w+"|"+d]=s; lsSet("ff_log",L); }
@@ -2367,8 +2377,14 @@
         acctRow('Daily target', t?t.kcal+' kcal':'—')+
         '</div><button class="acct-btn ghost" id="acctEdit">Edit my numbers</button></div>';
     }
+    html+='<div class="acct-card"><div class="acct-head">Your training plan</div>'+
+      '<p class="acct-p">Start over — clears your plan start date and logged workouts so the plan resets to week 1. Your bodyweight &amp; 7-iron history and your calculator stay put.</p>'+
+      '<button class="acct-btn danger" id="acctResetPlan">↺ Reset plan</button></div>';
     html+='<div class="acct-foot">FairwayFuel · installs &amp; works offline<br>Evidence-based starting points — not medical advice.</div>';
     el.innerHTML=html;
+    var rp=$("acctResetPlan"); if(rp) rp.onclick=function(){
+      if(confirm("Reset your training plan? This clears your start date and logged workouts so you can start fresh. (Your bodyweight & 7-iron history and your calculator stay.)")) resetPlanFull();
+    };
     var si=$("acctSignIn"); if(si) si.onclick=function(){ if(window.FF&&window.FF.signIn) window.FF.signIn(); else alert("Sign-in needs an internet connection."); };
     var so=$("acctSignOut"); if(so) so.onclick=function(){ if(window.FF&&window.FF.signOut) window.FF.signOut(); };
     var pro=$("acctPro"); if(pro) pro.onclick=function(){ alert("FairwayFuel Pro is almost here — you'll be able to start a free trial right here, and unlock the AI coach."); };
