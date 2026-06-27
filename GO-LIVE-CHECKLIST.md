@@ -7,7 +7,7 @@ for the file map.
 
 > **Prereqs:** the Supabase project already exists (its URL + anon key are wired into
 > `cloud-sync.js`). You'll need the Supabase CLI (`npm i -g supabase`), an Anthropic API
-> key, and a Stripe account.
+> key, and a Paddle account.
 
 ---
 
@@ -43,36 +43,44 @@ then set it back to `free`.
 
 ---
 
-## 3. Stripe subscriptions (20 min)
+## 3. Paddle subscriptions (20 min)
 
-1. **Product + prices:** Stripe → Products → create "FairwayFuel Pro" with a monthly
-   price and an annual price. Copy both price IDs.
-2. **Secrets:**
+Paddle is a **Merchant of Record** — it collects payment and remits sales tax/VAT for
+you. Sign up at paddle.com and choose the **"Digital products or SaaS"** category (the
+web checkout), not "Mobile apps" (that's for native iOS/Android IAP).
+
+1. **Product + prices:** Paddle → Catalog → create "FairwayFuel Pro" with a monthly
+   price and an annual price. Copy both **price IDs** (`pri_...`).
+2. **Secret + deploy:**
    ```sh
-   supabase secrets set STRIPE_SECRET_KEY=sk_live_...      # or sk_test_ while testing
-   supabase secrets set STRIPE_WEBHOOK_SECRET=whsec_...    # from step 4
-   supabase functions deploy stripe-webhook --no-verify-jwt
+   supabase secrets set PADDLE_WEBHOOK_SECRET=pdl_ntfset_...   # from step 4
+   supabase functions deploy paddle-webhook --no-verify-jwt
    ```
-3. **Checkout:** create the Checkout Session with `mode: subscription`,
-   `client_reference_id = <supabase user id>` (so the webhook can map the customer back),
-   and `success_url` / `cancel_url` pointing at the site.
-4. **Webhook:** Stripe → Developers → Webhooks → add endpoint =
-   `https://tbwmckmyzoxzhpqlomsp.supabase.co/functions/v1/stripe-webhook`, subscribe to
-   `checkout.session.completed`, `customer.subscription.updated`,
-   `customer.subscription.deleted`. Copy the signing secret into step 2.
+3. **Checkout:** open Paddle.js checkout for a signed-in user and pass
+   `customData: { user_id: <supabase user id> }` so the webhook can map the
+   subscription back to the user (plus their email to prefill).
+4. **Webhook:** Paddle → Developer tools → Notifications → add a destination =
+   `https://tbwmckmyzoxzhpqlomsp.supabase.co/functions/v1/paddle-webhook`, subscribe to
+   `subscription.created`, `subscription.activated`, `subscription.updated`,
+   `subscription.canceled`, `subscription.paused`. Copy the **signing secret** into step 2.
 
-**Verify:** run a test checkout → the webhook flips your `subscription_status` to
-`active` → the coach answers without the gate. Cancel → it returns to `canceled`.
+> Use Paddle **sandbox** while testing (separate dashboard + keys), then switch to
+> production keys and `PADDLE_ENV=production`.
+
+**Verify:** run a sandbox checkout → the webhook flips your `subscription_status` to
+`active`/`trialing` → the coach answers without the gate. Cancel → `canceled`.
 
 ---
 
 ## 4. Client subscribe button (remaining client work)
 
 The coach already shows the Pro gate; the only client piece left is a **"Start free
-trial / Subscribe"** button that opens the Stripe Checkout URL for a signed-in user.
-Wire it into the gate in `coach.js` (the 402 branch) once the prices exist. Optionally
-set `trial_ends_at = now() + interval '7 days'` on first checkout for a free trial
-(the `is_subscribed` RPC already honors it).
+trial / Subscribe"** button that opens the **Paddle.js** overlay checkout for a
+signed-in user (load `https://cdn.paddle.com/paddle/v2/paddle.js`, init with the
+`PADDLE_CLIENT_TOKEN`, then `Paddle.Checkout.open({ items:[{priceId}], customData:{ user_id }})`).
+Wire it into the gate in `coach.js` (the 402 branch) and the Account tab's Pro card
+once the price IDs exist. A free trial is configured on the Paddle **price** itself;
+the `is_subscribed` RPC already honors `trialing` + `trial_ends_at`.
 
 ---
 
@@ -80,7 +88,7 @@ set `trial_ends_at = now() + interval '7 days'` on first checkout for a free tri
 - Free app is unaffected by all of the above — if a function misbehaves, the coach simply
   shows "not live yet" and everything else keeps working.
 - All secrets are server-side (Edge Function secrets); the browser only ever holds the
-  Supabase anon key. Never put `ANTHROPIC_API_KEY`, the Stripe secret, or the Supabase
+  Supabase anon key. Never put `ANTHROPIC_API_KEY`, the Paddle webhook secret, or the Supabase
   service-role key in client code or `cloud-sync.js`.
 - `.env` is git-ignored; only `.env.example` (placeholders) is committed.
 

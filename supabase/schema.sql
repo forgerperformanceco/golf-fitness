@@ -11,7 +11,7 @@
 
 -- ── profiles: one row per authenticated user ────────────────────────────────
 -- `data` is the synced localStorage blob (fairwayfuel / ff_week / ff_log / ff_body).
--- The subscription columns are written ONLY by the Stripe webhook (service role).
+-- The subscription columns are written ONLY by the Paddle webhook (service role).
 create table if not exists public.profiles (
   id                    uuid primary key references auth.users (id) on delete cascade,
   data                  jsonb       not null default '{}'::jsonb,
@@ -19,9 +19,12 @@ create table if not exists public.profiles (
 
   -- Billing / entitlement (Phase 1). Client may READ these; only the
   -- service-role webhook may WRITE them (enforced by RLS below).
-  stripe_customer_id    text,
+  -- Provider-neutral so the payment processor (Paddle today) can change without a migration.
+  billing_provider      text,                                   -- e.g. 'paddle'
+  billing_customer_id   text,                                   -- the provider's customer id
+  billing_subscription_id text,                                 -- the provider's subscription id
   subscription_status   text        not null default 'free',   -- free | trialing | active | past_due | canceled
-  plan                  text,                                   -- e.g. 'pro_monthly' | 'pro_annual'
+  plan                  text,                                   -- the provider's price id
   current_period_end    timestamptz,
   trial_ends_at         timestamptz,
 
@@ -48,7 +51,7 @@ create policy "profiles_insert_own"
   with check (
     auth.uid() = id
     and subscription_status = 'free'      -- can't self-grant a subscription
-    and stripe_customer_id is null
+    and billing_customer_id is null
   );
 
 -- A user can UPDATE their own row, but the billing columns must stay unchanged.
@@ -60,12 +63,12 @@ create policy "profiles_update_own"
   with check (
     auth.uid() = id
     and subscription_status = (select p.subscription_status from public.profiles p where p.id = auth.uid())
-    and plan                is not distinct from (select p.plan                from public.profiles p where p.id = auth.uid())
-    and stripe_customer_id  is not distinct from (select p.stripe_customer_id  from public.profiles p where p.id = auth.uid())
-    and current_period_end  is not distinct from (select p.current_period_end  from public.profiles p where p.id = auth.uid())
+    and plan                 is not distinct from (select p.plan                 from public.profiles p where p.id = auth.uid())
+    and billing_customer_id  is not distinct from (select p.billing_customer_id  from public.profiles p where p.id = auth.uid())
+    and current_period_end   is not distinct from (select p.current_period_end   from public.profiles p where p.id = auth.uid())
   );
 
--- Note: the service-role key (used by the stripe-webhook Edge Function) bypasses
+-- Note: the service-role key (used by the paddle-webhook Edge Function) bypasses
 -- RLS entirely, so it can write the billing columns. The browser cannot.
 
 -- ── Keep updated_at fresh on write ───────────────────────────────────────────

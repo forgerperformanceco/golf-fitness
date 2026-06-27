@@ -47,17 +47,21 @@ without changing the free experience.
 
 1. **`profiles` table hardening** (`supabase/schema.sql`):
    - Keep the existing `id / data jsonb / updated_at` sync row.
-   - Add subscription columns: `stripe_customer_id`, `subscription_status`,
-     `plan`, `current_period_end`, `trial_ends_at`.
+   - Add subscription columns: `billing_provider`, `billing_customer_id`,
+     `billing_subscription_id`, `subscription_status`, `plan`, `current_period_end`,
+     `trial_ends_at`.
    - **Row-level security**: every user can read/write only their own row
      (`auth.uid() = id`). The subscription columns are written **only** by the
-     Stripe webhook using the service-role key — the browser can read its own
+     payment webhook using the service-role key — the browser can read its own
      status but can never set itself to "active".
-2. **Stripe** (`supabase/functions/stripe-webhook`):
+2. **Paddle** (`supabase/functions/paddle-webhook`) — a Merchant of Record, so it
+   collects payment and remits sales tax/VAT for us:
    - One product, a monthly price (and an annual price at a discount).
-   - Checkout opened from the app; on `checkout.session.completed` /
-     `customer.subscription.updated|deleted` the webhook updates the user's
-     `subscription_status`. Signature-verified, service-role write.
+   - Paddle.js checkout opened from the app with `customData.user_id`; on
+     `subscription.created|activated|updated|canceled|paused` the webhook updates the
+     user's `subscription_status`. Signature-verified, service-role write.
+   - Provider-neutral columns mean we can swap processor (PayPal, etc.) by rewriting
+     only this one function.
 3. **Entitlement helper** in the client: read `subscription_status` from the user's
    own profile row to decide whether to show AI features. A 7-day free trial via
    `trial_ends_at` so people can try the coach before paying.
@@ -140,7 +144,8 @@ smarter from, and a real app-store presence.
 
 - **Anthropic API key:** server-side only (Edge Function secret). Never shipped to the
   browser, never committed. `.env.example` holds placeholders only.
-- **Stripe secret key & webhook secret:** server-side only.
+- **Paddle webhook secret:** server-side only. (Paddle's client-side token is safe in
+  the browser for Paddle.js checkout.)
 - **Supabase service-role key:** server-side only (webhook writes subscription state).
   The browser uses **only** the publishable/anon key, which is safe to ship.
 - **RLS everywhere:** users touch only their own row; subscription columns are
@@ -151,7 +156,7 @@ smarter from, and a real app-store presence.
 
 ## Build order (what to do, in order)
 
-1. **Phase 1 spine** — apply `schema.sql`, stand up the Stripe webhook, add the
+1. **Phase 1 spine** — apply `schema.sql`, stand up the Paddle webhook, add the
    entitlement read in the client. *(Scaffolded now; deploy when ready to charge.)*
 2. **Phase 2 coach** — deploy `ai-coach` with the cached knowledge base, gate it on
    subscription, ship a minimal chat UI in the app. *(Function scaffolded now.)*

@@ -11,7 +11,7 @@ supabase/
     _shared/cors.ts               # CORS + JSON helpers
     _shared/knowledge.ts          # the AI coach's cached knowledge base
     ai-coach/index.ts             # Claude-backed coach (JWT + subscription gated)
-    stripe-webhook/index.ts       # writes subscription state (service-role)
+    paddle-webhook/index.ts       # writes subscription state (service-role)
 ```
 
 ## Bring it up (when ready to charge)
@@ -23,18 +23,18 @@ supabase/
 2. **Secrets** (server-side only — never in the browser):
    ```sh
    supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
-   supabase secrets set STRIPE_SECRET_KEY=sk_...  STRIPE_WEBHOOK_SECRET=whsec_...
+   supabase secrets set PADDLE_WEBHOOK_SECRET=pdl_ntfset_...
    # SUPABASE_URL / SUPABASE_ANON_KEY / SUPABASE_SERVICE_ROLE_KEY are injected
    # automatically into deployed functions.
    ```
 3. **Deploy functions:**
    ```sh
    supabase functions deploy ai-coach
-   supabase functions deploy stripe-webhook --no-verify-jwt   # Stripe calls this, not a user
+   supabase functions deploy paddle-webhook --no-verify-jwt   # Paddle calls this, not a user
    ```
-4. **Stripe** — create a product + monthly/annual prices, point a webhook at the
-   `stripe-webhook` function URL, set `client_reference_id` to the Supabase user id
-   when you create the Checkout Session.
+4. **Paddle** — create a product + monthly/annual prices, point a webhook destination at
+   the `paddle-webhook` function URL, and pass `customData.user_id = <supabase user id>`
+   when you open the Paddle.js checkout.
 5. **Client** — add the chat UI + a "Start free trial / Subscribe" button to
    `index.html`; gate the coach on the user's `subscription_status`.
 
@@ -45,4 +45,5 @@ supabase/
 | Supabase **anon/publishable** | client + functions        | ✅ safe          |
 | Supabase **service role**   | functions only            | ❌ never         |
 | **Anthropic** API key       | ai-coach function secret  | ❌ never         |
-| **Stripe** secret + webhook | stripe-webhook secret     | ❌ never         |
+| **Paddle** webhook secret   | paddle-webhook secret     | ❌ never         |
+| Paddle **client token**     | client (Paddle.js)        | ✅ safe          |
