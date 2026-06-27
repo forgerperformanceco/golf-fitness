@@ -613,6 +613,31 @@
   .rest-pill .rp-label { font-size:12px; font-weight:700; opacity:.85; }
   .rest-pill .rp-time { font-size:17px; font-weight:800; font-variant-numeric:tabular-nums; min-width:48px; text-align:center; }
   .rest-pill .rp-btn { background:rgba(255,255,255,.18); border:0; color:#fff; border-radius:999px; padding:7px 12px; font:700 12px system-ui; cursor:pointer; }
+
+  /* ===== Lift page (workout-first) ===== */
+  #view-plan > .card { display:flex; flex-direction:column; }
+  #view-plan .plan-intro { order:0; }
+  #view-plan #phaseDetail { order:1; }
+  #view-plan .equip { order:2; margin-top:8px; }
+  #view-plan .tracker-fold { order:3; }
+  #view-plan.started .plan-intro { display:none; }
+  .lift-hero { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin:2px 0 14px; }
+  .lift-hero .lh-week { font-size:11px; font-weight:800; letter-spacing:1.3px; color:var(--muted); }
+  .lift-hero .lh-name { margin:3px 0 3px; font-size:24px; line-height:1.08; color:var(--ink); letter-spacing:-.3px; }
+  .lift-hero .lh-sub { font-size:12.5px; color:var(--muted); }
+  .lift-hero .lh-mode { flex:0 0 auto; font-size:11px; font-weight:800; padding:6px 12px; border-radius:999px; }
+  .lift-hero .lh-mode.build { background:#eef7f0; color:var(--green-700); }
+  .lift-hero .lh-mode.retain { background:#fff4e8; color:#9a5b1c; }
+  .settings-body { padding-top:8px; }
+  .settings-body .set-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:13px; }
+  .settings-body .set-lbl { font-size:13px; color:var(--ink); font-weight:600; }
+  .settings-body .seg.sm { display:inline-flex; gap:6px; }
+  .settings-body .seg.sm button { padding:8px 16px; }
+  .settings-body .mode-banner { margin:0 0 13px; }
+  .settings-body .exlegend { margin:0 0 14px; }
+  .settings-body .set-jump { display:flex; gap:8px; margin-bottom:13px; }
+  .settings-body .set-jump select { flex:1; padding:9px 10px; }
+  .day-focus { margin-top:2px; }
   .day-foot { padding:11px 15px 13px; border-top:1px solid var(--line); display:flex; justify-content:flex-end; align-items:center; gap:10px; }
   .logbtn { display:inline-flex; align-items:center; gap:6px; border:none; cursor:pointer; font-weight:700; font-size:13px;
     border-radius:10px; padding:11px 16px; background:var(--green-600); color:#fff; transition:all .15s; }
@@ -1823,14 +1848,16 @@
       return '<tr class="skip"><td class="exname"><span class="nm">'+pe+row[0]+'</span><span class="need">needs '+r.need.map(eqLabel).join(" + ")+'</span></td><td class="sets">'+row[1]+'</td></tr>';
     }).join("");
     var pNote = showPrimerNote ? '<span class="primer-cue">New to jumps and throws? Master a soft, balanced landing before you add height — start with 2 sets and a low box, add a set every couple of weeks. Stop the moment reps slow down: power work only counts when every rep is crisp and fast.</span>' : '';
-    var head = '<div class="day"><div class="day-head">'+d.name+' <span class="tag '+(d.tag==="Lift"?"":d.tag)+'">'+labelFor(d.tag)+'</span></div>'+
-      '<div class="warm"><b>Warm-up (5 min):</b> '+warmupFor(d.name)+'</div>'+
+    var warmPrimer = '<div class="warm"><b>Warm-up (5 min):</b> '+warmupFor(d.name)+'</div>'+
       '<div class="primer"><b>⚡ Power primer — do this first, fresh:</b> '+primerFor(d.name)+'.<span class="primer-sub"> Max intent · full rest between reps · ~5 min.</span>'+pNote+'</div>';
     if(interactive){
+      // Featured card: no day-header (the hero already names the workout).
       ilog = { week: curWeek(), day: d.name, sess: buildSession(d, curWeek()) };
-      return head + '<div class="ilogwrap" id="ilogBox">'+ilogBodyHtml()+'</div>'+
+      return '<div class="day day-focus">'+warmPrimer+
+        '<div class="ilogwrap" id="ilogBox">'+ilogBodyHtml()+'</div>'+
         '<div class="romcue">Full range every rep — <b>control the lowering (~3 sec)</b>, own the lockout. The range you train is the range you can swing with.</div></div>';
     }
+    var head = '<div class="day"><div class="day-head">'+d.name+' <span class="tag '+(d.tag==="Lift"?"":d.tag)+'">'+labelFor(d.tag)+'</span></div>'+warmPrimer;
     return head +
       '<table class="ex"><tr><th>Exercise</th><th style="text-align:right">Sets × Reps</th></tr>'+rows+'</table>'+
       '<div class="romcue">Full range every rep — <b>control the lowering (~3 sec)</b>, own the lockout. That eccentric control builds muscle and armors the deceleration your downswing punishes. The range you train is the range you can swing with.</div>'+
@@ -1852,12 +1879,11 @@
     var shown = activeDays();
 
     var html="";
-    html+='<div class="phase-head"><h3>'+p.title+'</h3><p>'+p.blurb+'</p>'+
-      '<div class="focuschips">'+p.chips.map(function(c){ return '<span>'+c+'</span>'; }).join("")+'</div></div>';
-
     var wk=curWeek(), started=!!planStart();
+    var vp=document.getElementById("view-plan"); if(vp) vp.classList.toggle("started", started);
+
     if(!started){
-      // Not started yet → start the plan; it then tracks your week automatically.
+      // Before the plan starts: the brochure (static) shows, plus this start card.
       html+='<div class="startbar"><div class="sb-top"><b>▶ Start your 20-week plan</b>'+
         '<span>Most people start on a Monday — but jump in any day. It tracks your week from here, no fiddling.</span></div>'+
         '<button class="sb-go" data-startweek="1">Start the plan today</button>'+
@@ -1865,46 +1891,29 @@
         '<div class="sb-jump" id="sbJump" hidden><select id="weekSel" aria-label="Current week">'+
           (function(){ var o=""; for(var wi=1;wi<=20;wi++) o+='<option value="'+wi+'">Week '+wi+'</option>'; return o; })()+
           '</select><button class="sb-go2" data-startweek="sel">Set</button></div></div>';
-    } else {
-      var dp=dayOfPlan();
-      var nw=nextWorkout();
-      var sub = nw ? ('Up next: <b>'+nw.replace(/Day \d+ — /,'')+'</b>') : 'Tap a workout to log it live';
-      html+='<div class="weekbar"><div class="wk-label"><b>Week '+wk+' of 20</b><span>Day '+dp+' · '+sub+'</span></div>'+
-        '<button class="wk-adjust" data-wkadjust="1">Adjust</button></div>'+
-        '<div class="wk-adjrow" id="wkAdjRow" hidden>'+
-          '<select id="weekSel" aria-label="Jump to week">'+
-          (function(){ var o=""; for(var wi=1;wi<=20;wi++) o+='<option value="'+wi+'"'+(wi===wk?' selected':'')+'>Week '+wi+'</option>'; return o; })()+
-          '</select><button class="sb-go2" data-startweek="sel">Jump</button>'+
-          '<button class="sb-link" data-reset="1">Restart from week 1</button></div>';
+      $("phaseDetail").innerHTML=html;
+      return;
     }
 
-    html+='<div class="freqbar"><span>Training days per week:</span><div class="seg" id="freqSeg">'+
-      '<button type="button" data-freq="4" '+(planState.freq===4?'class="active"':'')+'>4 days</button>'+
-      '<button type="button" data-freq="5" '+(planState.freq===5?'class="active"':'')+'>5 days</button>'+
-      '</div></div>';
+    var retain=trainRetain(), mode=planViewMode();
+    var featName=(focusDay && shown.some(function(d){return d.name===focusDay;}))?focusDay:nextWorkout();
+    var featured=null; shown.forEach(function(d){ if(d.name===featName) featured=d; });
+    if(!featured) featured=shown[0];
+    var heroName=(mode==="today")?((featured.name.split("—")[1]||featured.name).trim()):"Your training week";
 
-    if(wk%6===0){ html+='<div class="deload-banner">🪫 <b>Deload week (Week '+wk+').</b> Take ~60% of your usual working weights, drop the last set of every lift, and keep the speed drills sharp but submaximal. This is planned recovery — you grow now. Full loads resume next week.</div>'; }
+    // ---- clean hero: the workout, front and centre ----
+    html+='<div class="lift-hero"><div class="lh-l">'+
+      '<div class="lh-week">WEEK '+wk+' / 20</div>'+
+      '<h2 class="lh-name">'+heroName+'</h2>'+
+      '<div class="lh-sub">'+(mode==="today"?('Day '+dayOfPlan()+' of your week'):'Browsing the full week')+'</div></div>'+
+      '<span class="lh-mode '+(retain?"retain":"build")+'">'+(retain?"Retain":"Build")+'</span></div>';
 
-    html+='<button class="train-ai" data-ask="train">💬 <b>Coach this week</b> — am I progressing &amp; what to adjust ›</button>';
+    html+='<div class="planview-seg"><button data-planview="today"'+(mode==="today"?' class="active"':'')+'>Today</button>'+
+      '<button data-planview="week"'+(mode==="week"?' class="active"':'')+'>Full week</button></div>';
 
-    var retain = trainRetain();
-    html+='<div class="mode-banner '+(retain?"retain":"build")+'">'+
-      (retain
-        ? '🔻 <b>Retain mode</b> <span class="mb-auto">auto · from your goal</span><br>Accessory volume trimmed a notch — but <b>heavy lifts and all speed work stay at full</b>. Intensity is what keeps your muscle and clubhead speed while you maintain or lean out.'
-        : '🏗️ <b>Build mode</b> <span class="mb-auto">auto · from your goal</span><br><b>Full accessory volume</b> to add muscle, with heavy strength and speed work every week.')+
-      '</div>';
+    if(wk%6===0) html+='<div class="deload-banner">🪫 <b>Deload week.</b> ~60% of your usual loads, drop the last set, keep speed work crisp but submaximal — planned recovery is when you grow.</div>';
 
-    html+='<div class="exlegend"><b>What each move builds:</b> 🏋️ strength · 💪 mass · ⚡ power/speed · 🌀 golf rotation</div>';
-
-    var mode = planViewMode();
     if(mode==="today"){
-      // Featured = the day you tapped, else your next un-logged workout.
-      var featName = (focusDay && shown.some(function(d){return d.name===focusDay;})) ? focusDay : nextWorkout();
-      var featured = null; shown.forEach(function(d){ if(d.name===featName) featured=d; });
-      if(!featured) featured = shown[0];
-      html+='<div class="planview-seg"><button data-planview="today" class="active">Today</button>'+
-        '<button data-planview="week">Full week</button></div>';
-      // Tappable week strip with logged ticks.
       var strip = shown.map(function(d){
         var done = d.type!=="rest" && !!getSession(wk, d.name);
         return '<button class="ws-chip'+(d.name===featured.name?" cur":"")+(done?" done":"")+'" data-focusday="'+escAttr(d.name)+'">'+
@@ -1913,8 +1922,6 @@
       html+='<div class="weekstrip">'+strip+'</div>';
       html+=dayCardHtml(featured, true, true);   // interactive inline logger
     } else {
-      html+='<div class="planview-seg"><button data-planview="today"'+(planStart()?'':' disabled')+'>Today</button>'+
-        '<button data-planview="week" class="active">Full week</button></div>';
       var primerNoteShown=false;
       shown.forEach(function(d){
         var lift = d.type!=="rest" && d.type!=="speed";
@@ -1923,7 +1930,24 @@
       });
     }
 
+    html+='<button class="train-ai" data-ask="train">💬 <b>Coach this week</b> — progress &amp; what to adjust ›</button>';
+
     html+=renderProgressFold();
+
+    // ---- everything else lives in settings, out of the way ----
+    html+='<details class="fold"><summary>⚙️ Plan &amp; settings</summary><div class="fold-body settings-body">'+
+      '<div class="set-row"><span class="set-lbl">Training days / week</span><div class="seg sm" id="freqSeg">'+
+        '<button type="button" data-freq="4" '+(planState.freq===4?'class="active"':'')+'>4</button>'+
+        '<button type="button" data-freq="5" '+(planState.freq===5?'class="active"':'')+'>5</button></div></div>'+
+      '<div class="mode-banner '+(retain?"retain":"build")+'">'+
+        (retain?'🔻 <b>Retain mode</b> (auto, from your goal) — accessory volume trimmed; heavy lifts &amp; all speed work stay at full to protect muscle and clubhead speed.'
+               :'🏗️ <b>Build mode</b> (auto, from your goal) — full accessory volume to add muscle, with heavy strength and speed work every week.')+'</div>'+
+      '<div class="exlegend"><b>What each move builds:</b> 🏋️ strength · 💪 mass · ⚡ power/speed · 🌀 golf rotation</div>'+
+      '<div class="set-jump"><select id="weekSel" aria-label="Jump to week">'+
+        (function(){ var o=""; for(var wi=1;wi<=20;wi++) o+='<option value="'+wi+'"'+(wi===wk?' selected':'')+'>Week '+wi+'</option>'; return o; })()+
+        '</select><button class="sb-go2" data-startweek="sel">Jump to week</button></div>'+
+      '<button class="sb-link" data-reset="1">↺ Restart from week 1</button>'+
+      '</div></details>';
 
     // Speed methodology — collapsed by default to keep the week scannable
     html+='<details class="fold"><summary>🌀 Why this builds clubhead speed</summary>'+
