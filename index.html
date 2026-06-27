@@ -404,6 +404,9 @@
   .fooddyn .fd-swap { margin-top:9px; display:inline-flex; align-items:center; gap:6px; cursor:pointer;
     background:rgba(255,255,255,.16); border:0; color:#fff; font:700 11.5px system-ui; border-radius:999px; padding:7px 13px; }
   .fooddyn .fd-swap:active { transform:translateY(1px); }
+  .fooddyn .fd-ai { margin-top:9px; margin-left:7px; display:inline-flex; align-items:center; gap:6px; cursor:pointer;
+    background:#ffe08a; border:0; color:#143a26; font:800 11.5px system-ui; border-radius:999px; padding:7px 13px; }
+  .fooddyn .fd-ai:active { transform:translateY(1px); }
   .sched-row.tappable { cursor:pointer; }
   .sched-row.tappable .sched-name::after { content:" ▾"; color:var(--muted); font-size:10px; }
   .sched-row.tappable.open .sched-name::after { content:" ▴"; }
@@ -478,6 +481,20 @@
   .dash-log .dl-row button:active { transform:translateY(1px); }
   .dash-log .dl-hint { font-size:11.5px; color:var(--muted); margin-top:8px; line-height:1.4; }
   .dash-log .dl-hint b { color:var(--green-700); }
+  /* In-context AI entry points */
+  .dash-ai { margin-top:13px; width:100%; display:flex; align-items:center; gap:13px; text-align:left;
+    background:linear-gradient(110deg,#11643a,#0e4f30); color:#fff; border:0; border-radius:14px; padding:14px 16px;
+    cursor:pointer; box-shadow:var(--shadow); }
+  .dash-ai:active { transform:translateY(1px); }
+  .dash-ai .dai-ic { font-size:20px; flex:0 0 auto; }
+  .dash-ai .dai-tx { flex:1; display:flex; flex-direction:column; gap:2px; }
+  .dash-ai .dai-tx b { font-size:14px; }
+  .dash-ai .dai-tx span { font-size:11.5px; color:#cdeedb; line-height:1.3; }
+  .dash-ai .dai-go { font-size:22px; color:#9fe7bb; flex:0 0 auto; }
+  .train-ai { width:100%; text-align:left; background:#eef7f0; color:var(--green-800); border:1px solid #cfe9d8;
+    border-radius:12px; padding:12px 14px; font-size:13px; cursor:pointer; margin-bottom:14px; }
+  .train-ai b { color:var(--green-700); }
+  .train-ai:active { transform:translateY(1px); }
 
   /* ===== Account ===== */
   .acct-card { background:var(--paper); border:1px solid var(--line); border-radius:16px; padding:18px;
@@ -1291,6 +1308,7 @@
       '<div class="fd-row"><span class="fd-tag">🍗 ~'+pPer+'g protein</span> '+p.text+' <span class="fd-sum">(≈'+p.sum+'g)</span></div>'+
       '<div class="fd-row"><span class="fd-tag">🍚 ~'+cPer+'g carbs</span> '+c.text+' <span class="fd-sum">(≈'+c.sum+'g)</span></div>'+
       '<button type="button" class="fd-swap" id="foodSwap">🔄 Another option</button>'+
+      '<button type="button" class="fd-ai" data-ask="meals">🤖 Build my full day</button>'+
       '<div class="fd-note">…or pick your own from the lists below to match those numbers.</div>';
   }
 
@@ -1669,6 +1687,8 @@
 
     if(wk%6===0){ html+='<div class="deload-banner">🪫 <b>Deload week (Week '+wk+').</b> Take ~60% of your usual working weights, drop the last set of every lift, and keep the speed drills sharp but submaximal. This is planned recovery — you grow now. Full loads resume next week.</div>'; }
 
+    html+='<button class="train-ai" data-ask="train">💬 <b>Coach this week</b> — am I progressing &amp; what to adjust ›</button>';
+
     html+='<div class="exlegend"><b>What each move builds:</b> 🏋️ strength · 💪 mass · ⚡ power/speed · 🌀 golf rotation</div>';
 
     var primerNoteShown=false;
@@ -2035,6 +2055,10 @@
       dTile('🏌️','This week', 'Week <b>'+wk+'</b>', nw?('Next: '+nw.replace(/Day \d+ — /,'')):'open plan', 'plan')+
       dTile('⚡','7-iron speed', lastSpeed?('<b>'+lastSpeed+'</b> mph'):'—', sess+' workouts logged', 'plan')+
       '</div>';
+    // AI woven in: a contextual "read" on the user's own numbers.
+    html += '<button class="dash-ai" data-ask="read"><span class="dai-ic">💬</span>'+
+      '<span class="dai-tx"><b>Coach’s read</b><span>A quick AI take on your numbers &amp; what to focus on</span></span>'+
+      '<span class="dai-go">›</span></button>';
     // Quick-add: log today's bodyweight + 7-iron speed straight from home (feeds the Score).
     html += '<div class="dash-log"><div class="dl-head">📈 Log today</div>'+
       '<div class="dl-row">'+
@@ -2150,6 +2174,20 @@
   window.addEventListener("ff-auth", function(){
     if($("view-account") && $("view-account").classList.contains("active")) renderAccount();
     renderDash();
+  });
+
+  // AI woven through the app: contextual "ask" buttons summon the coach with a
+  // screen-specific prompt (seeded with the user's own numbers in coach.js).
+  var ASK_PROMPTS = {
+    read:  "Give me a quick read on where I'm at from my numbers — what's working and the single most important thing to focus on this week.",
+    meals: "Build me a full day of meals that hits my macro targets — realistic foods with cooked weights and named cuts, plus some variety. Breakfast should be breakfast food, and put faster carbs around training.",
+    train: "Look at my current week and training log — am I progressing on the big lifts and my 7-iron speed, and what should I focus on or adjust next?"
+  };
+  var ASK_LABELS = { read:"Your dashboard", meals:"Your macro targets", train:"This week's training" };
+  document.addEventListener("click", function(e){
+    var a=e.target.closest("[data-ask]"); if(!a) return;
+    var k=a.getAttribute("data-ask");
+    if(window.FFCoach && window.FFCoach.ready()) window.FFCoach.ask(ASK_PROMPTS[k]||"", ASK_LABELS[k]||"");
   });
 
   restore();      // bring back the user's saved inputs/equipment/tab
