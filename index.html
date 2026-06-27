@@ -392,6 +392,15 @@
   .foodfold .fold-body ul { margin:0; padding-left:18px; font-size:12.8px; line-height:1.7; color:#3a4a40; }
   .foodfold .fold-body ul b { color:var(--green-800); }
   .foodfix { margin-top:12px; background:#f1fdf4; border:1px solid #cfe9d8; border-radius:9px; padding:10px 12px; font-size:12.5px; color:#1c3a28; line-height:1.55; }
+  .fooddyn:empty { display:none; }
+  .fooddyn { background:#0f5a34; color:#eafff2; border-radius:11px; padding:12px 14px; margin-bottom:12px; }
+  .fooddyn .fd-head { font-size:11px; font-weight:800; letter-spacing:.5px; text-transform:uppercase; opacity:.8; margin-bottom:5px; }
+  .fooddyn .fd-day { font-size:12.5px; line-height:1.5; margin-bottom:9px; color:#fff; }
+  .fooddyn .fd-day b { color:#ffe08a; }
+  .fooddyn .fd-row { font-size:12.8px; line-height:1.5; margin:4px 0; color:#eafff2; }
+  .fooddyn .fd-tag { display:inline-block; background:rgba(255,255,255,.16); border-radius:999px; padding:2px 9px; font-size:11px; font-weight:700; margin-right:4px; }
+  .fooddyn .fd-sum { opacity:.7; font-size:11.5px; }
+  .fooddyn .fd-note { font-size:11px; opacity:.75; margin-top:7px; font-style:italic; }
   .primer { padding:10px 15px; font-size:11.8px; color:#7a4a12; background:#fff6ec; border-bottom:1px solid var(--line); line-height:1.5; }
   .primer b { color:#b4540f; }
   .primer-sub { color:#9a7a52; }
@@ -642,6 +651,7 @@
         <details class="fold foodfold">
           <summary>🍽️ What do I eat to hit these numbers?</summary>
           <div class="fold-body">
+            <div id="foodDynamic" class="fooddyn"></div>
             <p class="foodintro">Targets get easy once you know what common foods carry. Meat weights are <b>cooked</b>. Mix and match to reach your daily carb &amp; protein numbers.</p>
 
             <h4>🍗 Protein <span>(cooked weight)</span></h4>
@@ -984,7 +994,7 @@
     var heightCm=(num("heightFt")*12+num("heightIn"))*2.54;
     var weightKg=weightLb/2.20462;
 
-    if(weightLb<=0||heightCm<=0||age<=0){ $("results").innerHTML=placeholder(); return; }
+    if(weightLb<=0||heightCm<=0||age<=0){ $("results").innerHTML=placeholder(); updateFoodTargets(0,0,0); return; }
 
     var bmr=10*weightKg+6.25*heightCm-5*age+(state.sex==="male"?5:-161);
     var activity=parseFloat($("activity").value);
@@ -1082,9 +1092,41 @@
       proteinG:proteinG,fatG:fatG,carbG:carbG,
       proteinKcal:proteinKcal,fatKcal:fatKcal,carbKcal:carbKcal,
       goal:g,pct:g.pct, timing:timing, meal:meal, weekly:weekly });
+    updateFoodTargets(proteinG, carbG, mealN);
     persist();
   }
   function placeholder(){ return '<div class="placeholder"><div class="big">⛳</div>Enter your details to see your calorie target and macros.</div>'; }
+
+  // ---- Dynamic food helper: turn the user's numbers into example portions ----
+  var CARB_UNITS = [
+    {one:"1 bagel", g:50}, {one:"1 cup rice", g:45}, {one:"a medium potato", g:37},
+    {one:"1 banana", g:27}, {one:"½ cup oats", g:27}, {one:"1 tbsp honey", g:17}
+  ];
+  var PROT_UNITS = [
+    {one:"4 oz chicken breast", g:35}, {one:"1 scoop whey", g:25},
+    {one:"1 cup Greek yogurt", g:23}, {one:"3 eggs", g:18}
+  ];
+  function buildCombo(target, units){
+    var rem=target, picks=[], sum=0;
+    for(var i=0;i<units.length && rem>9;i++){
+      var u=units[i];
+      if(u.g<=rem+10){ picks.push(u.one); rem-=u.g; sum+=u.g; }
+    }
+    if(!picks.length){ picks.push(units[units.length-1].one); sum=units[units.length-1].g; }
+    return { text:picks.join(" + "), sum:sum };
+  }
+  function updateFoodTargets(proteinG, carbG, mealN){
+    var el=$("foodDynamic"); if(!el) return;
+    if(!proteinG || !carbG){ el.innerHTML=""; return; }
+    var cPer=Math.round(carbG/mealN/5)*5, pPer=Math.round(proteinG/mealN/5)*5;
+    var c=buildCombo(cPer, CARB_UNITS), p=buildCombo(pPer, PROT_UNITS);
+    el.innerHTML =
+      '<div class="fd-head">Your numbers → on the plate</div>'+
+      '<div class="fd-day">~<b>'+proteinG+'g</b> protein · ~<b>'+carbG+'g</b> carbs a day, across <b>'+mealN+'</b> meals — about <b>'+pPer+'g</b> protein &amp; <b>'+cPer+'g</b> carbs each.</div>'+
+      '<div class="fd-row"><span class="fd-tag">🍗 ~'+pPer+'g protein</span> '+p.text+' <span class="fd-sum">(≈'+p.sum+'g)</span></div>'+
+      '<div class="fd-row"><span class="fd-tag">🍚 ~'+cPer+'g carbs</span> '+c.text+' <span class="fd-sum">(≈'+c.sum+'g)</span></div>'+
+      '<div class="fd-note">…or pick your own from the lists below to match those numbers.</div>';
+  }
 
   // Prominent "how fast should the scale move" band under the calorie hero.
   function targetBand(w,goal){
