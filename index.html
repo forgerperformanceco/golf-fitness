@@ -378,6 +378,11 @@
   .speedday table.ex td { vertical-align:top; }
   .exname-main { font-weight:600; color:#243a2c; }
   .exnote { font-size:11.5px; color:var(--muted); margin-top:2px; line-height:1.35; }
+  .warm { padding:9px 15px; font-size:11.6px; color:#5a6b60; background:#f6faf5; border-bottom:1px solid var(--line); line-height:1.45; }
+  .warm b { color:var(--green-800); }
+  table.ex td.sets .effort { font-size:10px; font-weight:600; color:var(--muted); margin-top:3px; letter-spacing:.2px; white-space:nowrap; }
+  .deload-banner { background:#eef3ff; border:1px solid #cfdbf2; color:#2c3e66; border-radius:12px; padding:11px 14px; font-size:12.5px; line-height:1.45; margin-bottom:14px; }
+  .deload-banner b { color:#1f2f57; }
 
   .speed-callout {
     margin-top:8px; background:#fff4e8; border:1px solid #f3d6b0; border-radius:12px; padding:15px 16px;
@@ -1129,7 +1134,7 @@
           ["Lateral bound", "4 \u00d7 4 / side", "Explosive side-to-side \u2014 the swing's weight shift."]
         ]
       },
-      days4: [
+      days5: [
         { name:"Day 1 \u2014 Lower (Squat)", tag:"Lift", ex:[
           ["Back Squat","4 \u00d7 5 (heavy)"],["Romanian Deadlift","3 \u00d7 8"],["Walking Lunge","3 \u00d7 10 / leg"],
           ["Leg Curl","3 \u00d7 12"],["Standing Calf Raise","4 \u00d7 12"],["Hanging Leg Raise","3 \u00d7 12"]
@@ -1148,6 +1153,22 @@
           ["Rotational Med-Ball Throw","4 \u00d7 5 / side"],["Face Pull","3 \u00d7 15"],["DB Curl","3 \u00d7 12"]
         ]},
         { name:"Day 6 & 7 \u2014 Rest / Play 18", tag:"rest", type:"rest" }
+      ],
+      days4: [
+        { name:"Day 1 \u2014 Lower (Squat & Hinge)", tag:"Lift", ex:[
+          ["Back Squat","4 \u00d7 5 (heavy)"],["Romanian Deadlift","3 \u00d7 8"],["Hip Thrust","3 \u00d7 10"],
+          ["Walking Lunge","3 \u00d7 10 / leg"],["Standing Calf Raise","4 \u00d7 12"],["Pallof Press","3 \u00d7 12 / side"]
+        ]},
+        { name:"Day 2 \u2014 Upper (Push)", tag:"Lift", ex:[
+          ["Barbell Bench Press","4 \u00d7 5 (heavy)"],["Incline DB Press","3 \u00d7 10"],["Standing Overhead Press","3 \u00d7 8"],
+          ["Lateral Raise","3 \u00d7 15"],["Cable Triceps Pushdown","3 \u00d7 12"],["Cable Wood-chop","3 \u00d7 10 / side"]
+        ]},
+        { name:"Day 3 \u2014 Speed & Power", tag:"speed", type:"speed" },
+        { name:"Day 4 \u2014 Upper (Pull + Rotate)", tag:"Lift", ex:[
+          ["Weighted Pull-up","4 \u00d7 6"],["Chest-Supported Row","3 \u00d7 10"],["Lat Pulldown","3 \u00d7 12"],
+          ["Rotational Med-Ball Throw","4 \u00d7 5 / side"],["Face Pull","3 \u00d7 15"],["DB Curl","3 \u00d7 12"]
+        ]},
+        { name:"Days 5\u20137 \u2014 Rest / Play 18", tag:"rest", type:"rest" }
       ]
     }
   ];
@@ -1291,16 +1312,27 @@
   });
 
 
+  function activeDays(){ var p=PHASES[planState.phase]; return planState.freq===4 ? p.days4 : p.days5; }
+  function effortNote(t){
+    t=String(t);
+    if(/yd/.test(t)) return "heavy · rest ~90s";
+    if(/explosive|jump/i.test(t)) return "max intent · full rest";
+    if(/heavy/i.test(t)) return "RIR 2 · rest 2–3 min";
+    var m=t.match(/[×x]\s*(\d+)/), reps=m?parseInt(m[1],10):10;
+    if(reps<=6) return "RIR 2–3 · rest 2–3 min";
+    if(reps>=13) return "RIR 1 · rest ~75s";
+    return "RIR 1–2 · rest ~90s";
+  }
+  function warmupFor(name){
+    if(name==="speed") return "Hips & T-spine flow — 90/90 switches ×6/side, open-book rotations ×8/side, leg swings — then 10–15 build-up swings ramping 50→90% before the timed sets.";
+    if(/Pull|Rotate/.test(name)) return "Back & rotation — cat–cow ×8, open-book T-spine rotations ×8/side, band pull-aparts ×20, dead hang 20s.";
+    if(/Push|Upper/.test(name)) return "Shoulders & T-spine — open-book rotations ×8/side, band pull-aparts ×20, shoulder CARs ×5/side, then 2 light ramp-up sets.";
+    if(/Lower|Squat|Hinge/.test(name)) return "Hips & legs — leg swings ×10/side, 90/90 hip switches ×8/side, world's greatest stretch ×5/side, then 2 light ramp-up sets.";
+    return "5-min dynamic flow — raise the heart rate, mobilize hips & T-spine, then ramp up to working weight.";
+  }
   function renderPhase(){
     var p = PHASES[planState.phase];
-    var days = p.days4;
-    var shown = planState.freq===4 ? days.filter(function(d,i){ return i!==4; }) : days; // 4-day drops the 5th lift day
-    // For 4-day we drop one lift day (Day 5) but keep speed + rest; rebuild list:
-    if (planState.freq===4){
-      shown = days.filter(function(d){ return d.name.indexOf("Day 5")===-1; });
-    } else {
-      shown = days.slice();
-    }
+    var shown = activeDays();
 
     var html="";
     html+='<div class="phase-head"><h3>'+p.title+'</h3><p>'+p.blurb+'</p>'+
@@ -1316,6 +1348,8 @@
       '<button type="button" data-freq="5" '+(planState.freq===5?'class="active"':'')+'>5 days</button>'+
       '</div></div>';
 
+    if(wk%6===0){ html+='<div class="deload-banner">🪫 <b>Deload week (Week '+wk+').</b> Take ~60% of your usual working weights, drop the last set of every lift, and keep the speed drills sharp but submaximal. This is planned recovery — you grow now. Full loads resume next week.</div>'; }
+
     shown.forEach(function(d){
       if(d.type==="rest"){
         html+='<div class="day"><div class="day-head">'+d.name+' <span class="tag rest">Recover</span></div>'+
@@ -1330,6 +1364,7 @@
         }).join("");
         var noGear = "No gear for overspeed? Use a light stick or your driver. No med ball? A heavy backpack, band, or dumbbell works.";
         html+='<div class="day speedday"><div class="day-head">'+d.name+' <span class="tag '+(d.tag)+'">'+labelFor(d.tag)+'</span></div>'+
+          '<div class="warm"><b>Warm-up (5 min):</b> '+warmupFor("speed")+'</div>'+
           '<div class="speed-intro">'+s.intro+'</div>'+
           '<table class="ex"><tr><th>Drill</th><th style="text-align:right">Sets × Reps</th></tr>'+srows+'</table>'+
           '<div class="equip-note" style="padding:10px 15px 8px;">'+noGear+'</div>'+logFoot(d.name)+'</div>';
@@ -1337,11 +1372,13 @@
       }
       var rows = d.ex.map(function(row){
         var r = resolveEx(row[0], row[1]);
-        if(r.status==="ok") return '<tr><td>'+row[0]+'</td><td class="sets">'+row[1]+'</td></tr>';
-        if(r.status==="swap") return '<tr class="swap"><td class="exname">'+r.name+' <span class="swap-badge">swap</span></td><td class="sets">'+r.sr+'</td></tr>';
+        var eff = '<div class="effort">'+effortNote(row[1])+'</div>';
+        if(r.status==="ok") return '<tr><td>'+row[0]+'</td><td class="sets">'+row[1]+eff+'</td></tr>';
+        if(r.status==="swap") return '<tr class="swap"><td class="exname">'+r.name+' <span class="swap-badge">swap</span></td><td class="sets">'+r.sr+eff+'</td></tr>';
         return '<tr class="skip"><td class="exname"><span class="nm">'+row[0]+'</span><span class="need">needs '+r.need.map(eqLabel).join(" + ")+'</span></td><td class="sets">'+row[1]+'</td></tr>';
       }).join("");
       html+='<div class="day"><div class="day-head">'+d.name+' <span class="tag '+(d.tag==="Lift"?"":d.tag)+'">'+labelFor(d.tag)+'</span></div>'+
+        '<div class="warm"><b>Warm-up (5 min):</b> '+warmupFor(d.name)+'</div>'+
         '<table class="ex"><tr><th>Exercise</th><th style="text-align:right">Sets × Reps</th></tr>'+rows+'</table>'+logFoot(d.name)+'</div>';
     });
 
@@ -1351,6 +1388,13 @@
     html+='<details class="fold"><summary>🌀 Why this builds clubhead speed</summary>'+
       '<div class="fold-body" style="font-size:12.8px;color:#5a4f2b;line-height:1.5;padding-top:8px;">'+
       phaseWhy()+'</div></details>';
+
+    html+='<details class="fold"><summary>📈 How to progress &amp; deload</summary>'+
+      '<div class="fold-body" style="font-size:12.8px;color:#5a4f2b;line-height:1.55;padding-top:8px;">'+
+      '<p style="margin:0 0 8px;"><b>RIR</b> = reps in reserve — how many clean reps you stop short of failure. “RIR 2” means leave about 2 in the tank. The note by each lift gives a target RIR and rest time.</p>'+
+      '<p style="margin:0 0 8px;"><b>Double progression.</b> Hold the same weight until you hit the <b>top of the rep range on every set</b> (e.g. all sets reach 5 on a 4×5). Next session add <b>2.5–5 lb</b> upper-body / <b>5–10 lb</b> lower-body and build back up. The “Last time” line in the logger shows the numbers to beat.</p>'+
+      '<p style="margin:0;"><b>Deload weeks 6, 12 &amp; 18.</b> Run ~60% of your usual loads, drop the last set of each lift, and keep speed work crisp but submaximal. Planned recovery is when the adaptation lands — you come back stronger and faster.</p>'+
+      '</div></details>';
 
     $("phaseDetail").innerHTML=html;
 
@@ -1383,7 +1427,7 @@
   function getSession(w,d){ return getLog()[w+"|"+d]||null; }
   function saveSession(w,d,s){ var L=getLog(); L[w+"|"+d]=s; lsSet("ff_log",L); }
   function parseSets(t){ var m=String(t).match(/(\d+)\s*[×x]/); return m?Math.min(8,Math.max(1,parseInt(m[1],10))):3; }
-  function findDay(name){ var f=null; PHASES[0].days4.forEach(function(d){ if(d.name===name) f=d; }); return f; }
+  function findDay(name){ var f=null; activeDays().forEach(function(d){ if(d.name===name) f=d; }); return f; }
   function todayStr(){ try{ return new Date().toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"}); }catch(e){ return ""; } }
   function lastSessionFor(day, beforeW){
     var L=getLog(), best=null, bw=-1;
@@ -1473,15 +1517,16 @@
   function renderProgressFold(){
     var body=lsGet("ff_body",[]), sessCount=Object.keys(getLog()).length;
     var rows = body.slice(-8).reverse().map(function(e){
-      return '<div class="pe"><span>'+e.date+'</span><span><b>'+(e.w||"–")+'</b> lb &middot; <b>'+(e.s||"–")+'</b> mph</span></div>';
-    }).join("") || '<div class="prog-empty">No entries yet — log your weight and clubhead speed to watch the trend.</div>';
+      return '<div class="pe"><span>'+e.date+'</span><span><b>'+(e.w||"–")+'</b> lb &middot; <b>'+(e.s||"–")+'</b> mph 7-iron</span></div>';
+    }).join("") || '<div class="prog-empty">No entries yet — log your weight and 7-iron speed to watch the trend.</div>';
     var spark = sparkline(body.map(function(e){ return parseFloat(e.s); }));
     return '<details class="fold" id="progFold"><summary>📊 Progress &amp; history</summary><div class="fold-body">'+
       '<div class="prog-row">'+
         '<div><label>Bodyweight (lb)</label><input type="number" inputmode="decimal" id="pBody" placeholder="185" /></div>'+
-        '<div><label>Clubhead speed (mph)</label><input type="number" inputmode="decimal" id="pSpeed" placeholder="112" /></div>'+
+        '<div><label>7-iron speed (mph)</label><input type="number" inputmode="decimal" id="pSpeed" placeholder="85" /></div>'+
         '<button class="addp" id="pAdd">Add</button></div>'+
-      (spark?'<div class="prog-empty" style="margin:2px 0 -2px;">Clubhead speed trend</div>'+spark:"")+
+      '<div class="prog-empty" style="margin:0 0 10px;">Tip: test 7-iron clubhead speed on a launch monitor — it’s more repeatable than driver, so the weekly trend is a cleaner signal.</div>'+
+      (spark?'<div class="prog-empty" style="margin:2px 0 -2px;">7-iron speed trend</div>'+spark:"")+
       '<div class="prog-list">'+rows+'</div>'+
       '<div class="prog-empty" style="margin-top:10px;">🏋️ Workouts logged: <b>'+sessCount+'</b></div>'+
       '</div></details>';

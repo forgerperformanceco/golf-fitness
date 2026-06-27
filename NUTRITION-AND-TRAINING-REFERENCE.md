@@ -395,8 +395,25 @@ qualities — no block-switching (see §7 for the evidence).
 | Day 4 — Lower (Hinge + Power) | Jump + heavy deadlift/hinge + accessories | power, 4 heavy, 8–12 |
 | Day 5 — Upper (Pull + Rotate) | Pulls + rotational power | 6–15 |
 
-Progress by **progressive overload** (add weight or a rep most weeks); **deload every 6th
-week** (lighter loads/volume). Eat in a **Lean Bulk** the whole time.
+**4-day option (balanced, not a deletion).** Choosing 4 days does **not** simply drop a day —
+it runs a purpose-built balanced split so pushing and pulling stay matched: **Day 1 Lower
+(Squat + Hinge) · Day 2 Upper (Push) · Day 3 Speed & Power · Day 4 Upper (Pull + Rotate).**
+Both lower patterns live on Day 1, anti-rotation (Pallof) and rotational power are retained,
+and no upper-body pulling is lost.
+
+**Every training day opens with a 5-minute warm-up** — hip and thoracic-spine mobility on
+the relevant days (90/90 switches, open-book rotations, leg swings, band pull-aparts), plus
+ramp-up sets — because mobility and rotation are sacred for the swing (see §9).
+
+Each lift shows a **target RIR (reps in reserve) and rest time** so effort is explicit.
+Progress by **double progression**: hold the weight until you hit the **top of the rep range
+on every set**, then add ~2.5–5 lb (upper) / 5–10 lb (lower). **Deload every 6th week**
+(weeks 6, 12, 18: ~60% loads, drop the last set, speed work submaximal) — the app shows a
+deload banner automatically on those weeks. Eat in a **Lean Bulk** the whole time.
+
+**Tracking the payoff:** log **7-iron clubhead speed** weekly in the app's Progress panel.
+7-iron is more repeatable than driver, so the week-to-week trend is a cleaner signal that the
+mass you're building is converting into speed.
 
 ---
 
