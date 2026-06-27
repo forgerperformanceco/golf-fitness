@@ -16,7 +16,8 @@
   var SUPABASE_ANON = "sb_publishable_bOf591Xidfd_WLCYEYwaiQ_1kCbhbmi";   // publishable/anon key (safe to ship in the browser)
 
   // Everything the app persists to localStorage — the full progress blob.
-  var KEYS = ["fairwayfuel", "ff_week", "ff_log", "ff_body"];
+  // ff_start = the plan's start date (so the calendar/week follows you across devices).
+  var KEYS = ["fairwayfuel", "ff_week", "ff_log", "ff_body", "ff_start", "ff_planview"];
 
   // Disabled until configured, or if the Supabase SDK didn't load (e.g. offline).
   if (!SUPABASE_URL || !SUPABASE_ANON || !window.supabase) return;

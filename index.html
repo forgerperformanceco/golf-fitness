@@ -570,6 +570,17 @@
   .startbar .sb-jump { display:flex; gap:8px; margin-top:11px; }
   .startbar .sb-jump select { flex:1; }
   .sb-go2 { background:var(--accent); color:#143a26; border:0; border-radius:9px; padding:9px 15px; font:800 13px system-ui; cursor:pointer; }
+  /* Today vs Full-week view */
+  .planview-seg { display:flex; gap:6px; background:#eef3ee; padding:4px; border-radius:11px; margin-bottom:12px; }
+  .planview-seg button { flex:1; border:0; background:transparent; padding:9px; border-radius:8px; font:700 13px system-ui; color:var(--muted); cursor:pointer; }
+  .planview-seg button.active { background:#fff; color:var(--green-700); box-shadow:0 1px 4px rgba(0,0,0,.08); }
+  .planview-seg button:disabled { opacity:.4; cursor:default; }
+  .weekstrip { display:flex; gap:7px; overflow-x:auto; padding:1px 0 12px; margin-bottom:2px; -webkit-overflow-scrolling:touch; }
+  .weekstrip::-webkit-scrollbar { height:0; }
+  .ws-chip { flex:0 0 auto; border:1px solid var(--line); background:var(--paper); color:var(--ink);
+    border-radius:999px; padding:8px 14px; font:700 12.5px system-ui; cursor:pointer; white-space:nowrap; }
+  .ws-chip.done { color:var(--green-700); border-color:#cfe9d8; }
+  .ws-chip.cur { background:#11643a; color:#fff; border-color:#11643a; }
   .day-foot { padding:11px 15px 13px; border-top:1px solid var(--line); display:flex; justify-content:flex-end; align-items:center; gap:10px; }
   .logbtn { display:inline-flex; align-items:center; gap:6px; border:none; cursor:pointer; font-weight:700; font-size:13px;
     border-radius:10px; padding:11px 16px; background:var(--green-600); color:#fff; transition:all .15s; }
@@ -1750,6 +1761,52 @@
     if(!trainRetain() || purposeFor(name)!=="💪") return sr;
     return String(sr).replace(/^(\s*)(\d+)/, function(_, sp, n){ return sp + Math.max(2, parseInt(n,10)-1); });
   }
+  // One day's full card (rest / speed / lift) — used by both Today and Full-week views.
+  function dayCardHtml(d, showPrimerNote){
+    var p = PHASES[planState.phase];
+    if(d.type==="rest"){
+      return '<div class="day"><div class="day-head">'+d.name+' <span class="tag rest">Recover</span></div>'+
+        '<div class="restday">Active recovery: walk a casual 9, mobility flow, foam roll. Light is fine — but let the body rebuild. This is when muscle and speed are made.</div></div>';
+    }
+    if(d.type==="speed"){
+      var s=p.speed;
+      var srows = s.ex.map(function(e){
+        return '<tr><td><div class="exname-main">'+purposeFor(e[0])+' '+e[0]+'</div><div class="exnote">'+e[2]+'</div></td>'+
+               '<td class="sets">'+e[1]+'</td></tr>';
+      }).join("");
+      var noGear = "No gear for overspeed? Use a light stick or your driver. No med ball? A heavy backpack, band, or dumbbell works.";
+      return '<div class="day speedday"><div class="day-head">'+d.name+' <span class="tag '+(d.tag)+'">'+labelFor(d.tag)+'</span></div>'+
+        '<div class="warm"><b>Warm-up (5 min):</b> '+warmupFor("speed")+'</div>'+
+        '<div class="speed-intro">'+s.intro+'</div>'+
+        '<table class="ex"><tr><th>Drill</th><th style="text-align:right">Sets × Reps</th></tr>'+srows+'</table>'+
+        '<div class="equip-note" style="padding:10px 15px 8px;">'+noGear+'</div>'+logFoot(d.name)+'</div>';
+    }
+    var rows = d.ex.map(function(row){
+      var r = resolveEx(row[0], row[1]);
+      var eff = '<div class="effort">'+effortNote(row[1])+'</div>';
+      var pe = purposeFor(row[0])+' ';
+      if(r.status==="ok") return '<tr><td>'+pe+row[0]+'</td><td class="sets">'+adjSets(row[1],row[0])+eff+'</td></tr>';
+      if(r.status==="swap") return '<tr class="swap"><td class="exname">'+pe+r.name+' <span class="swap-badge">swap</span></td><td class="sets">'+adjSets(r.sr,r.name)+eff+'</td></tr>';
+      return '<tr class="skip"><td class="exname"><span class="nm">'+pe+row[0]+'</span><span class="need">needs '+r.need.map(eqLabel).join(" + ")+'</span></td><td class="sets">'+row[1]+'</td></tr>';
+    }).join("");
+    var pNote = showPrimerNote ? '<span class="primer-cue">New to jumps and throws? Master a soft, balanced landing before you add height — start with 2 sets and a low box, add a set every couple of weeks. Stop the moment reps slow down: power work only counts when every rep is crisp and fast.</span>' : '';
+    return '<div class="day"><div class="day-head">'+d.name+' <span class="tag '+(d.tag==="Lift"?"":d.tag)+'">'+labelFor(d.tag)+'</span></div>'+
+      '<div class="warm"><b>Warm-up (5 min):</b> '+warmupFor(d.name)+'</div>'+
+      '<div class="primer"><b>⚡ Power primer — do this first, fresh:</b> '+primerFor(d.name)+'.<span class="primer-sub"> Max intent · full rest between reps · ~5 min.</span>'+pNote+'</div>'+
+      '<table class="ex"><tr><th>Exercise</th><th style="text-align:right">Sets × Reps</th></tr>'+rows+'</table>'+
+      '<div class="romcue">Full range every rep — <b>control the lowering (~3 sec)</b>, own the lockout. That eccentric control builds muscle and armors the deceleration your downswing punishes. The range you train is the range you can swing with.</div>'+
+      logFoot(d.name)+'</div>';
+  }
+  // Short chip label for the week strip: "Squat", "Push", "Speed", "Hinge", "Pull", "Rest".
+  function wsShort(d){
+    var m=d.name.match(/\(([^)]+)\)/);
+    if(m) return m[1].split(/[ +]/)[0];
+    var after=(d.name.split("—")[1]||d.name).trim();
+    return after.split(/[ &/]/)[0];
+  }
+  var focusDay=null;   // which day the Today view is showing (null = auto = next un-logged)
+  function planViewMode(){ return planStart() ? lsGet("ff_planview","today") : "week"; }
+
   function renderPhase(){
     var p = PHASES[planState.phase];
     var shown = activeDays();
@@ -1799,44 +1856,32 @@
 
     html+='<div class="exlegend"><b>What each move builds:</b> 🏋️ strength · 💪 mass · ⚡ power/speed · 🌀 golf rotation</div>';
 
-    var primerNoteShown=false;
-    shown.forEach(function(d){
-      if(d.type==="rest"){
-        html+='<div class="day"><div class="day-head">'+d.name+' <span class="tag rest">Recover</span></div>'+
-          '<div class="restday">Active recovery: walk a casual 9, mobility flow, foam roll. Light is fine — but let the body rebuild. This is when muscle and speed are made.</div></div>';
-        return;
-      }
-      if(d.type==="speed"){
-        var s=p.speed;
-        var srows = s.ex.map(function(e){
-          return '<tr><td><div class="exname-main">'+purposeFor(e[0])+' '+e[0]+'</div><div class="exnote">'+e[2]+'</div></td>'+
-                 '<td class="sets">'+e[1]+'</td></tr>';
-        }).join("");
-        var noGear = "No gear for overspeed? Use a light stick or your driver. No med ball? A heavy backpack, band, or dumbbell works.";
-        html+='<div class="day speedday"><div class="day-head">'+d.name+' <span class="tag '+(d.tag)+'">'+labelFor(d.tag)+'</span></div>'+
-          '<div class="warm"><b>Warm-up (5 min):</b> '+warmupFor("speed")+'</div>'+
-          '<div class="speed-intro">'+s.intro+'</div>'+
-          '<table class="ex"><tr><th>Drill</th><th style="text-align:right">Sets × Reps</th></tr>'+srows+'</table>'+
-          '<div class="equip-note" style="padding:10px 15px 8px;">'+noGear+'</div>'+logFoot(d.name)+'</div>';
-        return;
-      }
-      var rows = d.ex.map(function(row){
-        var r = resolveEx(row[0], row[1]);
-        var eff = '<div class="effort">'+effortNote(row[1])+'</div>';
-        var pe = purposeFor(row[0])+' ';
-        if(r.status==="ok") return '<tr><td>'+pe+row[0]+'</td><td class="sets">'+adjSets(row[1],row[0])+eff+'</td></tr>';
-        if(r.status==="swap") return '<tr class="swap"><td class="exname">'+pe+r.name+' <span class="swap-badge">swap</span></td><td class="sets">'+adjSets(r.sr,r.name)+eff+'</td></tr>';
-        return '<tr class="skip"><td class="exname"><span class="nm">'+pe+row[0]+'</span><span class="need">needs '+r.need.map(eqLabel).join(" + ")+'</span></td><td class="sets">'+row[1]+'</td></tr>';
+    var mode = planViewMode();
+    if(mode==="today"){
+      // Featured = the day you tapped, else your next un-logged workout.
+      var featName = (focusDay && shown.some(function(d){return d.name===focusDay;})) ? focusDay : nextWorkout();
+      var featured = null; shown.forEach(function(d){ if(d.name===featName) featured=d; });
+      if(!featured) featured = shown[0];
+      html+='<div class="planview-seg"><button data-planview="today" class="active">Today</button>'+
+        '<button data-planview="week">Full week</button></div>';
+      // Tappable week strip with logged ticks.
+      var strip = shown.map(function(d){
+        var done = d.type!=="rest" && !!getSession(wk, d.name);
+        return '<button class="ws-chip'+(d.name===featured.name?" cur":"")+(done?" done":"")+'" data-focusday="'+escAttr(d.name)+'">'+
+          (done?"✓ ":"")+wsShort(d)+'</button>';
       }).join("");
-      var pNote = primerNoteShown ? '' : '<span class="primer-cue">New to jumps and throws? Master a soft, balanced landing before you add height — start with 2 sets and a low box, add a set every couple of weeks. Stop the moment reps slow down: power work only counts when every rep is crisp and fast.</span>';
-      primerNoteShown = true;
-      html+='<div class="day"><div class="day-head">'+d.name+' <span class="tag '+(d.tag==="Lift"?"":d.tag)+'">'+labelFor(d.tag)+'</span></div>'+
-        '<div class="warm"><b>Warm-up (5 min):</b> '+warmupFor(d.name)+'</div>'+
-        '<div class="primer"><b>⚡ Power primer — do this first, fresh:</b> '+primerFor(d.name)+'.<span class="primer-sub"> Max intent · full rest between reps · ~5 min.</span>'+pNote+'</div>'+
-        '<table class="ex"><tr><th>Exercise</th><th style="text-align:right">Sets × Reps</th></tr>'+rows+'</table>'+
-        '<div class="romcue">Full range every rep — <b>control the lowering (~3 sec)</b>, own the lockout. That eccentric control builds muscle and armors the deceleration your downswing punishes. The range you train is the range you can swing with.</div>'+
-        logFoot(d.name)+'</div>';
-    });
+      html+='<div class="weekstrip">'+strip+'</div>';
+      html+=dayCardHtml(featured, true);
+    } else {
+      html+='<div class="planview-seg"><button data-planview="today"'+(planStart()?'':' disabled')+'>Today</button>'+
+        '<button data-planview="week" class="active">Full week</button></div>';
+      var primerNoteShown=false;
+      shown.forEach(function(d){
+        var lift = d.type!=="rest" && d.type!=="speed";
+        html+=dayCardHtml(d, lift && !primerNoteShown);
+        if(lift) primerNoteShown=true;
+      });
+    }
 
     html+=renderProgressFold();
 
@@ -2279,6 +2324,10 @@
     if(e.target.closest("[data-jump]")){ var j=$("sbJump"); if(j) j.hidden=!j.hidden; return; }
     if(e.target.closest("[data-wkadjust]")){ var a=$("wkAdjRow"); if(a) a.hidden=!a.hidden; return; }
     if(e.target.closest("[data-reset]")){ if(confirm("Restart the plan from week 1?")) resetPlan(); return; }
+    var pv=e.target.closest("[data-planview]");
+    if(pv && !pv.disabled){ lsSet("ff_planview", pv.getAttribute("data-planview")); focusDay=null; renderPhase(); return; }
+    var fdc=e.target.closest("[data-focusday]");
+    if(fdc){ focusDay=fdc.getAttribute("data-focusday"); renderPhase(); return; }
     if(e.target.id==="pAdd"){
       var wv=$("pBody").value, sv=$("pSpeed").value;
       if(!wv && !sv) return;
