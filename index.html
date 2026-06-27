@@ -467,6 +467,17 @@
     .dtile{ flex-direction:row; align-items:center; flex-wrap:wrap; gap:4px 10px; padding:13px 15px; }
     .dt-ic{ font-size:22px; } .dt-label{ flex:1; margin:0; order:1; }
     .dt-big{ order:2; width:100%; font-size:17px; } .dt-sub{ order:3; width:100%; } }
+  .dash-log { margin-top:13px; background:var(--paper); border:1px solid var(--line); border-radius:14px;
+    padding:14px 15px; box-shadow:var(--shadow); }
+  .dash-log .dl-head { font-size:13px; font-weight:800; color:var(--green-800); margin-bottom:9px; }
+  .dash-log .dl-row { display:flex; gap:8px; }
+  .dash-log .dl-row input { flex:1; min-width:0; border:1.5px solid var(--line); border-radius:10px;
+    padding:11px 12px; font-size:15px; }
+  .dash-log .dl-row button { flex:0 0 auto; background:#11643a; color:#fff; border:0; border-radius:10px;
+    padding:0 20px; font:700 14px system-ui; cursor:pointer; }
+  .dash-log .dl-row button:active { transform:translateY(1px); }
+  .dash-log .dl-hint { font-size:11.5px; color:var(--muted); margin-top:8px; line-height:1.4; }
+  .dash-log .dl-hint b { color:var(--green-700); }
 
   /* ===== Account ===== */
   .acct-card { background:var(--paper); border:1px solid var(--line); border-radius:16px; padding:18px;
@@ -2024,6 +2035,15 @@
       dTile('🏌️','This week', 'Week <b>'+wk+'</b>', nw?('Next: '+nw.replace(/Day \d+ — /,'')):'open plan', 'plan')+
       dTile('⚡','7-iron speed', lastSpeed?('<b>'+lastSpeed+'</b> mph'):'—', sess+' workouts logged', 'plan')+
       '</div>';
+    // Quick-add: log today's bodyweight + 7-iron speed straight from home (feeds the Score).
+    html += '<div class="dash-log"><div class="dl-head">📈 Log today</div>'+
+      '<div class="dl-row">'+
+        '<input id="dBody" type="number" inputmode="decimal" placeholder="Weight (lb)" />'+
+        '<input id="dSpeed" type="number" inputmode="decimal" placeholder="7-iron (mph)" />'+
+        '<button id="dAdd" type="button">Add</button></div>'+
+      '<div class="dl-hint">Bodyweight + clubhead speed feed your FairwayFuel Score. '+
+        (lastSpeed?('Last: <b>'+lastSpeed+'</b> mph'):'Test 7-iron on a launch monitor — it’s the most repeatable.')+'</div>'+
+      '</div>';
     el.innerHTML=html;
   }
 
@@ -2114,9 +2134,16 @@
     if(e.target.closest("#foodSwap") && lastFood){ foodRoll++; updateFoodTargets(lastFood.p, lastFood.c, lastFood.m); }
   });
 
-  // Dashboard tiles jump to the relevant tab.
+  // Dashboard tiles jump to the relevant tab; quick-add logs weight + speed from home.
   var db=$("dashBody");
   if(db) db.addEventListener("click", function(e){
+    if(e.target.id==="dAdd"){
+      var wv=$("dBody")?$("dBody").value:"", sv=$("dSpeed")?$("dSpeed").value:"";
+      if(!wv && !sv) return;
+      var body=lsGet("ff_body",[]); body.push({ date:todayStr(), w:wv, s:sv }); lsSet("ff_body", body);
+      renderDash();
+      return;
+    }
     var t=e.target.closest("[data-goview]"); if(t) setView(t.getAttribute("data-goview"));
   });
   // Re-render account + dashboard when cloud login state changes.
