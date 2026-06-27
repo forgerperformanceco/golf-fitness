@@ -4,6 +4,7 @@ name: Deploy FairwayFuel to GitHub Pages
 on:
   push:
     branches:
+      - main
       - claude/golf-macro-calculator-j2e9vk
   workflow_dispatch:
 
