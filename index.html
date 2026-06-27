@@ -388,6 +388,11 @@
   .primer b { color:#b4540f; }
   .primer-sub { color:#9a7a52; }
   .primer-cue { display:block; margin-top:5px; font-size:11px; color:#8a7a60; font-style:italic; }
+  .goalhelp { margin-top:8px; border:1px solid var(--line); border-radius:10px; background:#fafcf9; }
+  .goalhelp > summary { list-style:none; cursor:pointer; padding:9px 12px; font-size:12px; font-weight:700; color:var(--green-800); }
+  .goalhelp > summary::-webkit-details-marker { display:none; }
+  .goalhelp > div { padding:0 12px 11px; font-size:11.8px; color:#5a6b60; line-height:1.5; }
+  .goalhelp-note { display:block; margin-top:6px; font-style:italic; color:var(--muted); }
 
   .speed-callout {
     margin-top:8px; background:#fff4e8; border:1px solid #f3d6b0; border-radius:12px; padding:15px 16px;
@@ -599,6 +604,11 @@
               <div class="gdesc">Drop fat, protect muscle. Improve your power-to-weight ratio.</div>
             </button>
           </div>
+          <details class="goalhelp"><summary>Which bulk should I pick?</summary>
+            <div><b>Lean Bulk (+10%)</b> is the right default for most people. Past the beginner stage you build muscle at a capped rate (~0.25–0.5 lb/month), so a modest surplus adds mostly muscle with minimal fat — and keeps you mobile for the swing. A bigger surplus doesn’t build more muscle, just more fat.<br><br>
+            <b>Bulk (+20%)</b> is for <b>true beginners and hard-gainers</b>, or when you want faster scale gains and will run a <b>Lean Out</b> afterward. It speeds scale weight but adds more fat, so plan a cut to follow.
+            <span class="goalhelp-note">Either way the surplus goes to carbs — protein and fat are fixed, carbs fill the rest — to fuel hard training and a long round.</span></div>
+          </details>
         </label>
         <div class="form-actions">
           <button type="button" class="share-btn" id="shareBtn">🔗 Copy my plan link</button>
