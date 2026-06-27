@@ -386,6 +386,12 @@
   .romcue { padding:8px 15px 2px; font-size:11px; color:var(--muted); font-style:italic; line-height:1.4; }
   .exlegend { font-size:11px; color:var(--muted); margin:-4px 0 14px; padding:0 2px; line-height:1.4; }
   .exlegend b { color:#3f3818; }
+  .foodfold .foodintro { font-size:12.5px; color:#5a6b60; margin:2px 0 6px; line-height:1.5; }
+  .foodfold h4 { margin:12px 0 4px; font-size:13px; color:var(--green-800); }
+  .foodfold h4 span { font-weight:500; font-size:11px; color:var(--muted); }
+  .foodfold .fold-body ul { margin:0; padding-left:18px; font-size:12.8px; line-height:1.7; color:#3a4a40; }
+  .foodfold .fold-body ul b { color:var(--green-800); }
+  .foodfix { margin-top:12px; background:#f1fdf4; border:1px solid #cfe9d8; border-radius:9px; padding:10px 12px; font-size:12.5px; color:#1c3a28; line-height:1.55; }
   .primer { padding:10px 15px; font-size:11.8px; color:#7a4a12; background:#fff6ec; border-bottom:1px solid var(--line); line-height:1.5; }
   .primer b { color:#b4540f; }
   .primer-sub { color:#9a7a52; }
@@ -630,6 +636,66 @@
         <h2>Your FairwayFuel Plan</h2>
         <p class="sub">Calculated live as you type.</p>
         <div id="results"></div>
+      </section>
+
+      <section class="card">
+        <details class="fold foodfold">
+          <summary>🍽️ What do I eat to hit these numbers?</summary>
+          <div class="fold-body">
+            <p class="foodintro">Targets get easy once you know what common foods carry. Meat weights are <b>cooked</b>. Mix and match to reach your daily carb &amp; protein numbers.</p>
+
+            <h4>🍗 Protein <span>(cooked weight)</span></h4>
+            <ul>
+              <li>Chicken breast, cooked — 4 oz ≈ <b>35g</b></li>
+              <li>Lean ground beef (90/10), cooked — 4 oz ≈ <b>30g</b></li>
+              <li>Sirloin steak, cooked — 4 oz ≈ <b>33g</b></li>
+              <li>Salmon, cooked — 4 oz ≈ <b>29g</b></li>
+              <li>Canned tuna, drained — 1 can (5 oz) ≈ <b>30g</b></li>
+              <li>Large eggs — 3 ≈ <b>18g</b> (≈6g each)</li>
+              <li>Greek yogurt, nonfat — 1 cup ≈ <b>23g</b></li>
+              <li>Cottage cheese — 1 cup ≈ <b>25g</b></li>
+              <li>Whey protein — 1 scoop ≈ <b>25g</b></li>
+              <li>Milk (2%) — 1 cup ≈ <b>8g</b></li>
+            </ul>
+
+            <h4>🍚 Carbs — staples <span>(cooked where noted)</span></h4>
+            <ul>
+              <li>White rice, cooked — 1 cup ≈ <b>45g</b></li>
+              <li>Oats, dry — ½ cup ≈ <b>27g</b></li>
+              <li>Pasta, cooked — 1 cup ≈ <b>43g</b></li>
+              <li>Baked potato — 1 medium ≈ <b>37g</b></li>
+              <li>Sweet potato — 1 medium ≈ <b>26g</b></li>
+              <li>Bagel — 1 plain ≈ <b>50g</b></li>
+              <li>Bread — 2 slices ≈ <b>30g</b></li>
+              <li>Flour tortilla — 1 large ≈ <b>35g</b></li>
+            </ul>
+
+            <h4>🍌 Carbs — fruit</h4>
+            <ul>
+              <li>Banana — 1 medium ≈ <b>27g</b></li>
+              <li>Apple — 1 medium ≈ <b>25g</b></li>
+              <li>Orange — 1 large ≈ <b>22g</b></li>
+              <li>Grapes — 1 cup ≈ <b>27g</b></li>
+              <li>Mango — 1 cup ≈ <b>25g</b></li>
+              <li>Pineapple — 1 cup ≈ <b>22g</b></li>
+              <li>Berries — 1 cup ≈ <b>15g</b></li>
+            </ul>
+
+            <h4>⚡ Fast carbs <span>(great right around training &amp; on the course)</span></h4>
+            <ul>
+              <li>Honey — 1 tbsp ≈ <b>17g</b></li>
+              <li>Medjool date — 1 ≈ <b>18g</b></li>
+              <li>Raisins — ¼ cup ≈ <b>32g</b></li>
+              <li>Maple syrup — 1 tbsp ≈ <b>13g</b></li>
+              <li>Jam — 1 tbsp ≈ <b>13g</b></li>
+              <li>Fruit juice — 1 cup ≈ <b>28g</b></li>
+              <li>Sports drink — 20 oz ≈ <b>36g</b></li>
+              <li>Rice cakes — 2 ≈ <b>14g</b></li>
+            </ul>
+
+            <div class="foodfix"><b>Example fix:</b> a protein bar + cottage cheese is high-protein but light on carbs. To clear ~65g carbs, add <b>1 cup oats + a banana</b> (≈54g) with a <b>drizzle of honey</b> (≈17g) — and you're there. Easy carbs like fruit, honey and juice are ideal pre/post-workout on a build phase.</div>
+          </div>
+        </details>
       </section>
     </div>
   </div>
