@@ -10,6 +10,10 @@ each phase is gated behind a deliberate "go" so we never ship a half-built paywa
 > gets the full calculator and 20-week plan, offline. We only ever gate the *new*
 > value (AI coach, cross-device sync extras), never the core tool.
 
+> **Market positioning** lives in [`COMPETITIVE-LANDSCAPE.md`](./COMPETITIVE-LANDSCAPE.md):
+> how we differ from DRVN / GolfForever / JoeyD / swing-analysis apps, what we can borrow
+> without infringing, and the "FairwayFuel Score" that closes our one measurability gap.
+
 ---
 
 ## Where we are today (Phase 0 — shipped)
