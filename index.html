@@ -383,6 +383,7 @@
   table.ex td.sets .effort { font-size:10px; font-weight:600; color:var(--muted); margin-top:3px; letter-spacing:.2px; white-space:nowrap; }
   .deload-banner { background:#eef3ff; border:1px solid #cfdbf2; color:#2c3e66; border-radius:12px; padding:11px 14px; font-size:12.5px; line-height:1.45; margin-bottom:14px; }
   .deload-banner b { color:#1f2f57; }
+  .romcue { padding:8px 15px 2px; font-size:11px; color:var(--muted); font-style:italic; line-height:1.4; }
 
   .speed-callout {
     margin-top:8px; background:#fff4e8; border:1px solid #f3d6b0; border-radius:12px; padding:15px 16px;
@@ -1130,6 +1131,7 @@
           ["Overspeed swings", "5 \u00d7 6", "Light\u2192heavy stick progression, both sides. Track on a radar."],
           ["Ground-force footwork", "4 \u00d7 5 / side", "Lead-foot push \u2014 drive into the ground from the top."],
           ["Rotational med-ball throws", "5 \u00d7 4 / side", "Side throw + step-behind, max effort."],
+          ["Overhead med-ball slam", "4 \u00d7 5", "Vertical power \u2014 full overhead reach, slam hard, reset every rep."],
           ["Box or broad jump", "5 \u00d7 3", "Full recovery between jumps."],
           ["Lateral bound", "4 \u00d7 4 / side", "Explosive side-to-side \u2014 the swing's weight shift."]
         ]
@@ -1141,7 +1143,7 @@
         ]},
         { name:"Day 2 \u2014 Upper (Push)", tag:"Lift", ex:[
           ["Barbell Bench Press","4 \u00d7 5 (heavy)"],["Incline DB Press","3 \u00d7 10"],["Standing Overhead Press","3 \u00d7 8"],
-          ["Lateral Raise","3 \u00d7 15"],["Cable Triceps Pushdown","3 \u00d7 12"],["Cable Wood-chop","3 \u00d7 10 / side"]
+          ["Single-Arm DB Bench Press","3 \u00d7 8 / side"],["Lateral Raise","3 \u00d7 15"],["Cable Triceps Pushdown","3 \u00d7 12"],["Cable Wood-chop","3 \u00d7 10 / side"]
         ]},
         { name:"Day 3 \u2014 Speed & Power", tag:"speed", type:"speed" },
         { name:"Day 4 \u2014 Lower (Hinge + Power)", tag:"Lift", ex:[
@@ -1149,7 +1151,7 @@
           ["Bulgarian Split Squat","3 \u00d7 10 / leg"],["Pallof Press","3 \u00d7 12 / side"],["Farmer Carry","3 \u00d7 40 yd"]
         ]},
         { name:"Day 5 \u2014 Upper (Pull + Rotate)", tag:"Lift", ex:[
-          ["Weighted Pull-up","4 \u00d7 6"],["Chest-Supported Row","3 \u00d7 10"],["Lat Pulldown","3 \u00d7 12"],
+          ["Weighted Pull-up","4 \u00d7 6"],["Chest-Supported Row","3 \u00d7 10"],["Lat Pulldown","3 \u00d7 12"],["Single-Arm DB Row","3 \u00d7 8 / side"],
           ["Rotational Med-Ball Throw","4 \u00d7 5 / side"],["Face Pull","3 \u00d7 15"],["DB Curl","3 \u00d7 12"]
         ]},
         { name:"Day 6 & 7 \u2014 Rest / Play 18", tag:"rest", type:"rest" }
@@ -1161,11 +1163,11 @@
         ]},
         { name:"Day 2 \u2014 Upper (Push)", tag:"Lift", ex:[
           ["Barbell Bench Press","4 \u00d7 5 (heavy)"],["Incline DB Press","3 \u00d7 10"],["Standing Overhead Press","3 \u00d7 8"],
-          ["Lateral Raise","3 \u00d7 15"],["Cable Triceps Pushdown","3 \u00d7 12"],["Cable Wood-chop","3 \u00d7 10 / side"]
+          ["Single-Arm DB Bench Press","3 \u00d7 8 / side"],["Lateral Raise","3 \u00d7 15"],["Cable Triceps Pushdown","3 \u00d7 12"],["Cable Wood-chop","3 \u00d7 10 / side"]
         ]},
         { name:"Day 3 \u2014 Speed & Power", tag:"speed", type:"speed" },
         { name:"Day 4 \u2014 Upper (Pull + Rotate)", tag:"Lift", ex:[
-          ["Weighted Pull-up","4 \u00d7 6"],["Chest-Supported Row","3 \u00d7 10"],["Lat Pulldown","3 \u00d7 12"],
+          ["Weighted Pull-up","4 \u00d7 6"],["Chest-Supported Row","3 \u00d7 10"],["Lat Pulldown","3 \u00d7 12"],["Single-Arm DB Row","3 \u00d7 8 / side"],
           ["Rotational Med-Ball Throw","4 \u00d7 5 / side"],["Face Pull","3 \u00d7 15"],["DB Curl","3 \u00d7 12"]
         ]},
         { name:"Days 5\u20137 \u2014 Rest / Play 18", tag:"rest", type:"rest" }
@@ -1214,6 +1216,7 @@
     "Incline DB Press":{needs:["dumbbells"],subs:[{needs:["bodyweight"],name:"Decline / Feet-elevated Push-up"}]},
     "Flat Barbell Bench":{needs:["barbell","bench"],subs:[{needs:["dumbbells","bench"],name:"Flat DB Bench Press"},{needs:["dumbbells"],name:"Floor DB Press"},{needs:["bodyweight"],name:"Push-up (weighted / feet-elevated)"}]},
     "Barbell Bench Press":{needs:["barbell","bench"],subs:[{needs:["dumbbells","bench"],name:"Flat DB Bench Press"},{needs:["dumbbells"],name:"Floor DB Press"},{needs:["bodyweight"],name:"Push-up (weighted / feet-elevated)"}]},
+    "Single-Arm DB Bench Press":{needs:["dumbbells"],subs:[{needs:["bands"],name:"Single-Arm Band Press"},{needs:["bodyweight"],name:"Archer Push-up"}]},
     "Seated DB Shoulder Press":{needs:["dumbbells"],subs:[{needs:["bands"],name:"Band Overhead Press"},{needs:["bodyweight"],name:"Pike Push-up"}]},
     "Standing Overhead Press":{needs:["barbell"],subs:[{needs:["dumbbells"],name:"Standing DB Press"},{needs:["bands"],name:"Band Overhead Press"},{needs:["bodyweight"],name:"Pike Push-up"}]},
     "Lateral Raise":{needs:["dumbbells"],subs:[{needs:["bands"],name:"Band Lateral Raise"}]},
@@ -1227,6 +1230,7 @@
     "Weighted Pull-up":{needs:["pullupbar"],subs:[{needs:["latpulldown"],name:"Lat Pulldown"},{needs:["bands"],name:"Band Lat Pulldown"},{needs:["dumbbells"],name:"DB Row"},{needs:["bodyweight"],name:"Inverted Row (under a sturdy table)"}]},
     "Pull-up":{needs:["pullupbar"],subs:[{needs:["latpulldown"],name:"Lat Pulldown"},{needs:["bands"],name:"Band Lat Pulldown"},{needs:["dumbbells"],name:"DB Row"},{needs:["bodyweight"],name:"Inverted Row"}]},
     "Chest-Supported Row":{needs:["dumbbells"],subs:[{needs:["bands"],name:"Band Row"},{needs:["bodyweight"],name:"Inverted Row"}]},
+    "Single-Arm DB Row":{needs:["dumbbells"],subs:[{needs:["kettlebell"],name:"Single-Arm Kettlebell Row"},{needs:["bands"],name:"Single-Arm Band Row"},{needs:["bodyweight"],name:"Inverted Row"}]},
     "Lat Pulldown":{needs:["latpulldown"],subs:[{needs:["pullupbar"],name:"Pull-up / Band-assisted Pull-up"},{needs:["bands"],name:"Band Lat Pulldown"},{needs:["bodyweight"],name:"Inverted Row"}]},
     "Face Pull":{needs:["cable"],subs:[{needs:["bands"],name:"Band Face Pull"},{needs:["dumbbells"],name:"Rear-Delt Raise"},{needs:["bodyweight"],name:"Prone Y-T-W Raises"}]},
     "DB Curl":{needs:["dumbbells"],subs:[{needs:["bands"],name:"Band Curl"}]},
@@ -1379,7 +1383,9 @@
       }).join("");
       html+='<div class="day"><div class="day-head">'+d.name+' <span class="tag '+(d.tag==="Lift"?"":d.tag)+'">'+labelFor(d.tag)+'</span></div>'+
         '<div class="warm"><b>Warm-up (5 min):</b> '+warmupFor(d.name)+'</div>'+
-        '<table class="ex"><tr><th>Exercise</th><th style="text-align:right">Sets × Reps</th></tr>'+rows+'</table>'+logFoot(d.name)+'</div>';
+        '<table class="ex"><tr><th>Exercise</th><th style="text-align:right">Sets × Reps</th></tr>'+rows+'</table>'+
+        '<div class="romcue">Full range every rep — control the stretch, own the lockout. The range you train is the range you can swing with.</div>'+
+        logFoot(d.name)+'</div>';
     });
 
     html+=renderProgressFold();
