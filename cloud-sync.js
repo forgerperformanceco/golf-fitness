@@ -12,8 +12,8 @@
 (function () {
   "use strict";
 
-  var SUPABASE_URL  = "";   // e.g. "https://abcdwxyz.supabase.co"
-  var SUPABASE_ANON = "";   // your anon public key (safe to ship in the browser)
+  var SUPABASE_URL  = "https://tbwmckmyzoxzhpqlomsp.supabase.co";   // e.g. "https://abcdwxyz.supabase.co"
+  var SUPABASE_ANON = "sb_publishable_bOf591Xidfd_WLCYEYwaiQ_1kCbhbmi";   // publishable/anon key (safe to ship in the browser)
 
   // Everything the app persists to localStorage — the full progress blob.
   var KEYS = ["fairwayfuel", "ff_week", "ff_log", "ff_body"];
