@@ -1,0 +1,13 @@
+# Supabase project config. `supabase link` uses project_id; the [functions]
+# blocks set who is allowed to call each Edge Function.
+project_id = "tbwmckmyzoxzhpqlomsp"
+
+[functions.ai-coach]
+# Requires a valid Supabase JWT (the signed-in user's token). The function then
+# checks the user's subscription before calling Claude.
+verify_jwt = true
+
+[functions.paddle-webhook]
+# Paddle calls this server-to-server with no Supabase JWT — it verifies Paddle's
+# own signature instead, so the gateway JWT check must be off.
+verify_jwt = false

@@ -16,7 +16,7 @@
 //   supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
 // ============================================================================
 
-import Anthropic from "npm:@anthropic-ai/sdk@^0.70";
+import Anthropic from "npm:@anthropic-ai/sdk";
 import { createClient } from "npm:@supabase/supabase-js@^2";
 import { corsHeaders, preflight, json } from "../_shared/cors.ts";
 import { COACH_KNOWLEDGE } from "../_shared/knowledge.ts";
