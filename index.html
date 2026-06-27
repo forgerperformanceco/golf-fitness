@@ -401,6 +401,12 @@
   .fooddyn .fd-tag { display:inline-block; background:rgba(255,255,255,.16); border-radius:999px; padding:2px 9px; font-size:11px; font-weight:700; margin-right:4px; }
   .fooddyn .fd-sum { opacity:.7; font-size:11.5px; }
   .fooddyn .fd-note { font-size:11px; opacity:.75; margin-top:7px; font-style:italic; }
+  .sched-row.tappable { cursor:pointer; }
+  .sched-row.tappable .sched-name::after { content:" ▾"; color:var(--muted); font-size:10px; }
+  .sched-row.tappable.open .sched-name::after { content:" ▴"; }
+  .sched-row .meal-eg { display:none; margin-top:6px; font-size:12px; color:#1c3a28; background:#f1fdf4;
+    border:1px solid #cfe9d8; border-radius:8px; padding:7px 10px; line-height:1.45; }
+  .sched-row.open .meal-eg { display:block; }
   .primer { padding:10px 15px; font-size:11.8px; color:#7a4a12; background:#fff6ec; border-bottom:1px solid var(--line); line-height:1.5; }
   .primer b { color:#b4540f; }
   .primer-sub { color:#9a7a52; }
@@ -935,8 +941,10 @@
   });
   // Meal-count buttons live inside the re-rendered results, so delegate from the stable parent.
   $("results").addEventListener("click", function(e){
-    var b=e.target.closest("[data-meals]"); if(!b) return;
-    state.meals=parseInt(b.getAttribute("data-meals"),10); calc();
+    var b=e.target.closest("[data-meals]");
+    if(b){ state.meals=parseInt(b.getAttribute("data-meals"),10); calc(); return; }
+    var row=e.target.closest(".sched-row.tappable");
+    if(row){ row.classList.toggle("open"); }
   });
   $("resetBtn").addEventListener("click", function(){
     try { localStorage.removeItem("fairwayfuel"); } catch(e){}
@@ -1115,6 +1123,31 @@
     if(!picks.length){ picks.push(units[units.length-1].one); sum=units[units.length-1].g; }
     return { text:picks.join(" + "), sum:sum };
   }
+  // Role-tuned food pools for example meals (post-workout = fast carbs + lean protein, etc.)
+  var MEAL_PROT = {
+    Breakfast:[{one:"1 cup Greek yogurt",g:23},{one:"3 eggs",g:18},{one:"1 scoop whey",g:25}],
+    Dinner:[{one:"6 oz chicken or steak",g:50},{one:"4 oz salmon",g:29}],
+    post:[{one:"4 oz chicken breast",g:35},{one:"1 scoop whey",g:25}],
+    def:[{one:"4 oz chicken breast",g:35},{one:"1 cup Greek yogurt",g:23},{one:"3 eggs",g:18}]
+  };
+  var MEAL_CARB = {
+    Breakfast:[{one:"1 cup oats",g:54},{one:"1 banana",g:27},{one:"1 cup berries",g:15}],
+    Dinner:[{one:"1 cup rice",g:45},{one:"a baked potato",g:37}],
+    post:[{one:"1 cup white rice",g:45},{one:"1 banana",g:27},{one:"1 tbsp honey",g:17}],
+    pre:[{one:"1 banana",g:27},{one:"½ cup oats",g:27},{one:"1 tbsp honey",g:17}],
+    def:[{one:"1 cup rice",g:45},{one:"a baked potato",g:37},{one:"1 banana",g:27}]
+  };
+  function exampleMeal(s){
+    var key = s.kind==="pre" ? "pre" : (s.isPost ? "post" : s.label);
+    var cPool = MEAL_CARB[key] || MEAL_CARB.def;
+    var c = buildCombo(s.c||0, cPool);
+    if(s.kind==="pre" || !s.p) return c.text + " (fast carbs)";
+    var pPool = MEAL_PROT[key] || MEAL_PROT.def;
+    var p = buildCombo(s.p, pPool);
+    var fat = (s.f>=12) ? " + a little fat (avocado / nuts / olive oil)" : "";
+    var veg = (key==="Dinner"||key==="Lunch") ? " + veg" : "";
+    return p.text + " + " + c.text + veg + fat;
+  }
   function updateFoodTargets(proteinG, carbG, mealN){
     var el=$("foodDynamic"); if(!el) return;
     if(!proteinG || !carbG){ el.innerHTML=""; return; }
@@ -1196,18 +1229,20 @@
 
     var rows = m.schedule.map(function(s){
       if(s.kind==="pre"){
-        return '<div class="sched-row pre">'+
+        return '<div class="sched-row pre tappable">'+
           '<div class="sched-time">'+s.time+'</div>'+
           '<div class="sched-body"><div class="sched-name">⚡ '+s.label+' <span class="sched-tag pre">snack</span></div>'+
-          '<div class="sched-macros">'+s.c+'g carbs</div></div></div>';
+          '<div class="sched-macros">'+s.c+'g carbs</div>'+
+          '<div class="meal-eg">🍽️ Example: '+exampleMeal(s)+'</div></div></div>';
       }
       var tag = s.isPost ? ' <span class="sched-tag post">post-workout</span>'
               : (s.isPre ? ' <span class="sched-tag pre">pre-workout</span>' : '');
-      return '<div class="sched-row meal">'+
+      return '<div class="sched-row meal tappable">'+
         '<div class="sched-time">'+s.time+'</div>'+
         '<div class="sched-body"><div class="sched-name">🍽️ '+s.label+tag+'</div>'+
         '<div class="sched-macros"><b>'+s.p+'</b>P · <b>'+s.c+'</b>C · <b>'+s.f+'</b>F'+
-        (s.isPost? ' <span class="sched-plus">— biggest carb meal</span>':'')+'</div></div></div>';
+        (s.isPost? ' <span class="sched-plus">— biggest carb meal</span>':'')+'</div>'+
+        '<div class="meal-eg">🍽️ Example: '+exampleMeal(s)+'</div></div></div>';
     }).join("");
 
     var h="";
@@ -1217,7 +1252,7 @@
     h+='<div class="meals-body">';
     h+='<div class="sched-title">📅 Your day &mdash; <b>'+m.n+' meals</b> <span class="rec">('+recTxt+')</span>, portioned for a <b>'+m.slot+'</b> workout</div>';
     h+='<div class="sched">'+rows+'</div>';
-    h+='<div class="meal-foot">Times are guides — shift the day to fit your schedule.</div>';
+    h+='<div class="meal-foot">Tap any meal for a food example · times are guides — shift the day to fit your schedule.</div>';
     h+='</div></div>';
     return h;
   }
