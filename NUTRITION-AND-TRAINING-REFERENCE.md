@@ -425,6 +425,39 @@ set every couple of weeks) and stop well short of fatigue.
 7-iron is more repeatable than driver, so the week-to-week trend is a cleaner signal that the
 mass you're building is converting into speed.
 
+### Evidence-based refinements (research-validated)
+
+A deep review of the literature (clubhead-speed transfer, power/explosivity, mobility,
+hypertrophy/periodization, injury prevention) confirmed the program is well-aligned and added
+these tweaks:
+
+- **Power, not flexibility, drives clubhead speed.** Meta-analyses find flexibility/balance are
+  **not** significantly associated with CHS (r≈0.03); the strongest correlates are jump impulse
+  (r≈0.79), squat-jump (r≈0.82 in pros), and upper-body explosive/med-ball power. Mobility work
+  stays — but for **ROM, X-factor and injury prevention**, not as a "speed" method.
+- **Overspeed: light beats heavy.** Heavier-only club swings can *reduce* speed; gains come from
+  **light implements swung at maximal velocity, 3×/week with a rest day**, behind a strength
+  readiness check. The speed-day cue now says so.
+- **Velocity quality.** Power reps build speed only while they're fast — **stop a set the instant
+  reps visibly slow**; keep loads light and rest full. (Velocity-loss research.)
+- **Eccentric / deceleration.** The low back is the #1 golf injury and most non-contact injuries
+  occur in deceleration; eccentric work cuts strain injuries ~50%. Lift cue now emphasizes a
+  **~3-second lowering**, and jumps require **landing competency before height**.
+- **Grip / forearm.** Grip strength correlates with ball speed and protects the lead wrist/elbow
+  (top amateur upper-limb injuries) — added direct wrist work on the pull day.
+- **Volume realism.** Hypertrophy shows steep diminishing returns past ~10–12 hard sets/muscle/
+  week, and strength needs even fewer — so the program holds moderate volume rather than chasing
+  it, preserving recovery for the power/speed work.
+- **In-season & peaking.** Maintain size/strength on **~1–2 hard heavy sets/muscle, 1–2×/week**;
+  to peak for an event, **cut volume ~40–50% for ≤2 weeks while holding intensity** (~3–6% power
+  bump). See the in-app "In-season & peaking" panel.
+- **Sleep is a performance variable.** Sleep loss degrades **skill control** (swing tempo/strike)
+  more than strength — aim 7–9 h.
+
+> Concurrent-training note: the interference effect mainly blunts **power**, and **running** is
+> the worst offender. This program prescribes no endurance work; if you add conditioning, prefer
+> **cycling**, keep it in a separate session, and keep volume modest.
+
 ---
 
 ## 11. Supplements: the few that actually work
