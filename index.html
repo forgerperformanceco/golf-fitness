@@ -38,30 +38,27 @@
     margin: 0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     color: var(--ink);
-    background:
-      radial-gradient(1100px 520px at 50% -160px, #2a7d49 0%, rgba(31,107,58,0) 62%),
-      linear-gradient(180deg, #0b3d22 0px, #0c421f 120px, #144d2c 230px, #5f7d62 322px, var(--paper) 404px, var(--paper) 100%);
-    background-repeat: no-repeat;
+    background: var(--paper);
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
-  .wrap { max-width: 1080px; margin: 0 auto; padding: 30px 20px 70px; position: relative; z-index: 1; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 18px 20px 70px; position: relative; z-index: 1; }
 
-  /* subtle mowed-fairway stripes behind the header */
-  body::before {
-    content:""; position:absolute; top:0; left:0; right:0; height:360px; z-index:0; pointer-events:none;
-    background: repeating-linear-gradient(115deg, rgba(255,255,255,.035) 0 38px, rgba(0,0,0,.03) 38px 76px);
-    -webkit-mask-image: linear-gradient(180deg, #000 0%, transparent 92%);
-    mask-image: linear-gradient(180deg, #000 0%, transparent 92%);
+  /* Slim sticky app bar (replaces the giant brand hero) */
+  header.appbar {
+    position: sticky; top: 0; z-index: 60;
+    background: linear-gradient(160deg, #0f2417, #14532d);
+    box-shadow: 0 2px 14px rgba(8,40,22,.18);
   }
-
-  header.hero { text-align: center; color: #eafff1; padding: 16px 0 34px; position: relative; }
-  header.hero::after {
-    content:""; position:absolute; top:24px; left:50%; transform:translateX(-50%);
-    width:min(720px,94%); height:300px; pointer-events:none; z-index:-1;
-    background: radial-gradient(closest-side, rgba(244,197,66,.16), rgba(244,197,66,0) 70%);
+  .appbar-in {
+    max-width: 1080px; margin: 0 auto; height: 56px; padding: 0 18px;
+    display: flex; align-items: center; justify-content: space-between; gap: 14px;
   }
+  .wordmark { display: inline-flex; align-items: center; gap: 8px; color: #fff; font-weight: 900; font-size: 20px; letter-spacing: -.6px; }
+  .wordmark .em { color: var(--accent); }
+  .wordmark .ball { width: 14px; height: 14px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #fff, #d7e2d7); box-shadow: inset -2px -2px 4px rgba(0,0,0,.18); }
 
   /* golf "kicker" label above card titles */
   .kicker {
@@ -90,15 +87,15 @@
   .tagline { margin: 0 auto; max-width: 600px; color: #c9e8d3; font-size: 17px; line-height: 1.55; }
   .tagline b { color: #fff; }
 
-  /* Tabs */
+  /* Tabs (inside the app bar, desktop) */
   .tabs {
     display: inline-flex; gap: 4px; background: rgba(255,255,255,.10);
-    padding: 5px; border-radius: 999px; margin: 22px auto 0;
-    border: 1px solid rgba(255,255,255,.12); backdrop-filter: blur(4px);
+    padding: 4px; border-radius: 999px; margin: 0;
+    border: 1px solid rgba(255,255,255,.12);
   }
   .tabs button {
     border: none; background: transparent; color: #d6f3e0;
-    font-size: 14px; font-weight: 700; padding: 10px 22px; border-radius: 999px;
+    font-size: 13px; font-weight: 700; padding: 8px 16px; border-radius: 999px;
     cursor: pointer; transition: all .18s ease;
   }
   .tabs button:hover { color: #fff; }
@@ -727,12 +724,11 @@
     .tabs { display: none; }            /* replaced by the bottom bar on phones */
   }
 
-  /* ===== Phone polish: bigger tap targets, tighter header ===== */
+  /* ===== Phone polish: bigger tap targets ===== */
   @media (max-width: 600px) {
-    .wrap { padding: 22px 14px 70px; }
-    header.hero { padding: 4px 0 22px; }
-    h1 { font-size: clamp(28px, 8vw, 38px); }
-    header.hero p { font-size: 14.5px; }
+    .wrap { padding: 16px 14px 70px; }
+    .appbar-in { height: 52px; padding: 0 15px; }
+    .wordmark { font-size: 18px; }
     .card { padding: 20px 16px 22px; border-radius: 16px; }
     .seg button { padding: 12px 8px; min-height: 44px; }       /* ≥44px tap target */
     .goal { padding: 14px; }
@@ -747,19 +743,18 @@
 </style>
 </head>
 <body>
-<div class="wrap">
-
-  <header class="hero">
-    <div class="brand-kicker"><span class="ball"></span> The Golfer's Mass &amp; Speed System</div>
-    <h1 class="brand">Fairway<span class="em">Fuel</span></h1>
-    <p class="tagline">Build like a bodybuilder, move like a golfer — add lean mass and turn it into <b>clubhead speed</b>.</p>
-    <div class="tabs" id="tabs">
-      <button data-view="dash" class="active">Dashboard</button>
-      <button data-view="calc">Fuel</button>
-      <button data-view="plan">Train</button>
-      <button data-view="account">Account</button>
+  <header class="appbar">
+    <div class="appbar-in">
+      <div class="wordmark"><span class="ball"></span> Fairway<span class="em">Fuel</span></div>
+      <div class="tabs" id="tabs">
+        <button data-view="dash" class="active">Dashboard</button>
+        <button data-view="calc">Fuel</button>
+        <button data-view="plan">Train</button>
+        <button data-view="account">Account</button>
+      </div>
     </div>
   </header>
+<div class="wrap">
 
   <!-- ============ VIEW 0: DASHBOARD ============ -->
   <div class="view active" id="view-dash">
