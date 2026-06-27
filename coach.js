@@ -29,6 +29,7 @@
     return {
       profile: lsGet("fairwayfuel"),
       targets: lsGet("ff_targets"),
+      score: lsGet("ff_score"),          // FairwayFuel Score + pillar breakdown
       recentLog: {
         week: lsGet("ff_week") || 1,
         sessionsLogged: Object.keys(logObj).length,
@@ -91,7 +92,7 @@
   var STARTERS = [
     "Build me today's meals from my macros",
     "Read my log — am I progressing?",
-    "I only have dumbbells today — adapt it",
+    "How do I raise my FairwayFuel Score?",
     "What should I eat before a round?"
   ];
 

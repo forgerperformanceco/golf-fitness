@@ -334,12 +334,12 @@
     font-size: 15px; color: #2b3a30; line-height: 1.55; margin: 0 0 16px;
   }
   .plan-intro .lead b { color: var(--green-800); }
-  .pillars { display:grid; grid-template-columns: repeat(3,1fr); gap:14px; }
-  @media (max-width: 720px){ .pillars { grid-template-columns: 1fr; } }
-  .pillar { background:#fff; border:1px solid var(--line); border-radius:14px; padding:16px; box-shadow: var(--shadow); }
-  .pillar .ico { font-size:26px; }
-  .pillar h3 { margin:8px 0 4px; font-size:15px; }
-  .pillar p { margin:0; font-size:12.8px; color:var(--muted); line-height:1.45; }
+  .pillars { display:flex; flex-direction:column; gap:9px; }
+  .pillar { display:flex; align-items:flex-start; gap:13px; background:#fff; border:1px solid var(--line);
+    border-radius:13px; padding:12px 15px; box-shadow: var(--shadow); }
+  .pillar .ico { font-size:21px; line-height:1.1; flex:0 0 auto; }
+  .pillar h3 { margin:0 0 2px; font-size:14px; }
+  .pillar p { margin:0; font-size:12.5px; color:var(--muted); line-height:1.4; }
 
 
   .phase-detail { margin-top:18px; }
@@ -401,6 +401,9 @@
   .fooddyn .fd-tag { display:inline-block; background:rgba(255,255,255,.16); border-radius:999px; padding:2px 9px; font-size:11px; font-weight:700; margin-right:4px; }
   .fooddyn .fd-sum { opacity:.7; font-size:11.5px; }
   .fooddyn .fd-note { font-size:11px; opacity:.75; margin-top:7px; font-style:italic; }
+  .fooddyn .fd-swap { margin-top:9px; display:inline-flex; align-items:center; gap:6px; cursor:pointer;
+    background:rgba(255,255,255,.16); border:0; color:#fff; font:700 11.5px system-ui; border-radius:999px; padding:7px 13px; }
+  .fooddyn .fd-swap:active { transform:translateY(1px); }
   .sched-row.tappable { cursor:pointer; }
   .sched-row.tappable .sched-name::after { content:" ▾"; color:var(--muted); font-size:10px; }
   .sched-row.tappable.open .sched-name::after { content:" ▴"; }
@@ -425,26 +428,29 @@
   .speed-callout ul { margin:0; padding-left:18px; font-size:12.8px; color:#7a5320; line-height:1.6; }
 
   /* ===== FairwayFuel Score ===== */
-  .ffscore { margin-bottom:14px; background:linear-gradient(160deg,#0f2417,#14532d); color:#eafff1;
-    border-radius:16px; padding:16px 18px; box-shadow:0 6px 20px rgba(8,40,22,.18); }
-  .ffscore-top { display:flex; align-items:center; gap:15px; }
-  .ffscore-gauge { position:relative; width:128px; flex:0 0 auto; }
-  .ffscore-gauge .num { position:absolute; left:0; right:0; bottom:2px; text-align:center;
-    font-weight:800; font-size:23px; line-height:1; color:#fff; }
-  .ffscore-gauge .num small { display:block; font-size:8.5px; font-weight:700; opacity:.65; letter-spacing:1px; margin-top:3px; }
-  .ffscore-head h3 { margin:0 0 3px; font-size:15px; color:#fff; display:flex; align-items:center; gap:7px; }
-  .ffscore-head p { margin:0; font-size:12px; color:#bfe6cd; line-height:1.45; }
-  .ffscore-bars { margin-top:14px; display:flex; flex-direction:column; gap:9px; }
-  .ffbar { font-size:12px; }
-  .ffbar-l { display:flex; justify-content:space-between; margin-bottom:3px; color:#d6f0de; }
-  .ffbar-l b { color:#fff; }
-  .ffbar-track { height:7px; background:rgba(255,255,255,.14); border-radius:99px; overflow:hidden; }
-  .ffbar-fill { height:100%; background:linear-gradient(90deg,#3fae6b,#7be0a0); border-radius:99px; transition:width .4s; }
-  .ffbar.locked .ffbar-l { color:#8fb6a0; }
-  .ffbar.locked .ffbar-fill { background:rgba(255,255,255,.22); }
-  .ffscore-note { margin:13px 0 0; font-size:11.8px; color:#cfeed9; line-height:1.5;
-    border-top:1px solid rgba(255,255,255,.13); padding-top:11px; }
-  .ffscore-note b { color:#fff; }
+  .ffscore { margin-bottom:14px; background:radial-gradient(135% 135% at 6% 0%,#1a5031 0%,#0d2216 72%);
+    color:#eafff1; border-radius:18px; padding:17px 18px 16px; box-shadow:0 10px 26px rgba(8,40,22,.22);
+    border:1px solid rgba(255,255,255,.06); }
+  .ffscore-top { display:flex; align-items:center; gap:16px; }
+  .ffscore-gauge { position:relative; width:120px; flex:0 0 auto; }
+  .ffscore-gauge .num { position:absolute; left:0; right:0; bottom:7px; text-align:center;
+    font-weight:800; font-size:29px; line-height:1; color:#fff; letter-spacing:-1px; }
+  .ffscore-gauge .num i { font-style:normal; font-size:12px; font-weight:700; opacity:.5; letter-spacing:0; margin-left:1px; }
+  .ffscore-head { flex:1; min-width:0; }
+  .ffscore-head h3 { margin:0 0 4px; font-size:12.5px; color:#9fe7bb; display:flex; align-items:center; gap:6px;
+    letter-spacing:.8px; font-weight:800; }
+  .ffscore-head .ff-sum { margin:0; font-size:12.5px; color:#dff3e7; line-height:1.5; }
+  .ffscore-head .ff-sum b { color:#ffe08a; font-weight:700; }
+  .ffscore-bars { margin-top:15px; display:flex; flex-direction:column; gap:10px; }
+  .ffp { display:flex; align-items:center; gap:12px; font-size:12.5px; }
+  .ffp-label { width:112px; flex:0 0 auto; color:#dff3e7; }
+  .ffp-track { flex:1; height:8px; background:rgba(255,255,255,.16); border-radius:99px; overflow:hidden; }
+  .ffp-fill { display:block; height:100%; min-width:8px; background:linear-gradient(90deg,#3aae68,#86e9a8); border-radius:99px;
+    box-shadow:0 0 8px rgba(134,233,168,.4); transition:width .55s ease; }
+  .ffp-val { width:24px; text-align:right; font-weight:800; color:#fff; flex:0 0 auto; font-variant-numeric:tabular-nums; }
+  .ffp.locked .ffp-label { color:#7fa791; }
+  .ffp.locked .ffp-val { color:#9fe7bb; font-size:15px; line-height:1; }
+  .ffp.locked .ffp-fill { background:rgba(255,255,255,.14); box-shadow:none; }
 
   .tracker {
     margin-top:22px; background:var(--sand); border:1px solid var(--sand-dark); border-radius:14px; padding:18px 20px;
@@ -744,18 +750,17 @@
       <div class="plan-intro">
         <div class="kicker">⛳ Range Session</div>
         <h2>The 20-Week Mass + Speed Blueprint</h2>
-        <p class="sub">Build like a bodybuilder, move like a golfer.</p>
         <p class="lead">
-          <b>Add ~10 lb of lean muscle</b> and turn it into <b>clubhead speed</b> — one consistent week that builds
-          size, strength and speed together, all 20 weeks. Pair it with the <b>Lean Bulk</b> macros.
+          <b>Add ~10 lb of lean muscle</b> and turn it into <b>clubhead speed</b> — one consistent week, all 20 weeks.
+          Pair it with the <b>Lean Bulk</b> macros.
         </p>
         <div class="pillars">
-          <div class="pillar"><div class="ico">🏗️</div><h3>Build the Mass</h3>
-            <p>High-volume hypertrophy on the big lifts — more muscle, a higher speed ceiling.</p></div>
-          <div class="pillar"><div class="ico">⚡</div><h3>Make it Fast</h3>
-            <p>Heavy then explosive work for <b>rate of force development</b> — speed, not just size.</p></div>
-          <div class="pillar"><div class="ico">🌀</div><h3>Ground Force &amp; Rotate</h3>
-            <p>Footwork, throws and overspeed swings transfer power into the club.</p></div>
+          <div class="pillar"><div class="ico">🏗️</div><div><h3>Build the Mass</h3>
+            <p>High-volume hypertrophy on the big lifts — a higher speed ceiling.</p></div></div>
+          <div class="pillar"><div class="ico">⚡</div><div><h3>Make it Fast</h3>
+            <p>Heavy then explosive work for <b>rate of force development</b>.</p></div></div>
+          <div class="pillar"><div class="ico">🌀</div><div><h3>Ground Force &amp; Rotate</h3>
+            <p>Footwork, throws and overspeed swings transfer power into the club.</p></div></div>
         </div>
       </div>
 
@@ -1135,14 +1140,33 @@
   function placeholder(){ return '<div class="placeholder"><div class="big">⛳</div>Enter your details to see your calorie target and macros.</div>'; }
 
   // ---- Dynamic food helper: turn the user's numbers into example portions ----
+  // Broad, realistic pools (cooked weights, named cuts) so "Another option" gives variety.
   var CARB_UNITS = [
-    {one:"1 bagel", g:50}, {one:"1 cup rice", g:45}, {one:"a medium potato", g:37},
-    {one:"1 banana", g:27}, {one:"½ cup oats", g:27}, {one:"1 tbsp honey", g:17}
+    {one:"1 cup cooked rice", g:45}, {one:"1 large bagel", g:50}, {one:"a medium potato", g:37},
+    {one:"a medium sweet potato", g:27}, {one:"1 cup cooked pasta", g:43}, {one:"2 slices bread", g:30},
+    {one:"1 cup oats (dry)", g:54}, {one:"1 banana", g:27}, {one:"1 cup berries", g:17},
+    {one:"a large apple", g:30}, {one:"3 medjool dates", g:54}, {one:"½ cup granola", g:35},
+    {one:"2 rice cakes", g:14}, {one:"1 tbsp honey", g:17}
   ];
   var PROT_UNITS = [
-    {one:"4 oz chicken breast", g:35}, {one:"1 scoop whey", g:25},
-    {one:"1 cup Greek yogurt", g:23}, {one:"3 eggs", g:18}
+    {one:"4 oz cooked chicken breast", g:35}, {one:"4 oz cooked sirloin", g:33},
+    {one:"4 oz cooked salmon", g:29}, {one:"4 oz cooked lean turkey", g:34},
+    {one:"1 scoop whey", g:25}, {one:"1 cup Greek yogurt", g:23},
+    {one:"1 can tuna", g:27}, {one:"3 eggs", g:18}, {one:"½ cup cottage cheese", g:13}
   ];
+  // Like buildCombo, but rotates which item leads so repeated calls give variety.
+  function buildComboVaried(target, units, rot){
+    rot = rot||0;
+    var elig = units.filter(function(u){ return u.g <= target+12; });
+    if(!elig.length){ var sm=units.slice().sort(function(a,b){ return a.g-b.g; })[0]; return { text:sm.one, sum:sm.g }; }
+    var primary = elig[rot % elig.length];
+    var picks=[primary.one], sum=primary.g, rem=target-primary.g;
+    var rest = units.filter(function(u){ return u!==primary; }).sort(function(a,b){ return b.g-a.g; });
+    for(var i=0;i<rest.length && rem>9;i++){
+      if(rest[i].g <= rem+10){ picks.push(rest[i].one); sum+=rest[i].g; rem-=rest[i].g; }
+    }
+    return { text:picks.join(" + "), sum:sum };
+  }
   function buildCombo(target, units){
     var rem=target, picks=[], sum=0;
     for(var i=0;i<units.length && rem>9;i++){
@@ -1183,16 +1207,19 @@
     var veg = (key==="Dinner"||key==="Lunch") ? " + veg" : "";
     return p.text + " + " + c.text + veg + fat;
   }
+  var foodRoll=0, lastFood=null;
   function updateFoodTargets(proteinG, carbG, mealN){
     var el=$("foodDynamic"); if(!el) return;
-    if(!proteinG || !carbG){ el.innerHTML=""; return; }
+    if(!proteinG || !carbG){ el.innerHTML=""; lastFood=null; return; }
+    lastFood = { p:proteinG, c:carbG, m:mealN };
     var cPer=Math.round(carbG/mealN/5)*5, pPer=Math.round(proteinG/mealN/5)*5;
-    var c=buildCombo(cPer, CARB_UNITS), p=buildCombo(pPer, PROT_UNITS);
+    var c=buildComboVaried(cPer, CARB_UNITS, foodRoll), p=buildComboVaried(pPer, PROT_UNITS, foodRoll);
     el.innerHTML =
       '<div class="fd-head">Your numbers → on the plate</div>'+
       '<div class="fd-day">~<b>'+proteinG+'g</b> protein · ~<b>'+carbG+'g</b> carbs a day, across <b>'+mealN+'</b> meals — about <b>'+pPer+'g</b> protein &amp; <b>'+cPer+'g</b> carbs each.</div>'+
       '<div class="fd-row"><span class="fd-tag">🍗 ~'+pPer+'g protein</span> '+p.text+' <span class="fd-sum">(≈'+p.sum+'g)</span></div>'+
       '<div class="fd-row"><span class="fd-tag">🍚 ~'+cPer+'g carbs</span> '+c.text+' <span class="fd-sum">(≈'+c.sum+'g)</span></div>'+
+      '<button type="button" class="fd-swap" id="foodSwap">🔄 Another option</button>'+
       '<div class="fd-note">…or pick your own from the lists below to match those numbers.</div>';
   }
 
@@ -1865,42 +1892,54 @@
     var score = gotMax>0 ? Math.round(gotPts/gotMax*100) : null;   // rescale to pillars with data
     return { score:score, parts:parts, pillars:have.length };
   }
+  var FF_LEVER = {
+    consistency: "log your sessions — showing up is worth the most points",
+    speed: "test your 7-iron speed weekly so the trend can climb",
+    strength: "push the big lifts with double progression and log the weights",
+    p2w: "keep the surplus lean so speed outpaces bodyweight"
+  };
   function ffScoreSummary(r){
-    if(r.score==null) return "Log a workout and add your bodyweight + 7-iron speed to unlock your Score — it blends showing up, getting faster, and getting stronger into one number.";
-    if(r.pillars<2) return "Your Score grows more accurate as you add data — log across a few weeks so it can read your <b>trend</b>, not just a snapshot.";
-    if(r.score>=80) return "Dialed in — you're showing up and trending up. Keep progressive overload honest and protect the speed work.";
-    if(r.score>=55) return "Solid trajectory. The fastest lever now is the <b>lowest bar below</b> — close that gap to move the number.";
-    return "Early days. Consistency is worth the most points — string together logged sessions and the rest follows.";
+    if(r.score==null) return "Log a workout and add your bodyweight + 7-iron speed to fill the tank — one number for showing up, getting faster &amp; stronger.";
+    if(r.pillars<2) return "Add data across a few weeks so the gauge can read your <b>trend</b>, not just a snapshot.";
+    var have=r.parts.filter(function(p){ return p.have; });
+    var weak=have.slice().sort(function(a,b){ return (a.pts/a.max)-(b.pts/b.max); })[0];
+    var locked=r.parts.filter(function(p){ return !p.have; }).sort(function(a,b){ return b.max-a.max; })[0];
+    var pick = (locked && (!weak || (weak.pts/weak.max)>0.6)) ? locked : weak;
+    var tone = r.score>=80 ? "Dialed in. " : (r.score>=55 ? "Solid trajectory. " : "Early days. ");
+    return tone + "Biggest lever now: <b>" + (FF_LEVER[pick.key]||"keep stacking sessions") + "</b>.";
   }
   function renderScoreCard(){
     var r = ffScore();
+    // Stash a compact score summary so the AI coach can explain & coach toward it.
+    try {
+      localStorage.setItem("ff_score", JSON.stringify({
+        score: r.score,
+        pillars: r.parts.map(function(p){ return { name:p.label, pts:p.pts, max:p.max, have:p.have, detail:p.detail }; })
+      }));
+    } catch(e){}
     var pct = r.score==null ? 0 : r.score;
-    // Fuel gauge: semicircular arc from E (left) to F (right) with a needle.
-    var ARC=Math.PI*48, off=ARC*(1-pct/100);          // fill the arc left→right
-    var ang=(pct/100)*180 - 90;                        // needle: -90°=E, +90°=F
-    var ring = '<div class="ffscore-gauge"><svg width="128" height="74" viewBox="0 0 128 74">'+
-      '<path d="M16 64 A48 48 0 0 1 112 64" fill="none" stroke="rgba(255,255,255,.16)" stroke-width="9" stroke-linecap="round"/>'+
-      '<path d="M16 64 A48 48 0 0 1 112 64" fill="none" stroke="#7be0a0" stroke-width="9" stroke-linecap="round" '+
+    // Fuel gauge: a clean semicircular level arc (E→F) that fills with the score.
+    var ARC=Math.PI*48, off=ARC*(1-pct/100);
+    var gauge = '<div class="ffscore-gauge"><svg width="120" height="82" viewBox="0 0 126 84">'+
+      '<defs><linearGradient id="ffArc" x1="0" y1="0" x2="1" y2="0">'+
+        '<stop offset="0" stop-color="#2f9e5d"/><stop offset="1" stop-color="#8be9ac"/></linearGradient></defs>'+
+      '<path d="M15 66 A48 48 0 0 1 111 66" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="12" stroke-linecap="round"/>'+
+      '<path d="M15 66 A48 48 0 0 1 111 66" fill="none" stroke="url(#ffArc)" stroke-width="12" stroke-linecap="round" '+
         'stroke-dasharray="'+ARC.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/>'+
-      '<text x="13" y="73" fill="#9fc6ad" font-size="11" font-weight="700">E</text>'+
-      '<text x="109" y="73" fill="#9fc6ad" font-size="11" font-weight="700">F</text>'+
-      '<g transform="rotate('+ang.toFixed(1)+' 64 64)">'+
-        '<line x1="64" y1="64" x2="64" y2="26" stroke="#fff" stroke-width="3" stroke-linecap="round"/></g>'+
-      '<circle cx="64" cy="64" r="4.5" fill="#fff"/></svg>'+
-      '<div class="num">'+(r.score==null?"–":r.score)+'<small>FUEL · 0–100</small></div></div>';
+      '<text x="12" y="80" fill="#7fb295" font-size="11" font-weight="800">E</text>'+
+      '<text x="106" y="80" fill="#7fb295" font-size="11" font-weight="800">F</text></svg>'+
+      '<div class="num">'+(r.score==null?"–":r.score)+(r.score==null?"":'<i>/100</i>')+'</div></div>';
     var bars = r.parts.map(function(p){
       var w = p.max>0 ? Math.round(p.pts/p.max*100) : 0;
-      return '<div class="ffbar'+(p.have?"":" locked")+'">'+
-        '<div class="ffbar-l"><span>'+p.label+'</span><b>'+(p.have? p.pts+"/"+p.max : p.detail)+'</b></div>'+
-        (p.have?'<div class="ffbar-track"><div class="ffbar-fill" style="width:'+w+'%"></div></div>'+
-          '<div class="ffbar-l" style="margin-top:3px;font-size:11px;"><span>'+p.detail+'</span><span></span></div>':'')+
-        '</div>';
+      return '<div class="ffp'+(p.have?"":" locked")+'">'+
+        '<span class="ffp-label">'+p.label.replace(" (e1RM)","")+'</span>'+
+        '<span class="ffp-track"><span class="ffp-fill" style="width:'+(p.have?Math.max(7,w):100)+'%"></span></span>'+
+        '<span class="ffp-val">'+(p.have? p.pts : "+")+'</span></div>';
     }).join("");
-    return '<div class="ffscore"><div class="ffscore-top">'+ring+
-      '<div class="ffscore-head"><h3>⛳ FairwayFuel Score</h3>'+
-      '<p>Your build-to-speed progress in one number — consistency, speed, strength &amp; power-to-weight.</p></div></div>'+
-      '<div class="ffscore-bars">'+bars+'</div>'+
-      '<p class="ffscore-note">'+ffScoreSummary(r)+'</p></div>';
+    return '<div class="ffscore"><div class="ffscore-top">'+gauge+
+      '<div class="ffscore-head"><h3>⛳ FAIRWAYFUEL SCORE</h3>'+
+      '<p class="ff-sum">'+ffScoreSummary(r)+'</p></div></div>'+
+      '<div class="ffscore-bars">'+bars+'</div></div>';
   }
 
   /* ----- Progress (bodyweight + clubhead speed) ----- */
@@ -1943,6 +1982,12 @@
       var body=lsGet("ff_body",[]); body.push({ date:todayStr(), w:wv, s:sv }); lsSet("ff_body", body);
       renderPhase(); var pf=$("progFold"); if(pf) pf.open=true;
     }
+  });
+
+  // "Another option" re-rolls the example portions from a different lead food.
+  var fd=$("foodDynamic");
+  if(fd) fd.addEventListener("click", function(e){
+    if(e.target.closest("#foodSwap") && lastFood){ foodRoll++; updateFoodTargets(lastFood.p, lastFood.c, lastFood.m); }
   });
 
   restore();      // bring back the user's saved inputs/equipment/tab

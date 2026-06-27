@@ -35,6 +35,7 @@ interface CoachRequest {
   history?: { role: "user" | "assistant"; content: string }[];
   profile?: Record<string, unknown>;   // their `fairwayfuel` blob
   targets?: Record<string, unknown>;   // computed macros: { target, proteinG, carbG, fatG, mealN, goal }
+  score?: unknown;                     // FairwayFuel Score + pillar breakdown
   recentLog?: unknown;                 // trimmed ff_log / speed trend
 }
 
@@ -76,6 +77,7 @@ Deno.serve(async (req) => {
   const ctx = {
     profile: body.profile ?? null,
     macroTargets: body.targets ?? null,
+    fairwayFuelScore: body.score ?? null,
     recent: body.recentLog ?? null,
   };
   const contextBlock =
