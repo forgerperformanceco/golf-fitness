@@ -3,9 +3,11 @@
 project_id = "tbwmckmyzoxzhpqlomsp"
 
 [functions.ai-coach]
-# Requires a valid Supabase JWT (the signed-in user's token). The function then
-# checks the user's subscription before calling Claude.
-verify_jwt = true
+# MUST be false: with verify_jwt=true the gateway 401s the browser's CORS preflight
+# (OPTIONS has no token) before our code runs, which breaks the coach in the browser.
+# The function does its OWN auth — it reads the Bearer token and calls getUser, and
+# returns 401 if it's missing/invalid — so this is still fully protected.
+verify_jwt = false
 
 [functions.paddle-webhook]
 # Paddle calls this server-to-server with no Supabase JWT — it verifies Paddle's

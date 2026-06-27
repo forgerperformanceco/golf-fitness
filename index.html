@@ -389,6 +389,12 @@
   .romcue { padding:8px 15px 2px; font-size:11px; color:var(--muted); font-style:italic; line-height:1.4; }
   .exlegend { font-size:11px; color:var(--muted); margin:-4px 0 14px; padding:0 2px; line-height:1.4; }
   .exlegend b { color:#3f3818; }
+  .mode-banner { border-radius:12px; padding:11px 14px; font-size:12.5px; line-height:1.5; margin-bottom:12px; }
+  .mode-banner.build { background:#eef7f0; border:1px solid #cfe9d8; color:#2b3a30; }
+  .mode-banner.retain { background:#fff4e8; border:1px solid #f3d6b0; color:#7a5320; }
+  .mode-banner b { color:inherit; }
+  .mode-banner .mb-auto { display:inline-block; font-size:10px; font-weight:700; text-transform:uppercase;
+    letter-spacing:.4px; opacity:.65; margin-left:4px; }
   .foodfold .foodintro { font-size:12.5px; color:#5a6b60; margin:2px 0 6px; line-height:1.5; }
   .foodfold h4 { margin:12px 0 4px; font-size:13px; color:var(--green-800); }
   .foodfold h4 span { font-weight:500; font-size:11px; color:var(--muted); }
@@ -1085,6 +1091,7 @@
     var btn=e.target.closest(".goal"); if(!btn) return;
     Array.prototype.forEach.call(this.querySelectorAll(".goal"), function(b){ b.classList.remove("active"); });
     btn.classList.add("active"); state.goal=btn.getAttribute("data-goal"); calc();
+    if(typeof renderPhase==="function") renderPhase();   // goal drives the Build/Retain training mode
   });
   ["age","weight","heightFt","heightIn","activity"].forEach(function(id){
     $(id).addEventListener("input", calc);
@@ -1703,6 +1710,15 @@
     if(/Back Squat|Front Squat|Bench Press|Deadlift|Overhead Press|Pull-up|Romanian/i.test(n)) return "🏋️";
     return "💪";
   }
+  // Build vs Retain: derived from the macro goal. Build = full volume (gaining).
+  // Retain = trim ONE set off hypertrophy accessories (💪 only) to fit lower recovery
+  // in maintenance / a deficit, while heavy strength, power, rotation and ALL speed work
+  // stay at full intensity — that's what protects muscle and clubhead speed.
+  function trainRetain(){ return state.goal==="maintain" || state.goal==="cut"; }
+  function adjSets(sr, name){
+    if(!trainRetain() || purposeFor(name)!=="💪") return sr;
+    return String(sr).replace(/^(\s*)(\d+)/, function(_, sp, n){ return sp + Math.max(2, parseInt(n,10)-1); });
+  }
   function renderPhase(){
     var p = PHASES[planState.phase];
     var shown = activeDays();
@@ -1724,6 +1740,13 @@
     if(wk%6===0){ html+='<div class="deload-banner">🪫 <b>Deload week (Week '+wk+').</b> Take ~60% of your usual working weights, drop the last set of every lift, and keep the speed drills sharp but submaximal. This is planned recovery — you grow now. Full loads resume next week.</div>'; }
 
     html+='<button class="train-ai" data-ask="train">💬 <b>Coach this week</b> — am I progressing &amp; what to adjust ›</button>';
+
+    var retain = trainRetain();
+    html+='<div class="mode-banner '+(retain?"retain":"build")+'">'+
+      (retain
+        ? '🔻 <b>Retain mode</b> <span class="mb-auto">auto · from your goal</span><br>Accessory volume trimmed a notch — but <b>heavy lifts and all speed work stay at full</b>. Intensity is what keeps your muscle and clubhead speed while you maintain or lean out.'
+        : '🏗️ <b>Build mode</b> <span class="mb-auto">auto · from your goal</span><br><b>Full accessory volume</b> to add muscle, with heavy strength and speed work every week.')+
+      '</div>';
 
     html+='<div class="exlegend"><b>What each move builds:</b> 🏋️ strength · 💪 mass · ⚡ power/speed · 🌀 golf rotation</div>';
 
@@ -1752,8 +1775,8 @@
         var r = resolveEx(row[0], row[1]);
         var eff = '<div class="effort">'+effortNote(row[1])+'</div>';
         var pe = purposeFor(row[0])+' ';
-        if(r.status==="ok") return '<tr><td>'+pe+row[0]+'</td><td class="sets">'+row[1]+eff+'</td></tr>';
-        if(r.status==="swap") return '<tr class="swap"><td class="exname">'+pe+r.name+' <span class="swap-badge">swap</span></td><td class="sets">'+r.sr+eff+'</td></tr>';
+        if(r.status==="ok") return '<tr><td>'+pe+row[0]+'</td><td class="sets">'+adjSets(row[1],row[0])+eff+'</td></tr>';
+        if(r.status==="swap") return '<tr class="swap"><td class="exname">'+pe+r.name+' <span class="swap-badge">swap</span></td><td class="sets">'+adjSets(r.sr,r.name)+eff+'</td></tr>';
         return '<tr class="skip"><td class="exname"><span class="nm">'+pe+row[0]+'</span><span class="need">needs '+r.need.map(eqLabel).join(" + ")+'</span></td><td class="sets">'+row[1]+'</td></tr>';
       }).join("");
       var pNote = primerNoteShown ? '' : '<span class="primer-cue">New to jumps and throws? Master a soft, balanced landing before you add height — start with 2 sets and a low box, add a set every couple of weeks. Stop the moment reps slow down: power work only counts when every rep is crisp and fast.</span>';
@@ -1851,7 +1874,8 @@
       ex = PHASES[0].speed.ex.map(function(e){ var n=parseSets(e[1]), sets=[]; for(var i=0;i<n;i++) sets.push({w:"",r:"",done:false});
         return { name:e[0], target:e[1], sets:sets }; });
     } else {
-      ex = day.ex.map(function(row){ var r=resolveEx(row[0],row[1]); var nm=(r.status==="swap")?r.name:row[0]; var tgt=r.sr||row[1];
+      ex = day.ex.map(function(row){ var r=resolveEx(row[0],row[1]); var nm=(r.status==="swap")?r.name:row[0];
+        var tgt=adjSets(r.sr||row[1], nm);     // Retain mode trims accessory sets — log to match
         var n=parseSets(tgt), sets=[]; for(var i=0;i<n;i++) sets.push({w:"",r:"",done:false});
         return { name:nm, target:tgt, sets:sets }; });
     }

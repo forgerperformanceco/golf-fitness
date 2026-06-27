@@ -130,7 +130,13 @@
         busy = false; return;
       }
       if (res.status === 401) { typing.textContent = "Please sign in again (You tab)."; busy = false; return; }
-      if (!res.ok || !res.body) throw new Error("HTTP " + res.status);
+      if (!res.ok || !res.body) {
+        var errBody = "";
+        try { errBody = (await res.text()).slice(0, 160); } catch (e) {}
+        typing.classList.remove("bot"); typing.classList.add("note");
+        typing.textContent = "Coach error (HTTP " + res.status + ")" + (errBody ? ": " + errBody : "") + ".";
+        busy = false; return;
+      }
       var reader = res.body.getReader(), dec = new TextDecoder(), buf = "";
       while (true) {
         var chunk = await reader.read(); if (chunk.done) break;
@@ -150,7 +156,7 @@
       else history.push({ role: "assistant", content: acc });
     } catch (e) {
       typing.classList.remove("bot"); typing.classList.add("note");
-      typing.innerHTML = "The coach isn't live yet — the AI backend is still being set up. Everything else works as usual.";
+      typing.innerHTML = "Couldn't reach the coach (network/CORS). If you've deployed it, re-run the deploy after the latest fix, and check the function is set to <b>verify_jwt = false</b>.";
     } finally {
       busy = false; sendBtn.disabled = false; if (!input.disabled) input.focus();
     }
