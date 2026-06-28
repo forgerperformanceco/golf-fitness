@@ -642,6 +642,15 @@
   .ffm-shop li:last-child { border-bottom:0; }
   .ffm-shop .shop-n { color:var(--ink); }
   .ffm-shop .shop-q { color:var(--green-800); font-weight:800; white-space:nowrap; }
+  /* weekly plan sheet */
+  .ffw-intro { font-size:12.5px; color:var(--muted); line-height:1.5; margin-bottom:12px; }
+  .ffw-strip { display:flex; gap:6px; overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:4px; margin-bottom:12px; }
+  .ffw-day { flex:0 0 auto; border:1.5px solid var(--line); background:#fcfdfc; color:var(--muted); border-radius:999px; padding:7px 13px; font:800 12.5px system-ui; cursor:pointer; }
+  .ffw-day.on { background:#11643a; color:#fff; border-color:#11643a; }
+  .ffw-dayhdr { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
+  .ffw-dayhdr span { font:800 14.5px system-ui; color:var(--green-800); }
+  .ffw-aisle { font:800 11.5px system-ui; text-transform:uppercase; letter-spacing:.4px; color:var(--green-700); margin:12px 0 2px; }
+  .ffw-copy { width:100%; margin-top:12px; background:#11643a; color:#fff; border:0; border-radius:11px; padding:12px; font:800 13.5px system-ui; cursor:pointer; }
 
   /* ---- First-run onboarding wizard ---- */
   .ob { position:fixed; inset:0; z-index:200; background:linear-gradient(165deg,#0f2417,#14532d 58%,#0c2c1a);
@@ -1944,7 +1953,9 @@
   ];
   var FFP_GROUP_OF = { protein:"Proteins", carb:"Carbs & grains", fruit:"Fruit", fast:"Fast fuel", snack:"Snacks", fat:"Fats & nuts", veg:"Veggies" };
   var FFP_GROUPS = ["Proteins","Carbs & grains","Fruit","Fast fuel","Snacks","Fats & nuts","Veggies"];
-  var ffRoll=0, ffShowDay=false, ffMealsBound=false;
+  var ffRoll=0, ffShowDay=false, ffMealsBound=false, ffWeekDay=0, ffWeekRoll=0;
+  var FF_AISLE = { protein:"🥩 Proteins", carb:"🍚 Carbs & grains", fruit:"🍎 Produce", veg:"🥦 Produce", fast:"⚡ Snacks & fast carbs", snack:"⚡ Snacks & fast carbs", fat:"🥑 Fats & oils" };
+  var FF_AISLE_ORDER = ["🥩 Proteins","🍚 Carbs & grains","🍎 Produce","⚡ Snacks & fast carbs","🥑 Fats & oils"];
 
   function ffFind(arr,id){ for(var i=0;i<arr.length;i++) if(arr[i].id===id) return arr[i]; return null; }
   function ffPrefs(){ var p=lsGet("ff_foodprefs",null); p=p||{}; return { liked:p.liked||[], avoid:p.avoid||[], restrict:p.restrict||[] }; }
@@ -2189,7 +2200,7 @@
     html+='<div class="ffm-acts">'+
       '<button type="button" class="ffm-act primary" data-ffaction="day">🍱 Build my full day</button>'+
       '<button type="button" class="ffm-act" data-ffaction="ideas">🤖 Coach ideas</button>'+
-      '<button type="button" class="ffm-act" data-ffaction="week">🗓️ Meal plan</button>'+
+      '<button type="button" class="ffm-act" data-ffaction="week">🗓️ Plan my week</button>'+
       '<button type="button" class="ffm-act" data-ffaction="edit">✏️ Edit foods</button></div>';
     if(ffShowDay){
       html+='<div class="ffm-day"><div class="ffm-day-h">📅 Your full day — '+(t.m||4)+' meals</div>';
@@ -2217,7 +2228,7 @@
         else if(act==="reroll"){ ffRoll++; renderFFMeals(); }
         else if(act==="day"){ ffShowDay=!ffShowDay; renderFFMeals(); }
         else if(act==="ideas") ffAskCoach("ideas");
-        else if(act==="week") ffAskCoach("week");
+        else if(act==="week") openWeekPlan();
       });
     }
   }
@@ -2253,6 +2264,74 @@
     try{ renderFFMeals(); }catch(e){}
     try{ if(curView==="account") renderAccount(); }catch(e){}
   }
+
+  /* ===== Weekly meal plan + whole-week shopping list (opt-in sheet) ===== */
+  function ffWeekPlans(p,t){ var days=[]; for(var d=0; d<7; d++) days.push(ffPlanDay(p,t,(ffWeekRoll*97)+(d*7)+1)); return days; }
+  function ffWeekQty(it){
+    if(it.unit==="oz"){ var oz=Math.round(it.qty); return oz>=16 ? (Math.round(oz/16*10)/10)+" lb" : oz+" oz"; }
+    if(!it.unit) return "×"+Math.max(1,Math.round(it.servings));
+    var measure=(it.unit==="cup"||it.unit==="tbsp"), q=measure?Math.round(it.qty*2)/2:Math.max(1,Math.round(it.qty));
+    return ffFmtQty(q)+" "+ffPlural(it.unit,q);
+  }
+  function ffWeekGroups(days){
+    var allSlots=[]; days.forEach(function(pl){ allSlots=allSlots.concat(pl.slots); });
+    var shop=ffShopping(allSlots), groups={};
+    shop.forEach(function(it){ var a=FF_AISLE[it.food.cat]||"🛒 Other"; (groups[a]=groups[a]||[]).push(it); });
+    return groups;
+  }
+  function ffWeekBodyHtml(){
+    var p=ffPrefs(), t=ffTargets();
+    if(!t) return '<div class="ffm-day-note">Add your numbers on the Fuel tab first, then come back to plan your week.</div>';
+    var days=ffWeekPlans(p,t), d=Math.max(0,Math.min(6, ffWeekDay||0)), plan=days[d];
+    var strip='<div class="ffw-strip">'+days.map(function(_,i){ return '<button type="button" class="ffw-day'+(i===d?' on':'')+'" data-ffwday="'+i+'">Day '+(i+1)+'</button>'; }).join("")+'</div>';
+    var meals=''; plan.slots.forEach(function(s){
+      meals+='<div class="ffm-meal"><div class="ffm-meal-h">'+s.name+(s.post?' <em>· training</em>':'')+' <span>≈ '+s.P+'P · '+s.C+'C · '+s.F+'F</span></div><div class="ffm-items">'+ffItemsHtml(s.items)+'</div></div>';
+    });
+    var tt=plan.totals, tg=plan.target;
+    var totals='<div class="ffm-tot"><div class="ffm-tot-row">'+ffTotCell('Protein',tt.P,tg.P,'p')+ffTotCell('Carbs',tt.C,tg.C,'c')+ffTotCell('Fat',tt.F,tg.F,'f')+'</div></div>';
+    var groups=ffWeekGroups(days), groc='<div class="ffm-groc"><div class="ffm-groc-h">🛒 Whole-week shopping list <span>· 7 days</span></div>';
+    FF_AISLE_ORDER.concat(["🛒 Other"]).forEach(function(a){ if(!groups[a]) return;
+      groc+='<div class="ffw-aisle">'+a+'</div><ul class="ffm-shop">'+groups[a].map(function(it){ return '<li><span class="shop-n">'+it.food.e+' '+it.food.n+'</span><span class="shop-q">'+ffWeekQty(it)+'</span></li>'; }).join("")+'</ul>';
+    });
+    groc+='<button type="button" class="ffw-copy" data-ffwcopy="1">📋 Copy shopping list</button></div>';
+    return '<div class="ffw-intro">Seven varied days, each balanced to your daily target. Tap a day to see its meals — then shop the whole week in one trip below.</div>'+
+      strip+
+      '<div class="ffw-dayhdr"><span>Day '+(d+1)+' · '+(t.m||4)+' meals</span><button type="button" class="ffm-mini" data-ffwshuffle="1">🔁 Shuffle week</button></div>'+
+      meals+totals+groc;
+  }
+  function ffCopyWeekList(btn){
+    var p=ffPrefs(), t=ffTargets(); if(!t) return;
+    var groups=ffWeekGroups(ffWeekPlans(p,t)), lines=["FairwayFuel — 7-day shopping list",""];
+    FF_AISLE_ORDER.concat(["🛒 Other"]).forEach(function(a){ if(!groups[a]) return;
+      lines.push(a.replace(/^\S+\s/,"").toUpperCase());
+      groups[a].forEach(function(it){ lines.push("- "+it.food.n+" — "+ffWeekQty(it)); });
+      lines.push("");
+    });
+    ffCopyText(lines.join("\n"), btn);
+  }
+  function ffCopyText(text, btn){
+    function done(){ if(btn){ var o=btn.textContent; btn.textContent="Copied ✓"; setTimeout(function(){ btn.textContent=o; },1600); } }
+    function fallback(){ try{ var ta=document.createElement("textarea"); ta.value=text; ta.style.position="fixed"; ta.style.opacity="0"; document.body.appendChild(ta); ta.focus(); ta.select(); document.execCommand("copy"); ta.remove(); done(); }catch(e){} }
+    try{ if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(done, fallback); return; } }catch(e){}
+    fallback();
+  }
+  function openWeekPlan(){
+    var m=$("ffWeekModal");
+    if(!m){
+      m=document.createElement("div"); m.id="ffWeekModal"; m.className="swap-modal"; m.hidden=true;
+      m.innerHTML='<div class="swap-card ffp-card"><div class="swap-head"><span>🗓️ Your week</span><button class="swap-x" id="ffWeekX" type="button">×</button></div><div class="swap-body" id="ffWeekBody"></div></div>';
+      document.body.appendChild(m);
+      m.addEventListener("click", function(e){
+        if(e.target===m || e.target.closest("#ffWeekX")){ closeWeekPlan(); return; }
+        var db=e.target.closest("[data-ffwday]"); if(db){ ffWeekDay=parseInt(db.getAttribute("data-ffwday"),10); $("ffWeekBody").innerHTML=ffWeekBodyHtml(); $("ffWeekBody").scrollTop=0; return; }
+        if(e.target.closest("[data-ffwshuffle]")){ ffWeekRoll++; ffWeekDay=0; $("ffWeekBody").innerHTML=ffWeekBodyHtml(); return; }
+        var cp=e.target.closest("[data-ffwcopy]"); if(cp){ ffCopyWeekList(cp); return; }
+      });
+    }
+    ffWeekDay=0; $("ffWeekBody").innerHTML=ffWeekBodyHtml();
+    m.hidden=false; document.body.style.overflow="hidden";
+  }
+  function closeWeekPlan(){ var m=$("ffWeekModal"); if(m) m.hidden=true; document.body.style.overflow=""; }
 
   // Prominent "how fast should the scale move" band under the calorie hero.
   function targetBand(w,goal){
