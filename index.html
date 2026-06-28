@@ -532,6 +532,45 @@
   .adapt-btn:active { transform:translateY(1px); }
   .adapt-btn.ghost { flex:0 0 auto; background:rgba(255,255,255,.1); color:#cdebd6; padding:13px 16px; }
 
+  /* Game Day — dashboard CTA + the round-day plan screen */
+  .gameday-cta { margin-top:13px; width:100%; display:flex; align-items:center; gap:13px; text-align:left; cursor:pointer;
+    background:linear-gradient(135deg,#1b6b3c,#14532d); border:1px solid rgba(244,197,66,.4); border-radius:16px; padding:15px 16px; box-shadow:0 8px 22px rgba(8,40,22,.2); }
+  .gameday-cta:active { transform:translateY(1px); }
+  .gameday-cta .gd-flag { font-size:26px; flex:0 0 auto; }
+  .gameday-cta .gd-cta-tx { flex:1; min-width:0; display:flex; flex-direction:column; }
+  .gameday-cta .gd-cta-tx b { color:#fff; font-size:15.5px; }
+  .gameday-cta .gd-cta-tx span { color:#cdebd6; font-size:12px; margin-top:2px; }
+  .gameday-cta .gd-cta-go { color:#f4c542; font-size:24px; font-weight:700; flex:0 0 auto; }
+  .gd-top { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+  .gd-top h2 { margin:0; font-size:24px; color:var(--green-800); letter-spacing:-.3px; }
+  .gd-back { background:none; border:0; color:var(--green-700); font:700 14px system-ui; cursor:pointer; padding:6px 4px 6px 0; }
+  .gd-intro { font-size:13px; line-height:1.5; color:var(--muted); background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin-bottom:14px; }
+  .gd-intro b { color:var(--green-800); }
+  .gd-controls { display:flex; flex-wrap:wrap; gap:12px; background:#fff; border:1px solid var(--line); border-radius:14px; padding:14px; margin-bottom:16px; box-shadow:var(--shadow-sm); }
+  .gd-field { display:flex; flex-direction:column; gap:6px; }
+  .gd-field > span { font:700 11px system-ui; text-transform:uppercase; letter-spacing:.5px; color:var(--muted); }
+  .gd-field input[type=time] { border:1.5px solid var(--line); border-radius:10px; padding:9px 11px; font:700 15px system-ui; color:var(--ink); }
+  .gd-seg { display:flex; gap:5px; }
+  .gd-seg-btn { border:1.5px solid var(--line); background:#fcfdfc; color:var(--muted); border-radius:9px; padding:9px 13px; font:700 13px system-ui; cursor:pointer; }
+  .gd-seg-btn.on { background:#11643a; color:#fff; border-color:#11643a; }
+  .gd-empty { text-align:center; color:var(--muted); font-size:13.5px; padding:24px; background:var(--paper); border-radius:12px; }
+  /* timeline */
+  .gd-timeline { position:relative; }
+  .gd-card { display:flex; gap:13px; padding-bottom:14px; position:relative; }
+  .gd-card:not(:last-child)::before { content:""; position:absolute; left:54px; top:22px; bottom:-2px; width:2px; background:var(--line); }
+  .gd-time { flex:0 0 54px; text-align:right; font:800 11.5px system-ui; color:var(--green-700); padding-top:13px; }
+  .gd-cbody { flex:1; min-width:0; background:#fff; border:1px solid var(--line); border-radius:13px; padding:12px 14px; box-shadow:var(--shadow-sm); position:relative; }
+  .gd-cbody::before { content:""; position:absolute; left:-9px; top:15px; width:9px; height:9px; border-radius:50%; background:#11643a; box-shadow:0 0 0 3px #fff; }
+  .gd-ctitle { font:800 14.5px system-ui; color:var(--green-800); margin-bottom:4px; }
+  .gd-cdetail { font-size:12.8px; line-height:1.5; color:var(--ink); }
+  .gd-cdetail b { color:var(--green-700); }
+  .gd-warm { margin-top:10px; display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+  .gd-warm .wu-row { margin-bottom:0; }
+  @media(max-width:430px){ .gd-warm { grid-template-columns:1fr; } }
+  .gd-pack { background:#fff; border:1px solid var(--line); border-radius:14px; padding:14px 16px; margin-top:6px; box-shadow:var(--shadow-sm); }
+  .gd-pack-h { font:800 13px system-ui; color:var(--green-800); margin-bottom:8px; }
+  .gd-pack ul { margin:0; padding-left:18px; font-size:13px; line-height:1.7; color:var(--ink); }
+
   /* ---- First-run onboarding wizard ---- */
   .ob { position:fixed; inset:0; z-index:200; background:linear-gradient(165deg,#0f2417,#14532d 58%,#0c2c1a);
     display:flex; flex-direction:column; overflow-y:auto; -webkit-overflow-scrolling:touch; }
@@ -601,6 +640,12 @@
   .pc-svg { display:block; margin:4px 0 2px; max-height:108px; }
   .pc-foot { display:flex; justify-content:space-between; font-size:11.5px; color:var(--muted); margin-top:4px; }
   .pc-foot b { color:var(--green-700); }
+  .pc-payoff { margin-top:9px; padding:9px 11px; border-radius:10px; background:linear-gradient(135deg,#ecfbf1,#e2f6ea);
+    border:1px solid #c7ecd3; font-size:12.5px; line-height:1.45; color:var(--green-800); }
+  .pc-payoff b { color:#11643a; }
+  .pc-payoff span { display:block; color:var(--muted); font-size:11px; margin-top:2px; }
+  .pc-payoff.muted { background:var(--paper); border-color:var(--line); color:var(--muted); }
+  .pc-payoff.muted b { color:var(--green-700); }
   .pc-need { font-size:12.5px; color:var(--muted); line-height:1.45; background:var(--paper); border-radius:10px; padding:12px 13px; margin-top:4px; }
   /* strength rows */
   .lr { display:flex; align-items:center; gap:11px; padding:10px 0; border-top:1px solid var(--line); }
@@ -1244,6 +1289,11 @@
     <div id="progressBody"></div>
   </div>
 
+  <!-- ============ VIEW: GAME DAY (round-day plan) ============ -->
+  <div class="view" id="view-gameday">
+    <div id="gamedayBody"></div>
+  </div>
+
   <nav class="mobile-tabbar" id="mobileTabs">
     <button data-view="dash" class="active"><span class="ic">📊</span>Home</button>
     <button data-view="calc"><span class="ic">🍽️</span>Fuel</button>
@@ -1305,6 +1355,7 @@
     if(view==="dash") { try{ renderDash(); }catch(e){} }
     if(view==="account") { try{ renderAccount(); }catch(e){} }
     if(view==="progress") { try{ renderProgress(); }catch(e){} }
+    if(view==="gameday") { try{ renderGameDay(); }catch(e){} }
     if(scroll!==false) window.scrollTo({ top: 0, behavior: "smooth" });
     try { persist(); } catch(e){}
   }
@@ -2903,6 +2954,11 @@
     var fuelSub = t ? (t.proteinG+'p · '+t.carbG+'c · '+t.fatG+'f') : 'tap to calculate';
     var html = renderScoreCard();
     html += renderAdaptiveCard();
+    // Obvious round-day entry: this card asks the question, so it's clear WHEN to use it.
+    html += '<button class="gameday-cta" data-goview="gameday">'+
+      '<span class="gd-flag">⛳</span>'+
+      '<span class="gd-cta-tx"><b>Playing a round today?</b><span>Get your tee-time fueling + first-tee warm-up plan</span></span>'+
+      '<span class="gd-cta-go">›</span></button>';
     html += '<div class="dash-grid">'+
       dTile('🍽️','Daily fuel', fuel, fuelSub, 'calc')+
       dTile('🏌️','This week', 'Week <b>'+wk+'</b>', nw?('Next: '+nw.replace(/Day \d+ — /,'')):'open plan', 'plan')+
@@ -2921,6 +2977,52 @@
       '<div class="dl-hint">Bodyweight + clubhead speed feed your FairwayFuel Score. '+
         (lastSpeed?('Last: <b>'+lastSpeed+'</b> mph'):'Test 7-iron on a launch monitor — it’s the most repeatable.')+'</div>'+
       '</div>';
+    el.innerHTML=html;
+  }
+
+  /* ===================== GAME DAY — round-day fueling + warm-up plan =====================
+     Golf is a 4–5 hr endurance event. Given a tee time, build a timed plan: pre-round
+     meal, top-off, a golf-specific first-tee warm-up (mobility + speed primer), on-course
+     fueling cadence, the turn snack, and post-round refuel. This is where the training
+     and the nutrition moat meet the actual round. */
+  function gdState(){ var g=lsGet("ff_gameday", null); return g || { teeTime:"09:00", holes:18, transport:"walk" }; }
+  function gdSave(g){ lsSet("ff_gameday", g); }
+  function parseHM(s){ var m=/^(\d{1,2}):(\d{2})$/.exec(s||""); return m ? (+m[1])*60+(+m[2]) : null; }
+  function fmtMin(mins){ mins=((Math.round(mins)%1440)+1440)%1440; var h=Math.floor(mins/60), m=mins%60, ap=h>=12?"PM":"AM", h12=h%12||12; return h12+":"+(m<10?"0":"")+m+" "+ap; }
+  function gdCard(time, ic, title, detail, extra){
+    return '<div class="gd-card"><div class="gd-time">'+time+'</div><div class="gd-cbody">'+
+      '<div class="gd-ctitle">'+ic+' '+title+'</div><div class="gd-cdetail">'+detail+'</div>'+(extra||"")+'</div></div>';
+  }
+  function renderGameDay(){
+    var el=$("gamedayBody"); if(!el) return;
+    var g=gdState(), T=parseHM(g.teeTime);
+    var dur = g.holes===9 ? (g.transport==="walk"?135:120) : (g.transport==="walk"?270:240);
+    function seg(cur,val,lbl,attr){ return '<button class="gd-seg-btn'+(String(cur)===String(val)?" on":"")+'" data-'+attr+'="'+val+'">'+lbl+'</button>'; }
+    var html=''+
+      '<div class="gd-top"><button class="gd-back" data-gdback="1">‹ Home</button><h2>⛳ Game Day</h2></div>'+
+      '<div class="gd-intro">Golf is a <b>4–5 hour endurance event</b>. Most golfers fade on the back nine from low fuel and dehydration — not lack of skill. Plan the round and finish as strong as you start.</div>'+
+      '<div class="gd-controls">'+
+        '<label class="gd-field"><span>Tee time</span><input type="time" id="gdTee" value="'+escAttr(g.teeTime||"")+'" /></label>'+
+        '<div class="gd-field"><span>Holes</span><div class="gd-seg">'+seg(g.holes,9,"9","gdholes")+seg(g.holes,18,"18","gdholes")+'</div></div>'+
+        '<div class="gd-field"><span>Getting around</span><div class="gd-seg">'+seg(g.transport,"walk","🚶 Walk","gdtransport")+seg(g.transport,"ride","🛺 Ride","gdtransport")+'</div></div>'+
+      '</div>';
+    if(T==null){ el.innerHTML=html+'<div class="gd-empty">Set your tee time above to build your timed plan.</div>'; return; }
+    html+='<div class="gd-timeline">';
+    html+=gdCard(fmtMin(T-150),"🍳","Pre-round meal","A real meal — carbs + lean protein, light on fat. Top off glycogen: oats + eggs + fruit, or rice + chicken. Drink <b>16–20 oz water</b>.");
+    html+=gdCard(fmtMin(T-40),"🍌","Top-off snack","Fast carbs + water — a banana, a few dates, or a Rice Krispies treat (~30g carbs). Sip <b>8–12 oz</b>.");
+    var wu=["Leg swings|×10/side","Open-book T-spine|×8/side","Trunk rotations|×10/side","Hip 90/90 switches|×6/side","Band or club rotations|×10/side","Build-up swings|15 · ramp 50→100%","Overspeed primer swings|5–8 at MAX"];
+    var wuHtml='<div class="gd-warm">'+wu.map(function(x){ var p=x.split("|"); return '<button class="wu-row" type="button" data-wu="1"><span class="wu-move">'+p[0]+'</span><span class="wu-dose">'+p[1]+'</span></button>'; }).join("")+'</div>';
+    html+=gdCard(fmtMin(T-20),"🔥","First-tee warm-up","~15 min — mobilize, then prime your speed so the opening drive isn’t cold. Tap to check off:", wuHtml);
+    html+=gdCard(fmtMin(T),"⛳","Tee off — hole 1","You’re fueled and warm. Game on.");
+    html+=gdCard("During","🥤","On the course","<b>Every ~3 holes:</b> a few sips of water + a bite of fast carb (dates, fruit, chews) — don’t wait until you’re hungry or thirsty.<br><b>Hydration:</b> ~1 bottle (16–20 oz) every 6 holes; more when it’s hot — add electrolytes.");
+    html+=gdCard(fmtMin(T+dur/2),"🥪","At the turn (hole "+Math.round(g.holes/2)+")","A real snack — ½ turkey sandwich, jerky + fruit, or a protein bar (~20–30g carbs + protein). This is what keeps your "+(g.holes===9?"finish":"back nine")+" strong.");
+    html+=gdCard(fmtMin(T+dur),"🏁","Finish","Strong all "+g.holes+". Nice.");
+    html+=gdCard(fmtMin(T+dur+30),"💪","Refuel + log","Within ~45 min: protein + carbs (your post-workout meal works great). Then log your round — and a 7-iron speed test if you hit a launch monitor.");
+    html+='</div>';
+    html+='<div class="gd-pack"><div class="gd-pack-h">🎒 Pack list</div><ul>'+
+      '<li>'+(g.holes===18?"2–3":"1–2")+' bottles of water (+ electrolytes if hot)</li>'+
+      '<li>Fast carbs: banana, dates, fruit chews/gels, a Rice Krispies treat</li>'+
+      '<li>Turn snack: ½ sandwich, jerky, or a protein bar</li></ul></div>';
     el.innerHTML=html;
   }
 
@@ -3078,12 +3180,19 @@
         'Two data points and your lines start climbing.</p></div>';
     } else {
       // ---- Clubhead speed (north star) ----
+      // The payoff of speed is DISTANCE. A 7-iron carries ~2 yards farther per +1 mph of
+      // clubhead speed (public TrackMan/FlightScope data; smash ~1.33). We show the GAIN,
+      // not an absolute carry claim — the trend is the honest, motivating signal.
       var spNow=spF.length?spF[spF.length-1]:null, spBase=spF.length?spF[0]:null, spBest=spF.length?Math.max.apply(null,spF):null;
+      var YDS_PER_MPH=2, spGain=(spNow!=null&&spBase!=null)?(spNow-spBase):0;
       html += '<div class="pcard"><div class="pc-head"><span class="pc-t">⚡ Clubhead speed <small>7-iron</small></span>'+
           (spF.length>=2?pcDelta(spNow-spBase," mph"):"")+'</div>'+
         (spNow!=null?'<div class="pc-now">'+spNow+'<span>mph</span></div>':'<div class="pc-now muted">—</div>')+
         (spF.length>=2 ? pcLine(spF,"#16a34a","pcSpeed")
           : '<div class="pc-need">'+(spF.length===1?"One more entry and your speed trend appears.":"Add your 7-iron speed below to start the trend.")+'</div>')+
+        (spF.length>=2&&spGain>0
+          ? '<div class="pc-payoff">🎯 That’s roughly <b>+'+Math.round(spGain*YDS_PER_MPH)+' yards</b> of 7-iron carry since your baseline. <span>Speed is distance — ~2 yds per mph.</span></div>'
+          : (spF.length>=2 ? '<div class="pc-payoff muted">Every <b>+1 mph</b> here is about <b>+2 yards</b> of carry. Keep the trend climbing.</div>' : ""))+
         (spF.length>=2?'<div class="pc-foot"><span>baseline <b>'+spBase+'</b></span><span>best <b>'+spBest+'</b> mph</span></div>':"")+
         '</div>';
 
@@ -3366,6 +3475,19 @@
     }
     var t=e.target.closest("[data-goview]"); if(t) setView(t.getAttribute("data-goview"));
   });
+  // Game Day controls (tee time / holes / transport), warm-up check-off, back.
+  var gdb=$("gamedayBody");
+  if(gdb){
+    gdb.addEventListener("click", function(e){
+      if(e.target.closest("[data-gdback]")){ setView("dash"); return; }
+      var wu=e.target.closest("[data-wu]"); if(wu){ wu.classList.toggle("done"); return; }
+      var h=e.target.closest("[data-gdholes]"); if(h){ var g=gdState(); g.holes=parseInt(h.getAttribute("data-gdholes"),10); gdSave(g); renderGameDay(); return; }
+      var tr=e.target.closest("[data-gdtransport]"); if(tr){ var g2=gdState(); g2.transport=tr.getAttribute("data-gdtransport"); gdSave(g2); renderGameDay(); return; }
+    });
+    gdb.addEventListener("change", function(e){
+      if(e.target.id==="gdTee"){ var g=gdState(); g.teeTime=e.target.value; gdSave(g); renderGameDay(); }
+    });
+  }
   // Progress tab quick-add: log weight + speed straight from the Stats screen.
   var pb=$("progressBody");
   if(pb) pb.addEventListener("click", function(e){
