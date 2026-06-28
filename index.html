@@ -565,11 +565,14 @@
   .gameday-cta .gd-cta-tx b { color:#fff; font-size:15.5px; }
   .gameday-cta .gd-cta-tx span { color:#cdebd6; font-size:12px; margin-top:2px; }
   .gameday-cta .gd-cta-go { color:#f4c542; font-size:24px; font-weight:700; flex:0 0 auto; }
-  .gd-top { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
-  .gd-top h2 { margin:0; font-size:24px; color:var(--green-800); letter-spacing:-.3px; }
+  .gd-top { display:flex; align-items:center; gap:10px; margin-bottom:6px; }
   .gd-back { background:none; border:0; color:var(--green-700); font:700 14px system-ui; cursor:pointer; padding:6px 4px 6px 0; }
-  .gd-intro { font-size:13px; line-height:1.5; color:var(--muted); background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin-bottom:14px; }
-  .gd-intro b { color:var(--green-800); }
+  /* Premium dark Game Day hero — matches the other tabs. */
+  .gd-hero { background:radial-gradient(135% 135% at 8% 0%,#1a5031 0%,#0d2216 72%); border:1px solid rgba(255,255,255,.06);
+    border-radius:18px; padding:20px 18px; margin-bottom:16px; box-shadow:0 12px 28px rgba(8,40,22,.24); color:#eafff1; }
+  .gd-hero-t { font:900 26px/1.05 system-ui; letter-spacing:-.6px; color:#fff; margin-bottom:9px; }
+  .gd-hero-sub { font-size:13px; line-height:1.55; color:#bfe3cd; }
+  .gd-hero-sub b { color:#fff; }
   .gd-controls { display:flex; flex-wrap:wrap; gap:12px; background:#fff; border:1px solid var(--line); border-radius:14px; padding:14px; margin-bottom:16px; box-shadow:var(--shadow-sm); }
   .gd-field { display:flex; flex-direction:column; gap:6px; }
   .gd-field > span { font:700 11px system-ui; text-transform:uppercase; letter-spacing:.5px; color:var(--muted); }
@@ -4033,8 +4036,9 @@
     var dur = g.holes===9 ? (g.transport==="walk"?135:120) : (g.transport==="walk"?270:240);
     function seg(cur,val,lbl,attr){ return '<button class="gd-seg-btn'+(String(cur)===String(val)?" on":"")+'" data-'+attr+'="'+val+'">'+lbl+'</button>'; }
     var html=''+
-      '<div class="gd-top"><button class="gd-back" data-gdback="1">‹ Home</button><h2>⛳ Game Day</h2></div>'+
-      '<div class="gd-intro">Golf is a <b>4–5 hour endurance event</b>. Most golfers fade on the back nine from low fuel and dehydration — not lack of skill. Plan the round and finish as strong as you start.</div>'+
+      '<div class="gd-top"><button class="gd-back" data-gdback="1">‹ Home</button></div>'+
+      '<div class="gd-hero"><div class="gd-hero-t">⛳ Game Day</div>'+
+        '<div class="gd-hero-sub">Golf is a <b>4–5 hour endurance event.</b> Most golfers fade on the back nine from low fuel and dehydration — not lack of skill. Plan the round and finish as strong as you start.</div></div>'+
       '<div class="gd-controls">'+
         '<label class="gd-field"><span>Tee time</span><input type="time" id="gdTee" value="'+escAttr(g.teeTime||"")+'" /></label>'+
         '<div class="gd-field"><span>Holes</span><div class="gd-seg">'+seg(g.holes,9,"9","gdholes")+seg(g.holes,18,"18","gdholes")+'</div></div>'+
