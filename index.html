@@ -472,6 +472,10 @@
   .ffscore { margin-bottom:14px; background:radial-gradient(135% 135% at 6% 0%,#1a5031 0%,#0d2216 72%);
     color:#eafff1; border-radius:18px; padding:17px 18px 16px; box-shadow:0 10px 26px rgba(8,40,22,.22);
     border:1px solid rgba(255,255,255,.06); }
+  .ffscore-compact { display:block; width:100%; text-align:left; cursor:pointer; border:1px solid rgba(255,255,255,.06); }
+  .ffscore-compact:active { transform:translateY(1px); }
+  .ffscore-more { display:block; margin-top:11px; padding-top:11px; border-top:1px solid rgba(255,255,255,.12);
+    font:800 12.5px system-ui; color:#7ef0a8; }
   .ffscore-top { display:flex; align-items:center; gap:16px; }
   .ffscore-gauge { position:relative; width:120px; flex:0 0 auto; }
   .ffscore-gauge .num { position:absolute; left:0; right:0; bottom:7px; text-align:center;
@@ -3618,7 +3622,7 @@
     var tone = r.score>=80 ? "Dialed in. " : (r.score>=55 ? "Solid trajectory. " : "Early days. ");
     return tone + "Biggest lever now: <b>" + (FF_LEVER[pick.key]||"keep stacking sessions") + "</b>.";
   }
-  function renderScoreCard(){
+  function renderScoreCard(compact){
     var r = ffScore();
     // Stash a compact score summary so the AI coach can explain & coach toward it.
     try {
@@ -3639,6 +3643,15 @@
       '<text x="12" y="80" fill="#7fb295" font-size="11" font-weight="800">E</text>'+
       '<text x="106" y="80" fill="#7fb295" font-size="11" font-weight="800">F</text></svg>'+
       '<div class="num">'+(r.score==null?"–":r.score)+(r.score==null?"":'<i>/100</i>')+'</div></div>';
+    var top = '<div class="ffscore-top">'+gauge+
+      '<div class="ffscore-head"><h3>⛳ FAIRWAYFUEL SCORE</h3>'+
+      '<p class="ff-sum">'+ffScoreSummary(r)+'</p></div></div>';
+    // Dashboard: compact — the number + one-line read, tap through to the full breakdown.
+    if(compact){
+      return '<button class="ffscore ffscore-compact" data-goview="progress">'+top+
+        '<span class="ffscore-more">See the full breakdown ›</span></button>';
+    }
+    // Progress: full — the four component pillars.
     var bars = r.parts.map(function(p){
       var w = p.max>0 ? Math.round(p.pts/p.max*100) : 0;
       return '<div class="ffp'+(p.have?"":" locked")+'">'+
@@ -3646,10 +3659,7 @@
         '<span class="ffp-track"><span class="ffp-fill" style="width:'+(p.have?Math.max(7,w):100)+'%"></span></span>'+
         '<span class="ffp-val">'+(p.have? p.pts : "+")+'</span></div>';
     }).join("");
-    return '<div class="ffscore"><div class="ffscore-top">'+gauge+
-      '<div class="ffscore-head"><h3>⛳ FAIRWAYFUEL SCORE</h3>'+
-      '<p class="ff-sum">'+ffScoreSummary(r)+'</p></div></div>'+
-      '<div class="ffscore-bars">'+bars+'</div></div>';
+    return '<div class="ffscore">'+top+'<div class="ffscore-bars">'+bars+'</div></div>';
   }
 
   /* ----- Dashboard (home overview) ----- */
@@ -3817,7 +3827,7 @@
     var sess=Object.keys(getLog()).length, nw=nextWorkout();
     var fuel = t ? ('<b>'+t.kcal+'</b> kcal' ) : 'Set up →';
     var fuelSub = t ? (t.proteinG+'p · '+t.carbG+'c · '+t.fatG+'f') : 'tap to calculate';
-    var html = renderScoreCard();
+    var html = renderScoreCard(true);   // dashboard: compact, taps through to Progress
     html += renderInsight();
     html += renderAdaptiveCard();
     // Obvious round-day entry: this card asks the question, so it's clear WHEN to use it.
