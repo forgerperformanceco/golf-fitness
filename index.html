@@ -778,6 +778,24 @@
   .prelift[open] > summary::after { content:"▴"; }
   .prelift .prelift-body { padding:0 4px 4px; }
   .prelift .warm, .prelift .primer { border-radius:0; }
+  /* Gym-readable warm-up & power primer — scannable, tappable rows */
+  .wu { padding:4px 8px 8px; }
+  .wu-h { font:800 10.5px/1.2 system-ui; letter-spacing:.5px; text-transform:uppercase; color:var(--muted); margin:12px 2px 7px; }
+  .wu-h:first-child { margin-top:4px; }
+  .wu-h span { font-weight:600; letter-spacing:0; text-transform:none; }
+  .wu-row { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; text-align:left;
+    background:#fff; border:1px solid var(--line); border-radius:10px; padding:11px 13px; margin-bottom:7px; cursor:pointer; }
+  .wu-row:active { transform:translateY(1px); }
+  .wu-move { font:600 13.5px system-ui; color:var(--ink); }
+  .wu-dose { font:800 12.5px system-ui; color:var(--green-700); white-space:nowrap; }
+  .wu-row.done { opacity:.5; background:#f3f7f4; }
+  .wu-row.done .wu-move { text-decoration:line-through; }
+  .wu-row.primer { background:linear-gradient(160deg,#0f2417,#14532d); border-color:#0f2417; }
+  .wu-row.primer .wu-move { color:#fff; font-weight:800; }
+  .wu-row.primer .wu-dose { color:#7ef0a8; }
+  .wu-row.primer.done { opacity:.55; }
+  .wu-note { font-size:11.5px; color:var(--muted); line-height:1.45; margin:-1px 2px 6px; }
+  .wu-note.caution { color:#8a6d1f; background:#fef7e6; border:1px solid #f0e3b8; border-radius:8px; padding:8px 10px; margin-top:4px; }
   /* Rest-timer pill */
   .rest-pill { position:fixed; left:50%; transform:translateX(-50%); bottom:78px; z-index:75; display:flex; align-items:center; gap:10px;
     background:#11643a; color:#fff; border-radius:999px; padding:9px 9px 9px 16px; box-shadow:0 8px 24px rgba(8,40,22,.42); }
@@ -931,7 +949,7 @@
 <body>
   <header class="appbar">
     <div class="appbar-in">
-      <button class="wordmark" id="wordmark" type="button" aria-label="FairwayFuel home"><span class="ball"></span> Fairway<span class="em">Fuel</span></button>
+      <button class="wordmark" id="wordmark" type="button" aria-label="FairwayFuel home"><span class="ball"></span><span class="wm-text">Fairway<span class="em">Fuel</span></span></button>
       <div class="tabs" id="tabs">
         <button data-view="dash" class="active">Dashboard</button>
         <button data-view="calc">Fuel</button>
@@ -2029,20 +2047,36 @@
     if(reps>=13) return "RIR 1 · rest ~75s";
     return "RIR 1–2 · rest ~90s";
   }
-  function warmupFor(name){
-    if(name==="speed") return "Hips & T-spine flow — 90/90 switches ×6/side, open-book rotations ×8/side, leg swings — then 10–15 build-up swings ramping 50→90% before the timed sets.";
-    if(/Pull|Rotate/.test(name)) return "Back & rotation — cat–cow ×8, open-book T-spine rotations ×8/side, band pull-aparts ×20, dead hang 20s.";
-    if(/Push|Upper/.test(name)) return "Shoulders & T-spine — open-book rotations ×8/side, band pull-aparts ×20, shoulder CARs ×5/side, then 2 light ramp-up sets.";
-    if(/Lower|Squat|Hinge/.test(name)) return "Hips & legs — leg swings ×10/side, 90/90 hip switches ×8/side, world's greatest stretch ×5/side, then 2 light ramp-up sets.";
-    return "5-min dynamic flow — raise the heart rate, mobilize hips & T-spine, then ramp up to working weight.";
+  // Warm-up & power primer as scannable, tappable checklists (gym-readable).
+  function warmupList(name){
+    if(name==="speed") return [["90/90 hip switches","×6/side"],["Open-book T-spine","×8/side"],["Leg swings","×10/side"],["Build-up swings","10–15 · 50→90%"]];
+    if(/Pull|Rotate/.test(name)) return [["Cat–cow","×8"],["Open-book T-spine","×8/side"],["Band pull-aparts","×20"],["Dead hang","20s"]];
+    if(/Push|Upper/.test(name)) return [["Open-book rotation","×8/side"],["Band pull-aparts","×20"],["Shoulder CARs","×5/side"],["Light ramp-up sets","×2"]];
+    if(/Lower|Squat|Hinge/.test(name)) return [["Leg swings","×10/side"],["90/90 hip switches","×8/side"],["World's greatest stretch","×5/side"],["Light ramp-up sets","×2"]];
+    return [["Dynamic flow","5 min"],["Mobilize hips & T-spine","—"],["Ramp to working weight","×2 sets"]];
   }
   function primerFor(name){
-    if(/Pull|Rotate/.test(name)) return "Rotational med-ball throw — 4 × 4 / side (no ball? band or cable rotation)";
-    if(/Push/.test(name)) return "Explosive med-ball chest pass — 4 × 4 (no ball? clap / explosive push-up)";
-    if(/Squat/.test(name)) return "Box or squat jump — 4 × 3 (land soft, reset every rep)";
-    if(/Hinge/.test(name)) return "Russian kettlebell swing — 5 × 5 (no kettlebell? swing a dumbbell)";
-    if(/Lower/.test(name)) return "Box or squat jump — 4 × 3 (land soft, reset every rep)";
-    return "Box or squat jump — 4 × 3";
+    if(/Pull|Rotate/.test(name)) return {move:"Rotational med-ball throw", dose:"4 × 4 / side", note:"No ball? Band or cable rotation."};
+    if(/Push/.test(name)) return {move:"Explosive med-ball chest pass", dose:"4 × 4", note:"No ball? Clap or explosive push-up."};
+    if(/Squat/.test(name)) return {move:"Box or squat jump", dose:"4 × 3", note:"Land soft, reset every rep."};
+    if(/Hinge/.test(name)) return {move:"Russian kettlebell swing", dose:"5 × 5", note:"No kettlebell? Swing a dumbbell."};
+    if(/Lower/.test(name)) return {move:"Box or squat jump", dose:"4 × 3", note:"Land soft, reset every rep."};
+    return {move:"Box or squat jump", dose:"4 × 3", note:""};
+  }
+  var PRIMER_NOTE = "New to jumps &amp; throws? Start low — 2 sets, low box — and add a set every couple of weeks. Stop the instant reps slow: power only counts when every rep is crisp.";
+  function warmupHtml(name, withPrimer, showNote){
+    var h='<div class="wu"><div class="wu-h">🔥 Warm-up <span>· 5 min · tap to check off</span></div>';
+    warmupList(name).forEach(function(m){
+      h+='<button type="button" class="wu-row" data-wu="1"><span class="wu-move">'+m[0]+'</span><span class="wu-dose">'+m[1]+'</span></button>';
+    });
+    if(withPrimer){
+      var p=primerFor(name);
+      h+='<div class="wu-h">⚡ Power primer <span>· do this first, fresh · max intent</span></div>'+
+        '<button type="button" class="wu-row primer" data-wu="1"><span class="wu-move">'+p.move+'</span><span class="wu-dose">'+p.dose+'</span></button>';
+      if(p.note) h+='<div class="wu-note">'+p.note+'</div>';
+      if(showNote) h+='<div class="wu-note caution">⚠️ '+PRIMER_NOTE+'</div>';
+    }
+    return h+'</div>';
   }
   // One-glance purpose tag per exercise: 🏋️ strength · 💪 mass · ⚡ power/speed · 🌀 golf rotation
   function purposeFor(n){
@@ -2080,7 +2114,7 @@
       }).join("");
       var noGear = "No gear for overspeed? Use a light stick or your driver. No med ball? A heavy backpack, band, or dumbbell works.";
       return '<div class="day speedday"><div class="day-head">'+d.name+' <span class="tag '+(d.tag)+'">'+labelFor(d.tag)+'</span></div>'+
-        '<div class="warm"><b>Warm-up (5 min):</b> '+warmupFor("speed")+'</div>'+
+        warmupHtml("speed", false)+
         '<div class="speed-intro">'+s.intro+'</div>'+
         '<table class="ex"><tr><th>Drill</th><th style="text-align:right">Sets × Reps</th></tr>'+srows+'</table>'+
         '<div class="equip-note" style="padding:10px 15px 8px;">'+noGear+'</div>'+logFoot(d.name)+'</div>';
@@ -2095,9 +2129,7 @@
       if(r.status==="swap"){ var cs=exNameCell(pe, r.name, ' <span class="swap-badge">⇄ subbed for '+escAttr(base)+' (your gear)</span>'); return '<tr class="swap">'+cs.cell+'<td class="sets">'+adjSets(r.sr,r.name)+eff+'</td></tr>'+cs.row; }
       return '<tr class="skip"><td class="exname"><span class="nm">'+pe+base+'</span><span class="need">needs '+r.need.map(eqLabel).join(" + ")+'</span></td><td class="sets">'+row[1]+'</td></tr>';
     }).join("");
-    var pNote = showPrimerNote ? '<span class="primer-cue">New to jumps and throws? Master a soft, balanced landing before you add height — start with 2 sets and a low box, add a set every couple of weeks. Stop the moment reps slow down: power work only counts when every rep is crisp and fast.</span>' : '';
-    var warmPrimer = '<div class="warm"><b>Warm-up (5 min):</b> '+warmupFor(d.name)+'</div>'+
-      '<div class="primer"><b>⚡ Power primer — do this first, fresh:</b> '+primerFor(d.name)+'.<span class="primer-sub"> Max intent · full rest between reps · ~5 min.</span>'+pNote+'</div>';
+    var warmPrimer = warmupHtml(d.name, true, showPrimerNote);
     if(interactive){
       // Featured card: no day-header (hero names it); warm-up + primer collapsed so lifts lead.
       ilog = { week: curWeek(), day: d.name, sess: buildSession(d, curWeek()) }; openWhy={};
@@ -3041,6 +3073,8 @@
   /* ----- Delegated plan events (calendar start, log buttons, progress add) ----- */
   $("phaseDetail").addEventListener("click", function(e){
     if(e.target.closest("[data-gostats]")){ setView("progress"); return; }
+    var wu=e.target.closest("[data-wu]");                              // tap a warm-up move to check it off
+    if(wu){ wu.classList.toggle("done"); return; }
     if(e.target.closest("#equipBar") && handleEquipClick(e)) return;   // equipment editor (in settings)
     var lb=e.target.closest("[data-logday]");
     if(lb){ openLogger(lb.getAttribute("data-logday")); return; }
