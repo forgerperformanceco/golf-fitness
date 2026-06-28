@@ -589,6 +589,7 @@
   .ffp-donebar { padding:10px 14px 4px; border-top:1px solid var(--line); }
   .ffp-donebtn { width:100%; background:#11643a; color:#fff; border:0; border-radius:11px; padding:12px; font:800 14px system-ui; cursor:pointer; }
   .ob-foodwrap { background:#fff; border-radius:14px; padding:13px 13px 4px; max-height:44vh; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+  .ffp-region { width:100%; border:1.5px solid var(--line); border-radius:10px; padding:9px 11px; font:600 13.5px system-ui; color:var(--ink); background:#fcfdfc; }
 
   /* ---- Meal ideas from your favorites (Fuel) ---- */
   .ffm-cta { display:flex; align-items:center; gap:13px; }
@@ -1999,7 +2000,12 @@
   function ffToggleRestrict(p,id){ var R=p.restrict, i=R.indexOf(id); if(i<0) R.push(id); else R.splice(i,1); }
 
   function ffPickerHtml(p){
+    var reg=ffRegion();
     var html='<div class="ffp-legend">Tap once = <b class="lk">♥ love it</b>, again = <b class="av">✕ avoid</b>. We build your meals around your loves.</div>'+
+      '<div class="ffp-grp"><div class="ffp-gh">Region <span style="font-weight:500;text-transform:none;letter-spacing:0">— tailors food names &amp; units ('+(ffUnits()==="metric"?"grams":"oz/lb")+')</span></div>'+
+      '<select class="ffp-region" id="ffRegionSel">'+
+      FF_REGIONS.map(function(r){ return '<option value="'+r+'"'+(r===reg?' selected':'')+'>'+FF_REGION_LABEL[r]+'</option>'; }).join("")+
+      '</select></div>'+
       '<div class="ffp-grp"><div class="ffp-gh">Dietary needs</div><div class="ffp-chips">'+
       FF_RESTRICT.map(function(r){ var on=(p.restrict||[]).indexOf(r.id)>=0;
         return '<button type="button" class="ffp-r'+(on?' on':'')+'" data-ffr="'+r.id+'">'+r.e+' '+r.label+'</button>'; }).join("")+
@@ -2011,7 +2017,7 @@
         items.map(function(f){
           var liked=ffIsLiked(f,p), avoid=(p.avoid||[]).indexOf(f.id)>=0, blk=ffFoodBlocked(f,p);
           var cls=blk?'dim':(liked?'lk':(avoid?'av':''));
-          return '<button type="button" class="ffp-f '+cls+'" data-fff="'+f.id+'"'+(blk?' disabled':'')+'>'+f.e+' '+f.n+'</button>';
+          return '<button type="button" class="ffp-f '+cls+'" data-fff="'+f.id+'"'+(blk?' disabled':'')+'>'+f.e+' '+ffName(f)+'</button>';
         }).join("")+'</div></div>';
     });
     return html;
@@ -2051,15 +2057,49 @@
     if(!picks.length) picks.push(pool[start]), sum=pool[start].c;
     return {picks:picks, sum:sum};
   }
-  function ffLabel(f){ return f.e+' '+f.serv+' '+f.n.toLowerCase(); }
+  /* ----- Location: localize food NAMES (US brands → local staples) and UNITS (oz→g
+     outside the US). Region is auto-detected from the browser locale/timezone — no
+     permission prompt, fully offline — and overridable in Settings (ff_region). ----- */
+  var FF_REGIONS = ["US","CA","UK","AU","INTL"];
+  var FF_REGION_LABEL = { US:"United States", CA:"Canada", UK:"UK & Ireland", AU:"Australia & NZ", INTL:"Other / Metric" };
+  // Name overrides where the US default isn't what's on local shelves.
+  var FF_LOCAL = {
+    UK:   { beef:"Lean beef mince", fairlife:"Protein shake (30g)", cocoapeb:"Chocolate rice cereal", rkt:"Rice crispy bar", poptart:"Toaster pastry", graham:"Digestive biscuits", pudding:"Low-fat custard", gummies:"Wine gums" },
+    AU:   { beef:"Lean beef mince", fairlife:"Protein shake (30g)", cocoapeb:"Chocolate rice cereal", rkt:"Rice crispy bar", poptart:"Toaster pastry", graham:"Sweet biscuits", pudding:"Low-fat custard" },
+    INTL: { beef:"Lean minced beef", fairlife:"Protein shake (30g)", cocoapeb:"Chocolate cereal", rkt:"Rice crispy bar", poptart:"Toaster pastry", graham:"Sweet biscuits", pudding:"Low-fat pudding" }
+  };
+  function ffRegion(){
+    var ov=lsGet("ff_region",null); if(ov && FF_REGIONS.indexOf(ov)>=0) return ov;
+    try{
+      var cc=null, m=/[-_]([A-Za-z]{2})\b/.exec(navigator.language||""); if(m) cc=m[1].toUpperCase();
+      if(!cc){ var tz=(Intl.DateTimeFormat().resolvedOptions().timeZone)||"";
+        if(/Australia|Auckland/.test(tz)) cc="AU"; else if(/London|Dublin/.test(tz)) cc="GB";
+        else if(/Toronto|Edmonton|Winnipeg|Vancouver|Halifax/.test(tz)) cc="CA";
+        else if(/New_York|Chicago|Denver|Los_Angeles|Phoenix|Anchorage|Honolulu/.test(tz)) cc="US";
+        else if(/Europe\//.test(tz)) cc="EU"; }
+      if(cc==="US") return "US";
+      if(cc==="CA") return "CA";
+      if(cc==="GB"||cc==="IE") return "UK";
+      if(cc==="AU"||cc==="NZ") return "AU";
+      return cc?"INTL":"US";
+    }catch(e){ return "US"; }
+  }
+  function ffUnits(){ var r=ffRegion(); return (r==="US"||r==="CA")?"imperial":"metric"; }
+  function ffName(f){ var loc=FF_LOCAL[ffRegion()]; return (loc && loc[f.id]) || f.n; }
+  // Convert "N oz" inside a serving string to grams for metric regions (oz is a clean weight unit).
+  function ffServDisp(serv){
+    if(ffUnits()==="imperial") return serv;
+    return String(serv).replace(/([½¼¾]|[\d.]+)\s*oz/g, function(_,q){ return Math.round(ffParseQty(q)*28.35/5)*5+" g"; });
+  }
+  function ffLabel(f){ return f.e+' '+ffServDisp(f.serv)+' '+ffName(f).toLowerCase(); }
   function ffParseQty(s){ if(s==="½")return .5; if(s==="¼")return .25; if(s==="¾")return .75; var v=parseFloat(s); return isNaN(v)?1:v; }
   function ffFmtQty(q){ q=Math.round(q*4)/4; var w=Math.floor(q+1e-9), fr=Math.round((q-w)*100)/100, fs={0:"",0.25:"¼",0.5:"½",0.75:"¾"}[fr]||""; if(w===0) return fs||"0"; return fs?(w+fs):(""+w); }
   // Scale a food's serving toward a macro target so portions are realistic (e.g. "6 oz chicken").
   function ffServLabel(f,mult){
     if(mult===1) return ffLabel(f);
     var m=/^([½¼¾]|[\d.]+)\s*(.*)$/.exec(f.serv||"");
-    if(m){ var q=ffParseQty(m[1])*mult; return f.e+" "+ffFmtQty(q)+" "+m[2]+" "+f.n.toLowerCase(); }
-    return f.e+" "+ffFmtQty(mult)+"× "+f.serv+" "+f.n.toLowerCase();
+    if(m){ var q=ffParseQty(m[1])*mult; return f.e+" "+ffServDisp(ffFmtQty(q)+" "+m[2])+" "+ffName(f).toLowerCase(); }
+    return f.e+" "+ffFmtQty(mult)+"× "+ffServDisp(f.serv)+" "+ffName(f).toLowerCase();
   }
   function ffProtScaled(list,target,roll){
     var f=ffProtPick(list,target,roll); if(!f) return null;
@@ -2142,7 +2182,9 @@
     if(/^(date|cake|slice|scoop|bottle|can|bar|treat|block)$/.test(unit)) return unit+"s";
     return unit;
   }
+  function ffGramLabel(oz){ var g=Math.round(oz*28.35/5)*5; return g>=1000 ? (Math.round(g/100)/10)+" kg" : g+" g"; }
   function ffQtyLabel(it){
+    if(it.unit==="oz" && ffUnits()==="metric") return ffGramLabel(it.qty);
     if(!it.unit){ var s=Math.max(1,Math.round(it.servings)); return s>1?("×"+s):"1"; }
     var measure=(it.unit==="oz"||it.unit==="cup"||it.unit==="tbsp");
     var q=measure ? Math.round(it.qty*2)/2 : Math.max(1,Math.round(it.qty));
@@ -2206,7 +2248,7 @@
     });
     if(snackPool.length){
       html+='<div class="ffm-snacks"><div class="ffm-snk-h">⚡ Quick snacks you like</div><div class="ffm-snk-chips">'+
-        snackPool.slice(0,6).map(function(f){ return '<span class="ffm-snk">'+f.e+' '+f.n.toLowerCase()+' <i>'+f.c+'C'+(f.f>=4?' · '+f.f+'F':'')+'</i></span>'; }).join("")+'</div></div>';
+        snackPool.slice(0,6).map(function(f){ return '<span class="ffm-snk">'+f.e+' '+ffName(f).toLowerCase()+' <i>'+f.c+'C'+(f.f>=4?' · '+f.f+'F':'')+'</i></span>'; }).join("")+'</div></div>';
     }
     html+='<div class="ffm-acts">'+
       '<button type="button" class="ffm-act primary" data-ffaction="day">🍱 Build my full day</button>'+
@@ -2225,7 +2267,7 @@
       var shop=ffShopping(plan.slots);
       if(shop.length){
         html+='<div class="ffm-groc"><div class="ffm-groc-h">🛒 Shopping list <span>· one day</span></div><ul class="ffm-shop">'+
-          shop.map(function(it){ return '<li><span class="shop-n">'+it.food.e+' '+it.food.n+'</span><span class="shop-q">'+ffQtyLabel(it)+'</span></li>'; }).join("")+'</ul></div>';
+          shop.map(function(it){ return '<li><span class="shop-n">'+it.food.e+' '+ffName(it.food)+'</span><span class="shop-q">'+ffQtyLabel(it)+'</span></li>'; }).join("")+'</ul></div>';
       }
       html+='<div class="ffm-day-note">Macro-complete — protein, carbs <b>and</b> fat all targeted. Portions are starting points; nudge to taste. Faster carbs cluster around training.</div></div>';
     }
@@ -2265,6 +2307,9 @@
         if(rb) ffToggleRestrict(p, rb.getAttribute("data-ffr"));
         ffSavePrefs(p); body.innerHTML=ffPickerHtml(p);
       });
+      body.addEventListener("change", function(e){
+        if(e.target.id==="ffRegionSel"){ lsSet("ff_region", e.target.value); body.innerHTML=ffPickerHtml(ffPrefs()); }
+      });
     }
     $("ffPrefsBody").innerHTML=ffPickerHtml(ffPrefs());
     m.hidden=false; document.body.style.overflow="hidden";
@@ -2279,7 +2324,7 @@
   /* ===== Weekly meal plan + whole-week shopping list (opt-in sheet) ===== */
   function ffWeekPlans(p,t){ var days=[]; for(var d=0; d<7; d++) days.push(ffPlanDay(p,t,(ffWeekRoll*97)+(d*7)+1)); return days; }
   function ffWeekQty(it){
-    if(it.unit==="oz"){ var oz=Math.round(it.qty); return oz>=16 ? (Math.round(oz/16*10)/10)+" lb" : oz+" oz"; }
+    if(it.unit==="oz"){ if(ffUnits()==="metric") return ffGramLabel(it.qty); var oz=Math.round(it.qty); return oz>=16 ? (Math.round(oz/16*10)/10)+" lb" : oz+" oz"; }
     if(!it.unit) return "×"+Math.max(1,Math.round(it.servings));
     var measure=(it.unit==="cup"||it.unit==="tbsp"), q=measure?Math.round(it.qty*2)/2:Math.max(1,Math.round(it.qty));
     return ffFmtQty(q)+" "+ffPlural(it.unit,q);
@@ -2302,7 +2347,7 @@
     var totals='<div class="ffm-tot"><div class="ffm-tot-row">'+ffTotCell('Protein',tt.P,tg.P,'p')+ffTotCell('Carbs',tt.C,tg.C,'c')+ffTotCell('Fat',tt.F,tg.F,'f')+'</div></div>';
     var groups=ffWeekGroups(days), groc='<div class="ffm-groc"><div class="ffm-groc-h">🛒 Whole-week shopping list <span>· 7 days</span></div>';
     FF_AISLE_ORDER.concat(["🛒 Other"]).forEach(function(a){ if(!groups[a]) return;
-      groc+='<div class="ffw-aisle">'+a+'</div><ul class="ffm-shop">'+groups[a].map(function(it){ return '<li><span class="shop-n">'+it.food.e+' '+it.food.n+'</span><span class="shop-q">'+ffWeekQty(it)+'</span></li>'; }).join("")+'</ul>';
+      groc+='<div class="ffw-aisle">'+a+'</div><ul class="ffm-shop">'+groups[a].map(function(it){ return '<li><span class="shop-n">'+it.food.e+' '+ffName(it.food)+'</span><span class="shop-q">'+ffWeekQty(it)+'</span></li>'; }).join("")+'</ul>';
     });
     groc+='<button type="button" class="ffw-copy" data-ffwcopy="1">📋 Copy shopping list</button></div>';
     return '<div class="ffw-intro">Seven varied days, each balanced to your daily target. Tap a day to see its meals — then shop the whole week in one trip below.</div>'+
@@ -2315,7 +2360,7 @@
     var groups=ffWeekGroups(ffWeekPlans(p,t)), lines=["FairwayFuel — 7-day shopping list",""];
     FF_AISLE_ORDER.concat(["🛒 Other"]).forEach(function(a){ if(!groups[a]) return;
       lines.push(a.replace(/^\S+\s/,"").toUpperCase());
-      groups[a].forEach(function(it){ lines.push("- "+it.food.n+" — "+ffWeekQty(it)); });
+      groups[a].forEach(function(it){ lines.push("- "+ffName(it.food)+" — "+ffWeekQty(it)); });
       lines.push("");
     });
     ffCopyText(lines.join("\n"), btn);
@@ -4402,13 +4447,14 @@
       if(s===3){ segPick("obWk", function(v){ ob.workout=v; }); segPick("obFreq", function(v){ ob.freq=parseInt(v,10); }); }
       if(s===4) Array.prototype.forEach.call(root.querySelectorAll("[data-equip]"), function(b){
         b.onclick=function(){ ob.equip=b.getAttribute("data-equip"); applyEquipPreset(ob.equip); render(); }; });
-      if(s===6){ var fw=$("obFood"); if(fw) fw.addEventListener("click", function(e){
+      if(s===6){ var fw=$("obFood"); if(fw){ fw.addEventListener("click", function(e){
         var fb=e.target.closest("[data-fff]"), rb=e.target.closest("[data-ffr]");
         if(!fb && !rb) return;
         if(fb) ffCycleFood(ob.prefs, fb.getAttribute("data-fff"));
         if(rb) ffToggleRestrict(ob.prefs, rb.getAttribute("data-ffr"));
         fw.innerHTML=ffPickerHtml(ob.prefs);
-      }); }
+      });
+      fw.addEventListener("change", function(e){ if(e.target.id==="ffRegionSel"){ lsSet("ff_region", e.target.value); fw.innerHTML=ffPickerHtml(ob.prefs); } }); } }
       var next=$("obNext"); if(next) next.onclick=function(){ advance(s); };
     }
     render();
