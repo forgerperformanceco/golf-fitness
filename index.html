@@ -571,6 +571,62 @@
   .gd-pack-h { font:800 13px system-ui; color:var(--green-800); margin-bottom:8px; }
   .gd-pack ul { margin:0; padding-left:18px; font-size:13px; line-height:1.7; color:var(--ink); }
 
+  /* ---- Food preferences picker (modal + onboarding) ---- */
+  .ffp-legend { font-size:12px; color:var(--muted); line-height:1.5; margin-bottom:12px; background:var(--paper); border:1px solid var(--line); border-radius:9px; padding:8px 10px; }
+  .ffp-legend .lk { color:#11643a; } .ffp-legend .av { color:#b4453a; }
+  .ffp-grp { margin-bottom:14px; }
+  .ffp-gh { font:800 11px system-ui; text-transform:uppercase; letter-spacing:.5px; color:var(--muted); margin-bottom:7px; }
+  .ffp-chips { display:flex; flex-wrap:wrap; gap:7px; }
+  .ffp-f, .ffp-r { border:1.5px solid var(--line); background:#fcfdfc; color:var(--ink); border-radius:999px; padding:7px 12px; font:600 12.5px system-ui; cursor:pointer; transition:all .12s; }
+  .ffp-f.lk { background:#e7f7ec; border-color:#11643a; color:#11643a; font-weight:800; }
+  .ffp-f.lk::before { content:"♥ "; }
+  .ffp-f.av { background:#fbeae8; border-color:#d98a80; color:#b4453a; }
+  .ffp-f.av::before { content:"✕ "; }
+  .ffp-f.dim { opacity:.32; text-decoration:line-through; cursor:not-allowed; }
+  .ffp-r.on { background:#11643a; color:#fff; border-color:#11643a; font-weight:800; }
+  .ffp-card { max-height:88vh; display:flex; flex-direction:column; }
+  #ffPrefsBody { overflow-y:auto; -webkit-overflow-scrolling:touch; }
+  .ffp-donebar { padding:10px 14px 4px; border-top:1px solid var(--line); }
+  .ffp-donebtn { width:100%; background:#11643a; color:#fff; border:0; border-radius:11px; padding:12px; font:800 14px system-ui; cursor:pointer; }
+  .ob-foodwrap { background:#fff; border-radius:14px; padding:13px 13px 4px; max-height:44vh; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+
+  /* ---- Meal ideas from your favorites (Fuel) ---- */
+  .ffm-cta { display:flex; align-items:center; gap:13px; }
+  .ffm-cta-ic { font-size:30px; flex:0 0 auto; }
+  .ffm-cta-tx { flex:1; min-width:0; display:flex; flex-direction:column; }
+  .ffm-cta-tx b { color:var(--green-800); font-size:15px; }
+  .ffm-cta-tx span { color:var(--muted); font-size:12.5px; margin-top:2px; line-height:1.45; }
+  .ffm-cta-btn { flex:0 0 auto; background:#11643a; color:#fff; border:0; border-radius:10px; padding:10px 14px; font:800 13px system-ui; cursor:pointer; }
+  .ffm-head { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .ffm-head span { font:800 15.5px system-ui; color:var(--green-800); }
+  .ffm-mini { background:var(--paper); border:1px solid var(--line); color:var(--green-700); border-radius:999px; padding:5px 11px; font:700 12px system-ui; cursor:pointer; }
+  .ffm-sub { font-size:12.5px; color:var(--muted); margin:4px 0 12px; }
+  .ffm-sub b { color:var(--green-700); }
+  .ffm-pair { background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:11px 13px; margin-bottom:9px; }
+  .ffm-pair-h { font:800 12.5px system-ui; color:var(--green-800); margin-bottom:6px; display:flex; justify-content:space-between; gap:8px; }
+  .ffm-pair-h span { color:var(--muted); font-weight:700; }
+  .ffm-items { display:flex; flex-wrap:wrap; align-items:center; font-size:13px; color:var(--ink); line-height:1.5; }
+  .ffm-it { white-space:nowrap; }
+  .ffm-plus { color:var(--muted); margin:0 6px; }
+  .ffm-snacks { margin-top:6px; }
+  .ffm-snk-h { font:800 12px system-ui; color:var(--green-800); margin-bottom:6px; }
+  .ffm-snk-chips { display:flex; flex-wrap:wrap; gap:6px; }
+  .ffm-snk { background:#fff; border:1px solid var(--line); border-radius:999px; padding:5px 10px; font-size:12px; color:var(--ink); }
+  .ffm-snk i { color:var(--green-700); font-style:normal; font-weight:700; font-size:11px; }
+  .ffm-acts { display:flex; flex-wrap:wrap; gap:7px; margin-top:13px; }
+  .ffm-act { flex:1 1 auto; background:#fff; border:1.5px solid var(--line); color:var(--green-800); border-radius:10px; padding:10px 12px; font:700 12.5px system-ui; cursor:pointer; white-space:nowrap; }
+  .ffm-act.primary { background:#11643a; color:#fff; border-color:#11643a; }
+  .ffm-day { margin-top:14px; border-top:1px solid var(--line); padding-top:13px; }
+  .ffm-day-h { font:800 13.5px system-ui; color:var(--green-800); margin-bottom:10px; }
+  .ffm-meal { margin-bottom:10px; }
+  .ffm-meal-h { font:800 12.5px system-ui; color:var(--ink); margin-bottom:4px; display:flex; justify-content:space-between; gap:8px; }
+  .ffm-meal-h span { color:var(--muted); font-weight:700; }
+  .ffm-groc { margin-top:12px; background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:11px 13px; }
+  .ffm-groc-h { font:800 12.5px system-ui; color:var(--green-800); margin-bottom:7px; }
+  .ffm-groc-chips { display:flex; flex-wrap:wrap; gap:6px; }
+  .ffm-groc-i { background:#fff; border:1px solid var(--line); border-radius:7px; padding:4px 9px; font-size:12px; color:var(--ink); }
+  .ffm-day-note { font-size:11.5px; color:var(--muted); margin-top:10px; line-height:1.5; }
+
   /* ---- First-run onboarding wizard ---- */
   .ob { position:fixed; inset:0; z-index:200; background:linear-gradient(165deg,#0f2417,#14532d 58%,#0c2c1a);
     display:flex; flex-direction:column; overflow-y:auto; -webkit-overflow-scrolling:touch; }
@@ -1151,6 +1207,10 @@
         <div id="results"></div>
       </section>
 
+      <section class="card" id="ffMealsCard" aria-label="Meal ideas from your favorite foods" hidden>
+        <div id="ffMeals" class="ffm"></div>
+      </section>
+
       <section class="card card-full">
         <details class="fold foodfold">
           <summary>🍽️ What do I eat to hit these numbers?</summary>
@@ -1591,7 +1651,7 @@
     var heightCm=(num("heightFt")*12+num("heightIn"))*2.54;
     var weightKg=weightLb/2.20462;
 
-    if(weightLb<=0||heightCm<=0||age<=0){ $("results").innerHTML=placeholder(); updateFoodTargets(0,0,0); return; }
+    if(weightLb<=0||heightCm<=0||age<=0){ $("results").innerHTML=placeholder(); updateFoodTargets(0,0,0); try{ renderFFMeals(); }catch(e){} return; }
 
     var bmr=10*weightKg+6.25*heightCm-5*age+(state.sex==="male"?5:-161);
     var activity=parseFloat($("activity").value);
@@ -1694,6 +1754,7 @@
       proteinKcal:proteinKcal,fatKcal:fatKcal,carbKcal:carbKcal,
       goal:g,pct:g.pct, timing:timing, meal:meal, weekly:weekly });
     updateFoodTargets(proteinG, carbG, mealN);
+    try{ renderFFMeals(); }catch(e){}
     updatePlanCopy();                 // keep the Train-tab framing in step with the goal
     // Stash the computed targets so the AI coach can use the user's exact numbers.
     try {
@@ -1789,6 +1850,285 @@
       '<button type="button" class="fd-swap" id="foodSwap">🔄 Another option</button>'+
       '<button type="button" class="fd-ai" data-ask="meals">🤖 Build my full day</button>'+
       '<div class="fd-note">…or pick your own from the lists below to match those numbers.</div>';
+  }
+
+  /* ================= FOOD PREFERENCES — favorites personalize meals =================
+     A tagged food library. The picker reads it; the deterministic recommender and
+     day-planner filter/boost by the user's likes, avoids and hard dietary restrictions.
+     Restrictions are HARD (never shown); likes/avoids are SOFT (rank up / hide). */
+  var FF_FOODS = [
+    // proteins  (tags = "contains" flags used by restrictions)
+    {id:"chicken", n:"Chicken breast", e:"🍗", cat:"protein", p:35,c:0,f:4,  serv:"4 oz cooked", tags:["meat"]},
+    {id:"turkey",  n:"Lean turkey",    e:"🦃", cat:"protein", p:34,c:0,f:3,  serv:"4 oz cooked", tags:["meat"]},
+    {id:"beef",    n:"Lean ground beef",e:"🥩",cat:"protein", p:30,c:0,f:10, serv:"4 oz 90/10",  tags:["meat"]},
+    {id:"steak",   n:"Sirloin steak",  e:"🥩", cat:"protein", p:33,c:0,f:9,  serv:"4 oz cooked", tags:["meat"]},
+    {id:"salmon",  n:"Salmon",         e:"🐟", cat:"protein", p:29,c:0,f:11, serv:"4 oz cooked", tags:["fish"]},
+    {id:"tuna",    n:"Canned tuna",    e:"🐟", cat:"protein", p:30,c:0,f:1,  serv:"1 can",       tags:["fish"]},
+    {id:"shrimp",  n:"Shrimp",         e:"🦐", cat:"protein", p:24,c:0,f:1,  serv:"4 oz",        tags:["fish"]},
+    {id:"eggs",    n:"Eggs",           e:"🥚", cat:"protein", p:18,c:1,f:15, serv:"3 large",     tags:["egg"]},
+    {id:"eggwhite",n:"Egg whites",     e:"🥚", cat:"protein", p:13,c:1,f:0,  serv:"½ cup",       tags:["egg"]},
+    {id:"greekyog",n:"Greek yogurt",   e:"🥛", cat:"protein", p:23,c:9,f:0,  serv:"1 cup nonfat",tags:["dairy"]},
+    {id:"cottage", n:"Cottage cheese", e:"🧀", cat:"protein", p:25,c:6,f:2,  serv:"1 cup",       tags:["dairy"]},
+    {id:"whey",    n:"Whey protein",   e:"🥤", cat:"protein", p:25,c:3,f:1,  serv:"1 scoop",     tags:["dairy"]},
+    {id:"fairlife",n:"Fairlife (30g)", e:"🥤", cat:"protein", p:30,c:5,f:5,  serv:"1 bottle",    tags:["dairy"]},
+    {id:"deli",    n:"Deli turkey/ham",e:"🍖", cat:"protein", p:18,c:1,f:2,  serv:"3 oz",        tags:["meat"]},
+    {id:"jerky",   n:"Beef jerky",     e:"🥩", cat:"protein", p:11,c:3,f:1,  serv:"1 oz",        tags:["meat"]},
+    {id:"tofu",    n:"Tofu",           e:"🌱", cat:"protein", p:20,c:4,f:11, serv:"½ block firm",tags:[]},
+    {id:"tempeh",  n:"Tempeh",         e:"🌱", cat:"protein", p:20,c:8,f:11, serv:"3 oz",        tags:[]},
+    {id:"protcer", n:"Protein cereal", e:"🥣", cat:"protein", p:13,c:14,f:3, serv:"1 cup",       tags:[]},
+    // carbs & grains
+    {id:"rice",    n:"White rice",     e:"🍚", cat:"carb", p:4,c:45,f:0, serv:"1 cup cooked",   tags:[]},
+    {id:"pasta",   n:"Pasta",          e:"🍝", cat:"carb", p:8,c:43,f:1, serv:"1 cup cooked",   tags:["gluten"]},
+    {id:"potato",  n:"Baked potato",   e:"🥔", cat:"carb", p:4,c:37,f:0, serv:"1 medium",       tags:[]},
+    {id:"sweetpot",n:"Sweet potato",   e:"🍠", cat:"carb", p:2,c:26,f:0, serv:"1 medium",       tags:[]},
+    {id:"bagel",   n:"Bagel",          e:"🥯", cat:"carb", p:9,c:50,f:1, serv:"1 plain",        tags:["gluten"]},
+    {id:"bread",   n:"Bread",          e:"🍞", cat:"carb", p:8,c:30,f:2, serv:"2 slices",       tags:["gluten"]},
+    {id:"tortilla",n:"Flour tortilla", e:"🌯", cat:"carb", p:4,c:35,f:4, serv:"1 large",        tags:["gluten"]},
+    {id:"oats",    n:"Oats",           e:"🌾", cat:"carb", p:5,c:27,f:3, serv:"½ cup dry",      tags:[]},
+    {id:"quinoa",  n:"Quinoa",         e:"🌾", cat:"carb", p:8,c:39,f:4, serv:"1 cup cooked",   tags:[]},
+    // fruit
+    {id:"banana",  n:"Banana",         e:"🍌", cat:"fruit", p:1,c:27,f:0, serv:"1 medium", tags:[]},
+    {id:"apple",   n:"Apple",          e:"🍎", cat:"fruit", p:0,c:25,f:0, serv:"1 medium", tags:[]},
+    {id:"orange",  n:"Orange",         e:"🍊", cat:"fruit", p:1,c:22,f:0, serv:"1 large",  tags:[]},
+    {id:"grapes",  n:"Grapes",         e:"🍇", cat:"fruit", p:1,c:27,f:0, serv:"1 cup",    tags:[]},
+    {id:"berries", n:"Berries",        e:"🫐", cat:"fruit", p:1,c:15,f:0, serv:"1 cup",    tags:[]},
+    {id:"mango",   n:"Mango",          e:"🥭", cat:"fruit", p:1,c:25,f:0, serv:"1 cup",    tags:[]},
+    {id:"pineapple",n:"Pineapple",     e:"🍍", cat:"fruit", p:1,c:22,f:0, serv:"1 cup",    tags:[]},
+    // fast fuel (around training / on course)
+    {id:"honey",   n:"Honey",          e:"🍯", cat:"fast", p:0,c:17,f:0, serv:"1 tbsp",    tags:[]},
+    {id:"dates",   n:"Medjool dates",  e:"🌴", cat:"fast", p:0,c:18,f:0, serv:"1 date",    tags:[]},
+    {id:"ricecake",n:"Rice cakes",     e:"🍘", cat:"fast", p:1,c:14,f:0, serv:"2 cakes",   tags:[]},
+    {id:"sportsdr",n:"Sports drink",   e:"🥤", cat:"fast", p:0,c:36,f:0, serv:"20 oz",     tags:[]},
+    {id:"raisins", n:"Raisins",        e:"🍇", cat:"fast", p:1,c:32,f:0, serv:"¼ cup",     tags:[]},
+    // snacks (low-fat quick wins)
+    {id:"rkt",     n:"Rice Krispies Treat",e:"🍬",cat:"snack", p:1,c:17,f:2, serv:"1 bar", tags:["gluten"]},
+    {id:"cocoapeb",n:"Cocoa Pebbles",  e:"🥣", cat:"snack", p:1,c:36,f:1, serv:"1 cup",    tags:[]},
+    {id:"poptart", n:"Pop-Tart",       e:"🧇", cat:"snack", p:2,c:37,f:5, serv:"1 pastry", tags:["gluten"]},
+    {id:"pretzels",n:"Pretzels",       e:"🥨", cat:"snack", p:3,c:23,f:1, serv:"1 oz",     tags:["gluten"]},
+    {id:"graham",  n:"Graham crackers",e:"🍪", cat:"snack", p:2,c:22,f:3, serv:"4 crackers",tags:["gluten"]},
+    {id:"pudding", n:"FF pudding cup", e:"🍮", cat:"snack", p:2,c:22,f:0, serv:"1 cup",    tags:["dairy"]},
+    {id:"gummies", n:"Fruit gummies",  e:"🐻", cat:"snack", p:0,c:22,f:0, serv:"handful",  tags:[]},
+    {id:"popcorn", n:"Popcorn",        e:"🍿", cat:"snack", p:3,c:19,f:3, serv:"3 cups air",tags:[]},
+    // fats & nuts
+    {id:"avocado", n:"Avocado",        e:"🥑", cat:"fat", p:2,c:9,f:15, serv:"½",          tags:[]},
+    {id:"pb",      n:"Peanut butter",  e:"🥜", cat:"fat", p:7,c:6,f:16, serv:"2 tbsp",     tags:["nuts"]},
+    {id:"almonds", n:"Almonds",        e:"🌰", cat:"fat", p:6,c:6,f:14, serv:"1 oz",       tags:["nuts"]},
+    {id:"oliveoil",n:"Olive oil",      e:"🫒", cat:"fat", p:0,c:0,f:14, serv:"1 tbsp",     tags:[]},
+    // veggies
+    {id:"broccoli",n:"Broccoli",       e:"🥦", cat:"veg", p:3,c:6,f:0, serv:"1 cup",       tags:[]},
+    {id:"salad",   n:"Mixed veg/salad",e:"🥗", cat:"veg", p:2,c:8,f:0, serv:"a big handful",tags:[]}
+  ];
+  var FF_RESTRICT = [
+    {id:"vegetarian",label:"Vegetarian", e:"🥦", blocks:["meat","fish"]},
+    {id:"vegan",     label:"Vegan",      e:"🌱", blocks:["meat","fish","dairy","egg"]},
+    {id:"dairyfree", label:"Dairy-free", e:"🥛", blocks:["dairy"]},
+    {id:"glutenfree",label:"Gluten-free",e:"🌾", blocks:["gluten"]},
+    {id:"nutfree",   label:"Nut allergy",e:"🥜", blocks:["nuts"]},
+    {id:"noseafood", label:"No seafood", e:"🐟", blocks:["fish"]}
+  ];
+  var FFP_GROUP_OF = { protein:"Proteins", carb:"Carbs & grains", fruit:"Fruit", fast:"Fast fuel", snack:"Snacks", fat:"Fats & nuts", veg:"Veggies" };
+  var FFP_GROUPS = ["Proteins","Carbs & grains","Fruit","Fast fuel","Snacks","Fats & nuts","Veggies"];
+  var ffRoll=0, ffShowDay=false, ffMealsBound=false;
+
+  function ffFind(arr,id){ for(var i=0;i<arr.length;i++) if(arr[i].id===id) return arr[i]; return null; }
+  function ffPrefs(){ var p=lsGet("ff_foodprefs",null); p=p||{}; return { liked:p.liked||[], avoid:p.avoid||[], restrict:p.restrict||[] }; }
+  function ffSavePrefs(p){ lsSet("ff_foodprefs", { liked:p.liked||[], avoid:p.avoid||[], restrict:p.restrict||[] }); }
+  function ffRestrictBlocks(p){ var s={}; (p.restrict||[]).forEach(function(id){ var r=ffFind(FF_RESTRICT,id); if(r) r.blocks.forEach(function(b){ s[b]=1; }); }); return s; }
+  function ffFoodBlocked(f,p){ var b=ffRestrictBlocks(p); return (f.tags||[]).some(function(t){ return b[t]; }); }
+  function ffAllowed(f,p){ return !ffFoodBlocked(f,p) && (p.avoid||[]).indexOf(f.id)<0; }
+  function ffIsLiked(f,p){ return (p.liked||[]).indexOf(f.id)>=0; }
+  function ffHasPrefs(p){ return (p.liked&&p.liked.length) || (p.restrict&&p.restrict.length) || (p.avoid&&p.avoid.length); }
+
+  function ffCycleFood(p,id){
+    var L=p.liked, A=p.avoid, li=L.indexOf(id), ai=A.indexOf(id);
+    if(li<0 && ai<0) L.push(id);                 // neutral → love
+    else if(li>=0){ L.splice(li,1); A.push(id); } // love → avoid
+    else A.splice(ai,1);                          // avoid → neutral
+  }
+  function ffToggleRestrict(p,id){ var R=p.restrict, i=R.indexOf(id); if(i<0) R.push(id); else R.splice(i,1); }
+
+  function ffPickerHtml(p){
+    var html='<div class="ffp-legend">Tap once = <b class="lk">♥ love it</b>, again = <b class="av">✕ avoid</b>. We build your meals around your loves.</div>'+
+      '<div class="ffp-grp"><div class="ffp-gh">Dietary needs</div><div class="ffp-chips">'+
+      FF_RESTRICT.map(function(r){ var on=(p.restrict||[]).indexOf(r.id)>=0;
+        return '<button type="button" class="ffp-r'+(on?' on':'')+'" data-ffr="'+r.id+'">'+r.e+' '+r.label+'</button>'; }).join("")+
+      '</div></div>';
+    FFP_GROUPS.forEach(function(g){
+      var items=FF_FOODS.filter(function(f){ return FFP_GROUP_OF[f.cat]===g; });
+      if(!items.length) return;
+      html+='<div class="ffp-grp"><div class="ffp-gh">'+g+'</div><div class="ffp-chips">'+
+        items.map(function(f){
+          var liked=ffIsLiked(f,p), avoid=(p.avoid||[]).indexOf(f.id)>=0, blk=ffFoodBlocked(f,p);
+          var cls=blk?'dim':(liked?'lk':(avoid?'av':''));
+          return '<button type="button" class="ffp-f '+cls+'" data-fff="'+f.id+'"'+(blk?' disabled':'')+'>'+f.e+' '+f.n+'</button>';
+        }).join("")+'</div></div>';
+    });
+    return html;
+  }
+
+  // role list: liked-first, fall back to all allowed. role 'prot' | 'carb' | 'snack'
+  function ffRoleList(p, role){
+    var cats = role==='prot' ? ['protein'] : (role==='snack' ? ['snack','fast','fruit'] : ['carb','fruit','fast','snack']);
+    var all=FF_FOODS.filter(function(f){ return cats.indexOf(f.cat)>=0 && ffAllowed(f,p); });
+    if(role==='carb') all=all.filter(function(f){ return f.f<=6; });   // keep carb sources low-fat
+    var liked=all.filter(function(f){ return ffIsLiked(f,p); });
+    return liked.length?liked:all;
+  }
+  function ffProtPick(list,target,roll){
+    if(!list.length) return null;
+    var pool=list.slice().sort(function(a,b){ return Math.abs(a.p-target)-Math.abs(b.p-target); });
+    var top=pool.slice(0,Math.min(4,pool.length));
+    return top[(roll||0)%top.length];
+  }
+  function ffCarbCombo(list,target,roll){
+    if(!list.length) return {picks:[],sum:0};
+    var pool=list.slice().sort(function(a,b){ return b.c-a.c; });
+    var n=pool.length, start=(roll||0)%n, picks=[], sum=0, rem=target;
+    for(var k=0;k<n && rem>8;k++){ var f=pool[(start+k)%n]; if(f.c<=rem+10 && picks.indexOf(f)<0){ picks.push(f); sum+=f.c; rem-=f.c; } }
+    if(!picks.length) picks.push(pool[start]), sum=pool[start].c;
+    return {picks:picks, sum:sum};
+  }
+  function ffFoodLabel(f){ return f.e+' '+f.serv+' '+f.n.toLowerCase(); }
+  function ffPairing(p,pPer,cPer,roll){
+    var prots=ffRoleList(p,'prot'), carbs=ffRoleList(p,'carb');
+    if(!prots.length || !carbs.length) return null;
+    var prot=ffProtPick(prots,pPer,roll), combo=ffCarbCombo(carbs,cPer,roll);
+    return { items:[prot].concat(combo.picks), P:prot.p, C:combo.sum+prot.c };
+  }
+  function ffMealNames(n){
+    if(n<=3) return ["Breakfast","Lunch","Dinner"];
+    if(n===4) return ["Breakfast","Lunch","Snack","Dinner"];
+    if(n===5) return ["Breakfast","Snack","Lunch","Snack","Dinner"];
+    return ["Breakfast","Snack","Lunch","Snack","Dinner","Evening"];
+  }
+  function ffDayPlan(p,t,roll){
+    var mealN=t.m||4, names=ffMealNames(mealN), pPer=Math.round(t.p/mealN), base=t.c/(mealN+0.4), slots=[];
+    for(var i=0;i<mealN;i++){
+      var cTarget=Math.round(i===mealN-1 ? base*1.4 : base);   // biggest carbs at the last meal slot
+      var prot=ffProtPick(ffRoleList(p,'prot'),pPer,roll+i), combo=ffCarbCombo(ffRoleList(p,'carb'),cTarget,roll+i);
+      var items=(prot?[prot]:[]).concat(combo.picks);
+      slots.push({ name:names[i], items:items, P:(prot?prot.p:0), C:combo.sum+(prot?prot.c:0) });
+    }
+    return slots;
+  }
+
+  function ffPrefsPrompt(p){
+    function names(ids){ return (ids||[]).map(function(id){ var f=ffFind(FF_FOODS,id); return f?f.n:null; }).filter(Boolean); }
+    var liked=names(p.liked), avoid=names(p.avoid),
+        restrict=(p.restrict||[]).map(function(id){ var r=ffFind(FF_RESTRICT,id); return r?r.label:null; }).filter(Boolean);
+    var parts=[];
+    if(liked.length) parts.push("Foods I like: "+liked.join(", ")+".");
+    if(avoid.length) parts.push("Please avoid: "+avoid.join(", ")+".");
+    if(restrict.length) parts.push("Hard dietary restrictions (never include): "+restrict.join(", ")+".");
+    return parts.join(" ");
+  }
+  function ffAskCoach(kind){
+    var p=ffPrefs(), pp=ffPrefsPrompt(p);
+    var prompt = kind==="week"
+      ? "Build me a simple 1-day repeatable meal plan plus a short grocery list that hits my macro targets. "+pp+" Realistic and low-fuss — breakfast as breakfast, faster carbs around training, keep fat moderate."
+      : "Give me 3 simple meal ideas I can actually make that hit my per-meal protein and carbs, built around foods I like. "+pp+" Use cooked weights and keep fat in check.";
+    if(window.FFCoach && window.FFCoach.ready()) window.FFCoach.ask(prompt, kind==="week"?"Your meal plan":"Meal ideas");
+  }
+
+  function ffTargets(){
+    if(lastFood) return { p:lastFood.p, c:lastFood.c, m:lastFood.m };
+    var tg=lsGet("ff_targets",null);
+    if(tg && tg.proteinG) return { p:tg.proteinG, c:tg.carbG, m:(state.meals||MEALS_REC[state.goal]||4) };
+    return null;
+  }
+  function ffItemsHtml(items){ return items.map(function(f){ return '<span class="ffm-it">'+f.e+' '+f.serv+' '+f.n.toLowerCase()+'</span>'; }).join('<span class="ffm-plus">+</span>'); }
+
+  function renderFFMeals(){
+    var card=$("ffMealsCard"), el=$("ffMeals"); if(!el) return;
+    var t=ffTargets();
+    if(!t){ if(card) card.hidden=true; el.innerHTML=""; return; }
+    if(card) card.hidden=false;
+    var p=ffPrefs();
+    if(!ffHasPrefs(p)){
+      el.innerHTML='<div class="ffm-cta"><div class="ffm-cta-ic">🍽️</div>'+
+        '<div class="ffm-cta-tx"><b>Make these meals yours</b><span>Pick the foods you actually eat and we’ll build your meal ideas and a full day around them.</span></div>'+
+        '<button type="button" class="ffm-cta-btn" data-ffaction="edit">Pick my foods</button></div>';
+      return;
+    }
+    var pPer=Math.max(15,Math.round(t.p/(t.m||4))), cPer=Math.max(15,Math.round(t.c/(t.m||4)));
+    var a=ffPairing(p,pPer,cPer,ffRoll), b=ffPairing(p,pPer,cPer,ffRoll+1);
+    var snackPool=ffRoleList(p,'snack').filter(function(f){ return ffIsLiked(f,p) || !ffHasLikes(p); });
+    var html='<div class="ffm-head"><span>🍽️ Built around your favorites</span>'+
+      '<button type="button" class="ffm-mini" data-ffaction="reroll">🔁 Shuffle</button></div>'+
+      '<div class="ffm-sub">~<b>'+pPer+'g</b> protein · ~<b>'+cPer+'g</b> carbs per meal — from foods you love.</div>';
+    [a,b].forEach(function(pr,i){ if(!pr) return;
+      html+='<div class="ffm-pair"><div class="ffm-pair-h">Meal idea '+(i+1)+' <span>≈ '+pr.P+'P · '+pr.C+'C</span></div>'+
+        '<div class="ffm-items">'+ffItemsHtml(pr.items)+'</div></div>';
+    });
+    if(snackPool.length){
+      html+='<div class="ffm-snacks"><div class="ffm-snk-h">⚡ Quick snacks you like</div><div class="ffm-snk-chips">'+
+        snackPool.slice(0,6).map(function(f){ return '<span class="ffm-snk">'+f.e+' '+f.n.toLowerCase()+' <i>'+f.c+'C</i></span>'; }).join("")+'</div></div>';
+    }
+    html+='<div class="ffm-acts">'+
+      '<button type="button" class="ffm-act primary" data-ffaction="day">🍱 Build my full day</button>'+
+      '<button type="button" class="ffm-act" data-ffaction="ideas">🤖 Coach ideas</button>'+
+      '<button type="button" class="ffm-act" data-ffaction="week">🗓️ Meal plan</button>'+
+      '<button type="button" class="ffm-act" data-ffaction="edit">✏️ Edit foods</button></div>';
+    if(ffShowDay){
+      var plan=ffDayPlan(p,t,ffRoll), grocery={};
+      html+='<div class="ffm-day"><div class="ffm-day-h">📅 Your day — '+(t.m||4)+' meals from your favorites</div>';
+      plan.forEach(function(s){
+        s.items.forEach(function(f){ grocery[f.id]=f; });
+        html+='<div class="ffm-meal"><div class="ffm-meal-h">'+s.name+' <span>≈ '+s.P+'P · '+s.C+'C</span></div>'+
+          '<div class="ffm-items">'+ffItemsHtml(s.items)+'</div></div>';
+      });
+      var gk=Object.keys(grocery);
+      if(gk.length){
+        html+='<div class="ffm-groc"><div class="ffm-groc-h">🛒 Grocery list</div><div class="ffm-groc-chips">'+
+          gk.map(function(id){ var f=grocery[id]; return '<span class="ffm-groc-i">'+f.e+' '+f.n.toLowerCase()+'</span>'; }).join("")+'</div></div>';
+      }
+      html+='<div class="ffm-day-note">Portions are starting points — adjust to hit your daily numbers. Faster carbs (fruit, honey, cereal) work best around training.</div></div>';
+    }
+    el.innerHTML=html;
+    if(!ffMealsBound && card){
+      ffMealsBound=true;
+      card.addEventListener("click", function(e){
+        var b=e.target.closest("[data-ffaction]"); if(!b) return;
+        var act=b.getAttribute("data-ffaction");
+        if(act==="edit") openFoodPrefs();
+        else if(act==="reroll"){ ffRoll++; renderFFMeals(); }
+        else if(act==="day"){ ffShowDay=!ffShowDay; renderFFMeals(); }
+        else if(act==="ideas") ffAskCoach("ideas");
+        else if(act==="week") ffAskCoach("week");
+      });
+    }
+  }
+  function ffHasLikes(p){ return p.liked && p.liked.length; }
+
+  /* Favorites editor — a light modal reused from onboarding + Settings. */
+  function openFoodPrefs(){
+    var m=$("ffPrefsModal");
+    if(!m){
+      m=document.createElement("div"); m.id="ffPrefsModal"; m.className="swap-modal"; m.hidden=true;
+      m.innerHTML='<div class="swap-card ffp-card"><div class="swap-head"><span>🍽️ Your favorite foods</span>'+
+        '<button class="swap-x" id="ffPrefsX" type="button">×</button></div>'+
+        '<div class="swap-body" id="ffPrefsBody"></div>'+
+        '<div class="ffp-donebar"><button type="button" class="ffp-donebtn" id="ffPrefsDone">Done</button></div></div>';
+      document.body.appendChild(m);
+      m.addEventListener("click", function(e){ if(e.target===m || e.target.closest("#ffPrefsX") || e.target.closest("#ffPrefsDone")) closeFoodPrefs(); });
+      var body=m.querySelector("#ffPrefsBody");
+      body.addEventListener("click", function(e){
+        var fb=e.target.closest("[data-fff]"), rb=e.target.closest("[data-ffr]");
+        if(!fb && !rb) return;
+        var p=ffPrefs();
+        if(fb) ffCycleFood(p, fb.getAttribute("data-fff"));
+        if(rb) ffToggleRestrict(p, rb.getAttribute("data-ffr"));
+        ffSavePrefs(p); body.innerHTML=ffPickerHtml(p);
+      });
+    }
+    $("ffPrefsBody").innerHTML=ffPickerHtml(ffPrefs());
+    m.hidden=false; document.body.style.overflow="hidden";
+  }
+  function closeFoodPrefs(){
+    var m=$("ffPrefsModal"); if(m) m.hidden=true; document.body.style.overflow="";
+    try{ persist(); }catch(e){}
+    try{ renderFFMeals(); }catch(e){}
+    try{ if(curView==="account") renderAccount(); }catch(e){}
   }
 
   // Prominent "how fast should the scale move" band under the calorie hero.
@@ -3057,6 +3397,9 @@
         '</div><button class="acct-btn ghost" id="acctEdit">Edit my numbers</button>'+
         '<button class="acct-btn ghost" id="acctSetup">↻ Re-run guided setup</button></div>';
     }
+    html+='<div class="acct-card"><div class="acct-head">🍽️ Your favorite foods</div>'+
+      '<p class="acct-p">Tell us what you actually eat and your meal ideas + day plans get built around it. Set it once, tweak anytime.</p>'+
+      '<button class="acct-btn ghost" id="acctFoods">Edit my foods</button></div>';
     html+='<div class="acct-card"><div class="acct-head">Your training plan</div>'+
       '<p class="acct-p">Start over — clears your plan start date and logged workouts so the plan resets to week 1. Your bodyweight &amp; 7-iron history and your calculator stay put.</p>'+
       '<button class="acct-btn danger" id="acctResetPlan">↺ Reset plan</button></div>';
@@ -3069,6 +3412,7 @@
     var so=$("acctSignOut"); if(so) so.onclick=function(){ if(window.FF&&window.FF.signOut) window.FF.signOut(); };
     var ed=$("acctEdit"); if(ed) ed.onclick=function(){ setView("calc"); };
     var su=$("acctSetup"); if(su) su.onclick=function(){ startOnboarding(true); };
+    var af=$("acctFoods"); if(af) af.onclick=function(){ openFoodPrefs(); };
   }
 
   /* ----- Progress (bodyweight + clubhead speed) ----- */
@@ -3550,7 +3894,7 @@
     startOnboarding();
   }
   function startOnboarding(seed){
-    var ob={ step:0, total:7, goal:"leanbulk", sex:"male", age:"", weight:"",
+    var ob={ step:0, total:8, goal:"leanbulk", sex:"male", age:"", weight:"",
              hf:"5", hin:"10", activity:"1.55", workout:"morning", freq:4, equip:"", speed:"", based:false };
     // On a re-run (from Account) seed every field from saved numbers. On a brand-new
     // first run, leave age & weight blank so the user gives real answers (biggest macro
@@ -3564,6 +3908,7 @@
       ob.goal=state.goal||"leanbulk"; ob.sex=state.sex||"male"; ob.workout=state.workout||"morning";
       if(typeof planState!=="undefined" && planState.freq) ob.freq=planState.freq;
     }
+    ob.prefs = (function(){ var s=lsGet("ff_foodprefs",null); return s?{liked:(s.liked||[]).slice(),avoid:(s.avoid||[]).slice(),restrict:(s.restrict||[]).slice()}:{liked:[],avoid:[],restrict:[]}; })();
 
     var root=document.createElement("div");
     root.className="ob"; root.id="obRoot";
@@ -3609,7 +3954,7 @@
       }
     }
     function finish(startNow){
-      applyProfile(); pushBaseline(); lsSet("ff_onboarded", true);
+      applyProfile(); pushBaseline(); ffSavePrefs(ob.prefs); lsSet("ff_onboarded", true);
       close();
       if(startNow){ try{ startPlanAtWeek(1); }catch(e){} setView("plan"); try{ renderPhase(); }catch(e){} }
       else setView("dash");
@@ -3643,14 +3988,14 @@
         if(ob.age && (+ob.age<14 || +ob.age>90)){ if(err) err.textContent="Enter a real age (14–90)."; return; }
       }
       if(s===5) applyProfile();   // compute targets so the summary can show them
-      if(s===6){ finish(true); return; }
+      if(s===7){ finish(true); return; }
       ob.step++; render();
     }
 
     function render(){
       var s=ob.step, pct=Math.round((s/(ob.total-1))*100);
       var kicker="", title="", body="", nextLabel="Continue";
-      var showBack=s>0, showSkip=s>0 && s<6;
+      var showBack=s>0, showSkip=s>0 && s<7;
 
       if(s===0){
         body='<div class="ob-kicker"><span class="ball"></span> The Golfer’s Mass &amp; Speed System</div>'+
@@ -3658,7 +4003,7 @@
           '<p class="ob-p">Build like a bodybuilder, move like a golfer. A few quick taps and your fueling, training and FairwayFuel Score are dialed to <b>you</b>.</p>';
         nextLabel="Let’s build my plan →";
       } else if(s===1){
-        kicker="Step 1 of 6 · Goal"; title="What are you chasing right now?";
+        kicker="Step 1 of 7 · Goal"; title="What are you chasing right now?";
         body='<div class="ob-opts">'+GOAL_CARDS.map(function(g){
           return '<button type="button" class="ob-opt'+(ob.goal===g.v?' sel':'')+'" data-goal="'+g.v+'">'+
             '<span class="obo-ic">'+g.ic+'</span><span class="obo-tx">'+
@@ -3666,7 +4011,7 @@
             '<span class="obo-d">'+g.d+'</span></span></button>';
         }).join("")+'</div>';
       } else if(s===2){
-        kicker="Step 2 of 6 · About you"; title="The engine behind your numbers";
+        kicker="Step 2 of 7 · About you"; title="The engine behind your numbers";
         body='<div class="ob-field"><label>Sex <span>(BMR formula)</span></label>'+
             '<div class="ob-seg" id="obSex">'+
             '<button type="button" data-v="male" class="'+(ob.sex==="male"?"sel":"")+'">Male</button>'+
@@ -3679,7 +4024,7 @@
             '<input class="ob-in" id="obHf" type="number" inputmode="numeric" placeholder="ft" value="'+ob.hf+'" />'+
             '<input class="ob-in" id="obHin" type="number" inputmode="numeric" placeholder="in" value="'+ob.hin+'" /></div></div>';
       } else if(s===3){
-        kicker="Step 3 of 6 · Training"; title="How you train";
+        kicker="Step 3 of 7 · Training"; title="How you train";
         body='<div class="ob-field"><label>Activity level</label><select class="ob-select" id="obAct">'+
             [["1.2","Sedentary — desk job, little exercise"],["1.375","Light — range/play + light lifting"],
              ["1.55","Moderate — gym 3–5×/wk + golf"],["1.725","Very Active — hard training 6–7×/wk, walking 18s"],
@@ -3692,7 +4037,7 @@
             [["4","4 days"],["5","5 days"]].map(function(o){
               return '<button type="button" data-v="'+o[0]+'" class="'+(String(ob.freq)===o[0]?"sel":"")+'">'+o[1]+'</button>'; }).join("")+'</div></div>';
       } else if(s===4){
-        kicker="Step 4 of 6 · Equipment"; title="What can you train with?";
+        kicker="Step 4 of 7 · Equipment"; title="What can you train with?";
         body='<p class="ob-p" style="margin-top:-4px">We swap every exercise to fit your gear. Pick the closest — you can fine-tune any item later in <b>Settings</b>.</p>'+
           '<div class="ob-opts">'+EQ_CARDS.map(function(g){
             return '<button type="button" class="ob-opt'+(ob.equip===g.v?' sel':'')+'" data-equip="'+g.v+'">'+
@@ -3700,13 +4045,18 @@
               '<span class="obo-t">'+g.t+'</span><span class="obo-d">'+g.d+'</span></span></button>';
           }).join("")+'</div>';
       } else if(s===5){
-        kicker="Step 5 of 6 · Baseline"; title="Your speed starting line";
+        kicker="Step 5 of 7 · Baseline"; title="Your speed starting line";
         body='<p class="ob-p" style="margin-top:-4px">Your <b>7-iron clubhead speed</b> is the truest sign training is working. Drop in today’s number to set your baseline — or skip and add it later.</p>'+
           '<div class="ob-field"><label>7-iron clubhead speed (mph)</label>'+
             '<input class="ob-in" id="obSpeed" type="number" inputmode="decimal" placeholder="e.g. 85" value="'+ob.speed+'" /></div>'+
           '<p class="ob-p" style="font-size:12.5px;color:#9ccfb0;margin:0">Test it on a launch monitor — 7-iron is more repeatable than driver, so the weekly trend is a cleaner signal.</p>';
-        nextLabel="Finish →";
+        nextLabel="Continue →";
       } else if(s===6){
+        kicker="Step 6 of 7 · Your foods"; title="What do you actually eat?";
+        body='<p class="ob-p" style="margin-top:-4px">Tap the foods you love and flag any dietary needs up top — we’ll build your meal ideas and a full day around them. Totally optional; skip if you’d rather.</p>'+
+          '<div class="ob-foodwrap" id="obFood">'+ffPickerHtml(ob.prefs)+'</div>';
+        nextLabel="Continue →";
+      } else if(s===7){
         var t=lsGet("ff_targets",null);
         kicker="You’re set"; title="Your plan is dialed in";
         body='<div class="ob-sum">'+
@@ -3727,7 +4077,7 @@
           '<div class="ob-nav">'+
             (showBack?'<button type="button" class="ob-back" id="obBack">Back</button>':'')+
             '<button type="button" class="ob-next" id="obNext">'+nextLabel+'</button></div>'+
-          (s===6?'<button type="button" class="ob-later" id="obLater">I’ll start later — just look around</button>':'')+
+          (s===7?'<button type="button" class="ob-later" id="obLater">I’ll start later — just look around</button>':'')+
         '</div></div>';
 
       var skip=$("obSkip"); if(skip) skip.onclick=function(){ lsSet("ff_onboarded",true); close(); };
@@ -3739,6 +4089,13 @@
       if(s===3){ segPick("obWk", function(v){ ob.workout=v; }); segPick("obFreq", function(v){ ob.freq=parseInt(v,10); }); }
       if(s===4) Array.prototype.forEach.call(root.querySelectorAll("[data-equip]"), function(b){
         b.onclick=function(){ ob.equip=b.getAttribute("data-equip"); applyEquipPreset(ob.equip); render(); }; });
+      if(s===6){ var fw=$("obFood"); if(fw) fw.addEventListener("click", function(e){
+        var fb=e.target.closest("[data-fff]"), rb=e.target.closest("[data-ffr]");
+        if(!fb && !rb) return;
+        if(fb) ffCycleFood(ob.prefs, fb.getAttribute("data-fff"));
+        if(rb) ffToggleRestrict(ob.prefs, rb.getAttribute("data-ffr"));
+        fw.innerHTML=ffPickerHtml(ob.prefs);
+      }); }
       var next=$("obNext"); if(next) next.onclick=function(){ advance(s); };
     }
     render();
