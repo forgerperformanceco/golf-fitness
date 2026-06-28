@@ -584,8 +584,10 @@
   .ffp-f.av::before { content:"✕ "; }
   .ffp-f.dim { opacity:.32; text-decoration:line-through; cursor:not-allowed; }
   .ffp-r.on { background:#11643a; color:#fff; border-color:#11643a; font-weight:800; }
-  .ffp-card { max-height:88vh; display:flex; flex-direction:column; }
-  #ffPrefsBody { overflow-y:auto; -webkit-overflow-scrolling:touch; }
+  .ffp-card { max-height:88vh; display:flex; flex-direction:column; overflow:hidden; }
+  .ffp-card .swap-head { position:static; flex:0 0 auto; }            /* fixed top, no sticky/scroll collision */
+  .ffp-card .swap-body { flex:1 1 auto; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+  .ffp-card .ffp-donebar { flex:0 0 auto; }
   .ffp-donebar { padding:10px 14px 4px; border-top:1px solid var(--line); }
   .ffp-donebtn { width:100%; background:#11643a; color:#fff; border:0; border-radius:11px; padding:12px; font:800 14px system-ui; cursor:pointer; }
   .ob-foodwrap { background:#fff; border-radius:14px; padding:13px 13px 4px; max-height:44vh; overflow-y:auto; -webkit-overflow-scrolling:touch; }
