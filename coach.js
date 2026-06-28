@@ -113,8 +113,19 @@
     note.className = "ffc-msg note";
     note.innerHTML = signedIn()
       ? "The coach turns on once the backend is deployed. Everything else in the app works now."
-      : "Sign in (the <b>You</b> tab) so the coach can read your plan — it's free, full access.";
+      : "Sign in so the coach can read your plan — it's <b>free</b>, one tap, no password. Full access.";
     log.appendChild(note);
+    if (!signedIn()) {
+      var btn = document.createElement("button");
+      btn.className = "ffc-cta";
+      btn.style.alignSelf = "center";
+      btn.textContent = "Sign in — it's free";
+      btn.onclick = function () {
+        if (window.FF && window.FF.signIn) window.FF.signIn();
+        else { close(); var t = document.querySelector('[data-view="account"]'); if (t) t.click(); }
+      };
+      log.appendChild(btn);
+    }
     setComposer(false);
   }
   function setComposer(on) {

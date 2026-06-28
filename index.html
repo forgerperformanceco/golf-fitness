@@ -1140,6 +1140,31 @@
     .result-hero .kcal { font-size: 48px; }
     input[type="number"], select { padding: 14px 13px; }      /* roomier fields */
   }
+
+  /* ===== Coach tips: per-tab "what is this page" teaching banners ===== */
+  .tip{ display:flex; gap:11px; align-items:flex-start; position:relative;
+    margin:0 0 16px; padding:13px 40px 13px 14px; border-radius:14px;
+    background:linear-gradient(165deg,#eef6ff,#e2eefc); border:1px solid #c8ddf6;
+    box-shadow:0 4px 14px rgba(30,90,170,.08); animation:tipIn .35s ease both; }
+  @keyframes tipIn{ from{ opacity:0; transform:translateY(-6px); } to{ opacity:1; transform:none; } }
+  .tip-ic{ font-size:20px; line-height:1.2; flex:0 0 auto; }
+  .tip-tx{ flex:1 1 auto; min-width:0; }
+  .tip-t{ font-weight:800; font-size:14.5px; color:#114; letter-spacing:-.01em; }
+  .tip-b{ font-size:13px; line-height:1.5; color:#2b4763; margin-top:2px; }
+  .tip-b b{ color:#143a63; }
+  .tip-cta{ margin-top:10px; display:inline-flex; align-items:center; gap:6px;
+    background:#1769c4; color:#fff; border:0; border-radius:10px;
+    padding:9px 15px; font-weight:800; font-size:13px; cursor:pointer; min-height:40px;
+    box-shadow:0 3px 9px rgba(23,105,196,.28); }
+  .tip-cta:active{ transform:translateY(1px); }
+  .tip-x{ position:absolute; top:7px; right:7px; width:28px; height:28px;
+    border:0; background:transparent; color:#5b7596; font-size:19px; line-height:1;
+    cursor:pointer; border-radius:8px; display:flex; align-items:center; justify-content:center; }
+  .tip-x:hover{ background:rgba(40,90,160,.1); }
+  /* sign-in flavored tip stands out a touch warmer */
+  .tip.tip-signin{ background:linear-gradient(165deg,#fff6ea,#ffeed6); border-color:#f0d6ad; box-shadow:0 4px 14px rgba(184,120,30,.10); }
+  .tip.tip-signin .tip-t{ color:#7a3f06; } .tip.tip-signin .tip-b{ color:#6b4a23; }
+  .tip.tip-signin .tip-cta{ background:#e8923a; box-shadow:0 3px 9px rgba(232,146,58,.30); }
 </style>
 </head>
 <body>
@@ -1465,6 +1490,57 @@
     && Object.keys(getLog()).length === 0
     && lsGet("ff_body", []).length === 0
     && !localStorage.getItem("ff_start");
+  /* ===================== COACH TIPS — teach each tab on first visit =====================
+     A new user (the friend who "missed it completely") gets a one-time, dismissible
+     banner the first time they open each tab: what the page is for + its key action.
+     The Home tab, when signed out, becomes a sign-in nudge so people actually log in
+     and the AI features turn on. Seen tips are remembered in ff_tips_seen (and synced). */
+  function ffSignedIn(){ return !!(window.FF && window.FF.user); }
+  var FF_TIPS = {
+    dash:    { key:"dash",  ic:"🏠", t:"This is your home base",
+      b:"Your daily <b>FairwayFuel Score</b>, a coach's read, and quick tiles into every part of the app live here. Tap any tile to dive in." },
+    calc:    { key:"calc",  ic:"🍽️", t:"Fuel — your meals & macros",
+      b:"Set your numbers once, then tap <b>“Build my day”</b> for a full day of meals and a shopping list built around your favorite foods." },
+    plan:    { key:"plan",  ic:"🏋️", t:"Train — your 20-week speed plan",
+      b:"Each session starts with the <b>warm-up + daily power</b> work (the amber box) — don't skip it, that's where clubhead speed is made." },
+    progress:{ key:"prog",  ic:"📈", t:"Stats — track it to grow it",
+      b:"Log your <b>lifts, bodyweight and 7-iron speed</b> here. Every entry feeds your Score so you can watch the trend climb." },
+    gameday: { key:"gday",  ic:"⛳", t:"Game Day — fuel your round",
+      b:"Enter your tee time and we build a <b>timed plan</b>: pre-round meal, first-tee warm-up, on-course fueling and the turn snack." },
+    account: { key:"acct",  ic:"☁", t:"You — sign in to unlock everything",
+      b:"Sign in (free, one tap, no password) to <b>back up your progress</b> across devices and turn on the <b>AI coach</b>." }
+  };
+  // Home tab while signed out → make it the sign-in nudge instead of the generic home tip.
+  var FF_TIP_SIGNIN = { key:"signin", cls:"tip-signin", ic:"👋", t:"New here? Sign in first",
+    b:"It's <b>free</b> and takes one tap (email link, no password). Signing in turns on the <b>AI coach</b> and saves your progress across devices.",
+    cta:"Sign in — it's free" };
+  function showTipFor(view){
+    var host = document.getElementById("view-"+view); if(!host) return;
+    var old = host.querySelector(":scope > .tip"); if(old) old.remove();
+    var tip = (view==="dash" && !ffSignedIn()) ? FF_TIP_SIGNIN : FF_TIPS[view];
+    if(!tip) return;
+    var seen = lsGet("ff_tips_seen", []);
+    if(seen.indexOf(tip.key) >= 0) return;
+    var el = document.createElement("div");
+    el.className = "tip" + (tip.cls ? " "+tip.cls : "");
+    el.setAttribute("data-tipkey", tip.key);
+    el.innerHTML = '<span class="tip-ic">'+tip.ic+'</span>'+
+      '<div class="tip-tx"><div class="tip-t">'+tip.t+'</div><div class="tip-b">'+tip.b+'</div>'+
+      (tip.cta ? '<button type="button" class="tip-cta" data-tipsignin="1">'+tip.cta+'</button>' : '')+
+      '</div>'+
+      '<button type="button" class="tip-x" data-tipclose="'+tip.key+'" aria-label="Dismiss">×</button>';
+    var anchor = host.firstChild;
+    if(view==="dash"){ var hero=host.querySelector(".dash-hero"); if(hero && !hero.hidden) anchor = hero.nextSibling; }
+    host.insertBefore(el, anchor);
+  }
+  function ffSeeTip(key){ var s=lsGet("ff_tips_seen", []); if(s.indexOf(key)<0){ s.push(key); lsSet("ff_tips_seen", s); } }
+  // One delegated handler for every tip's close button + the sign-in CTA.
+  document.addEventListener("click", function(e){
+    var x = e.target.closest("[data-tipclose]");
+    if(x){ var t=x.closest(".tip"); ffSeeTip(x.getAttribute("data-tipclose")); if(t) t.remove(); try{ persist(); }catch(_){} return; }
+    var s = e.target.closest("[data-tipsignin]");
+    if(s){ if(window.FF&&window.FF.signIn) window.FF.signIn(); else setView("account"); }
+  });
   function setView(view, scroll){
     [tabs, mobileTabs].forEach(function(bar){
       Array.prototype.forEach.call(bar.querySelectorAll("button"), function(b){
@@ -1478,6 +1554,7 @@
     if(view==="account") { try{ renderAccount(); }catch(e){} }
     if(view==="progress") { try{ renderProgress(); }catch(e){} }
     if(view==="gameday") { try{ renderGameDay(); }catch(e){} }
+    try{ showTipFor(view); }catch(e){}
     if(scroll!==false) window.scrollTo({ top: 0, behavior: "smooth" });
     try { persist(); } catch(e){}
   }
@@ -3941,8 +4018,15 @@
     html+='<div class="acct-card"><div class="acct-head">Your training plan</div>'+
       '<p class="acct-p">Start over — clears your plan start date and logged workouts so the plan resets to week 1. Your bodyweight &amp; 7-iron history and your calculator stay put.</p>'+
       '<button class="acct-btn danger" id="acctResetPlan">↺ Reset plan</button></div>';
+    html+='<div class="acct-card"><div class="acct-head">Show me around</div>'+
+      '<p class="acct-p">New to the app or want a refresher? Replay the one-tap tips that explain what each tab does.</p>'+
+      '<button class="acct-btn ghost" id="acctReplayTips">↻ Replay the tips</button></div>';
     html+='<div class="acct-foot">FairwayFuel · installs &amp; works offline<br>Evidence-based starting points — not medical advice.</div>';
     el.innerHTML=html;
+    var rt=$("acctReplayTips"); if(rt) rt.onclick=function(){
+      lsSet("ff_tips_seen", []); try{ persist(); }catch(e){}
+      setView("dash");
+    };
     var rp=$("acctResetPlan"); if(rp) rp.onclick=function(){
       if(confirm("Reset your training plan? This clears your start date and logged workouts so you can start fresh. (Your bodyweight & 7-iron history and your calculator stay.)")) resetPlanFull();
     };
@@ -4398,6 +4482,8 @@
     if($("view-account") && $("view-account").classList.contains("active")) renderAccount();
     if($("view-progress") && $("view-progress").classList.contains("active")) renderProgress();
     renderDash();
+    // Signing in flips the Home sign-in nudge → the normal home tip; refresh whatever's open.
+    var act=document.querySelector(".view.active"); if(act){ try{ showTipFor(act.id.replace("view-","")); }catch(e){} }
   });
 
   // AI woven through the app: contextual "ask" buttons summon the coach with a
@@ -4661,6 +4747,7 @@
   renderEquip();
   renderPhase();
   renderDash();         // home overview (default landing tab)
+  try{ var bootView=(document.querySelector("#tabs button.active")||{getAttribute:function(){return "dash";}}).getAttribute("data-view"); showTipFor(bootView); }catch(e){}
   maybeOnboard(sharedLink);   // first-run guided setup (no-op for returning users)
 })();
 
