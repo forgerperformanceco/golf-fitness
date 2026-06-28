@@ -626,6 +626,22 @@
   .ffm-groc-chips { display:flex; flex-wrap:wrap; gap:6px; }
   .ffm-groc-i { background:#fff; border:1px solid var(--line); border-radius:7px; padding:4px 9px; font-size:12px; color:var(--ink); }
   .ffm-day-note { font-size:11.5px; color:var(--muted); margin-top:10px; line-height:1.5; }
+  .ffm-day-note b { color:var(--green-700); }
+  .ffm-pair-h em, .ffm-meal-h em { color:#b9852b; font-style:normal; font-weight:700; font-size:11px; }
+  .ffm-tot { margin-top:13px; }
+  .ffm-tot-h { font:800 12px system-ui; color:var(--green-800); margin-bottom:7px; }
+  .ffm-tot-row { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  .ffm-tot-cell { background:var(--paper); border:1px solid var(--line); border-radius:11px; padding:9px 6px; text-align:center; }
+  .ffm-tot-cell.ok { border-color:#9fdcb4; background:#eefaf1; }
+  .ttc-v { font:800 16px system-ui; color:var(--ink); }
+  .ttc-v small { font-size:10.5px; font-weight:700; color:var(--muted); }
+  .ffm-tot-cell.ok .ttc-v { color:#11643a; }
+  .ttc-l { font-size:10.5px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.3px; margin-top:2px; }
+  .ffm-shop { list-style:none; margin:0; padding:0; }
+  .ffm-shop li { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:7px 2px; border-bottom:1px solid var(--line); font-size:13px; }
+  .ffm-shop li:last-child { border-bottom:0; }
+  .ffm-shop .shop-n { color:var(--ink); }
+  .ffm-shop .shop-q { color:var(--green-800); font-weight:800; white-space:nowrap; }
 
   /* ---- First-run onboarding wizard ---- */
   .ob { position:fixed; inset:0; z-index:200; background:linear-gradient(165deg,#0f2417,#14532d 58%,#0c2c1a);
@@ -1979,11 +1995,23 @@
     return html;
   }
 
-  // role list: liked-first, fall back to all allowed. role 'prot' | 'carb' | 'snack'
-  function ffRoleList(p, role){
-    var cats = role==='prot' ? ['protein'] : (role==='snack' ? ['snack','fast','fruit'] : ['carb','fruit','fast','snack']);
+  // Foods that fit a breakfast plate (keeps steak & tuna off the 7am meal).
+  var FF_AM = {oats:1,eggs:1,eggwhite:1,greekyog:1,cottage:1,whey:1,fairlife:1,protcer:1,banana:1,berries:1,apple:1,orange:1,cocoapeb:1,bagel:1,bread:1,pb:1,honey:1};
+  // role list: liked-first, fall back to all allowed.
+  // role 'prot'|'carb'|'snack'|'fat'.  slot 'am' biases to breakfast foods.
+  function ffRoleList(p, role, slot){
+    var cats = role==='prot' ? ['protein'] : (role==='snack' ? ['snack','fast','fruit'] : (role==='fat' ? ['fat'] : ['carb','fruit','fast','snack']));
     var all=FF_FOODS.filter(function(f){ return cats.indexOf(f.cat)>=0 && ffAllowed(f,p); });
     if(role==='carb') all=all.filter(function(f){ return f.f<=6; });   // keep carb sources low-fat
+    if(role==='fat')  all=all.filter(function(f){ return f.f>=10; });  // real fat sources only
+    if(slot==='am'){
+      var likedAm=all.filter(function(f){ return FF_AM[f.id] && ffIsLiked(f,p); });
+      if(likedAm.length) return likedAm;                                // liked AND breakfast-y
+      var likedAny=all.filter(function(f){ return ffIsLiked(f,p); });
+      if(likedAny.length) return likedAny;                              // respect likes over am-ness
+      var am=all.filter(function(f){ return FF_AM[f.id]; });
+      return am.length?am:all;
+    }
     var liked=all.filter(function(f){ return ffIsLiked(f,p); });
     return liked.length?liked:all;
   }
@@ -2017,11 +2045,17 @@
     mult = Math.max(1, Math.min(2.5, Math.round(mult*2)/2));   // 1–2.5× in half steps
     return { food:f, mult:mult, P:Math.round(f.p*mult), C:Math.round(f.c*mult), label:ffServLabel(f,mult) };
   }
-  function ffPairing(p,pPer,cPer,roll){
-    var prots=ffRoleList(p,'prot'), carbs=ffRoleList(p,'carb');
-    if(!prots.length || !carbs.length) return null;
-    var ps=ffProtScaled(prots,pPer,roll), combo=ffCarbCombo(carbs,cPer,roll);
-    return { items:[ps.label].concat(combo.picks.map(ffLabel)), foods:[ps.food].concat(combo.picks), P:ps.P, C:combo.sum+ps.C };
+  // pick & scale a fat source to cover a fat deficit (avocado, olive oil, nuts, PB)
+  function ffPickFat(list,target,roll){
+    if(!list.length) return null;
+    var f=list[(roll||0)%list.length], mult=f.f>0?target/f.f:1;
+    mult=Math.max(0.25, Math.min(1.5, Math.round(mult*4)/4));   // 0.25–1.5 in quarter steps (no overshoot)
+    return { food:f, mult:mult, P:Math.round(f.p*mult), C:Math.round(f.c*mult), F:Math.round(f.f*mult), label:ffServLabel(f,mult) };
+  }
+  function ffServParse(serv){
+    var m=/^([½¼¾]|[\d.]+)\s*([A-Za-z]+)?/.exec(serv||"");
+    if(!m) return { qty:1, unit:"" };
+    return { qty:ffParseQty(m[1]), unit:(m[2]||"").toLowerCase() };
   }
   function ffMealNames(n){
     if(n<=3) return ["Breakfast","Lunch","Dinner"];
@@ -2029,15 +2063,72 @@
     if(n===5) return ["Breakfast","Snack","Lunch","Snack","Dinner"];
     return ["Breakfast","Snack","Lunch","Snack","Dinner","Evening"];
   }
-  function ffDayPlan(p,t,roll){
-    var mealN=t.m||4, names=ffMealNames(mealN), pPer=Math.round(t.p/mealN), base=t.c/(mealN+0.4), slots=[];
-    for(var i=0;i<mealN;i++){
-      var cTarget=Math.round(i===mealN-1 ? base*1.4 : base);   // biggest carbs at the last meal slot
-      var ps=ffProtScaled(ffRoleList(p,'prot'),pPer,roll+i), combo=ffCarbCombo(ffRoleList(p,'carb'),cTarget,roll+i);
-      var labels=(ps?[ps.label]:[]).concat(combo.picks.map(ffLabel)), foods=(ps?[ps.food]:[]).concat(combo.picks);
-      slots.push({ name:names[i], items:labels, foods:foods, P:(ps?ps.P:0), C:combo.sum+(ps?ps.C:0) });
+  // Macro-complete day planner: targets protein, carbs AND fat, and is meal-aware
+  // (breakfast foods at breakfast; the biggest, fastest carbs around training).
+  function ffPlanDay(p,t,roll){
+    var n=Math.max(1,Math.min(6,t.m||4)), names=ffMealNames(n);
+    var postIdx = n>=4 ? n-2 : (n-1);                         // the carb-loaded "around training" meal
+    var w=[]; for(var i=0;i<n;i++) w.push(i===postIdx?1.6:(names[i]==="Snack"?0.7:1));
+    var wsum=w.reduce(function(a,b){return a+b;},0)||1;
+    var pPer=t.p/n, slots=[], totP=0,totC=0,totF=0;
+    // Pass 1 — protein + carbs per meal (each carries its own natural fat)
+    for(var j=0;j<n;j++){
+      var slot=(j===0?"am":null), isPost=(j===postIdx);
+      var cTarget=Math.round(t.c*w[j]/wsum);
+      var ps=ffProtScaled(ffRoleList(p,'prot',slot), Math.round(pPer), roll+j);
+      var carbList=ffRoleList(p, isPost?'snack':'carb', slot);
+      if(!carbList.length) carbList=ffRoleList(p,'carb',slot);
+      var protC=ps?ps.C:0, protF=ps?Math.round(ps.food.f*ps.mult):0;
+      var combo=ffCarbCombo(carbList, Math.max(0,cTarget-protC), roll+j);
+      var carbF=combo.picks.reduce(function(a,f){return a+f.f;},0);
+      var labels=(ps?[ps.label]:[]).concat(combo.picks.map(ffLabel));
+      var foods=[]; if(ps) foods.push({food:ps.food, servings:ps.mult});
+      combo.picks.forEach(function(f){ foods.push({food:f, servings:1}); });
+      var P=(ps?ps.P:0), C=protC+combo.sum, F=protF+carbF;
+      totP+=P; totC+=C; totF+=F;
+      slots.push({ name:names[j], items:labels, foods:foods, P:P, C:C, F:F, post:isPost });
     }
-    return slots;
+    // Pass 2 — top up FAT to the daily target only, into the lowest-fat meals (avoids overshoot)
+    var gap=Math.round((t.f||60)-totF), fatPool=ffRoleList(p,'fat',null);
+    if(gap>=8 && fatPool.length){
+      var order=slots.map(function(s,i){return i;}).sort(function(a,b){ return slots[a].F-slots[b].F; });
+      for(var k=0;k<order.length && gap>=8;k++){
+        var si=order[k], fat=ffPickFat(fatPool, Math.min(gap,20), roll+si);
+        if(!fat) break;
+        slots[si].items.push(fat.label); slots[si].foods.push({food:fat.food, servings:fat.mult});
+        slots[si].P+=fat.P; slots[si].C+=fat.C; slots[si].F+=fat.F;
+        totP+=fat.P; totC+=fat.C; totF+=fat.F; gap-=fat.F;
+      }
+    }
+    return { slots:slots, totals:{P:totP,C:totC,F:totF}, target:{P:t.p,C:t.c,F:(t.f||60)} };
+  }
+  // Aggregate a day's foods into a shopping list with summed quantities.
+  function ffShopping(slots){
+    var agg={}, order=[];
+    slots.forEach(function(s){ s.foods.forEach(function(x){
+      if(!agg[x.food.id]){ agg[x.food.id]={food:x.food, servings:0}; order.push(x.food.id); }
+      agg[x.food.id].servings+=x.servings;
+    }); });
+    return order.map(function(id){
+      var a=agg[id], ps=ffServParse(a.food.serv);
+      return { food:a.food, qty:ps.qty*a.servings, unit:ps.unit, servings:a.servings };
+    });
+  }
+  function ffPlural(unit,q){
+    if(q<=1) return unit;
+    if(unit==="cup") return "cups";
+    if(/^(date|cake|slice|scoop|bottle|can|bar|treat|block)$/.test(unit)) return unit+"s";
+    return unit;
+  }
+  function ffQtyLabel(it){
+    if(!it.unit){ var s=Math.max(1,Math.round(it.servings)); return s>1?("×"+s):"1"; }
+    var measure=(it.unit==="oz"||it.unit==="cup"||it.unit==="tbsp");
+    var q=measure ? Math.round(it.qty*2)/2 : Math.max(1,Math.round(it.qty));
+    return ffFmtQty(q)+" "+ffPlural(it.unit,q);
+  }
+  function ffTotCell(label,val,target,cls){
+    var ok = target ? Math.abs(val-target)<=Math.max(8,target*0.12) : false;
+    return '<div class="ffm-tot-cell '+cls+(ok?' ok':'')+'"><div class="ttc-v">'+val+'<small>/'+target+'g</small></div><div class="ttc-l">'+label+'</div></div>';
   }
 
   function ffPrefsPrompt(p){
@@ -2059,9 +2150,10 @@
   }
 
   function ffTargets(){
-    if(lastFood) return { p:lastFood.p, c:lastFood.c, m:lastFood.m };
     var tg=lsGet("ff_targets",null);
-    if(tg && tg.proteinG) return { p:tg.proteinG, c:tg.carbG, m:(state.meals||MEALS_REC[state.goal]||4) };
+    var f=(tg && tg.fatG)?tg.fatG:60;
+    if(lastFood) return { p:lastFood.p, c:lastFood.c, f:f, m:lastFood.m };
+    if(tg && tg.proteinG) return { p:tg.proteinG, c:tg.carbG, f:f, m:(state.meals||MEALS_REC[state.goal]||4) };
     return null;
   }
   function ffItemsHtml(labels){ return labels.map(function(l){ return '<span class="ffm-it">'+l+'</span>'; }).join('<span class="ffm-plus">+</span>'); }
@@ -2079,19 +2171,20 @@
         '<button type="button" class="ffm-cta-btn" data-ffaction="edit">Pick my foods</button></div>';
       return;
     }
-    var pPer=Math.max(15,Math.round(t.p/(t.m||4))), cPer=Math.max(15,Math.round(t.c/(t.m||4)));
-    var a=ffPairing(p,pPer,cPer,ffRoll), b=ffPairing(p,pPer,cPer,ffRoll+1);
+    var plan=ffPlanDay(p,t,ffRoll);
+    var ideas=[]; if(plan.slots[0]) ideas.push(plan.slots[0]);          // breakfast
+    if(plan.slots.length>1) ideas.push(plan.slots[plan.slots.length-1]); // a main meal
     var snackPool=ffRoleList(p,'snack').filter(function(f){ return ffIsLiked(f,p) || !ffHasLikes(p); });
     var html='<div class="ffm-head"><span>🍽️ Built around your favorites</span>'+
       '<button type="button" class="ffm-mini" data-ffaction="reroll">🔁 Shuffle</button></div>'+
-      '<div class="ffm-sub">~<b>'+pPer+'g</b> protein · ~<b>'+cPer+'g</b> carbs per meal — from foods you love.</div>';
-    [a,b].forEach(function(pr,i){ if(!pr) return;
-      html+='<div class="ffm-pair"><div class="ffm-pair-h">Meal idea '+(i+1)+' <span>≈ '+pr.P+'P · '+pr.C+'C</span></div>'+
-        '<div class="ffm-items">'+ffItemsHtml(pr.items)+'</div></div>';
+      '<div class="ffm-sub">Balanced to your day: <b>'+t.p+'g</b> P · <b>'+t.c+'g</b> C · <b>'+t.f+'g</b> F across <b>'+(t.m||4)+'</b> meals — from foods you love.</div>';
+    ideas.forEach(function(s){ if(!s) return;
+      html+='<div class="ffm-pair"><div class="ffm-pair-h">'+s.name+(s.post?' <em>· around training</em>':'')+' <span>≈ '+s.P+'P · '+s.C+'C · '+s.F+'F</span></div>'+
+        '<div class="ffm-items">'+ffItemsHtml(s.items)+'</div></div>';
     });
     if(snackPool.length){
       html+='<div class="ffm-snacks"><div class="ffm-snk-h">⚡ Quick snacks you like</div><div class="ffm-snk-chips">'+
-        snackPool.slice(0,6).map(function(f){ return '<span class="ffm-snk">'+f.e+' '+f.n.toLowerCase()+' <i>'+f.c+'C</i></span>'; }).join("")+'</div></div>';
+        snackPool.slice(0,6).map(function(f){ return '<span class="ffm-snk">'+f.e+' '+f.n.toLowerCase()+' <i>'+f.c+'C'+(f.f>=4?' · '+f.f+'F':'')+'</i></span>'; }).join("")+'</div></div>';
     }
     html+='<div class="ffm-acts">'+
       '<button type="button" class="ffm-act primary" data-ffaction="day">🍱 Build my full day</button>'+
@@ -2099,19 +2192,20 @@
       '<button type="button" class="ffm-act" data-ffaction="week">🗓️ Meal plan</button>'+
       '<button type="button" class="ffm-act" data-ffaction="edit">✏️ Edit foods</button></div>';
     if(ffShowDay){
-      var plan=ffDayPlan(p,t,ffRoll), grocery={};
-      html+='<div class="ffm-day"><div class="ffm-day-h">📅 Your day — '+(t.m||4)+' meals from your favorites</div>';
-      plan.forEach(function(s){
-        s.foods.forEach(function(f){ grocery[f.id]=f; });
-        html+='<div class="ffm-meal"><div class="ffm-meal-h">'+s.name+' <span>≈ '+s.P+'P · '+s.C+'C</span></div>'+
+      html+='<div class="ffm-day"><div class="ffm-day-h">📅 Your full day — '+(t.m||4)+' meals</div>';
+      plan.slots.forEach(function(s){
+        html+='<div class="ffm-meal"><div class="ffm-meal-h">'+s.name+(s.post?' <em>· training</em>':'')+' <span>≈ '+s.P+'P · '+s.C+'C · '+s.F+'F</span></div>'+
           '<div class="ffm-items">'+ffItemsHtml(s.items)+'</div></div>';
       });
-      var gk=Object.keys(grocery);
-      if(gk.length){
-        html+='<div class="ffm-groc"><div class="ffm-groc-h">🛒 Grocery list</div><div class="ffm-groc-chips">'+
-          gk.map(function(id){ var f=grocery[id]; return '<span class="ffm-groc-i">'+f.e+' '+f.n.toLowerCase()+'</span>'; }).join("")+'</div></div>';
+      var tt=plan.totals, tg2=plan.target;
+      html+='<div class="ffm-tot"><div class="ffm-tot-h">Day total vs your target</div><div class="ffm-tot-row">'+
+        ffTotCell('Protein',tt.P,tg2.P,'p')+ffTotCell('Carbs',tt.C,tg2.C,'c')+ffTotCell('Fat',tt.F,tg2.F,'f')+'</div></div>';
+      var shop=ffShopping(plan.slots);
+      if(shop.length){
+        html+='<div class="ffm-groc"><div class="ffm-groc-h">🛒 Shopping list <span>· one day</span></div><ul class="ffm-shop">'+
+          shop.map(function(it){ return '<li><span class="shop-n">'+it.food.e+' '+it.food.n+'</span><span class="shop-q">'+ffQtyLabel(it)+'</span></li>'; }).join("")+'</ul></div>';
       }
-      html+='<div class="ffm-day-note">Portions are starting points — adjust to hit your daily numbers. Faster carbs (fruit, honey, cereal) work best around training.</div></div>';
+      html+='<div class="ffm-day-note">Macro-complete — protein, carbs <b>and</b> fat all targeted. Portions are starting points; nudge to taste. Faster carbs cluster around training.</div></div>';
     }
     el.innerHTML=html;
     if(!ffMealsBound && card){
