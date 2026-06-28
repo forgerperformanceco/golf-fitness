@@ -589,7 +589,9 @@
   .ffp-donebar { padding:10px 14px 4px; border-top:1px solid var(--line); }
   .ffp-donebtn { width:100%; background:#11643a; color:#fff; border:0; border-radius:11px; padding:12px; font:800 14px system-ui; cursor:pointer; }
   .ob-foodwrap { background:#fff; border-radius:14px; padding:13px 13px 4px; max-height:44vh; overflow-y:auto; -webkit-overflow-scrolling:touch; }
-  .ffp-region { width:100%; border:1.5px solid var(--line); border-radius:10px; padding:9px 11px; font:600 13.5px system-ui; color:var(--ink); background:#fcfdfc; }
+  .ffp-ziprow { display:flex; align-items:center; gap:10px; }
+  .ffp-zip { width:120px; border:1.5px solid var(--line); border-radius:10px; padding:9px 11px; font:700 14px system-ui; color:var(--ink); background:#fcfdfc; letter-spacing:1px; }
+  .ffp-reg { font:800 12.5px system-ui; color:var(--green-700); }
 
   /* ---- Meal ideas from your favorites (Fuel) ---- */
   .ffm-cta { display:flex; align-items:center; gap:13px; }
@@ -1953,7 +1955,18 @@
     {id:"oliveoil",n:"Olive oil",      e:"🫒", cat:"fat", p:0,c:0,f:14, serv:"1 tbsp",     tags:[]},
     // veggies
     {id:"broccoli",n:"Broccoli",       e:"🥦", cat:"veg", p:3,c:6,f:0, serv:"1 cup",       tags:[]},
-    {id:"salad",   n:"Mixed veg/salad",e:"🥗", cat:"veg", p:2,c:8,f:0, serv:"a big handful",tags:[]}
+    {id:"salad",   n:"Mixed veg/salad",e:"🥗", cat:"veg", p:2,c:8,f:0, serv:"a big handful",tags:[]},
+    // ---- US regional staples (.reg = where they're common; shown only in that region) ----
+    {id:"grits",    n:"Grits",          e:"🌽", cat:"carb",    p:3, c:33,f:1,  serv:"1 cup cooked", tags:[], reg:["SOUTH"]},
+    {id:"collard",  n:"Collard greens", e:"🥬", cat:"veg",     p:4, c:10,f:0,  serv:"1 cup cooked", tags:[], reg:["SOUTH"]},
+    {id:"blackeye", n:"Black-eyed peas",e:"🫘", cat:"carb",    p:13,c:35,f:1,  serv:"1 cup cooked", tags:[], reg:["SOUTH","TEXAS"]},
+    {id:"peach",    n:"Peach",          e:"🍑", cat:"fruit",   p:1, c:15,f:0,  serv:"1 medium",     tags:[], reg:["SOUTH"]},
+    {id:"catfish",  n:"Catfish",        e:"🐟", cat:"protein", p:32,c:0, f:9,  serv:"5 oz cooked",  tags:["fish"], reg:["SOUTH","TEXAS"]},
+    {id:"pinto",    n:"Pinto beans",    e:"🫘", cat:"carb",    p:15,c:45,f:1,  serv:"1 cup cooked", tags:[], reg:["TEXAS","MOUNTAIN"]},
+    {id:"corn",     n:"Sweet corn",     e:"🌽", cat:"carb",    p:5, c:31,f:1,  serv:"1 cup",        tags:[], reg:["MIDWEST"]},
+    {id:"porkloin", n:"Pork loin",      e:"🥩", cat:"protein", p:34,c:0, f:6,  serv:"4 oz cooked",  tags:["meat"], reg:["MIDWEST","SOUTH"]},
+    {id:"cod",      n:"Cod",            e:"🐟", cat:"protein", p:30,c:0, f:1,  serv:"5 oz cooked",  tags:["fish"], reg:["NE","WEST"]},
+    {id:"trout",    n:"Trout",          e:"🐟", cat:"protein", p:32,c:0, f:8,  serv:"5 oz cooked",  tags:["fish"], reg:["MOUNTAIN","WEST"]}
   ];
   var FF_RESTRICT = [
     {id:"vegetarian",label:"Vegetarian", e:"🥦", blocks:["meat","fish"]},
@@ -1974,7 +1987,7 @@
   function ffSavePrefs(p){ lsSet("ff_foodprefs", { liked:p.liked||[], avoid:p.avoid||[], restrict:p.restrict||[] }); }
   function ffRestrictBlocks(p){ var s={}; (p.restrict||[]).forEach(function(id){ var r=ffFind(FF_RESTRICT,id); if(r) r.blocks.forEach(function(b){ s[b]=1; }); }); return s; }
   function ffFoodBlocked(f,p){ var b=ffRestrictBlocks(p); return (f.tags||[]).some(function(t){ return b[t]; }); }
-  function ffAllowed(f,p){ return !ffFoodBlocked(f,p) && (p.avoid||[]).indexOf(f.id)<0; }
+  function ffAllowed(f,p){ return !ffFoodBlocked(f,p) && (p.avoid||[]).indexOf(f.id)<0 && ffFoodInRegion(f); }
   function ffIsLiked(f,p){ return (p.liked||[]).indexOf(f.id)>=0; }
   function ffHasPrefs(p){ return (p.liked&&p.liked.length) || (p.restrict&&p.restrict.length) || (p.avoid&&p.avoid.length); }
   // Hide foods in the static "What do I eat?" reference list that clash with dietary restrictions.
@@ -1999,26 +2012,33 @@
   }
   function ffToggleRestrict(p,id){ var R=p.restrict, i=R.indexOf(id); if(i<0) R.push(id); else R.splice(i,1); }
 
+  function ffChip(f,p){
+    var liked=ffIsLiked(f,p), avoid=(p.avoid||[]).indexOf(f.id)>=0, blk=ffFoodBlocked(f,p);
+    var cls=blk?'dim':(liked?'lk':(avoid?'av':''));
+    return '<button type="button" class="ffp-f '+cls+'" data-fff="'+f.id+'"'+(blk?' disabled':'')+'>'+f.e+' '+f.n+'</button>';
+  }
   function ffPickerHtml(p){
-    var reg=ffRegion();
+    var reg=ffRegion(), R=US_REGIONS[reg]||US_REGIONS.US;
     var html='<div class="ffp-legend">Tap once = <b class="lk">♥ love it</b>, again = <b class="av">✕ avoid</b>. We build your meals around your loves.</div>'+
-      '<div class="ffp-grp"><div class="ffp-gh">Region <span style="font-weight:500;text-transform:none;letter-spacing:0">— tailors food names &amp; units ('+(ffUnits()==="metric"?"grams":"oz/lb")+')</span></div>'+
-      '<select class="ffp-region" id="ffRegionSel">'+
-      FF_REGIONS.map(function(r){ return '<option value="'+r+'"'+(r===reg?' selected':'')+'>'+FF_REGION_LABEL[r]+'</option>'; }).join("")+
-      '</select></div>'+
+      '<div class="ffp-grp"><div class="ffp-gh">Your ZIP <span style="font-weight:500;text-transform:none;letter-spacing:0">— tailors meals to foods common near you</span></div>'+
+      '<div class="ffp-ziprow"><input id="ffZipInput" class="ffp-zip" type="text" inputmode="numeric" maxlength="5" placeholder="e.g. 30301" value="'+escAttr(ffZip())+'" />'+
+      '<span class="ffp-reg">📍 '+R.label+'</span></div></div>'+
       '<div class="ffp-grp"><div class="ffp-gh">Dietary needs</div><div class="ffp-chips">'+
       FF_RESTRICT.map(function(r){ var on=(p.restrict||[]).indexOf(r.id)>=0;
         return '<button type="button" class="ffp-r'+(on?' on':'')+'" data-ffr="'+r.id+'">'+r.e+' '+r.label+'</button>'; }).join("")+
       '</div></div>';
+    // Regional staples first (only the ones common in this region)
+    if(reg!=="US"){
+      var local=FF_FOODS.filter(function(f){ return f.reg && f.reg.indexOf(reg)>=0; });
+      if(local.length)
+        html+='<div class="ffp-grp"><div class="ffp-gh">📍 Common in the '+R.label+'</div><div class="ffp-chips">'+
+          local.map(function(f){ return ffChip(f,p); }).join("")+'</div></div>';
+    }
     FFP_GROUPS.forEach(function(g){
-      var items=FF_FOODS.filter(function(f){ return FFP_GROUP_OF[f.cat]===g; });
+      var items=FF_FOODS.filter(function(f){ return FFP_GROUP_OF[f.cat]===g && (!f.reg || f.reg.indexOf(reg)>=0); });
       if(!items.length) return;
       html+='<div class="ffp-grp"><div class="ffp-gh">'+g+'</div><div class="ffp-chips">'+
-        items.map(function(f){
-          var liked=ffIsLiked(f,p), avoid=(p.avoid||[]).indexOf(f.id)>=0, blk=ffFoodBlocked(f,p);
-          var cls=blk?'dim':(liked?'lk':(avoid?'av':''));
-          return '<button type="button" class="ffp-f '+cls+'" data-fff="'+f.id+'"'+(blk?' disabled':'')+'>'+f.e+' '+ffName(f)+'</button>';
-        }).join("")+'</div></div>';
+        items.map(function(f){ return ffChip(f,p); }).join("")+'</div></div>';
     });
     return html;
   }
@@ -2057,49 +2077,42 @@
     if(!picks.length) picks.push(pool[start]), sum=pool[start].c;
     return {picks:picks, sum:sum};
   }
-  /* ----- Location: localize food NAMES (US brands → local staples) and UNITS (oz→g
-     outside the US). Region is auto-detected from the browser locale/timezone — no
-     permission prompt, fully offline — and overridable in Settings (ff_region). ----- */
-  var FF_REGIONS = ["US","CA","UK","AU","INTL"];
-  var FF_REGION_LABEL = { US:"United States", CA:"Canada", UK:"UK & Ireland", AU:"Australia & NZ", INTL:"Other / Metric" };
-  // Name overrides where the US default isn't what's on local shelves.
-  var FF_LOCAL = {
-    UK:   { beef:"Lean beef mince", fairlife:"Protein shake (30g)", cocoapeb:"Chocolate rice cereal", rkt:"Rice crispy bar", poptart:"Toaster pastry", graham:"Digestive biscuits", pudding:"Low-fat custard", gummies:"Wine gums" },
-    AU:   { beef:"Lean beef mince", fairlife:"Protein shake (30g)", cocoapeb:"Chocolate rice cereal", rkt:"Rice crispy bar", poptart:"Toaster pastry", graham:"Sweet biscuits", pudding:"Low-fat custard" },
-    INTL: { beef:"Lean minced beef", fairlife:"Protein shake (30g)", cocoapeb:"Chocolate cereal", rkt:"Rice crispy bar", poptart:"Toaster pastry", graham:"Sweet biscuits", pudding:"Low-fat pudding" }
+  /* ----- US regional flavor: bias the food plan toward staples common in the user's
+     part of the country, derived from their ZIP code (offline — just the first digit →
+     region; no lookup/network). US-only, imperial units, US brand names. ----- */
+  var US_REGIONS = {
+    NE:      { label:"Northeast",            note:"New England, NY, NJ, PA" },
+    SOUTH:   { label:"South",                note:"Southeast & Mid-Atlantic" },
+    MIDWEST: { label:"Midwest",              note:"Great Lakes & Plains" },
+    TEXAS:   { label:"Texas & South-Central",note:"TX, OK, AR, LA" },
+    MOUNTAIN:{ label:"Mountain West",        note:"CO, AZ, UT, NV, ID, MT" },
+    WEST:    { label:"West Coast",           note:"CA, OR, WA, AK, HI" },
+    US:      { label:"Anywhere in the US",   note:"national staples" }
   };
+  var US_REGION_ORDER = ["US","NE","SOUTH","MIDWEST","TEXAS","MOUNTAIN","WEST"];
+  function ffZip(){ return lsGet("ff_zip",""); }
+  function ffRegionFromZip(z){
+    z=String(z||"").trim(); if(!/^\d/.test(z)) return null;
+    return ({"0":"NE","1":"NE","2":"SOUTH","3":"SOUTH","4":"MIDWEST","5":"MIDWEST","6":"MIDWEST","7":"TEXAS","8":"MOUNTAIN","9":"WEST"})[z.charAt(0)] || null;
+  }
   function ffRegion(){
-    var ov=lsGet("ff_region",null); if(ov && FF_REGIONS.indexOf(ov)>=0) return ov;
-    try{
-      var cc=null, m=/[-_]([A-Za-z]{2})\b/.exec(navigator.language||""); if(m) cc=m[1].toUpperCase();
-      if(!cc){ var tz=(Intl.DateTimeFormat().resolvedOptions().timeZone)||"";
-        if(/Australia|Auckland/.test(tz)) cc="AU"; else if(/London|Dublin/.test(tz)) cc="GB";
-        else if(/Toronto|Edmonton|Winnipeg|Vancouver|Halifax/.test(tz)) cc="CA";
-        else if(/New_York|Chicago|Denver|Los_Angeles|Phoenix|Anchorage|Honolulu/.test(tz)) cc="US";
-        else if(/Europe\//.test(tz)) cc="EU"; }
-      if(cc==="US") return "US";
-      if(cc==="CA") return "CA";
-      if(cc==="GB"||cc==="IE") return "UK";
-      if(cc==="AU"||cc==="NZ") return "AU";
-      return cc?"INTL":"US";
-    }catch(e){ return "US"; }
+    var ov=lsGet("ff_region",null); if(ov && US_REGIONS[ov]) return ov;
+    var byZip=ffRegionFromZip(ffZip()); if(byZip) return byZip;
+    return "US";   // no regional bias until a ZIP pins a region (US timezones are too coarse)
   }
-  function ffUnits(){ var r=ffRegion(); return (r==="US"||r==="CA")?"imperial":"metric"; }
-  function ffName(f){ var loc=FF_LOCAL[ffRegion()]; return (loc && loc[f.id]) || f.n; }
-  // Convert "N oz" inside a serving string to grams for metric regions (oz is a clean weight unit).
-  function ffServDisp(serv){
-    if(ffUnits()==="imperial") return serv;
-    return String(serv).replace(/([½¼¾]|[\d.]+)\s*oz/g, function(_,q){ return Math.round(ffParseQty(q)*28.35/5)*5+" g"; });
-  }
-  function ffLabel(f){ return f.e+' '+ffServDisp(f.serv)+' '+ffName(f).toLowerCase(); }
+  // National foods (no .reg) are always eligible; regional foods only when a ZIP has
+  // pinned a specific region (no bias in the generic "US" state).
+  function ffFoodInRegion(f){ if(!f.reg) return true; var r=ffRegion(); return r!=="US" && f.reg.indexOf(r)>=0; }
+  function ffName(f){ return f.n; }            // US names (kept as a single hook)
+  function ffLabel(f){ return f.e+' '+f.serv+' '+f.n.toLowerCase(); }
   function ffParseQty(s){ if(s==="½")return .5; if(s==="¼")return .25; if(s==="¾")return .75; var v=parseFloat(s); return isNaN(v)?1:v; }
   function ffFmtQty(q){ q=Math.round(q*4)/4; var w=Math.floor(q+1e-9), fr=Math.round((q-w)*100)/100, fs={0:"",0.25:"¼",0.5:"½",0.75:"¾"}[fr]||""; if(w===0) return fs||"0"; return fs?(w+fs):(""+w); }
   // Scale a food's serving toward a macro target so portions are realistic (e.g. "6 oz chicken").
   function ffServLabel(f,mult){
     if(mult===1) return ffLabel(f);
     var m=/^([½¼¾]|[\d.]+)\s*(.*)$/.exec(f.serv||"");
-    if(m){ var q=ffParseQty(m[1])*mult; return f.e+" "+ffServDisp(ffFmtQty(q)+" "+m[2])+" "+ffName(f).toLowerCase(); }
-    return f.e+" "+ffFmtQty(mult)+"× "+ffServDisp(f.serv)+" "+ffName(f).toLowerCase();
+    if(m){ var q=ffParseQty(m[1])*mult; return f.e+" "+ffFmtQty(q)+" "+m[2]+" "+ffName(f).toLowerCase(); }
+    return f.e+" "+ffFmtQty(mult)+"× "+f.serv+" "+ffName(f).toLowerCase();
   }
   function ffProtScaled(list,target,roll){
     var f=ffProtPick(list,target,roll); if(!f) return null;
@@ -2182,9 +2195,7 @@
     if(/^(date|cake|slice|scoop|bottle|can|bar|treat|block)$/.test(unit)) return unit+"s";
     return unit;
   }
-  function ffGramLabel(oz){ var g=Math.round(oz*28.35/5)*5; return g>=1000 ? (Math.round(g/100)/10)+" kg" : g+" g"; }
   function ffQtyLabel(it){
-    if(it.unit==="oz" && ffUnits()==="metric") return ffGramLabel(it.qty);
     if(!it.unit){ var s=Math.max(1,Math.round(it.servings)); return s>1?("×"+s):"1"; }
     var measure=(it.unit==="oz"||it.unit==="cup"||it.unit==="tbsp");
     var q=measure ? Math.round(it.qty*2)/2 : Math.max(1,Math.round(it.qty));
@@ -2307,9 +2318,14 @@
         if(rb) ffToggleRestrict(p, rb.getAttribute("data-ffr"));
         ffSavePrefs(p); body.innerHTML=ffPickerHtml(p);
       });
-      body.addEventListener("change", function(e){
-        if(e.target.id==="ffRegionSel"){ lsSet("ff_region", e.target.value); body.innerHTML=ffPickerHtml(ffPrefs()); }
+      body.addEventListener("input", function(e){
+        if(e.target.id==="ffZipInput"){
+          var z=e.target.value.replace(/\D/g,"").slice(0,5); if(z!==e.target.value) e.target.value=z;
+          lsSet("ff_zip", z); localStorage.removeItem("ff_region");
+          var lbl=body.querySelector(".ffp-reg"); if(lbl) lbl.textContent="📍 "+(US_REGIONS[ffRegion()]||US_REGIONS.US).label;
+        }
       });
+      body.addEventListener("change", function(e){ if(e.target.id==="ffZipInput"){ body.innerHTML=ffPickerHtml(ffPrefs()); } });
     }
     $("ffPrefsBody").innerHTML=ffPickerHtml(ffPrefs());
     m.hidden=false; document.body.style.overflow="hidden";
@@ -2324,7 +2340,7 @@
   /* ===== Weekly meal plan + whole-week shopping list (opt-in sheet) ===== */
   function ffWeekPlans(p,t){ var days=[]; for(var d=0; d<7; d++) days.push(ffPlanDay(p,t,(ffWeekRoll*97)+(d*7)+1)); return days; }
   function ffWeekQty(it){
-    if(it.unit==="oz"){ if(ffUnits()==="metric") return ffGramLabel(it.qty); var oz=Math.round(it.qty); return oz>=16 ? (Math.round(oz/16*10)/10)+" lb" : oz+" oz"; }
+    if(it.unit==="oz"){ var oz=Math.round(it.qty); return oz>=16 ? (Math.round(oz/16*10)/10)+" lb" : oz+" oz"; }
     if(!it.unit) return "×"+Math.max(1,Math.round(it.servings));
     var measure=(it.unit==="cup"||it.unit==="tbsp"), q=measure?Math.round(it.qty*2)/2:Math.max(1,Math.round(it.qty));
     return ffFmtQty(q)+" "+ffPlural(it.unit,q);
@@ -4454,7 +4470,8 @@
         if(rb) ffToggleRestrict(ob.prefs, rb.getAttribute("data-ffr"));
         fw.innerHTML=ffPickerHtml(ob.prefs);
       });
-      fw.addEventListener("change", function(e){ if(e.target.id==="ffRegionSel"){ lsSet("ff_region", e.target.value); fw.innerHTML=ffPickerHtml(ob.prefs); } }); } }
+      fw.addEventListener("input", function(e){ if(e.target.id==="ffZipInput"){ var z=e.target.value.replace(/\D/g,"").slice(0,5); if(z!==e.target.value) e.target.value=z; lsSet("ff_zip", z); localStorage.removeItem("ff_region"); var lbl=fw.querySelector(".ffp-reg"); if(lbl) lbl.textContent="📍 "+(US_REGIONS[ffRegion()]||US_REGIONS.US).label; } });
+      fw.addEventListener("change", function(e){ if(e.target.id==="ffZipInput"){ fw.innerHTML=ffPickerHtml(ob.prefs); } }); } }
       var next=$("obNext"); if(next) next.onclick=function(){ advance(s); };
     }
     render();
