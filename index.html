@@ -788,13 +788,14 @@
   #view-plan > .card { display:flex; flex-direction:column; }
   #view-plan .plan-intro { order:0; }
   #view-plan #phaseDetail { order:1; }
-  #view-plan .equip { order:2; margin-top:8px; }
   #view-plan .tracker-fold { order:3; }
   #view-plan.started .plan-intro { display:none; }
   /* Once training, the brochure nutrition fold is redundant with the Fuel tab. */
   #view-plan.started .tracker-fold { display:none; }
-  /* Equipment is a collapsed setup drawer when started — no chrome on the wrapper. */
-  #view-plan.started .equip { background:none; border:0; padding:0; box-shadow:none; }
+  /* Equipment editor nested inside the Plan & settings fold. */
+  .settings-equip { margin-top:14px; padding-top:14px; border-top:1px solid var(--line); }
+  .seteq-label { font-size:12.5px; font-weight:800; color:var(--green-800); margin-bottom:10px; }
+  .seteq-label small { font-weight:500; color:var(--muted); margin-left:4px; }
   .lift-hero { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin:2px 0 14px; }
   .lift-hero .lh-week { font-size:11px; font-weight:800; letter-spacing:1.3px; color:var(--muted); }
   .lift-hero .lh-name { margin:3px 0 3px; font-size:24px; line-height:1.08; color:var(--ink); letter-spacing:-.3px; }
@@ -1131,8 +1132,6 @@
             <p>Footwork, throws and overspeed swings transfer power into the club.</p></div></div>
         </div>
       </div>
-
-      <div class="equip" id="equipBar"></div>
 
       <div class="phase-detail" id="phaseDetail"></div>
 
@@ -1868,10 +1867,17 @@
   ];
   var MACHINE_KEYS = MACHINES.map(function(m){ return m.key; });
   var EQ_PRESETS = {
-    full:    EQUIPMENT.map(function(e){return e.key;}).concat(MACHINE_KEYS),     // everything
-    home:    ["bodyweight","dumbbells","bench","pullupbar","kettlebell","bands","box"], // typical home setup
-    minimal: ["bodyweight","bands"]                                             // bodyweight + a band
+    full:      EQUIPMENT.map(function(e){return e.key;}).concat(MACHINE_KEYS),   // everything
+    home:      ["bodyweight","dumbbells","bench","pullupbar","kettlebell","bands","box"], // typical home setup
+    minimal:   ["bodyweight","bands"],                                           // bodyweight + a band
+    bodyweight:["bodyweight"]                                                    // nothing but you
   };
+  function applyEquipPreset(name){
+    var keys=EQ_PRESETS[name]; if(!keys) return;
+    EQUIPMENT.forEach(function(eq){ planState.equip[eq.key] = keys.indexOf(eq.key)!==-1; });
+    MACHINE_KEYS.forEach(function(mk){ planState.equip[mk] = keys.indexOf(mk)!==-1; });
+    planState.equip.bodyweight=true;
+  }
   function eqLabel(k){
     var i; for(i=0;i<EQUIPMENT.length;i++){ if(EQUIPMENT[i].key===k) return EQUIPMENT[i].label; }
     for(i=0;i<MACHINES.length;i++){ if(MACHINES[i].key===k) return MACHINES[i].label; }
@@ -1931,72 +1937,58 @@
     return { name:rawName, sr:sr, status:"skip", need:e.needs };
   }
 
-  var planState = { phase: 0, freq: 4, equip: {}, machOpen: false, equipOpen: false };
+  var planState = { phase: 0, freq: 4, equip: {}, machOpen: false, settingsOpen: false };
   EQUIPMENT.forEach(function(e){ planState.equip[e.key] = true; });
   MACHINE_KEYS.forEach(function(k){ planState.equip[k] = true; });   // default: full gym
 
+  // Equipment editor — lives inside the Plan & settings fold. Set once in
+  // onboarding; this is the rare-edit surface. No-ops if the host isn't present.
   function renderEquip(){
+    var bar=$("equipBar"); if(!bar) return;
     var chips = EQUIPMENT.map(function(e){
       var on = planState.equip[e.key];
       return '<span class="eq-chip'+(on?" on":"")+(e.locked?" locked":"")+'" data-eq="'+e.key+'">'+e.label+'</span>';
     }).join("");
-    // Machines master chip — on if any machine is selected; shows count when partial.
     var machOn = MACHINE_KEYS.filter(have).length, machAll = machOn===MACHINE_KEYS.length;
     chips += '<span class="eq-chip'+(machOn>0?" on":"")+'" data-eq="machines-master">Machines &amp; cables'+
       (machOn>0 && !machAll ? ' <span class="mach-count">'+machOn+'/'+MACHINE_KEYS.length+'</span>' : '')+'</span>';
-
     var sub = '';
     if(planState.machOpen){
       sub = '<div class="mach-sub">'+MACHINES.map(function(m){
         return '<span class="eq-chip sm'+(have(m.key)?" on":"")+'" data-eq="'+m.key+'">'+m.label+'</span>';
       }).join("")+'</div>';
     }
-
-    var started = !!planStart();
-    var selN = EQUIPMENT.filter(function(e){ return planState.equip[e.key]; }).length + MACHINE_KEYS.filter(have).length;
-    var inner='<div class="equip-head"><h3>🏋️ Your Equipment <small>Tap what you have — the plan swaps exercises to match.</small></h3>'+
+    bar.innerHTML='<div class="seteq-label">🏋️ Equipment <small>the plan swaps lifts to match</small></div>'+
        '<div class="equip-presets">'+
        '<button type="button" data-preset="full">Full gym</button>'+
        '<button type="button" data-preset="home">Home gym</button>'+
        '<button type="button" data-preset="minimal">Minimal</button>'+
-       '</div></div>'+
+       '<button type="button" data-preset="bodyweight">Bodyweight</button>'+
+       '</div>'+
        '<div class="equip-chips">'+chips+'</div>'+
        '<button type="button" class="mach-expand" data-machexpand="1">'+(planState.machOpen?"▴ hide specific machines":"▾ pick specific machines")+'</button>'+sub+
        '<div class="equip-note">Bodyweight is always on — deselect anything you don\'t own. The <b>Machines &amp; cables</b> chip toggles all of them; tap “pick specific machines” to fine-tune.</div>';
-    if(started){
-      // Collapsed setup drawer once training (you rarely change gear mid-plan).
-      $("equipBar").innerHTML='<details class="fold equip-fold"'+(planState.equipOpen?' open':'')+'>'+
-        '<summary>🏋️ Your equipment <span class="eq-sum">'+selN+' selected</span></summary>'+
-        '<div class="fold-body">'+inner+'</div></details>';
-      var det=$("equipBar").querySelector(".equip-fold");
-      if(det) det.addEventListener("toggle", function(){ planState.equipOpen=det.open; });
-    } else {
-      $("equipBar").innerHTML=inner;   // open card while still on the brochure
-    }
   }
-  $("equipBar").addEventListener("click", function(e){
-    if(e.target.closest("[data-machexpand]")){ planState.machOpen=!planState.machOpen; renderEquip(); return; }
+  // Equipment edits are handled by the #phaseDetail delegated listener (the
+  // editor now lives inside that subtree). Helper applied there:
+  function handleEquipClick(e){
+    if(e.target.closest("[data-machexpand]")){ planState.machOpen=!planState.machOpen; renderEquip(); return true; }
     var preset=e.target.closest("[data-preset]");
-    if(preset){
-      var keys=EQ_PRESETS[preset.getAttribute("data-preset")];
-      EQUIPMENT.forEach(function(eq){ planState.equip[eq.key] = keys.indexOf(eq.key)!==-1; });
-      MACHINE_KEYS.forEach(function(mk){ planState.equip[mk] = keys.indexOf(mk)!==-1; });
-      planState.equip.bodyweight=true;
-      renderEquip(); renderPhase(); persist(); return;
-    }
+    if(preset){ applyEquipPreset(preset.getAttribute("data-preset")); renderPhase(); persist(); return true; }
     var chip=e.target.closest("[data-eq]");
     if(chip){
       var k=chip.getAttribute("data-eq");
-      if(k==="bodyweight") return; // locked
+      if(k==="bodyweight") return true;
       if(k==="machines-master"){
         var allOn = MACHINE_KEYS.every(have);
         MACHINE_KEYS.forEach(function(mk){ planState.equip[mk] = !allOn; });
-        renderEquip(); renderPhase(); persist(); return;
+        renderPhase(); persist(); return true;
       }
       planState.equip[k] = !planState.equip[k];
-      renderEquip(); renderPhase(); persist();
+      renderPhase(); persist(); return true;
     }
-  });
+    return false;
+  }
 
 
   function activeDays(){ var p=PHASES[planState.phase]; return planState.freq===4 ? p.days4 : p.days5; }
@@ -2178,8 +2170,8 @@
         '<p><b>Sleep is training.</b> Aim <b>7–9 h</b>. Sleep loss degrades <i>skill control</i> — tempo and strike — more than strength, so a bad week of sleep shows in your scores before your lifts.</p></div>'+
       '</div></details>';
 
-    // Configure: settings (equipment renders right after, via #equipBar).
-    html+='<details class="fold"><summary>⚙️ Plan &amp; settings</summary><div class="fold-body settings-body">'+
+    // Configure: settings + equipment (open state preserved across re-renders).
+    html+='<details class="fold" id="setFold"'+(planState.settingsOpen?' open':'')+'><summary>⚙️ Plan &amp; settings</summary><div class="fold-body settings-body">'+
       '<div class="set-row"><span class="set-lbl">Training days / week</span><div class="seg sm" id="freqSeg">'+
         '<button type="button" data-freq="4" '+(planState.freq===4?'class="active"':'')+'>4</button>'+
         '<button type="button" data-freq="5" '+(planState.freq===5?'class="active"':'')+'>5</button></div></div>'+
@@ -2191,10 +2183,13 @@
         (function(){ var o=""; for(var wi=1;wi<=20;wi++) o+='<option value="'+wi+'"'+(wi===wk?' selected':'')+'>Week '+wi+'</option>'; return o; })()+
         '</select><button class="sb-go2" data-startweek="sel">Jump to week</button></div>'+
       '<button class="sb-link" data-reset="1">↺ Restart from week 1</button>'+
+      '<div id="equipBar" class="settings-equip"></div>'+
       '</div></details>';
 
     $("phaseDetail").innerHTML=html;
-    if($("equipBar")) renderEquip();   // refresh the (now collapsed) equipment drawer
+    if($("equipBar")) renderEquip();   // equipment lives inside Plan & settings now
+    var setFold=$("setFold");
+    if(setFold) setFold.addEventListener("toggle", function(){ planState.settingsOpen=setFold.open; });
 
     var freqSeg=$("freqSeg");
     if(freqSeg){
@@ -3019,6 +3014,7 @@
   /* ----- Delegated plan events (calendar start, log buttons, progress add) ----- */
   $("phaseDetail").addEventListener("click", function(e){
     if(e.target.closest("[data-gostats]")){ setView("progress"); return; }
+    if(e.target.closest("#equipBar") && handleEquipClick(e)) return;   // equipment editor (in settings)
     var lb=e.target.closest("[data-logday]");
     if(lb){ openLogger(lb.getAttribute("data-logday")); return; }
     var sw=e.target.closest("[data-startweek]");
@@ -3190,8 +3186,8 @@
     startOnboarding();
   }
   function startOnboarding(seed){
-    var ob={ step:0, total:6, goal:"leanbulk", sex:"male", age:"", weight:"",
-             hf:"5", hin:"10", activity:"1.55", workout:"morning", freq:4, speed:"", based:false };
+    var ob={ step:0, total:7, goal:"leanbulk", sex:"male", age:"", weight:"",
+             hf:"5", hin:"10", activity:"1.55", workout:"morning", freq:4, equip:"", speed:"", based:false };
     // On a re-run (from Account) seed every field from saved numbers. On a brand-new
     // first run, leave age & weight blank so the user gives real answers (biggest macro
     // drivers) — height/activity keep sensible soft defaults they can tweak.
@@ -3217,6 +3213,12 @@
       {v:"maintain", ic:"⛳", t:"In-Season", tag:"Maintain", d:"Hold your build & energy through a tournament stretch."},
       {v:"cut", ic:"🔥", t:"Lean Out", tag:"−20%", d:"Drop fat, protect muscle — better power-to-weight = more speed."}
     ];
+    var EQ_CARDS=[
+      {v:"full", ic:"🏟️", t:"Full gym", d:"Commercial gym — barbells, machines, cables, the works."},
+      {v:"home", ic:"🏠", t:"Home gym", d:"Dumbbells, a bench, pull-up bar, bands, kettlebell."},
+      {v:"minimal", ic:"🎒", t:"Minimal", d:"Bodyweight plus a resistance band or two."},
+      {v:"bodyweight", ic:"🤸", t:"Bodyweight only", d:"Just you — the plan adapts every lift."}
+    ];
 
     // Push profile into the real app state + recompute. Idempotent: safe to call repeatedly.
     function applyProfile(){
@@ -3229,6 +3231,7 @@
       obSetSeg("sexSeg","data-sex",ob.sex);
       obSetSeg("workoutSeg","data-workout",ob.workout);
       obSetGoal(ob.goal);
+      if(ob.equip) applyEquipPreset(ob.equip);
       try{ calc(); }catch(e){}
       try{ persist(); }catch(e){}
     }
@@ -3266,7 +3269,7 @@
         ob.hin=($("obHin").value||"").trim()||"10";
       }
       if(s===3) ob.activity=$("obAct").value;
-      if(s===4) ob.speed=($("obSpeed").value||"").trim();
+      if(s===5) ob.speed=($("obSpeed").value||"").trim();
     }
     function advance(s){
       readStep(s);
@@ -3275,23 +3278,23 @@
         if(!ob.weight || +ob.weight<60 || +ob.weight>500){ if(err) err.textContent="Enter your bodyweight so we can size your fuel."; return; }
         if(ob.age && (+ob.age<14 || +ob.age>90)){ if(err) err.textContent="Enter a real age (14–90)."; return; }
       }
-      if(s===4) applyProfile();   // compute targets so the summary can show them
-      if(s===5){ finish(true); return; }
+      if(s===5) applyProfile();   // compute targets so the summary can show them
+      if(s===6){ finish(true); return; }
       ob.step++; render();
     }
 
     function render(){
       var s=ob.step, pct=Math.round((s/(ob.total-1))*100);
       var kicker="", title="", body="", nextLabel="Continue";
-      var showBack=s>0, showSkip=s>0 && s<5;
+      var showBack=s>0, showSkip=s>0 && s<6;
 
       if(s===0){
         body='<div class="ob-kicker"><span class="ball"></span> The Golfer’s Mass &amp; Speed System</div>'+
           '<div class="ob-brand">Fairway<span class="em">Fuel</span></div>'+
-          '<p class="ob-p">Build like a bodybuilder, move like a golfer. Six quick taps and your fueling, training and FairwayFuel Score are dialed to <b>you</b>.</p>';
+          '<p class="ob-p">Build like a bodybuilder, move like a golfer. A few quick taps and your fueling, training and FairwayFuel Score are dialed to <b>you</b>.</p>';
         nextLabel="Let’s build my plan →";
       } else if(s===1){
-        kicker="Step 1 of 5 · Goal"; title="What are you chasing right now?";
+        kicker="Step 1 of 6 · Goal"; title="What are you chasing right now?";
         body='<div class="ob-opts">'+GOAL_CARDS.map(function(g){
           return '<button type="button" class="ob-opt'+(ob.goal===g.v?' sel':'')+'" data-goal="'+g.v+'">'+
             '<span class="obo-ic">'+g.ic+'</span><span class="obo-tx">'+
@@ -3299,7 +3302,7 @@
             '<span class="obo-d">'+g.d+'</span></span></button>';
         }).join("")+'</div>';
       } else if(s===2){
-        kicker="Step 2 of 5 · About you"; title="The engine behind your numbers";
+        kicker="Step 2 of 6 · About you"; title="The engine behind your numbers";
         body='<div class="ob-field"><label>Sex <span>(BMR formula)</span></label>'+
             '<div class="ob-seg" id="obSex">'+
             '<button type="button" data-v="male" class="'+(ob.sex==="male"?"sel":"")+'">Male</button>'+
@@ -3312,7 +3315,7 @@
             '<input class="ob-in" id="obHf" type="number" inputmode="numeric" placeholder="ft" value="'+ob.hf+'" />'+
             '<input class="ob-in" id="obHin" type="number" inputmode="numeric" placeholder="in" value="'+ob.hin+'" /></div></div>';
       } else if(s===3){
-        kicker="Step 3 of 5 · Training"; title="How you train";
+        kicker="Step 3 of 6 · Training"; title="How you train";
         body='<div class="ob-field"><label>Activity level</label><select class="ob-select" id="obAct">'+
             [["1.2","Sedentary — desk job, little exercise"],["1.375","Light — range/play + light lifting"],
              ["1.55","Moderate — gym 3–5×/wk + golf"],["1.725","Very Active — hard training 6–7×/wk, walking 18s"],
@@ -3325,13 +3328,21 @@
             [["4","4 days"],["5","5 days"]].map(function(o){
               return '<button type="button" data-v="'+o[0]+'" class="'+(String(ob.freq)===o[0]?"sel":"")+'">'+o[1]+'</button>'; }).join("")+'</div></div>';
       } else if(s===4){
-        kicker="Step 4 of 5 · Baseline"; title="Your speed starting line";
+        kicker="Step 4 of 6 · Equipment"; title="What can you train with?";
+        body='<p class="ob-p" style="margin-top:-4px">We swap every exercise to fit your gear. Pick the closest — you can fine-tune any item later in <b>Settings</b>.</p>'+
+          '<div class="ob-opts">'+EQ_CARDS.map(function(g){
+            return '<button type="button" class="ob-opt'+(ob.equip===g.v?' sel':'')+'" data-equip="'+g.v+'">'+
+              '<span class="obo-ic">'+g.ic+'</span><span class="obo-tx">'+
+              '<span class="obo-t">'+g.t+'</span><span class="obo-d">'+g.d+'</span></span></button>';
+          }).join("")+'</div>';
+      } else if(s===5){
+        kicker="Step 5 of 6 · Baseline"; title="Your speed starting line";
         body='<p class="ob-p" style="margin-top:-4px">Your <b>7-iron clubhead speed</b> is the truest sign training is working. Drop in today’s number to set your baseline — or skip and add it later.</p>'+
           '<div class="ob-field"><label>7-iron clubhead speed (mph)</label>'+
             '<input class="ob-in" id="obSpeed" type="number" inputmode="decimal" placeholder="e.g. 85" value="'+ob.speed+'" /></div>'+
           '<p class="ob-p" style="font-size:12.5px;color:#9ccfb0;margin:0">Test it on a launch monitor — 7-iron is more repeatable than driver, so the weekly trend is a cleaner signal.</p>';
         nextLabel="Finish →";
-      } else if(s===5){
+      } else if(s===6){
         var t=lsGet("ff_targets",null);
         kicker="You’re set"; title="Your plan is dialed in";
         body='<div class="ob-sum">'+
@@ -3352,7 +3363,7 @@
           '<div class="ob-nav">'+
             (showBack?'<button type="button" class="ob-back" id="obBack">Back</button>':'')+
             '<button type="button" class="ob-next" id="obNext">'+nextLabel+'</button></div>'+
-          (s===5?'<button type="button" class="ob-later" id="obLater">I’ll start later — just look around</button>':'')+
+          (s===6?'<button type="button" class="ob-later" id="obLater">I’ll start later — just look around</button>':'')+
         '</div></div>';
 
       var skip=$("obSkip"); if(skip) skip.onclick=function(){ lsSet("ff_onboarded",true); close(); };
@@ -3362,6 +3373,8 @@
         b.onclick=function(){ ob.goal=b.getAttribute("data-goal"); render(); }; });
       if(s===2) segPick("obSex", function(v){ ob.sex=v; });
       if(s===3){ segPick("obWk", function(v){ ob.workout=v; }); segPick("obFreq", function(v){ ob.freq=parseInt(v,10); }); }
+      if(s===4) Array.prototype.forEach.call(root.querySelectorAll("[data-equip]"), function(b){
+        b.onclick=function(){ ob.equip=b.getAttribute("data-equip"); applyEquipPreset(ob.equip); render(); }; });
       var next=$("obNext"); if(next) next.onclick=function(){ advance(s); };
     }
     render();
