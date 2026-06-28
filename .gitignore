@@ -10,3 +10,9 @@ supabase/.temp
 # Node / tooling artifacts
 node_modules/
 .DS_Store
+
+# Ebook / source transcripts — INPUT ONLY, never redistributed.
+# Raw copyrighted text stays out of git; only our original synthesis
+# (in the *.md / knowledge.ts files) is committed. README stays tracked.
+sources/*
+!sources/README.md
