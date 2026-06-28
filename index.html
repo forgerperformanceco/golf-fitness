@@ -965,11 +965,12 @@
   .il-plates { grid-column:1 / -1; font-size:10.5px; color:#8a6d1c; padding:1px 0 5px 34px; }
   .il-add { width:100%; margin-top:9px; background:#f1f6f2; border:0; color:var(--green-700); border-radius:9px; padding:11px; font:800 13px system-ui; cursor:pointer; }
   .il-add:active { transform:translateY(1px); }
-  /* Warm-up & primer, collapsed above the lifts */
-  .prelift { background:#fff; border:1px solid var(--line); border-radius:12px; margin-bottom:13px; overflow:hidden; }
-  .prelift > summary { list-style:none; cursor:pointer; padding:13px 15px; font-size:13px; font-weight:700; color:var(--green-800); }
+  /* Warm-up & primer — warm amber box so it stands out from the white logging cards */
+  .prelift { background:linear-gradient(165deg,#fff7ec,#ffeed7); border:1px solid #f1d9b4; border-left:4px solid #e8923a;
+    border-radius:12px; margin-bottom:13px; overflow:hidden; box-shadow:0 4px 14px rgba(184,120,30,.10); }
+  .prelift > summary { list-style:none; cursor:pointer; padding:13px 15px; font-size:13px; font-weight:800; color:#9a560f; }
   .prelift > summary::-webkit-details-marker { display:none; }
-  .prelift > summary::after { content:"▾"; float:right; color:var(--muted); }
+  .prelift > summary::after { content:"▾"; float:right; color:#c98b4a; }
   .prelift[open] > summary::after { content:"▴"; }
   .prelift .prelift-body { padding:0 4px 4px; }
   .prelift .warm, .prelift .primer { border-radius:0; }
