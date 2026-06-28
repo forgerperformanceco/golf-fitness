@@ -605,7 +605,20 @@
   .ffm-head { display:flex; align-items:center; justify-content:space-between; gap:10px; }
   .ffm-head span { font:800 15.5px system-ui; color:var(--green-800); }
   .ffm-mini { background:var(--paper); border:1px solid var(--line); color:var(--green-700); border-radius:999px; padding:5px 11px; font:700 12px system-ui; cursor:pointer; }
-  .ffm-sub { font-size:12.5px; color:var(--muted); margin:4px 0 12px; }
+  .ffm-sub { font-size:12.5px; color:var(--muted); margin:4px 0 10px; }
+  .ffm-meals { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; }
+  .ffm-meals > span:first-child { font:700 11.5px system-ui; text-transform:uppercase; letter-spacing:.4px; color:var(--muted); }
+  .ffm-seg { display:flex; gap:5px; }
+  .ffm-seg button { border:1.5px solid var(--line); background:#fcfdfc; color:var(--muted); border-radius:9px; min-width:34px; padding:6px 0; font:700 13px system-ui; cursor:pointer; }
+  .ffm-seg button.on { background:#11643a; color:#fff; border-color:#11643a; }
+  /* collapsed calculator summary */
+  .calc-sum { margin-top:2px; }
+  .cs-line { display:flex; align-items:center; gap:11px; background:var(--paper); border:1px solid var(--line); border-radius:13px; padding:12px 14px; }
+  .cs-ic { font-size:22px; flex:0 0 auto; }
+  .cs-tx { flex:1; min-width:0; display:flex; flex-direction:column; }
+  .cs-tx b { color:var(--green-800); font-size:15px; }
+  .cs-tx span { color:var(--muted); font-size:12.5px; margin-top:1px; }
+  .cs-edit { flex:0 0 auto; background:#fff; border:1.5px solid var(--line); color:var(--green-800); border-radius:9px; padding:8px 14px; font:800 12.5px system-ui; cursor:pointer; }
   .ffm-sub b { color:var(--green-700); }
   .ffm-pair { background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:11px 13px; margin-bottom:9px; }
   .ffm-pair-h { font:800 12.5px system-ui; color:var(--green-800); margin-bottom:6px; display:flex; justify-content:space-between; gap:8px; }
@@ -1157,6 +1170,8 @@
         <div class="kicker">⛳ On the Tee</div>
         <h2>Your Numbers</h2>
         <p class="sub">Everything that feeds your TDEE — the engine behind your plan.</p>
+        <div id="calcSummary" class="calc-sum" hidden></div>
+        <div id="calcForm">
 
         <label class="field">
           <span class="lbl">Sex <span class="unit-suffix">(affects BMR formula)</span></span>
@@ -1239,6 +1254,7 @@
           <button type="button" class="reset-btn" id="resetBtn">Reset to defaults</button>
         </div>
         <p class="share-hint" id="shareHint">Sends a friend this calculator pre-filled with your exact numbers.</p>
+        </div>
       </section>
 
       <section class="card" aria-label="Your plan">
@@ -1796,6 +1812,7 @@
       goal:g,pct:g.pct, timing:timing, meal:meal, weekly:weekly });
     updateFoodTargets(proteinG, carbG, mealN);
     try{ renderFFMeals(); }catch(e){}
+    try{ applyCalcCollapse(); }catch(e){}
     updatePlanCopy();                 // keep the Train-tab framing in step with the goal
     // Stash the computed targets so the AI coach can use the user's exact numbers.
     try {
@@ -2353,7 +2370,9 @@
     var snackPool=ffRoleList(p,'snack').filter(function(f){ return ffIsLiked(f,p) || !ffHasLikes(p); });
     var html='<div class="ffm-head"><span>🍽️ Built around your favorites</span>'+
       '<button type="button" class="ffm-mini" data-ffaction="reroll">🔁 Shuffle</button></div>'+
-      '<div class="ffm-sub">Balanced to your day: <b>'+t.p+'g</b> P · <b>'+t.c+'g</b> C · <b>'+t.f+'g</b> F across <b>'+(t.m||4)+'</b> meals — from foods you love.</div>';
+      '<div class="ffm-sub">Balanced to your day: <b>'+t.p+'g</b> P · <b>'+t.c+'g</b> C · <b>'+t.f+'g</b> F — from foods you love.</div>'+
+      '<div class="ffm-meals"><span>Meals / day</span><span class="ffm-seg">'+
+        [3,4,5,6].map(function(n){ return '<button type="button" data-meals="'+n+'"'+((t.m||4)===n?' class="on"':'')+'>'+n+'</button>'; }).join("")+'</span></div>';
     ideas.forEach(function(s){ if(!s) return;
       html+='<div class="ffm-pair"><div class="ffm-pair-h">'+s.name+(s.post?' <em>· around training</em>':'')+' <span>≈ '+s.P+'P · '+s.C+'C · '+s.F+'F</span></div>'+
         '<div class="ffm-items">'+ffItemsHtml(s.items)+'</div></div>';
@@ -2387,6 +2406,8 @@
     if(!ffMealsBound && card){
       ffMealsBound=true;
       card.addEventListener("click", function(e){
+        var mb=e.target.closest("[data-meals]");
+        if(mb){ state.meals=parseInt(mb.getAttribute("data-meals"),10); calc(); return; }
         var b=e.target.closest("[data-ffaction]"); if(!b) return;
         var act=b.getAttribute("data-ffaction");
         if(act==="edit") openFoodPrefs();
@@ -2524,6 +2545,25 @@
       '</div></div>';
   }
 
+  /* ----- Collapse the calculator into a compact "Your numbers" summary once it's set.
+     The inputs rarely change after setup, so returning users see a one-line summary they
+     tap to edit — keeping the Fuel page focused on targets + meals. ----- */
+  var calcCollapsed = false;
+  function calcSummaryHtml(t){
+    function v(id){ return $(id)?($(id).value||"").trim():""; }
+    var w=v("weight"), a=v("age"), hf=v("heightFt"), hin=v("heightIn");
+    var goal=(t&&t.goal) || (GOALS[state.goal]&&GOALS[state.goal].label) || "Your numbers";
+    var bits=[]; if(w) bits.push(w+" lb"); if(hf) bits.push(hf+"′"+(hin||0)+"″"); if(a) bits.push(a+" yr");
+    if(t&&t.kcal) bits.push(t.kcal+" kcal");
+    return '<div class="cs-line"><span class="cs-ic">🧮</span><span class="cs-tx"><b>'+goal+'</b><span>'+bits.join(" · ")+'</span></span>'+
+      '<button type="button" class="cs-edit" data-calcedit="1">'+(calcCollapsed?"Edit":"▴ Done")+'</button></div>';
+  }
+  function applyCalcCollapse(){
+    var f=$("calcForm"), s=$("calcSummary"); if(!f||!s) return;
+    var t=lsGet("ff_targets",null), has=!!(t&&t.kcal);
+    if(!has){ f.hidden=false; s.hidden=true; return; }    // brand-new user → full form, no summary
+    s.hidden=false; s.innerHTML=calcSummaryHtml(t); f.hidden=calcCollapsed;
+  }
   function render(r){
     var totalK=r.proteinKcal+r.fatKcal+r.carbKcal;
     var pPct=totalK?r.proteinKcal/totalK*100:0, cPct=totalK?r.carbKcal/totalK*100:0, fPct=totalK?r.fatKcal/totalK*100:0;
@@ -2544,8 +2584,6 @@
       macroCard("p","Protein",r.proteinG,r.proteinKcal,pPct)+
       macroCard("c","Carbs",r.carbG,r.carbKcal,cPct)+
       macroCard("f","Fat",r.fatG,r.fatKcal,fPct)+'</div>';
-    html+=mealBlock(r.meal);
-    html+=timingBlock(r.timing);
     html+='<div class="golf-note"><b>⛳ '+r.goal.label+':</b> '+r.goal.note+'</div>';
     html+='<details class="fold"><summary>How this is calculated</summary><div class="fold-body breakdown"><table>'+
       tr("BMR (Mifflin–St Jeor)",round5(r.bmr)+" kcal")+
@@ -4580,7 +4618,13 @@
 
   restore();      // bring back the user's saved inputs/equipment/tab
   var sharedLink = applyShareParams();   // a shared ?link= overrides local state so friends see your numbers
+  // Returning users (and shared-link viewers) start with the calculator collapsed to a summary.
+  calcCollapsed = !sharedLink && !FF_FRESH && !!localStorage.getItem("ff_targets");
   calc();
+  try{ applyCalcCollapse(); }catch(e){}
+  var cs=$("calcSummary"); if(cs) cs.addEventListener("click", function(e){
+    if(e.target.closest("[data-calcedit]")){ calcCollapsed=!calcCollapsed; applyCalcCollapse(); }
+  });
   renderEquip();
   renderPhase();
   renderDash();         // home overview (default landing tab)
