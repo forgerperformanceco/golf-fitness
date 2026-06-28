@@ -723,12 +723,12 @@
   .planview-seg button { flex:1; border:0; background:transparent; padding:9px; border-radius:8px; font:700 13px system-ui; color:var(--muted); cursor:pointer; }
   .planview-seg button.active { background:#fff; color:var(--green-700); box-shadow:0 1px 4px rgba(0,0,0,.08); }
   .planview-seg button:disabled { opacity:.4; cursor:default; }
-  /* Whole training week visible at once (no horizontal scroll) — equal-width day tiles. */
-  .weekstrip { display:grid; grid-template-columns:repeat(auto-fit, minmax(58px, 1fr)); gap:6px; padding:1px 0 12px; margin-bottom:2px; }
+  /* The full 7-day week at a glance (no horizontal scroll) — equal columns. */
+  .weekstrip { display:grid; grid-template-columns:repeat(7, minmax(0, 1fr)); gap:3px; padding:1px 0 12px; margin-bottom:2px; }
   .ws-chip { display:flex; flex-direction:column; align-items:center; gap:2px; border:1px solid var(--line); background:var(--paper);
-    color:var(--ink); text-align:center; border-radius:11px; padding:7px 4px; cursor:pointer; overflow:hidden; }
-  .ws-chip .ws-date { font:600 9.5px/1 system-ui; color:var(--muted); letter-spacing:.2px; white-space:nowrap; }
-  .ws-chip .ws-name { font:800 12.5px/1 system-ui; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+    color:var(--ink); text-align:center; border-radius:10px; padding:7px 1px; cursor:pointer; overflow:hidden; min-width:0; }
+  .ws-chip .ws-date { font:600 8.5px/1 system-ui; color:var(--muted); letter-spacing:-.2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+  .ws-chip .ws-name { font:800 10px/1 system-ui; letter-spacing:-.3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
   .ws-chip.done { color:var(--green-700); border-color:#cfe9d8; }
   .ws-chip.today { border-color:#11643a; box-shadow:inset 0 0 0 1px #11643a; }
   .ws-chip.today .ws-date { color:var(--green-700); font-weight:800; }
@@ -2204,7 +2204,7 @@
 
     if(mode==="today"){
       var todayDate = new Date();
-      var strip = shown.map(function(d, i){
+      var strip = stripDays().map(function(d, i){
         var done = d.type!=="rest" && !!getSession(wk, d.name);
         var cd = chipDate(i), isToday = sameDay(cd, todayDate);
         var dateLbl = isToday ? "Today" : (cd ? fmtChipDate(cd) : ("Day "+(i+1)));
@@ -2313,11 +2313,19 @@
     var ws = weekStartDate(); if(!ws) return null;
     var d = new Date(ws); d.setDate(d.getDate() + i); return d;
   }
-  function fmtChipDate(d){
-    try { return d.toLocaleDateString(undefined,{weekday:"short"}) + " " + (d.getMonth()+1) + "/" + d.getDate(); }
+  function fmtChipDate(d){           // compact: weekday + day-of-month (fits a 7-day row)
+    try { return d.toLocaleDateString(undefined,{weekday:"short"}) + " " + d.getDate(); }
     catch(e){ return ""; }
   }
   function sameDay(a,b){ return !!(a && b && a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate()); }
+  // The week strip as a full 7-day week: each training/speed day, then the program's
+  // rest entry repeated to fill out every remaining calendar day.
+  function stripDays(){
+    var ds = activeDays(), out = [], restDay = null;
+    ds.forEach(function(d){ if(d.type==="rest"){ if(!restDay) restDay=d; } else out.push(d); });
+    while(out.length < 7 && restDay) out.push(restDay);
+    return out.slice(0,7);
+  }
   // Start (or re-anchor) the plan so that "today" lands in the given week.
   function startPlanAtWeek(n){
     var back = (Math.max(1, n) - 1) * 7;
