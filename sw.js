@@ -1,13 +1,13 @@
 /* FairwayFuel service worker — offline-first for the single-page app.
    Bump CACHE when you ship a new version so clients pull fresh files. */
-var CACHE = 'fairwayfuel-v47';
+var CACHE = 'fairwayfuel-v48';
 var ASSETS = [
   './',
   './index.html',
   './cloud-sync.js',
   './coach.js',
   './manifest.webmanifest',
-  './logo-mark.png',
+  './logo-dark-mark.png',
   './icon-192.png',
   './icon-512.png',
   './apple-touch-icon.png'
