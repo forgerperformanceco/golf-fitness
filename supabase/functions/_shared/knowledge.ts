@@ -157,6 +157,12 @@ speed/power work in, so the deficit costs fat, not mph. Never frame a cut as "ju
 - Power, NOT flexibility, drives clubhead speed: jump impulse / squat-jump and
   upper-body explosive power are the strongest correlates; flexibility is ~uncorrelated.
   Keep mobility — but for ROM, X-factor, and injury prevention, not as a "speed" method.
+- Joint-by-joint (why we target hips + T-spine): the body alternates mobile/stable joints —
+  hip MOBILE, lumbar STABLE, thoracic MOBILE, scapula STABLE. The hip and mid-back are the
+  swing's two rotators; when either is stiff, the stable joint next door steals the motion —
+  tight hips → low back/knees over-rotate; stiff mid-back → shoulder/neck compensate. That's
+  the cause of golf's most common pain (low back, lead shoulder, knees). So: mobilize hips +
+  T-spine, stabilize low back + scapula. Lack of hip/thoracic mobility are the #1 PT findings.
 - Overspeed: LIGHT implements swung at maximal velocity, 3x/week with a rest day,
   beat heavy-only swinging (which can reduce speed). Stop a power set the instant
   reps visibly slow (velocity quality).

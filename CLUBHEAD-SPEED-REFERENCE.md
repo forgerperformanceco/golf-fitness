@@ -75,6 +75,19 @@ wherever a link is weak or restricted. The trainable drivers:
 > **jump/impulse, squat-jump and med-ball power, and X-factor stretch** — not flexibility
 > scores. Keep mobility for ROM and durability; chase speed through power.
 
+> **Why hips & T-spine specifically — the joint-by-joint model.** The established
+> mobility–stability framework (Cook/Boyle; applied to golf by public PT clinics) says the
+> body alternates **mobile** and **stable** joints up the chain: ankle *mobile*, knee
+> *stable*, **hip MOBILE**, lumbar spine *stable*, **thoracic spine MOBILE**, scapula
+> *stable*, shoulder *mobile*. The swing's two key rotators are the **hip and the thoracic
+> spine** — and when either is stiff, the motion gets stolen from the *stable* joint next
+> door: tight hips → the low back and knees over-rotate; a stiff mid-back → the shoulder and
+> neck compensate. That's the mechanism behind golf's most common complaints (low back,
+> lead shoulder, knees). So we train hip + T-spine **mobility** and low-back/scapula
+> **stability** on purpose — it protects the spine *and* restores the rotation that makes
+> speed. (Lack of hip and thoracic mobility are the two restrictions PTs flag most in
+> golfers.)
+
 ---
 
 ## 3. How mass becomes speed ("mass moves mass," done right)
