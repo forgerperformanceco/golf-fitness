@@ -651,6 +651,17 @@
   .ffw-dayhdr span { font:800 14.5px system-ui; color:var(--green-800); }
   .ffw-aisle { font:800 11.5px system-ui; text-transform:uppercase; letter-spacing:.4px; color:var(--green-700); margin:12px 0 2px; }
   .ffw-copy { width:100%; margin-top:12px; background:#11643a; color:#fff; border:0; border-radius:11px; padding:12px; font:800 13.5px system-ui; cursor:pointer; }
+  /* proactive coaching "Your focus" insight card */
+  .insight { position:relative; background:#fff; border:1px solid var(--line); border-left:4px solid #f4c542; border-radius:14px; padding:14px 16px; margin-bottom:13px; box-shadow:var(--shadow-sm); }
+  .insight-x { position:absolute; top:8px; right:9px; background:var(--paper); border:1px solid var(--line); color:var(--muted); width:24px; height:24px; border-radius:50%; font-size:15px; line-height:1; cursor:pointer; }
+  .insight-top { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+  .insight-ic { font-size:20px; }
+  .insight-kick { font:800 10.5px system-ui; letter-spacing:1px; text-transform:uppercase; color:#b9852b; }
+  .insight-title { font:800 16.5px/1.2 system-ui; color:var(--green-800); letter-spacing:-.2px; margin-bottom:5px; padding-right:22px; }
+  .insight-body { font-size:13px; line-height:1.5; color:var(--ink); }
+  .insight-body b { color:var(--green-700); }
+  .insight-cta { margin-top:12px; width:100%; background:#11643a; color:#fff; border:0; border-radius:10px; padding:10px; font:800 13px system-ui; cursor:pointer; }
+  .insight-cta:active { transform:translateY(1px); }
 
   /* ---- First-run onboarding wizard ---- */
   .ob { position:fixed; inset:0; z-index:200; background:linear-gradient(165deg,#0f2417,#14532d 58%,#0c2c1a);
@@ -3487,6 +3498,101 @@
       '<div class="adapt-btns"><button class="adapt-btn" data-adapt="apply">Apply '+(a.deltaKcal<0?'−':'+')+absK+' kcal</button>'+
       '<button class="adapt-btn ghost" data-adapt="snooze">Not now</button></div></div>';
   }
+  /* ===================== PROACTIVE COACHING — "Your focus" insights =====================
+     A rules engine over the user's OWN data. It detects real signals (a speed stall, a PR,
+     a streak about to slip, mass that hasn't converted to speed, a stalled lift, going
+     quiet) and surfaces ONE prioritized, actionable card on the dashboard — the retention
+     anchor. Deterministic + offline + free; the optional "go deeper" button is the AI layer
+     (it opens the coach with a tailored prompt, so we never spend tokens on a passive load). */
+  function ffInsightSeen(){ return lsGet("ff_insights_seen", []); }
+  function ffDismissInsight(sig){ var s=ffInsightSeen(); if(s.indexOf(sig)<0){ s.push(sig); if(s.length>40) s=s.slice(-40); lsSet("ff_insights_seen", s); } }
+  function ffInsights(){
+    var out=[], body=lsGet("ff_body",[]), sessions=sessionsByWeek();
+    var freq=(typeof planState!=="undefined" && planState.freq)?planState.freq:4, wk=curWeek();
+    var spd=body.map(function(e){ return { t:new Date(e.date).getTime(), s:parseFloat(e.s) }; })
+                .filter(function(p){ return !isNaN(p.t) && !isNaN(p.s); }).sort(function(a,b){ return a.t-b.t; });
+    var lastSpeed=spd.length?spd[spd.length-1].s:null;
+    var times=[]; body.forEach(function(e){ var t=new Date(e.date).getTime(); if(!isNaN(t)) times.push(t); });
+    sessions.forEach(function(se){ var t=new Date(se.s&&se.s.date).getTime(); if(!isNaN(t)) times.push(t); });
+    var lastAct=times.length?Math.max.apply(null,times):null;
+    var daysIdle=lastAct!=null?Math.floor((Date.now()-lastAct)/864e5):null;
+    var hasData=body.length>0 || sessions.length>0;
+    var thisWk=sessions.filter(function(se){ return se.w===wk; }).length;
+
+    if(spd.length===0 && hasData)
+      out.push({prio:55, sig:"coldspeed", ic:"⚡", title:"Start your speed trend",
+        body:"You're putting in the work — now capture the payoff. Log a <b>7-iron clubhead speed</b> (a launch monitor is the most repeatable), and every session starts proving itself.",
+        ask:"I haven't logged a clubhead speed yet — how do I measure my 7-iron speed and what's a realistic number for my level?"});
+
+    if(daysIdle!=null && daysIdle>=6 && hasData)
+      out.push({prio:95, sig:"reengage:"+Math.floor(Date.now()/(3*864e5)), ic:"👋", title:"Pick the streak back up",
+        body:"It's been <b>"+daysIdle+" days</b> since your last entry. One quick log today — bodyweight or a workout — keeps your trend and Score alive.", ask:null});
+
+    if(daysIdle!=null && daysIdle<6){
+      if(thisWk===0)
+        out.push({prio:76, sig:"streak0:wk"+wk, ic:"🔥", title:"No sessions logged this week",
+          body:"Get one in to keep your momentum. Your plan calls for <b>"+freq+"</b> this week — even a single session protects the habit.", ask:null});
+      else if(thisWk<freq)
+        out.push({prio:74, sig:"streak:wk"+wk+":"+thisWk, ic:"🔥", title:thisWk+" of "+freq+" sessions this week",
+          body:"<b>"+(freq-thisWk)+" more</b> keeps your week on plan. Showing up is the single biggest lever on your Score — consistency beats intensity.", ask:null});
+    }
+
+    if(spd.length>=2){
+      var latest=spd[spd.length-1], base=spd[0].s, prevMax=Math.max.apply(null, spd.slice(0,-1).map(function(p){ return p.s; }));
+      var spanDays=(latest.t-spd[0].t)/864e5;
+      if(latest.s>prevMax+0.4){
+        var gain=Math.round((latest.s-base)*10)/10;
+        out.push({prio:84, sig:"pr:"+latest.s, ic:"🚀", title:"New 7-iron PR — "+latest.s+" mph",
+          body:(gain>0?("Up <b>+"+gain+" mph</b> from baseline ≈ <b>+"+Math.round(gain*2)+" yards</b> of carry. "):"")+"Whatever you're doing is working — keep the overspeed work crisp and fully rested.",
+          ask:"I just hit a new 7-iron speed PR. How do I keep progressing from here without plateauing or losing the gains?"});
+      } else if(spd.length>=3 && spanDays>=14 && latest.s<=base+0.4){
+        var wks=Math.round(spanDays/7);
+        out.push({prio:80, sig:"stall:"+latest.s+":"+wks, ic:"📉", title:"Speed's been flat ~"+wks+" weeks",
+          body:"You've kept training but the 7-iron number hasn't moved. Usual culprits: not enough true <b>overspeed</b> work, under-recovery, or under-fueling around training. Want the fix tailored to you?",
+          ask:"My 7-iron clubhead speed has been flat for about "+wks+" weeks even though I've kept training. What are the most likely causes and exactly how do I break the plateau?"});
+      }
+    }
+
+    var tr=weightTrend();
+    if(tr && tr.ratePerWeek>0.25 && spd.length>=2 && spd[spd.length-1].s<=spd[0].s+0.4)
+      out.push({prio:78, sig:"convert:"+Math.round(tr.ratePerWeek*10), ic:"🔁", title:"Turn that mass into speed",
+        body:"You're gaining weight (<b>"+(tr.ratePerWeek>0?'+':'')+(Math.round(tr.ratePerWeek*10)/10)+" lb/wk</b>) but 7-iron speed is flat — the new muscle hasn't been <i>converted</i> yet. Bias toward overspeed swings, jumps and med-ball throws, and make sure you're not over-bulking.",
+        ask:"I've added bodyweight but my clubhead speed hasn't gone up. How do I convert the new mass into actual swing speed?"});
+
+    bigLiftStats().slice(0,4).forEach(function(L){
+      if(L.n>=2 && L.last===L.best && L.last>L.first)
+        out.push({prio:58, sig:"spr:"+L.name+":"+Math.round(L.last), ic:"🏋️", title:"Strength PR — "+L.name,
+          body:"Estimated 1RM up to <b>"+Math.round(L.last)+" lb</b>. Force is the raw material for clubhead speed — this is exactly how mass becomes yards.", ask:null});
+      else if(L.n>=3){
+        var recent=L.series.slice(-3), rmax=Math.max.apply(null,recent);
+        if(L.last<=rmax && L.last<=L.best-0.5)
+          out.push({prio:60, sig:"sstall:"+L.name+":"+Math.round(L.last), ic:"🧱", title:L.name+" has stalled",
+            body:"Estimated 1RM has plateaued around <b>"+Math.round(L.last)+" lb</b>. Try the double-progression bump — hold the load until you hit the top of every set's rep range, then add a little — or take a deload week.",
+            ask:"My "+L.name+" estimated 1RM has stalled for a few sessions. How should I adjust my training to start progressing again?"});
+      }
+    });
+
+    if(hasData)
+      out.push({prio:8, sig:"keepgoing:"+sessions.length+":"+(lastSpeed||0), ic:"📈", title:"You're stacking the work",
+        body:"<b>"+sessions.length+"</b> workout"+(sessions.length===1?"":"s")+" logged"+(lastSpeed?(" · 7-iron at <b>"+lastSpeed+" mph</b>"):"")+". The system works when the inputs are consistent — keep logging bodyweight, speed and sessions, and the trends do the rest.", ask:null});
+    else
+      out.push({prio:40, sig:"firststeps", ic:"🌟", title:"Let's get your first data points",
+        body:"Log a workout on the <b>Train</b> tab and drop today's bodyweight + 7-iron speed below. Two data points and your trends — and your Score — start climbing.", ask:null});
+
+    return out.sort(function(a,b){ return b.prio-a.prio; });
+  }
+  function renderInsight(){
+    var seen=ffInsightSeen(), list=ffInsights().filter(function(i){ return seen.indexOf(i.sig)<0; });
+    if(!list.length) return '';
+    var i=list[0];
+    return '<div class="insight">'+
+      '<button class="insight-x" data-insdismiss="'+escAttr(i.sig)+'" aria-label="Dismiss">×</button>'+
+      '<div class="insight-top"><span class="insight-ic">'+i.ic+'</span><span class="insight-kick">Your focus</span></div>'+
+      '<div class="insight-title">'+i.title+'</div>'+
+      '<div class="insight-body">'+i.body+'</div>'+
+      (i.ask?'<button class="insight-cta" data-insask="'+escAttr(i.ask)+'">💬 Go deeper with the coach</button>':'')+
+      '</div>';
+  }
   function renderDash(){
     var el=$("dashBody"); if(!el) return;
     var t=lsGet("ff_targets",null), wk=curWeek();
@@ -3495,6 +3601,7 @@
     var fuel = t ? ('<b>'+t.kcal+'</b> kcal' ) : 'Set up →';
     var fuelSub = t ? (t.proteinG+'p · '+t.carbG+'c · '+t.fatG+'f') : 'tap to calculate';
     var html = renderScoreCard();
+    html += renderInsight();
     html += renderAdaptiveCard();
     // Obvious round-day entry: this card asks the question, so it's clear WHEN to use it.
     html += '<button class="gameday-cta" data-goview="gameday">'+
@@ -4007,6 +4114,10 @@
   // Dashboard tiles jump to the relevant tab; quick-add logs weight + speed from home.
   var db=$("dashBody");
   if(db) db.addEventListener("click", function(e){
+    var idis=e.target.closest("[data-insdismiss]");
+    if(idis){ ffDismissInsight(idis.getAttribute("data-insdismiss")); renderDash(); return; }
+    var iask=e.target.closest("[data-insask]");
+    if(iask){ if(window.FFCoach && window.FFCoach.ready()) window.FFCoach.ask(iask.getAttribute("data-insask"), "Your focus"); return; }
     var ad=e.target.closest("[data-adapt]");
     if(ad){ var act=ad.getAttribute("data-adapt");
       if(act==="apply"){ var a=adaptiveCheck();
