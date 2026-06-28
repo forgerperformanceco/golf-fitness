@@ -768,8 +768,9 @@
 
   /* ---- Progress / Stats view ---- */
   .prog-hd { margin:4px 2px 14px; }
-  .prog-hd h2 { margin:0 0 3px; font-size:24px; color:var(--green-800); letter-spacing:-.3px; }
-  .prog-hd p { margin:0; font-size:13.5px; color:var(--muted); line-height:1.45; }
+  .prog-kick { font:800 11px/1.2 system-ui; letter-spacing:1.2px; text-transform:uppercase; color:var(--green-600); margin-bottom:6px; }
+  .prog-hd h2 { margin:0 0 3px; font:900 26px/1.05 system-ui; color:var(--green-800); letter-spacing:-.5px; }
+  .prog-hd p { margin:0; font-size:13px; color:var(--muted); line-height:1.45; }
   .pcard { background:#fff; border:1px solid var(--line); border-radius:16px; padding:15px 16px; margin-bottom:13px; box-shadow:0 1px 3px rgba(12,40,24,.04); }
   .pc-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:6px; }
   .pc-t { font:800 13.5px system-ui; color:var(--green-800); }
@@ -874,6 +875,18 @@
     font:700 14px system-ui; cursor:pointer; }
   .acct-btn:active { transform:translateY(1px); }
   .acct-btn.ghost { background:#eef7f0; color:var(--green-700); border:1px solid #cfe9d8; }
+  /* Premium dark account hero — matches the dashboard/Train heroes. */
+  .acct-card.hero { background:radial-gradient(135% 135% at 8% 0%,#1a5031 0%,#0d2216 72%);
+    border:1px solid rgba(255,255,255,.06); color:#eafff1; box-shadow:0 12px 28px rgba(8,40,22,.24); padding:22px 20px; }
+  .acct-card.hero .acct-id { margin-bottom:16px; }
+  .acct-card.hero .acct-ava { background:#7ef0a8; color:#0d2216; }
+  .acct-card.hero .acct-email { color:#fff; }
+  .acct-card.hero .acct-synced { color:#7ef0a8; }
+  .acct-card.hero.center .acct-bigico { color:#7ef0a8; }
+  .acct-card.hero.center h3 { color:#fff; font-size:20px; letter-spacing:-.4px; }
+  .acct-card.hero.center p { color:#bfe3cd; }
+  .acct-card.hero .acct-btn { background:#7ef0a8; color:#0d2216; }
+  .acct-card.hero .acct-btn.ghost { background:rgba(255,255,255,.08); color:#eafff1; border:1px solid rgba(255,255,255,.18); }
   .acct-btn.danger { background:#fff; color:#b3402f; border:1.5px solid #eccac4; }
   .acct-btn.danger:active { background:#fbeeeb; }
   .acct-list { margin-bottom:13px; }
@@ -1576,6 +1589,8 @@
     if(view==="dash"){
       // Priority on Home: sign-in nudge (signed out) → install hint → generic home tip.
       tip = !ffSignedIn() ? FF_TIP_SIGNIN : (ffInstallTip() || FF_TIPS.dash);
+    } else if(view==="account" && ffSignedIn()){
+      return;   // already signed in — the "sign in to unlock" tip would be wrong
     } else {
       tip = FF_TIPS[view];
     }
@@ -4053,12 +4068,12 @@
     var html='';
     if(user){
       var email=user.email||'your account', initial=(email[0]||'⛳').toUpperCase();
-      html+='<div class="acct-card"><div class="acct-id"><div class="acct-ava">'+initial+'</div>'+
+      html+='<div class="acct-card hero"><div class="acct-id"><div class="acct-ava">'+initial+'</div>'+
         '<div class="acct-idtext"><div class="acct-email">'+email+'</div>'+
         '<div class="acct-synced">☁ Synced across your devices</div></div></div>'+
         '<button class="acct-btn ghost" id="acctSignOut">Sign out</button></div>';
     } else {
-      html+='<div class="acct-card center"><div class="acct-bigico">☁</div>'+
+      html+='<div class="acct-card hero center"><div class="acct-bigico">☁</div>'+
         '<h3>Save &amp; sync your progress</h3>'+
         '<p>One-tap email login — no password. Your calculator, workout log and Score follow you across devices.</p>'+
         '<button class="acct-btn" id="acctSignIn">Sign in / Create account</button></div>';
@@ -4204,8 +4219,8 @@
     var sess=Object.keys(getLog()).length, lifts=bigLiftStats();
     var hasAny = sess>0 || spF.length>0 || wtF.length>0;
 
-    var html='<div class="prog-hd"><h2>Your Progress</h2>'+
-      '<p>The proof your training is working — speed, strength and consistency, tracked over time.</p></div>';
+    var html='<div class="prog-hd"><div class="prog-kick">⛳ The proof it’s working</div><h2>Your Progress</h2>'+
+      '<p>Speed, strength and consistency — tracked over time.</p></div>';
     html += renderScoreCard();
 
     if(!hasAny){
