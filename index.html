@@ -221,6 +221,20 @@
   details.fold .fold-body { padding:2px 16px 14px; }
   details.fold .fold-body ul { margin:0; padding-left:18px; line-height:1.6; font-size:12.8px; color:#5a4f2b; }
   details.fold .fold-body ul b { color:#3f3818; }
+  /* Coaching playbook — the three reference reads grouped under one fold. */
+  .pb-sec { padding:12px 0; border-top:1px solid var(--line); }
+  .pb-sec:first-child { padding-top:4px; border-top:0; }
+  .pb-sec h4 { margin:0 0 6px; font-size:13px; color:var(--green-800); }
+  .pb-sec p, .pb-sec div { font-size:12.8px; color:#5a4f2b; line-height:1.55; }
+  .pb-sec p { margin:0 0 8px; } .pb-sec p:last-child { margin:0; }
+  /* Slim "see your progress" link under the workout. */
+  .train-link { display:flex; align-items:center; justify-content:space-between; width:100%; margin-top:10px;
+    background:#fff; border:1px solid var(--line); border-radius:12px; padding:13px 15px;
+    font:700 13px system-ui; color:var(--green-800); cursor:pointer; }
+  .train-link:active { transform:translateY(1px); }
+  .train-link .tl-go { color:var(--muted); }
+  /* Equipment summary count chip. */
+  .eq-sum { font-weight:600; color:var(--muted); font-size:11.5px; }
 
   .breakdown { background:transparent; }
   .breakdown table { width:100%; border-collapse: collapse; font-size: 13px; }
@@ -777,6 +791,10 @@
   #view-plan .equip { order:2; margin-top:8px; }
   #view-plan .tracker-fold { order:3; }
   #view-plan.started .plan-intro { display:none; }
+  /* Once training, the brochure nutrition fold is redundant with the Fuel tab. */
+  #view-plan.started .tracker-fold { display:none; }
+  /* Equipment is a collapsed setup drawer when started — no chrome on the wrapper. */
+  #view-plan.started .equip { background:none; border:0; padding:0; box-shadow:none; }
   .lift-hero { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin:2px 0 14px; }
   .lift-hero .lh-week { font-size:11px; font-weight:800; letter-spacing:1.3px; color:var(--muted); }
   .lift-hero .lh-name { margin:3px 0 3px; font-size:24px; line-height:1.08; color:var(--ink); letter-spacing:-.3px; }
@@ -1913,7 +1931,7 @@
     return { name:rawName, sr:sr, status:"skip", need:e.needs };
   }
 
-  var planState = { phase: 0, freq: 4, equip: {}, machOpen: false };
+  var planState = { phase: 0, freq: 4, equip: {}, machOpen: false, equipOpen: false };
   EQUIPMENT.forEach(function(e){ planState.equip[e.key] = true; });
   MACHINE_KEYS.forEach(function(k){ planState.equip[k] = true; });   // default: full gym
 
@@ -1934,17 +1952,27 @@
       }).join("")+'</div>';
     }
 
-    var h="";
-    h+='<div class="equip-head"><h3>🏋️ Your Equipment <small>Tap what you have — the plan swaps exercises to match.</small></h3>'+
+    var started = !!planStart();
+    var selN = EQUIPMENT.filter(function(e){ return planState.equip[e.key]; }).length + MACHINE_KEYS.filter(have).length;
+    var inner='<div class="equip-head"><h3>🏋️ Your Equipment <small>Tap what you have — the plan swaps exercises to match.</small></h3>'+
        '<div class="equip-presets">'+
        '<button type="button" data-preset="full">Full gym</button>'+
        '<button type="button" data-preset="home">Home gym</button>'+
        '<button type="button" data-preset="minimal">Minimal</button>'+
-       '</div></div>';
-    h+='<div class="equip-chips">'+chips+'</div>';
-    h+='<button type="button" class="mach-expand" data-machexpand="1">'+(planState.machOpen?"▴ hide specific machines":"▾ pick specific machines")+'</button>'+sub;
-    h+='<div class="equip-note">Bodyweight is always on — deselect anything you don\'t own. The <b>Machines &amp; cables</b> chip toggles all of them; tap “pick specific machines” to fine-tune.</div>';
-    $("equipBar").innerHTML=h;
+       '</div></div>'+
+       '<div class="equip-chips">'+chips+'</div>'+
+       '<button type="button" class="mach-expand" data-machexpand="1">'+(planState.machOpen?"▴ hide specific machines":"▾ pick specific machines")+'</button>'+sub+
+       '<div class="equip-note">Bodyweight is always on — deselect anything you don\'t own. The <b>Machines &amp; cables</b> chip toggles all of them; tap “pick specific machines” to fine-tune.</div>';
+    if(started){
+      // Collapsed setup drawer once training (you rarely change gear mid-plan).
+      $("equipBar").innerHTML='<details class="fold equip-fold"'+(planState.equipOpen?' open':'')+'>'+
+        '<summary>🏋️ Your equipment <span class="eq-sum">'+selN+' selected</span></summary>'+
+        '<div class="fold-body">'+inner+'</div></details>';
+      var det=$("equipBar").querySelector(".equip-fold");
+      if(det) det.addEventListener("toggle", function(){ planState.equipOpen=det.open; });
+    } else {
+      $("equipBar").innerHTML=inner;   // open card while still on the brochure
+    }
   }
   $("equipBar").addEventListener("click", function(e){
     if(e.target.closest("[data-machexpand]")){ planState.machOpen=!planState.machOpen; renderEquip(); return; }
@@ -2133,9 +2161,24 @@
 
     html+='<button class="train-ai" data-ask="train">💬 <b>Coach this week</b> — progress &amp; what to adjust ›</button>';
 
-    html+=renderProgressFold();
+    // Review: a slim shortcut to the full Stats tab (no duplicated chart here).
+    html+='<button class="train-link" data-gostats="1"><span>📊 See your full progress</span><span class="tl-go">Stats ›</span></button>';
 
-    // ---- everything else lives in settings, out of the way ----
+    // Learn: the three reference reads grouped under ONE playbook fold.
+    html+='<details class="fold playbook"><summary>📚 Coaching playbook</summary><div class="fold-body">'+
+      '<div class="pb-sec"><h4>🌀 Why this builds clubhead speed</h4>'+phaseWhy()+'</div>'+
+      '<div class="pb-sec"><h4>📈 How to progress &amp; deload</h4>'+
+        '<p><b>RIR</b> = reps in reserve — how many clean reps you stop short of failure. “RIR 2” means leave about 2 in the tank. The note by each lift gives a target RIR and rest time.</p>'+
+        '<p><b>Double progression.</b> Hold the same weight until you hit the <b>top of the rep range on every set</b> (e.g. all sets reach 5 on a 4×5). Next session add <b>2.5–5 lb</b> upper-body / <b>5–10 lb</b> lower-body and build back up. The “Last time” line in the logger shows the numbers to beat.</p>'+
+        '<p><b>Deload weeks 6, 12 &amp; 18.</b> Run ~60% of your usual loads, drop the last set of each lift, and keep speed work crisp but submaximal. Planned recovery is when the adaptation lands.</p>'+
+        '<p><b>Speed &amp; power quality.</b> Jumps, throws and overspeed only build speed when every rep is <i>fast</i> — <b>stop a set the instant reps visibly slow</b>, keep the implement light, and rest fully between efforts. Never grind power work.</p></div>'+
+      '<div class="pb-sec"><h4>🏆 In-season &amp; peaking</h4>'+
+        '<p><b>In-season (tournament stretches).</b> Hold size and strength on a fraction of the work — drop to <b>~1–2 hard sets per muscle, 1–2× a week</b>, but <b>keep the loads heavy</b>; intensity preserves strength. Keep the speed primers, cut accessory volume, switch macros to <b>In-Season Maintain</b>.</p>'+
+        '<p><b>Peak for an event.</b> In the <b>7–10 days</b> before a big round or speed test, <b>cut volume ~40–50% but keep the intensity</b> (heavy singles/doubles, crisp light overspeed). You shed fatigue while holding fitness — expect a <b>~3–6%</b> power bump on the day.</p>'+
+        '<p><b>Sleep is training.</b> Aim <b>7–9 h</b>. Sleep loss degrades <i>skill control</i> — tempo and strike — more than strength, so a bad week of sleep shows in your scores before your lifts.</p></div>'+
+      '</div></details>';
+
+    // Configure: settings (equipment renders right after, via #equipBar).
     html+='<details class="fold"><summary>⚙️ Plan &amp; settings</summary><div class="fold-body settings-body">'+
       '<div class="set-row"><span class="set-lbl">Training days / week</span><div class="seg sm" id="freqSeg">'+
         '<button type="button" data-freq="4" '+(planState.freq===4?'class="active"':'')+'>4</button>'+
@@ -2150,27 +2193,8 @@
       '<button class="sb-link" data-reset="1">↺ Restart from week 1</button>'+
       '</div></details>';
 
-    // Speed methodology — collapsed by default to keep the week scannable
-    html+='<details class="fold"><summary>🌀 Why this builds clubhead speed</summary>'+
-      '<div class="fold-body" style="font-size:12.8px;color:#5a4f2b;line-height:1.5;padding-top:8px;">'+
-      phaseWhy()+'</div></details>';
-
-    html+='<details class="fold"><summary>📈 How to progress &amp; deload</summary>'+
-      '<div class="fold-body" style="font-size:12.8px;color:#5a4f2b;line-height:1.55;padding-top:8px;">'+
-      '<p style="margin:0 0 8px;"><b>RIR</b> = reps in reserve — how many clean reps you stop short of failure. “RIR 2” means leave about 2 in the tank. The note by each lift gives a target RIR and rest time.</p>'+
-      '<p style="margin:0 0 8px;"><b>Double progression.</b> Hold the same weight until you hit the <b>top of the rep range on every set</b> (e.g. all sets reach 5 on a 4×5). Next session add <b>2.5–5 lb</b> upper-body / <b>5–10 lb</b> lower-body and build back up. The “Last time” line in the logger shows the numbers to beat.</p>'+
-      '<p style="margin:0 0 8px;"><b>Deload weeks 6, 12 &amp; 18.</b> Run ~60% of your usual loads, drop the last set of each lift, and keep speed work crisp but submaximal. Planned recovery is when the adaptation lands — you come back stronger and faster.</p>'+
-      '<p style="margin:0;"><b>Speed &amp; power quality.</b> Jumps, throws and overspeed only build speed when every rep is <i>fast</i> — <b>stop a set the instant reps visibly slow</b>, keep the implement light (light beats heavy for overspeed), and rest fully between efforts. Never grind power work.</p>'+
-      '</div></details>';
-
-    html+='<details class="fold"><summary>🏆 In-season &amp; peaking</summary>'+
-      '<div class="fold-body" style="font-size:12.8px;color:#5a4f2b;line-height:1.55;padding-top:8px;">'+
-      '<p style="margin:0 0 8px;"><b>In-season (tournament stretches).</b> You hold size and strength on a fraction of the work — drop to <b>~1–2 hard sets per muscle, 1–2× a week</b>, but <b>keep the loads heavy</b>; intensity is what preserves strength. Keep the speed primers, cut accessory volume, and switch macros to <b>In-Season Maintain</b>.</p>'+
-      '<p style="margin:0 0 8px;"><b>Peak for an event.</b> In the <b>7–10 days</b> before a big round or speed test, <b>cut training volume ~40–50% but keep the intensity</b> (heavy singles/doubles, crisp light overspeed). You shed fatigue while holding fitness — expect a <b>~3–6% bump</b> in power on the day.</p>'+
-      '<p style="margin:0;"><b>Sleep is training.</b> Aim <b>7–9 h</b>. Sleep loss degrades <i>skill control</i> — your swing tempo and strike — more than strength or size, so a bad week of sleep shows up in your scores before your lifts.</p>'+
-      '</div></details>';
-
     $("phaseDetail").innerHTML=html;
+    if($("equipBar")) renderEquip();   // refresh the (now collapsed) equipment drawer
 
     var freqSeg=$("freqSeg");
     if(freqSeg){
@@ -2994,6 +3018,7 @@
 
   /* ----- Delegated plan events (calendar start, log buttons, progress add) ----- */
   $("phaseDetail").addEventListener("click", function(e){
+    if(e.target.closest("[data-gostats]")){ setView("progress"); return; }
     var lb=e.target.closest("[data-logday]");
     if(lb){ openLogger(lb.getAttribute("data-logday")); return; }
     var sw=e.target.closest("[data-startweek]");
