@@ -10,6 +10,20 @@
 <meta name="apple-mobile-web-app-title" content="FairwayFuel" />
 <title>FairwayFuel — Golf Macro Calculator &amp; Mass + Speed Training Plan</title>
 <meta name="description" content="FairwayFuel: macro/TDEE calculator plus a 20-week mass &amp; clubhead-speed training plan for golfers. Build like a bodybuilder, move like a golfer — add 10 lb of muscle and swing faster." />
+<!-- Social share preview (Open Graph + Twitter) so the link looks like a product, not a bare URL. -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="FairwayFuel" />
+<meta property="og:url" content="https://fairwayfuel.app/" />
+<meta property="og:title" content="FairwayFuel — Build Mass, Swing Faster" />
+<meta property="og:description" content="A macro calculator + 20-week mass &amp; clubhead-speed plan for golfers. Build like a bodybuilder, move like a golfer — add lean muscle and turn it into distance. Free." />
+<meta property="og:image" content="https://fairwayfuel.app/og-image.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="FairwayFuel — the golfer's mass &amp; speed system" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="FairwayFuel — Build Mass, Swing Faster" />
+<meta name="twitter:description" content="A macro calculator + 20-week mass &amp; clubhead-speed plan for golfers. Free." />
+<meta name="twitter:image" content="https://fairwayfuel.app/og-image.png" />
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="icon" type="image/svg+xml" href="icon.svg" />
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
@@ -852,6 +866,9 @@
   .acct-li span { color:var(--muted); }
   .acct-li b { color:var(--ink); }
   .acct-foot { text-align:center; font-size:11.5px; color:var(--muted); line-height:1.6; margin-top:4px; padding-bottom:8px; }
+  .acct-links { display:flex; align-items:center; justify-content:center; gap:12px; margin-top:14px; font-size:13.5px; }
+  .acct-links a { color:var(--green-700); font-weight:700; text-decoration:none; }
+  .acct-links span { color:var(--line); }
 
   .tracker {
     margin-top:22px; background:var(--sand); border:1px solid var(--sand-dark); border-radius:14px; padding:18px 20px;
@@ -1165,6 +1182,9 @@
   .tip.tip-signin{ background:linear-gradient(165deg,#fff6ea,#ffeed6); border-color:#f0d6ad; box-shadow:0 4px 14px rgba(184,120,30,.10); }
   .tip.tip-signin .tip-t{ color:#7a3f06; } .tip.tip-signin .tip-b{ color:#6b4a23; }
   .tip.tip-signin .tip-cta{ background:#e8923a; box-shadow:0 3px 9px rgba(232,146,58,.30); }
+  /* install hint — green to read as "this is the app itself" */
+  .tip.tip-install{ background:linear-gradient(165deg,#eaf7ee,#dcf0e2); border-color:#bfe0c8; box-shadow:0 4px 14px rgba(20,120,60,.09); }
+  .tip.tip-install .tip-t{ color:#0f5a2e; } .tip.tip-install .tip-b{ color:#244a32; }
 </style>
 </head>
 <body>
@@ -1514,10 +1534,27 @@
   var FF_TIP_SIGNIN = { key:"signin", cls:"tip-signin", ic:"👋", t:"New here? Sign in first",
     b:"It's <b>free</b> and takes one tap (email link, no password). Signing in turns on the <b>AI coach</b> and saves your progress across devices.",
     cta:"Sign in — it's free" };
+  // "Add to Home Screen" hint — only when not already installed (and not yet dismissed).
+  function ffStandalone(){ try{ return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone===true; }catch(e){ return false; } }
+  function ffInstallTip(){
+    if(ffStandalone()) return null;
+    var seen = lsGet("ff_tips_seen", []); if(seen.indexOf("install")>=0) return null;
+    var ios = /iPad|iPhone|iPod/.test(navigator.userAgent||"");
+    var body = ios
+      ? "Tap the <b>Share</b> icon in your browser bar, then <b>“Add to Home Screen.”</b> It installs like a real app and works offline."
+      : "Open your browser menu and tap <b>“Install app”</b> / <b>“Add to Home Screen.”</b> It installs like a real app and works offline.";
+    return { key:"install", cls:"tip-install", ic:"📲", t:"Keep FairwayFuel one tap away", b:body };
+  }
   function showTipFor(view){
     var host = document.getElementById("view-"+view); if(!host) return;
     var old = host.querySelector(":scope > .tip"); if(old) old.remove();
-    var tip = (view==="dash" && !ffSignedIn()) ? FF_TIP_SIGNIN : FF_TIPS[view];
+    var tip;
+    if(view==="dash"){
+      // Priority on Home: sign-in nudge (signed out) → install hint → generic home tip.
+      tip = !ffSignedIn() ? FF_TIP_SIGNIN : (ffInstallTip() || FF_TIPS.dash);
+    } else {
+      tip = FF_TIPS[view];
+    }
     if(!tip) return;
     var seen = lsGet("ff_tips_seen", []);
     if(seen.indexOf(tip.key) >= 0) return;
@@ -4021,6 +4058,10 @@
     html+='<div class="acct-card"><div class="acct-head">Show me around</div>'+
       '<p class="acct-p">New to the app or want a refresher? Replay the one-tap tips that explain what each tab does.</p>'+
       '<button class="acct-btn ghost" id="acctReplayTips">↻ Replay the tips</button></div>';
+    html+='<div class="acct-links">'+
+      '<a href="mailto:bobbydenisclay@gmail.com?subject=FairwayFuel%20feedback">✉ Send feedback</a>'+
+      '<span>·</span>'+
+      '<a href="privacy.html">Privacy</a></div>';
     html+='<div class="acct-foot">FairwayFuel · installs &amp; works offline<br>Evidence-based starting points — not medical advice.</div>';
     el.innerHTML=html;
     var rt=$("acctReplayTips"); if(rt) rt.onclick=function(){
