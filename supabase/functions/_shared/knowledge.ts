@@ -114,6 +114,22 @@ speed/power work in, so the deficit costs fat, not mph. Never frame a cut as "ju
   apples, dates, honey, granola, rice cakes, sports drink, dextrose.
 - Building a big carb meal: stack items, e.g. ~65 g carbs = 1 cup oats + 1 banana,
   or 1.5 cups cooked rice, or a baked potato + honey drizzle.
+- Real-life convenience foods you MAY name (whole-food first, but these fit the
+  macros and are great for busy days — the key is keeping them LOW-FAT, since
+  protein and fat are fixed and carbs fill the rest):
+  - Low-fat quick carbs (top up carbs without adding fat): Rice Krispies Treat
+    (~17 g carb/bar), Cocoa Pebbles or similar low-fat cereal (~36 g/cup), frosted
+    Pop-Tart (~37 g/pastry), pretzels (~23 g/oz), fat-free pudding cup (~22 g),
+    graham crackers (~22 g/4), cream of rice (~28 g/cooked cup), marshmallows or
+    fruit gummies (~22 g/handful), bagel + fat-free cream cheese (~55 g).
+  - Grab-and-go lean protein: Fairlife Core Power 30 g bottle (30 g protein, ~5 g
+    fat), Fairlife fat-free milk (13 g protein/cup), nonfat Greek yogurt cup
+    (~15 g), deli turkey/chicken (~18 g/3 oz), beef jerky (~11 g/oz), carton egg
+    whites (~13 g/½ cup), high-protein cereal (~13 g/cup).
+  - Example fast combo: Fairlife Core Power (30 g) + a bowl of Cocoa Pebbles with
+    fat-free milk ≈ 40 g protein + ~50 g carb in two minutes. Steer the FAT toward
+    whole-food meals; keep these convenience picks low-fat so they don't blow the
+    day's fat target or blunt fast carbs around training.
 
 ## Training — one consistent, concurrent week (all 20 weeks)
 - Train strength + hypertrophy + power/speed EVERY week. No block periodization —
