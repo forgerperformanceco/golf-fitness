@@ -2264,6 +2264,7 @@
     for(var j=0;j<n;j++){
       var slot=(j===0?"am":null), isPost=(j===postIdx);
       var cTarget=Math.round(t.c*w[j]/wsum);
+      if(n>=3 && isPost) cTarget=Math.max(20, cTarget-30);   // reserve ~30g for the pre-workout snack
       var ps=ffProtScaled(ffRoleList(p,'prot',slot), Math.round(pPer), roll+j);
       var carbList=ffRoleList(p, isPost?'snack':'carb', slot);
       if(!carbList.length) carbList=ffRoleList(p,'carb',slot);
@@ -2291,6 +2292,21 @@
         slots[si].items.push(fat.label); slots[si].foods.push({food:fat.food, servings:fat.mult});
         slots[si].P+=fat.P; slots[si].C+=fat.C; slots[si].F+=fat.F;
         totP+=fat.P; totC+=fat.C; totF+=fat.F; gap-=fat.F;
+      }
+    }
+    // Split training fuel into a small PRE-workout fast-carb snack + the POST-workout meal.
+    if(n>=3){
+      var pidx=-1; for(var pi=0;pi<slots.length;pi++){ if(slots[pi].post){ pidx=pi; break; } }
+      if(pidx>=0){
+        var fastPool=ffRoleList(p,'snack',null).filter(function(f){ return f.cat==='fast'||f.cat==='fruit'; });
+        if(!fastPool.length) fastPool=ffRoleList(p,'snack',null);
+        var pre=ffCarbCombo(fastPool, 30, roll+7);
+        if(pre.picks.length){
+          var preF=pre.picks.reduce(function(a,f){return a+f.f;},0), preP=pre.picks.reduce(function(a,f){return a+f.p;},0);
+          slots.splice(pidx, 0, { name:"Pre-workout", items:pre.picks.map(ffLabel),
+            foods:pre.picks.map(function(f){return {food:f, servings:1};}), P:preP, C:pre.sum, F:preF, pre:true });
+          totP+=preP; totC+=pre.sum; totF+=preF;
+        }
       }
     }
     return { slots:slots, totals:{P:totP,C:totC,F:totF}, target:{P:t.p,C:t.c,F:(t.f||60)} };
@@ -2350,6 +2366,7 @@
     return null;
   }
   function ffItemsHtml(labels){ return labels.map(function(l){ return '<span class="ffm-it">'+l+'</span>'; }).join('<span class="ffm-plus">+</span>'); }
+  function ffMealTag(s){ return s.pre?' <em>· fast carbs before</em>':(s.post?' <em>· post-workout recovery</em>':''); }
 
   function renderFFMeals(){
     var card=$("ffMealsCard"), el=$("ffMeals"); if(!el) return;
@@ -2374,7 +2391,7 @@
       '<div class="ffm-meals"><span>Meals / day</span><span class="ffm-seg">'+
         [3,4,5,6].map(function(n){ return '<button type="button" data-meals="'+n+'"'+((t.m||4)===n?' class="on"':'')+'>'+n+'</button>'; }).join("")+'</span></div>';
     ideas.forEach(function(s){ if(!s) return;
-      html+='<div class="ffm-pair"><div class="ffm-pair-h">'+s.name+(s.post?' <em>· around training</em>':'')+' <span>≈ '+s.P+'P · '+s.C+'C · '+s.F+'F</span></div>'+
+      html+='<div class="ffm-pair"><div class="ffm-pair-h">'+s.name+ffMealTag(s)+' <span>≈ '+s.P+'P · '+s.C+'C · '+s.F+'F</span></div>'+
         '<div class="ffm-items">'+ffItemsHtml(s.items)+'</div></div>';
     });
     if(snackPool.length){
@@ -2389,7 +2406,7 @@
     if(ffShowDay){
       html+='<div class="ffm-day"><div class="ffm-day-h">📅 Your full day — '+(t.m||4)+' meals</div>';
       plan.slots.forEach(function(s){
-        html+='<div class="ffm-meal"><div class="ffm-meal-h">'+s.name+(s.post?' <em>· training</em>':'')+' <span>≈ '+s.P+'P · '+s.C+'C · '+s.F+'F</span></div>'+
+        html+='<div class="ffm-meal"><div class="ffm-meal-h">'+s.name+ffMealTag(s)+' <span>≈ '+s.P+'P · '+s.C+'C · '+s.F+'F</span></div>'+
           '<div class="ffm-items">'+ffItemsHtml(s.items)+'</div></div>';
       });
       var tt=plan.totals, tg2=plan.target;
@@ -2479,7 +2496,7 @@
     var days=ffWeekPlans(p,t), d=Math.max(0,Math.min(6, ffWeekDay||0)), plan=days[d];
     var strip='<div class="ffw-strip">'+days.map(function(_,i){ return '<button type="button" class="ffw-day'+(i===d?' on':'')+'" data-ffwday="'+i+'">Day '+(i+1)+'</button>'; }).join("")+'</div>';
     var meals=''; plan.slots.forEach(function(s){
-      meals+='<div class="ffm-meal"><div class="ffm-meal-h">'+s.name+(s.post?' <em>· training</em>':'')+' <span>≈ '+s.P+'P · '+s.C+'C · '+s.F+'F</span></div><div class="ffm-items">'+ffItemsHtml(s.items)+'</div></div>';
+      meals+='<div class="ffm-meal"><div class="ffm-meal-h">'+s.name+ffMealTag(s)+' <span>≈ '+s.P+'P · '+s.C+'C · '+s.F+'F</span></div><div class="ffm-items">'+ffItemsHtml(s.items)+'</div></div>';
     });
     var tt=plan.totals, tg=plan.target;
     var totals='<div class="ffm-tot"><div class="ffm-tot-row">'+ffTotCell('Protein',tt.P,tg.P,'p')+ffTotCell('Carbs',tt.C,tg.C,'c')+ffTotCell('Fat',tt.F,tg.F,'f')+'</div></div>';
@@ -4625,6 +4642,10 @@
   var cs=$("calcSummary"); if(cs) cs.addEventListener("click", function(e){
     if(e.target.closest("[data-calcedit]")){ calcCollapsed=!calcCollapsed; applyCalcCollapse(); }
   });
+  // Returning users have the brand in the top bar already — drop the big dashboard hero so
+  // the Score leads. New users (no targets yet) keep it as the first-impression header.
+  var dh=document.querySelector(".dash-hero");
+  if(dh && !FF_FRESH && localStorage.getItem("ff_targets")) dh.hidden=true;
   renderEquip();
   renderPhase();
   renderDash();         // home overview (default landing tab)
