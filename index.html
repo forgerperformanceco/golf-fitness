@@ -3000,10 +3000,10 @@
     }).join("");
     var warmPrimer = warmupHtml(d.name, true, showPrimerNote);
     if(interactive){
-      // Featured card: no day-header (hero names it); warm-up + primer collapsed so lifts lead.
+      // Featured card: warm-up + primer expanded by default — it's "do these first," easy to miss if hidden.
       ilog = { week: curWeek(), day: d.name, sess: buildSession(d, curWeek()) }; openWhy={};
       return '<div class="day-focus">'+
-        '<details class="prelift"><summary>🔥 Warm-up &amp; power primer — do these first</summary><div class="prelift-body">'+warmPrimer+'</div></details>'+
+        '<details class="prelift" open><summary>🔥 Warm-up &amp; power primer — do these first</summary><div class="prelift-body">'+warmPrimer+'</div></details>'+
         '<div class="ilogwrap" id="ilogBox">'+ilogBodyHtml()+'</div></div>';
     }
     var head = '<div class="day"><div class="day-head">'+d.name+' <span class="tag '+(d.tag==="Lift"?"":d.tag)+'">'+labelFor(d.tag)+'</span></div>'+warmPrimer;
