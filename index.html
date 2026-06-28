@@ -2144,15 +2144,16 @@
       FF_RESTRICT.map(function(r){ var on=(p.restrict||[]).indexOf(r.id)>=0;
         return '<button type="button" class="ffp-r'+(on?' on':'')+'" data-ffr="'+r.id+'">'+r.e+' '+r.label+'</button>'; }).join("")+
       '</div></div>';
-    // Regional staples first (only the ones common in this region)
+    function byName(a,b){ return a.n.localeCompare(b.n); }
+    // Regional staples first (only the ones common in this region), alphabetical
     if(reg!=="US"){
-      var local=FF_FOODS.filter(function(f){ return f.reg && f.reg.indexOf(reg)>=0; });
+      var local=FF_FOODS.filter(function(f){ return f.reg && f.reg.indexOf(reg)>=0; }).sort(byName);
       if(local.length)
         html+='<div class="ffp-grp"><div class="ffp-gh">📍 Common in the '+R.label+'</div><div class="ffp-chips">'+
           local.map(function(f){ return ffChip(f,p); }).join("")+'</div></div>';
     }
     FFP_GROUPS.forEach(function(g){
-      var items=FF_FOODS.filter(function(f){ return FFP_GROUP_OF[f.cat]===g && (!f.reg || f.reg.indexOf(reg)>=0); });
+      var items=FF_FOODS.filter(function(f){ return FFP_GROUP_OF[f.cat]===g && (!f.reg || f.reg.indexOf(reg)>=0); }).sort(byName);
       if(!items.length) return;
       html+='<div class="ffp-grp"><div class="ffp-gh">'+g+'</div><div class="ffp-chips">'+
         items.map(function(f){ return ffChip(f,p); }).join("")+'</div></div>';
