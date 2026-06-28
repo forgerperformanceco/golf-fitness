@@ -118,6 +118,7 @@
   .view.active { display: block; }
 
   .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+  .grid .card-full { grid-column: 1 / -1; }   /* full-width row under the two columns */
   @media (max-width: 880px) { .grid { grid-template-columns: 1fr; } }
 
   .card {
@@ -1050,7 +1051,7 @@
         <div id="results"></div>
       </section>
 
-      <section class="card">
+      <section class="card card-full">
         <details class="fold foodfold">
           <summary>🍽️ What do I eat to hit these numbers?</summary>
           <div class="fold-body">
@@ -1634,20 +1635,20 @@
   }
   // Role-tuned food pools for example meals (post-workout = fast carbs + lean protein, etc.)
   var MEAL_PROT = {
-    Breakfast:[{one:"1 scoop whey",g:25},{one:"1 cup Greek yogurt",g:23},{one:"3 eggs",g:18}],
+    Breakfast:[{one:"1 scoop whey",g:25},{one:"1 cup Greek yogurt",g:23},{one:"3 eggs",g:18},{one:"1 cup high-protein cereal",g:13}],
     Lunch:[{one:"4 oz chicken or turkey",g:35},{one:"4 oz lean beef",g:30}],
     Dinner:[{one:"6 oz chicken or steak",g:50},{one:"4 oz salmon",g:29}],
-    Snack:[{one:"a whey shake",g:25},{one:"1 cup Greek yogurt",g:23},{one:"½ cup cottage cheese",g:13}],
-    post:[{one:"4 oz chicken breast",g:35},{one:"1 scoop whey",g:25}],
+    Snack:[{one:"a Fairlife Core Power (30g)",g:30},{one:"a whey shake",g:25},{one:"1 cup Greek yogurt",g:23},{one:"1 oz beef jerky",g:11},{one:"½ cup cottage cheese",g:13}],
+    post:[{one:"a Fairlife Core Power (30g)",g:30},{one:"4 oz chicken breast",g:35},{one:"1 scoop whey",g:25}],
     def:[{one:"4 oz chicken breast",g:35},{one:"4 oz lean beef",g:30},{one:"3 eggs",g:18}]
   };
   var MEAL_CARB = {
-    Breakfast:[{one:"1 cup oats",g:54},{one:"1 banana",g:27},{one:"2 slices toast",g:30},{one:"1 cup berries",g:15}],
+    Breakfast:[{one:"1 cup oats",g:54},{one:"1 banana",g:27},{one:"a bowl of low-fat cereal",g:36},{one:"2 slices toast",g:30},{one:"1 cup berries",g:15}],
     Lunch:[{one:"1 cup rice",g:45},{one:"a wrap or 2 slices bread",g:30},{one:"a baked potato",g:37}],
     Dinner:[{one:"1 cup rice",g:45},{one:"a baked potato",g:37}],
-    Snack:[{one:"a banana",g:27},{one:"an apple",g:25},{one:"some granola",g:30},{one:"rice cakes",g:14}],
-    post:[{one:"1 cup white rice",g:45},{one:"1 banana",g:27},{one:"1 tbsp honey",g:17}],
-    pre:[{one:"1 banana",g:27},{one:"½ cup oats",g:27},{one:"1 tbsp honey",g:17}],
+    Snack:[{one:"a Rice Krispies Treat",g:17},{one:"a bowl of Cocoa Pebbles",g:36},{one:"pretzels (1 oz)",g:23},{one:"a banana",g:27},{one:"an apple",g:25},{one:"rice cakes",g:14}],
+    post:[{one:"a bowl of Cocoa Pebbles",g:36},{one:"1 cup white rice",g:45},{one:"1 banana",g:27},{one:"1 tbsp honey",g:17}],
+    pre:[{one:"a Rice Krispies Treat",g:17},{one:"1 banana",g:27},{one:"½ cup oats",g:27},{one:"1 tbsp honey",g:17}],
     def:[{one:"1 cup rice",g:45},{one:"a baked potato",g:37},{one:"1 banana",g:27}]
   };
   function exampleMeal(s){
