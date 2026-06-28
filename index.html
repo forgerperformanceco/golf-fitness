@@ -724,11 +724,17 @@
   .planview-seg button.active { background:#fff; color:var(--green-700); box-shadow:0 1px 4px rgba(0,0,0,.08); }
   .planview-seg button:disabled { opacity:.4; cursor:default; }
   /* Whole training week visible at once (no horizontal scroll) — equal-width day tiles. */
-  .weekstrip { display:grid; grid-template-columns:repeat(auto-fit, minmax(54px, 1fr)); gap:6px; padding:1px 0 12px; margin-bottom:2px; }
-  .ws-chip { border:1px solid var(--line); background:var(--paper); color:var(--ink); text-align:center;
-    border-radius:11px; padding:9px 5px; font:700 12px system-ui; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .weekstrip { display:grid; grid-template-columns:repeat(auto-fit, minmax(58px, 1fr)); gap:6px; padding:1px 0 12px; margin-bottom:2px; }
+  .ws-chip { display:flex; flex-direction:column; align-items:center; gap:2px; border:1px solid var(--line); background:var(--paper);
+    color:var(--ink); text-align:center; border-radius:11px; padding:7px 4px; cursor:pointer; overflow:hidden; }
+  .ws-chip .ws-date { font:600 9.5px/1 system-ui; color:var(--muted); letter-spacing:.2px; white-space:nowrap; }
+  .ws-chip .ws-name { font:800 12.5px/1 system-ui; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
   .ws-chip.done { color:var(--green-700); border-color:#cfe9d8; }
-  .ws-chip.cur { background:#11643a; color:#fff; border-color:#11643a; }
+  .ws-chip.today { border-color:#11643a; box-shadow:inset 0 0 0 1px #11643a; }
+  .ws-chip.today .ws-date { color:var(--green-700); font-weight:800; }
+  .ws-chip.cur { background:#11643a; color:#fff; border-color:#11643a; box-shadow:none; }
+  .ws-chip.cur .ws-date { color:#bfe6cd; }
+  .ws-chip.cur .ws-name { color:#fff; }
   /* Inline logger — Hevy-style exercise cards */
   .ilogwrap { padding:4px 0 2px; }
   .il-prog { height:5px; background:var(--line); border-radius:99px; overflow:hidden; margin:0 0 14px; }
@@ -2197,10 +2203,14 @@
     if(wk%6===0) html+='<div class="deload-banner">🪫 <b>Deload week.</b> ~60% of your usual loads, drop the last set, keep speed work crisp but submaximal — planned recovery is when you grow.</div>';
 
     if(mode==="today"){
-      var strip = shown.map(function(d){
+      var todayDate = new Date();
+      var strip = shown.map(function(d, i){
         var done = d.type!=="rest" && !!getSession(wk, d.name);
-        return '<button class="ws-chip'+(d.name===featured.name?" cur":"")+(done?" done":"")+'" data-focusday="'+escAttr(d.name)+'">'+
-          (done?"✓ ":"")+wsShort(d)+'</button>';
+        var cd = chipDate(i), isToday = sameDay(cd, todayDate);
+        var dateLbl = isToday ? "Today" : (cd ? fmtChipDate(cd) : ("Day "+(i+1)));
+        return '<button class="ws-chip'+(d.name===featured.name?" cur":"")+(done?" done":"")+(isToday?" today":"")+'" data-focusday="'+escAttr(d.name)+'">'+
+          '<span class="ws-date">'+dateLbl+'</span>'+
+          '<span class="ws-name">'+(done?"✓ ":"")+wsShort(d)+'</span></button>';
       }).join("");
       html+='<div class="weekstrip">'+strip+'</div>';
       html+=dayCardHtml(featured, true, true);   // interactive inline logger
@@ -2292,6 +2302,22 @@
     var days = Math.floor((Date.now() - new Date(s).getTime()) / 864e5);
     return (days % 7) + 1;
   }
+  // Real calendar dates for the week strip, anchored to when the user started.
+  function weekStartDate(){
+    var s = planStart(); if(!s) return null;
+    var d = new Date(s); d.setHours(0,0,0,0);
+    d.setDate(d.getDate() + (curWeek()-1)*7);
+    return d;
+  }
+  function chipDate(i){
+    var ws = weekStartDate(); if(!ws) return null;
+    var d = new Date(ws); d.setDate(d.getDate() + i); return d;
+  }
+  function fmtChipDate(d){
+    try { return d.toLocaleDateString(undefined,{weekday:"short"}) + " " + (d.getMonth()+1) + "/" + d.getDate(); }
+    catch(e){ return ""; }
+  }
+  function sameDay(a,b){ return !!(a && b && a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate()); }
   // Start (or re-anchor) the plan so that "today" lands in the given week.
   function startPlanAtWeek(n){
     var back = (Math.max(1, n) - 1) * 7;
