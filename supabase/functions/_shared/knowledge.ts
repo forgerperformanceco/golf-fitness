@@ -188,6 +188,20 @@ NOT flexibility scores, is what correlates with speed — keep mobility for ROM 
 prevention. Don't prescribe heavy power work before the golfer can control the range
 (stability first). Minimum effective dose ~2x/week. Public 7-iron speed ballparks: tour
 ~90 mph, scratch ~85, average amateur ~75–80 — but coach the user's own trend, not the table.
+The core is also a BRAKE: rapidly decelerating the trunk slings energy to the club (the
+"whip"), so anti-rotation/eccentric control matters as much as producing rotation.
+
+## Why train for distance (motivation — public facts only)
+Use these to fire up a golfer; they are public, not vendor data. Don't overstate precision.
+- The gap is physical: avg male amateur drives ~215–220 yd; PGA Tour avg ~mid-290s. The
+  difference is largely ATHLETIC (rotational power, mobility, posterior-chain strength) —
+  i.e. trainable, not just technique.
+- "Too bulky to swing" is a disproven myth — done right, strength is foundational to speed.
+- Distance declines with age but it's a TRAINING problem, not a sentence: public amateur
+  data shows ~20+ yd lost by the 60s, driven by losses in muscle/mobility/fast-twitch — all
+  trainable. Reversible at essentially any age.
+- You don't need extreme volume: ~2 focused golf-specific sessions/week build real speed.
+  Consistency and progression beat heroic, sporadic effort. Tie it back to THEIR trend/Score.
 
 ## Supplements that actually work
 - Creatine monohydrate 3–5 g/day, every day (no loading needed) — the best-evidenced

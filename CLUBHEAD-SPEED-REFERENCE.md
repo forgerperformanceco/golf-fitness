@@ -56,7 +56,11 @@ wherever a link is weak or restricted. The trainable drivers:
    downstream becomes arms.
 3. **Rotational core power.** Speed through impact is the core rotating at high velocity —
    strength **and** fast-twitch rate of force development. A slow core caps a fast swing
-   regardless of arm strength.
+   regardless of arm strength. The core is also the swing's **brake**: rapidly *decelerating*
+   the pelvis and trunk is what slings energy outward into the club (the "whip" effect), so
+   training the trunk to **resist and absorb** rotation matters as much as producing it
+   (the public Univ. of Utah Health golf clinic frames the core as both conduit and braking
+   system). This is why anti-rotation work earns its place next to rotational work.
 4. **Thoracic & shoulder mobility.** The upper back and shoulders need full rotation to
    let the arms travel a long, fast arc. Restriction forces early release, "chicken wing,"
    and lost lag.
@@ -171,10 +175,45 @@ program that actually moves the needle — and how FairwayFuel delivers each:
 
 ---
 
-## 8. Sources & further reading (independent)
+## 8. Why it's never too late — the distance gap and age
+
+The case for training the body, in **public** numbers (no vendor data):
+
+- **The gap is mostly physical.** The average male amateur drives the ball roughly
+  **215–220 yards**; the PGA Tour average sits in the **mid-290s** (2024–25 seasons). A gap
+  that wide isn't all technique — tour players are simply better *athletes*: more rotational
+  power, more mobility, and the posterior-chain strength to hold posture under a 110+ mph
+  swing. That **athletic** gap is the part you can train.
+- **"Too bulky to swing" is a dead myth.** The old fear that lifting ruins a fluid swing has
+  been thoroughly disproven; done right (mobility + power, not just hypertrophy), strength
+  work is *foundational* to speed, not opposed to it.
+- **Distance declines with age — but that's a training problem, not a sentence.** Large
+  public datasets of amateur driver shots (Arccos, 180M+ shots) show driving distance peaks
+  in the mid-20s and falls at an *accelerating* rate — on the order of **20+ yards lost by
+  the 60s**. The acceleration after ~50 tracks losses in muscle mass, mobility, and
+  fast-twitch recruitment — every one of which responds to resistance and power training.
+- **It's reversible at essentially any age.** Strength, rate of force development, and
+  power-to-weight are trainable into later decades; structured progressive programs produce
+  meaningful clubhead-speed gains across age groups. The body you bring to the first tee is
+  the variable you control.
+- **You don't need extreme volume — you need consistency.** The public evidence spans a wide
+  spectrum: at the elite extreme, a tour player added roughly **15 mph of clubhead speed
+  (~118 → ~133) over about two years** of heavy speed/overspeed work (widely reported); at
+  the time-efficient end, focused **~2 sessions/week** of golf-specific speed + strength work
+  is enough to build elite ball speed. Same throughline this program is built on: progressive,
+  golf-specific, *consistent* — not heroic and sporadic.
+
+> FairwayFuel's job is exactly the trainable part of that gap: build the mass, power, and
+> power-to-weight that put yards back on the ball — and keep them there as the years pass.
+
+---
+
+## 9. Sources & further reading (independent)
 
 - **Launch-monitor norms:** TrackMan & FlightScope publicly published average club/ball
   data (tour and amateur).
+- **Distance by age / amateur driving distance:** Arccos Golf publicly reported
+  driver-distance data (180M+ amateur shots) and public PGA Tour driving-distance stats.
 - **Biomechanics / kinematic sequence & X-factor:** McLean (X-factor concept); peer-
   reviewed work on the proximal-to-distal sequence and X-factor stretch vs. clubhead speed
   (e.g. Cheetham et al.; Nesbit & Serrano); force-plate / ground-reaction-force studies in
