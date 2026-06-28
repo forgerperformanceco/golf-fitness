@@ -189,6 +189,8 @@
     padding: 4px 13px; border-radius: 999px; font-weight: 700; letter-spacing:.3px; position:relative;
   }
   .tdee-line { font-size: 12px; opacity: .88; margin-top: 10px; position:relative; }
+  .tuned-note { display:inline-block; margin-top:10px; background:rgba(255,255,255,.16); border-radius:999px; padding:5px 12px; font-size:11.5px; font-weight:600; }
+  .tuned-note b { font-weight:800; }
 
   .target { border-radius: 14px; padding: 14px 16px; margin-bottom: 18px; border:1.5px solid; }
   .target.gain { background:#eafaf0; border-color:#bce6cd; }
@@ -518,6 +520,18 @@
   .dash-log .dl-hint { font-size:11.5px; color:var(--muted); margin-top:8px; line-height:1.4; }
   .dash-log .dl-hint b { color:var(--green-700); }
 
+  /* Adaptive nutrition check-in card */
+  .adapt { margin-top:13px; background:linear-gradient(160deg,#0f2417,#14532d); color:#eafff1; border-radius:16px; padding:16px 17px; box-shadow:0 8px 24px rgba(8,40,22,.2); }
+  .adapt.ok { background:linear-gradient(160deg,#13402a,#1b5e3a); }
+  .adapt-h { font:800 13px system-ui; color:#7ef0a8; letter-spacing:.3px; margin-bottom:7px; }
+  .adapt p { margin:0; font-size:13px; line-height:1.5; color:#d9f3e2; }
+  .adapt p b { color:#fff; }
+  .adapt-sugg { margin:12px 0 4px; background:rgba(126,240,168,.14); border:1px solid rgba(126,240,168,.3); border-radius:10px; padding:11px 13px; font:800 14px system-ui; color:#fff; }
+  .adapt-btns { display:flex; gap:9px; margin-top:13px; }
+  .adapt-btn { flex:1; background:#7ef0a8; color:#0f2417; border:0; border-radius:11px; padding:13px; font:800 13.5px system-ui; cursor:pointer; }
+  .adapt-btn:active { transform:translateY(1px); }
+  .adapt-btn.ghost { flex:0 0 auto; background:rgba(255,255,255,.1); color:#cdebd6; padding:13px 16px; }
+
   /* ---- First-run onboarding wizard ---- */
   .ob { position:fixed; inset:0; z-index:200; background:linear-gradient(165deg,#0f2417,#14532d 58%,#0c2c1a);
     display:flex; flex-direction:column; overflow-y:auto; -webkit-overflow-scrolling:touch; }
@@ -761,6 +775,20 @@
   .exwhy-panel .why-why { font-size:12.6px; line-height:1.5; color:var(--ink); }
   .exwhy-panel .why-cue { font-size:12.3px; color:var(--green-800); margin-top:8px; }
   .exwhy-panel .why-cue b { color:var(--green-700); }
+  /* "How to do it" launcher button (in both inline + read-only why panels) */
+  .why-howto { display:block; width:100%; margin-top:11px; background:#eef7f0; border:1px solid #cfe9d8; color:var(--green-700);
+    border-radius:9px; padding:10px; font:800 12.5px system-ui; cursor:pointer; }
+  .why-howto:active { transform:translateY(1px); }
+  /* exercise demo sheet content (reuses .swap-modal/.swap-card shell) */
+  .ed-mu { font-size:13px; color:var(--green-800); background:#eef7f0; border:1px solid #cfe9d8; border-radius:10px; padding:10px 12px; margin-bottom:12px; }
+  .ed-sec { margin-bottom:14px; }
+  .ed-sec h4 { margin:0 0 7px; font-size:13px; color:var(--green-800); }
+  .ed-cues, .ed-miss { margin:0; padding-left:20px; }
+  .ed-cues li, .ed-miss li { font-size:13px; line-height:1.5; color:var(--ink); margin:4px 0; }
+  .ed-miss li { color:#8a4a40; }
+  .ed-why { font-size:12.6px; line-height:1.5; color:#5a4f2b; background:#fef9ec; border:1px solid #f0e3b8; border-radius:10px; padding:11px 12px; margin-bottom:14px; }
+  .ed-video { display:block; text-align:center; background:#11643a; color:#fff; text-decoration:none; border-radius:10px; padding:13px; font:800 14px system-ui; }
+  .ed-video:active { transform:translateY(1px); }
   .il-sub { font-size:11.5px; color:var(--muted); margin:2px 0 11px; }
   .il-up { color:var(--green-700); font-weight:800; }
   .il-cols, .il-set { display:grid; grid-template-columns:26px minmax(54px,1fr) 60px 60px 40px; gap:8px; align-items:center; }
@@ -1533,6 +1561,10 @@
     // Protein = % of calories; fat = fixed grams per goal; carbs fill the rest. All rounded to 5 g.
     var proteinG=round5(target*g.proteinPct/4);
     var fatG=g.fatG;
+    // Adaptive nudge from the metabolism check-in (weight-trend tuning) — flows
+    // into carbs, since protein and fat are fixed.
+    var kcalAdj = lsGet("ff_kcal_adj", 0);
+    target += kcalAdj;
     var proteinKcal=proteinG*4, fatKcal=fatG*9;
     var carbKcal=target - proteinKcal - fatKcal, carbG=round5(carbKcal/4);
     if(carbG<0){ carbG=0; }
@@ -1733,11 +1765,13 @@
     var deltaKcal=round(r.target-r.tdee);
     var deltaTxt = deltaKcal===0?"±0 kcal/day":(deltaKcal>0?"+"+deltaKcal+" kcal/day":deltaKcal+" kcal/day");
 
+    var adjNow=lsGet("ff_kcal_adj",0);
     var html="";
     html+='<div class="result-hero">'+
       '<div class="kcal">'+round(totalK)+' <small>kcal/day</small></div>'+
       '<div class="goal-label">'+r.goal.label+' &middot; '+pctTxt+'</div>'+
       '<div class="tdee-line">Maintenance (TDEE): <b>'+round5(r.tdee)+' kcal</b> &nbsp;·&nbsp; Goal target: <b>'+round5(r.target)+' kcal</b> ('+deltaTxt+')</div>'+
+      (adjNow!==0 ? '<div class="tuned-note">📊 Tuned <b>'+(adjNow>0?'+':'')+adjNow+' kcal</b> from your actual weight trend</div>' : '')+
       '</div>';
     html+=targetBand(r.weekly,r.goal);
     html+='<div class="macros">'+
@@ -2563,12 +2597,53 @@
       return { why:"Arms guide the club; the body powers it. This is support work — healthy, strong elbows and wrists handle the speed your big lifts build.", cue:"Strict and controlled — armor, not ego." };
     return { why:"Every lift here feeds the chain that turns ground force into clubhead speed — build the muscle, then the speed work converts it.", cue:"Full range, max intent up, controlled down." };
   }
+  // How-to form library — muscles worked, setup/execution cues, common mistakes.
+  // Curated and movement-pattern matched (IP-clean, offline). Pairs with liftWhy().
+  function exerciseForm(name){
+    var n=name||""; function m(re){ return re.test(n); }
+    if(m(/Overspeed|Speed Stick|Whoosh/i)) return { mu:"Full body · CNS / fast-twitch", cues:["Use a light stick — light beats heavy for speed.","Make smooth, balanced full swings at MAX effort.","Swing both directions (dominant + non-dominant) each set.","Full rest between reps — every swing is all-out."], miss:["Swinging too hard and losing balance.","Going too heavy — kills the overspeed effect."] };
+    if(m(/Footwork|Ground.?force/i)) return { mu:"Glutes · quads · calves · feet", cues:["Set up athletic, weight balanced.","Drive the lead foot hard into the ground from the top.","Feel the pressure shift toward the lead side.","Stay tall — push the floor, don't sway."], miss:["Swaying instead of pressing into the ground.","Standing too upright with no leg drive."] };
+    if(m(/Med.?ball|Throw|Slam|Chest Pass|Punch|Scoop/i)) return { mu:"Core · hips · chest/shoulders", cues:["Load the back hip, then explode through.","Accelerate all the way through the release.","Throw violently — full follow-through.","Reset and rest fully between reps."], miss:["Holding back at release — defeats the purpose.","Using only the arms instead of the hips/core."] };
+    if(m(/Jump|Bound|Broad|Hop|Plyo|Pogo/i)) return { mu:"Glutes · quads · hamstrings · calves", cues:["Load with a quick dip, arms back.","Explode up/out as fast as possible.","Land soft and balanced — absorb quietly.","Full reset every rep; quality over quantity."], miss:["Landing stiff or off-balance.","Grinding reps when they slow down — stop the set."] };
+    if(m(/Clean|Snatch|High Pull/i)) return { mu:"Glutes · hamstrings · traps · whole posterior chain", cues:["Start with a flat back, bar/weight close.","Explode through the hips — triple extension.","Be aggressive and snappy; speed is the point.","Catch or finish tall and stable."], miss:["Rounding the back.","Pulling slow — this is a power move, move fast."] };
+    if(m(/Pallof|Chop|Russian|Wood ?chop|Rotation|Rotational|Twist|Landmine/i)) return { mu:"Obliques · deep core · hips", cues:["Brace the core hard before you move.","Rotate from the hips, keep the spine stacked.","Control the return — don't let it snap you back.","Breathe behind the brace."], miss:["Bending the spine instead of turning the hips.","Going so heavy you lose the brace."] };
+    if(m(/Squat|Leg Press|Hack/i)) return { mu:"Quads · glutes · core", cues:["Brace, big breath, chest tall.","Sit between your hips to at least parallel.","Drive the floor away — push through mid-foot.","Knees track over toes, don't cave in."], miss:["Knees caving inward.","Heels rising / rounding the lower back.","Cutting depth short."] };
+    if(m(/Deadlift|Romanian|RDL|Hinge|Good ?Morning/i)) return { mu:"Hamstrings · glutes · lower back", cues:["Soft knees, hinge from the hips — push hips back.","Keep the bar/weight close, back flat.","Feel a hamstring stretch, then snap the hips forward.","Squeeze the glutes hard at the top — don't lean back."], miss:["Rounding the back.","Squatting it instead of hinging.","Hyperextending / leaning back at the top."] };
+    if(m(/Hip Thrust|Kettlebell Swing|KB Swing|Swing/i)) return { mu:"Glutes · hamstrings · core", cues:["Drive through the heels, ribs down.","Snap the hips to full extension, squeeze the glutes.","Chin tucked, don't arch the lower back.","Control the lowering."], miss:["Arching the lower back instead of using glutes.","Pushing through the toes."] };
+    if(m(/Lunge|Split Squat|Step.?up|Bulgarian|Single.?Leg/i)) return { mu:"Quads · glutes · balance/stability", cues:["Most weight on the front leg.","Drop straight down, back knee toward the floor.","Drive through the front heel to stand.","Stay tall — brace the front leg like a post."], miss:["Pushing off the back foot too much.","Front knee collapsing inward.","Leaning the torso forward."] };
+    if(m(/Overhead Press|Shoulder Press|Military|OHP/i)) return { mu:"Shoulders · triceps · upper chest · core", cues:["Stack the bar over mid-foot, ribs down.","Brace the core — no leaning back.","Press up and slightly back, finish overhead.","Lower under control to the collarbone."], miss:["Leaning back / arching the low back.","Flaring elbows too wide."] };
+    if(m(/Bench|Push.?up|Chest|Incline|Dip/i)) return { mu:"Chest · shoulders · triceps", cues:["Shoulder blades pinned, slight arch.","Lower under control to mid-chest.","Elbows ~45°, not flared to 90°.","Press explosively, drive the floor with your feet."], miss:["Flaring elbows straight out.","Bouncing the bar off the chest.","Hips lifting off the bench."] };
+    if(m(/Row|Pull.?up|Chin|Lat|Pulldown|Face ?Pull|Rear Delt|Pull/i)) return { mu:"Lats · upper back · biceps · rear delts", cues:["Start by setting the shoulder blade (don't just yank with arms).","Pull the elbow toward the hip/ribs.","Squeeze the back at the top.","Control the return — full stretch."], miss:["Using only the arms / shrugging.","Heaving with momentum.","Half range — not controlling the lowering."] };
+    if(m(/Carry|Farmer|Suitcase|Grip/i)) return { mu:"Grip · traps · core · whole body", cues:["Stand tall, shoulders back, ribs down.","Brace the core, walk with control.","Crush the handles — strong grip.","Don't lean; resist any tilt."], miss:["Leaning or rounding under the load.","Rushing / losing posture."] };
+    if(m(/Plank|Anti.?Rotation|Dead ?Bug|Hollow|Bird ?Dog|Core| Ab|Abs/i)) return { mu:"Deep core · abs · obliques", cues:["Ribs down, squeeze glutes, flat line head-to-heels.","Brace like you're about to be punched.","Breathe behind the brace.","Quality over time — stop when form breaks."], miss:["Hips sagging or piking up.","Holding your breath."] };
+    if(m(/Calf|Tibialis|Ankle/i)) return { mu:"Calves · ankle", cues:["Full range — deep stretch at the bottom.","Press all the way up onto the toes, pause.","Control the lowering (~2–3 sec).","Keep it strict — no bouncing."], miss:["Bouncing / short range.","Rushing the reps."] };
+    if(m(/Leg Curl|Ham Curl/i)) return { mu:"Hamstrings", cues:["Hips pinned to the pad.","Curl with control, squeeze at the top.","Lower slowly — resist the weight.","No jerking with the lower back."], miss:["Hips lifting off the pad.","Using momentum."] };
+    if(m(/Leg Ext/i)) return { mu:"Quads", cues:["Pin the hips, toes up.","Extend smoothly, pause at the top.","Lower under control.","Don't slam the weight stack."], miss:["Swinging the weight up.","Half reps."] };
+    if(m(/Curl|Tricep|Bicep|Wrist|Forearm|Preacher|Arm/i)) return { mu:"Arms (biceps / triceps / forearms)", cues:["Pin the elbows, strict tempo.","Full range — stretch and squeeze.","Control the lowering.","No swinging or body english."], miss:["Swinging the weight up with momentum.","Cutting the range short."] };
+    return { mu:"Multiple muscle groups", cues:["Set up braced and balanced.","Full range, controlled tempo.","Drive with intent on the way up.","Control the lowering."], miss:["Using momentum instead of the muscle.","Rushing through partial reps."] };
+  }
+  // YouTube form-video search (opens externally) — no media bundled, IP-clean.
+  function formVideoUrl(name){ return "https://www.youtube.com/results?search_query=" + encodeURIComponent("how to "+name+" proper form technique"); }
   function whyHtml(name, withCoach){
     var w=liftWhy(name);
     return '<div class="why-why">'+w.why+'</div>'+
       '<div class="why-cue">⚡ <b>Power cue:</b> '+w.cue+'</div>'+
+      '<button class="why-howto" data-howto="'+escAttr(name)+'">▶ How to do it · muscles &amp; form</button>'+
       (withCoach!==false ? '<button class="why-coach" data-whycoach="'+escAttr(name)+'">💬 Go deeper with the coach</button>' : '');
   }
+  // ---- exercise demo sheet (how-to) ----
+  function openExDemo(name){
+    var f=exerciseForm(name), w=liftWhy(name);
+    var html='<div class="ed-mu">💪 <b>Works:</b> '+f.mu+'</div>'+
+      '<div class="ed-sec"><h4>How to do it</h4><ol class="ed-cues">'+f.cues.map(function(c){return '<li>'+c+'</li>';}).join("")+'</ol></div>'+
+      '<div class="ed-sec"><h4>Common mistakes</h4><ul class="ed-miss">'+f.miss.map(function(c){return '<li>'+c+'</li>';}).join("")+'</ul></div>'+
+      '<div class="ed-why">⚡ <b>For your swing:</b> '+w.why+'</div>'+
+      '<a class="ed-video" href="'+formVideoUrl(name)+'" target="_blank" rel="noopener">▶ Watch a form video</a>';
+    var b=$("exDemoBody"); if(b) b.innerHTML=html;
+    var t=$("exDemoTitle"); if(t) t.textContent=name;
+    var mo=$("exDemoModal"); if(mo){ mo.hidden=false; document.body.style.overflow="hidden"; }
+  }
+  function closeExDemo(){ var mo=$("exDemoModal"); if(mo) mo.hidden=true; document.body.style.overflow=""; }
   // Stable-enough unique ids for read-only "why" rows (DOM is replaced each render).
   var whyId=0;
   function exNameCell(pe, name, extra){
@@ -2767,6 +2842,58 @@
       '<span class="dt-label">'+label+'</span><span class="dt-big">'+big+'</span>'+
       '<span class="dt-sub">'+sub+'</span></button>';
   }
+
+  /* ----- Adaptive nutrition: tune calories to the real weight trend -----
+     MacroFactor-style: the calculator is a starting guess; the scale is the
+     true metabolism meter. Every ~10 days we compare the measured weekly weight
+     change to the goal's intended rate and suggest a calorie nudge (into carbs). */
+  function weightTrend(){
+    var now=Date.now();
+    var pts=lsGet("ff_body",[]).map(function(e){ return { t:new Date(e.date).getTime(), w:parseFloat(e.w) }; })
+      .filter(function(p){ return !isNaN(p.w) && !isNaN(p.t) && (now-p.t)<=32*864e5; })
+      .sort(function(a,b){ return a.t-b.t; });
+    if(pts.length<2) return null;
+    var spanDays=(pts[pts.length-1].t - pts[0].t)/864e5;
+    if(spanDays<10) return null;                       // need a real 10+ day window
+    var n=pts.length, t0=pts[0].t, sx=0,sy=0,sxy=0,sxx=0;
+    pts.forEach(function(p){ var x=(p.t-t0)/864e5; sx+=x; sy+=p.w; sxy+=x*p.w; sxx+=x*x; });
+    var denom=(n*sxx - sx*sx); if(denom===0) return null;
+    var slope=(n*sxy - sx*sy)/denom;                    // lb/day (least-squares)
+    return { ratePerWeek:slope*7, days:Math.round(spanDays), lastW:pts[pts.length-1].w };
+  }
+  function adaptiveCheck(){
+    var g=GOALS[state.goal]; if(!g) return null;
+    var tr=weightTrend(); if(!tr) return null;
+    var weightLb=num("weight")||tr.lastW;
+    var desired = g.weekly ? ((g.weekly[0]+g.weekly[1])/2)*weightLb : 0;   // signed lb/wk
+    var error = tr.ratePerWeek - desired;                                  // + = heavier than intended
+    var tol = Math.max(0.25, Math.abs(desired)*0.6);
+    var onTrack = Math.abs(error) <= tol;
+    var delta = 0;
+    if(!onTrack){ delta = -Math.round(error*500/50)*50; delta = Math.max(-250, Math.min(250, delta)); }
+    return { rate:tr.ratePerWeek, desired:desired, onTrack:onTrack, deltaKcal:delta, deltaCarb:Math.round(delta/4), goalLabel:g.label };
+  }
+  function adaptiveDue(){ return !!weightTrend() && (Date.now() - lsGet("ff_lastcheckin",0)) >= 10*864e5; }
+  function renderAdaptiveCard(){
+    if(!adaptiveDue()) return '';
+    var a=adaptiveCheck(); if(!a) return '';
+    var rateStr=(a.rate>=0?'+':'')+(Math.round(a.rate*10)/10)+' lb/wk';
+    var tgtStr=(a.desired>=0?'+':'')+(Math.round(a.desired*10)/10)+' lb/wk';
+    if(a.onTrack){
+      return '<div class="adapt ok"><div class="adapt-h">📊 Metabolism check-in</div>'+
+        '<p>Your ~3-week trend is <b>'+rateStr+'</b> — right on target for <b>'+a.goalLabel+'</b>. No change needed. '+
+        'The scale is the real metabolism meter, and yours says keep going.</p>'+
+        '<div class="adapt-btns"><button class="adapt-btn ghost" data-adapt="snooze">Got it 👍</button></div></div>';
+    }
+    var verb = a.deltaKcal<0 ? 'trim' : 'add';
+    var absK=Math.abs(a.deltaKcal), absC=Math.abs(a.deltaCarb);
+    return '<div class="adapt"><div class="adapt-h">📊 Metabolism check-in</div>'+
+      '<p>Your ~3-week trend is <b>'+rateStr+'</b> (target ~<b>'+tgtStr+'</b> for '+a.goalLabel+') — trending '+(a.deltaKcal<0?'a bit fast':'a bit slow')+'. '+
+      'The calculator was a starting guess; your scale is the real metabolism meter, so let’s tune it.</p>'+
+      '<div class="adapt-sugg">'+(a.deltaKcal<0?'▼':'▲')+' '+verb+' <b>'+absK+' kcal/day</b> ('+(a.deltaKcal<0?'−':'+')+absC+'g carbs)</div>'+
+      '<div class="adapt-btns"><button class="adapt-btn" data-adapt="apply">Apply '+(a.deltaKcal<0?'−':'+')+absK+' kcal</button>'+
+      '<button class="adapt-btn ghost" data-adapt="snooze">Not now</button></div></div>';
+  }
   function renderDash(){
     var el=$("dashBody"); if(!el) return;
     var t=lsGet("ff_targets",null), wk=curWeek();
@@ -2775,6 +2902,7 @@
     var fuel = t ? ('<b>'+t.kcal+'</b> kcal' ) : 'Set up →';
     var fuelSub = t ? (t.proteinG+'p · '+t.carbG+'c · '+t.fatG+'f') : 'tap to calculate';
     var html = renderScoreCard();
+    html += renderAdaptiveCard();
     html += '<div class="dash-grid">'+
       dTile('🍽️','Daily fuel', fuel, fuelSub, 'calc')+
       dTile('🏌️','This week', 'Week <b>'+wk+'</b>', nw?('Next: '+nw.replace(/Day \d+ — /,'')):'open plan', 'plan')+
@@ -3150,6 +3278,8 @@
     var wrow=e.target.closest("[data-whyrow]");
     if(wrow){ var row=document.getElementById(wrow.getAttribute("data-whyrow"));
       if(row){ row.hidden=!row.hidden; wrow.setAttribute("aria-expanded", row.hidden?"false":"true"); } return; }
+    var how=e.target.closest("[data-howto]");
+    if(how){ openExDemo(how.getAttribute("data-howto")); return; }
     var wco=e.target.closest("[data-whycoach]");
     if(wco){ var ln=wco.getAttribute("data-whycoach");
       if(window.FFCoach && window.FFCoach.ready()) window.FFCoach.ask("Why does "+ln+" build my clubhead speed, and how do I execute it for maximum power transfer into the swing? Keep it specific and practical.", "Why this lift");
@@ -3210,9 +3340,23 @@
     });
   })();
 
+  // Exercise demo / how-to sheet
+  (function(){
+    var m=document.createElement("div"); m.id="exDemoModal"; m.className="swap-modal"; m.hidden=true;
+    m.innerHTML='<div class="swap-card"><div class="swap-head"><span id="exDemoTitle">Exercise</span>'+
+      '<button class="swap-x" id="exDemoX" type="button">×</button></div><div class="swap-body" id="exDemoBody"></div></div>';
+    document.body.appendChild(m);
+    m.addEventListener("click", function(e){ if(e.target===m || e.target.closest("#exDemoX")) closeExDemo(); });
+  })();
+
   // Dashboard tiles jump to the relevant tab; quick-add logs weight + speed from home.
   var db=$("dashBody");
   if(db) db.addEventListener("click", function(e){
+    var ad=e.target.closest("[data-adapt]");
+    if(ad){ var act=ad.getAttribute("data-adapt");
+      if(act==="apply"){ var a=adaptiveCheck();
+        if(a){ var nx=Math.max(-600, Math.min(600, lsGet("ff_kcal_adj",0)+a.deltaKcal)); lsSet("ff_kcal_adj", nx); } }
+      lsSet("ff_lastcheckin", Date.now()); try{ calc(); }catch(e2){} renderDash(); return; }
     if(e.target.id==="dAdd"){
       var wv=$("dBody")?$("dBody").value:"", sv=$("dSpeed")?$("dSpeed").value:"";
       if(!wv && !sv) return;
