@@ -1662,6 +1662,7 @@
         freq:planState.freq, equip:planState.equip,
         view:(document.querySelector("#tabs button.active")||{getAttribute:function(){return "calc";}}).getAttribute("data-view")
       }));
+      window.dispatchEvent(new Event("ff-data-changed"));   // nudge cloud-sync to push promptly
     } catch(e){}
   }
   function restore(){
@@ -3306,7 +3307,8 @@
 
   /* ===================== WORKOUT LOGGER ===================== */
   function lsGet(k,def){ try{ var v=JSON.parse(localStorage.getItem(k)); return v==null?def:v; }catch(e){ return def; } }
-  function lsSet(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+  function lsSet(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){}
+    try{ window.dispatchEvent(new Event("ff-data-changed")); }catch(e){} }   // nudge cloud-sync to push promptly
   function escAttr(s){ return String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;"); }
   // The plan runs off a START DATE: once you start, it auto-knows your week. No dropdown.
   function planStart(){ return lsGet("ff_start", null); }

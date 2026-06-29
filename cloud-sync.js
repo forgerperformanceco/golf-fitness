@@ -318,7 +318,18 @@
     if (event === "SIGNED_IN" && user) syncOnLogin();
   });
 
-  // Push local changes up: poll for changes while signed in, and flush on the way out.
+  // Push promptly after the app changes data (debounced) so a completed workout lands
+  // in the cloud almost immediately instead of waiting for the next poll. push() itself
+  // no-ops when nothing actually changed, so coalescing many edits into one is cheap.
+  var changeTimer = null;
+  function pushSoon() {
+    if (!user) return;
+    if (changeTimer) clearTimeout(changeTimer);
+    changeTimer = setTimeout(function () { changeTimer = null; push(); }, 1200);
+  }
+  window.addEventListener("ff-data-changed", pushSoon);
+
+  // Safety net: poll for changes while signed in, and flush on the way out.
   setInterval(function () { if (user) push(); }, 8000);
   window.addEventListener("pagehide", function () { if (user) push(); });
   document.addEventListener("visibilitychange", function () {
