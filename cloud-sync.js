@@ -121,6 +121,57 @@
     }).join(",") + "}";
   }
 
+  // ---- Conflict-safe merge ----
+  // The workout log and body history are ADDITIVE — a session completed on either
+  // device (or logged locally but not yet pushed) must never be dropped. Blindly
+  // letting the cloud overwrite local used to lose un-pushed completions on reopen,
+  // which read as "the app forgot my workouts." We union those two keys; everything
+  // else keeps the prior "cloud wins" behavior.
+  function loggedSetCount(sess) {
+    if (!sess || !sess.ex) return 0;
+    var n = 0;
+    (sess.ex || []).forEach(function (x) {
+      (x.sets || []).forEach(function (st) { if (st && (st.w || st.r || st.done)) n++; });
+    });
+    return n;
+  }
+  function unionLog(local, cloud) {
+    local = (local && typeof local === "object") ? local : {};
+    cloud = (cloud && typeof cloud === "object") ? cloud : {};
+    var out = {};
+    Object.keys(cloud).forEach(function (k) { out[k] = cloud[k]; });
+    Object.keys(local).forEach(function (k) {
+      // Keep the more-complete log on a key collision; ties favor local (latest edit).
+      out[k] = (!(k in out) || loggedSetCount(local[k]) >= loggedSetCount(out[k])) ? local[k] : out[k];
+    });
+    return out;
+  }
+  function unionBody(local, cloud) {
+    local = Array.isArray(local) ? local : [];
+    cloud = Array.isArray(cloud) ? cloud : [];
+    var byDate = {}, loose = [];
+    cloud.concat(local).forEach(function (e) {           // local last → its fields win
+      if (!e) return;
+      if (e.date) byDate[e.date] = Object.assign({}, byDate[e.date], e);
+      else loose.push(e);
+    });
+    var out = Object.keys(byDate).map(function (k) { return byDate[k]; });
+    out.sort(function (a, b) { return String(a.date || "").localeCompare(String(b.date || "")); });
+    return out.concat(loose);
+  }
+  function mergeBlob(local, cloud) {
+    local = local || {}; cloud = cloud || {};
+    var out = {};
+    KEYS.forEach(function (k) {
+      if (k === "ff_log") out[k] = unionLog(local[k], cloud[k]);
+      else if (k === "ff_body") out[k] = unionBody(local[k], cloud[k]);
+      else if (cloud[k] !== undefined) out[k] = cloud[k];   // unchanged behavior for the rest
+      else if (local[k] !== undefined) out[k] = local[k];
+    });
+    Object.keys(local).forEach(function (k) { if (out[k] === undefined) out[k] = local[k]; });
+    return out;
+  }
+
   // On login: seed the cloud from this device if empty, otherwise pull the cloud down.
   async function syncOnLogin() {
     var row;
@@ -133,17 +184,21 @@
       lastSnapshot = null; await push();
       return;
     }
-    var cloudStr = JSON.stringify(row.data);
     var localObj; try { localObj = JSON.parse(snapshot()); } catch (e) { localObj = {}; }
     if (stable(row.data) === stable(localObj)) { // already in sync (ignoring key order)
-      lastSnapshot = cloudStr;
+      lastSnapshot = JSON.stringify(row.data);
       return;
     }
-    writeBlob(cloudStr);                        // cloud wins on login
-    lastSnapshot = cloudStr;
-    // Re-render once with the synced data. Guarded with sessionStorage so the app's own
-    // startup writes can never turn this into an endless reload loop.
-    if (!sessionStorage.getItem("ff_synced_once")) {
+    // Merge (don't overwrite): union the additive logs so a completed workout or body
+    // entry on EITHER side survives, then push the merged result so the cloud catches up.
+    var mergedObj = mergeBlob(localObj, row.data);
+    var localChanged = stable(mergedObj) !== stable(localObj);
+    writeBlob(JSON.stringify(mergedObj));
+    lastSnapshot = null;                        // force the merged state up to the cloud
+    await push();
+    // Only reload if the merge actually changed what's on this device — and only once,
+    // guarded so the app's own startup writes can't cause an endless reload loop.
+    if (localChanged && !sessionStorage.getItem("ff_synced_once")) {
       try { sessionStorage.setItem("ff_synced_once", "1"); } catch (e) {}
       location.reload();
     }
