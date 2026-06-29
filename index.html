@@ -2870,7 +2870,7 @@
         ]
       },
       days5: [
-        { name:"Day 1 \u2014 Lower (Squat)", tag:"Lift", ex:[
+        { name:"Day 1 \u2014 Lower (Quads)", tag:"Lift", ex:[
           ["Leg Press","4 \u00d7 5 (heavy \u00b7 fast up)"],["Romanian Deadlift","4 \u00d7 5"],["Walking Lunge","3 \u00d7 8 / leg"],
           ["Leg Curl","3 \u00d7 10"],["Standing Calf Raise","3 \u00d7 12"],["Hanging Leg Raise","3 \u00d7 10"]
         ]},
@@ -2890,7 +2890,7 @@
         { name:"Day 6 & 7 \u2014 Rest / Play 18", tag:"rest", type:"rest" }
       ],
       days4: [
-        { name:"Day 1 \u2014 Lower (Squat & Hinge)", tag:"Lift", ex:[
+        { name:"Day 1 \u2014 Lower (Quads & Hinge)", tag:"Lift", ex:[
           ["Leg Press","4 \u00d7 5 (heavy \u00b7 fast up)"],["Romanian Deadlift","4 \u00d7 5"],["Hip Thrust","4 \u00d7 6"],
           ["Walking Lunge","3 \u00d7 8 / leg"],["Standing Calf Raise","3 \u00d7 12"],["Pallof Press","3 \u00d7 10 / side"]
         ]},
@@ -3309,6 +3309,29 @@
   function lsGet(k,def){ try{ var v=JSON.parse(localStorage.getItem(k)); return v==null?def:v; }catch(e){ return def; } }
   function lsSet(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){}
     try{ window.dispatchEvent(new Event("ff-data-changed")); }catch(e){} }   // nudge cloud-sync to push promptly
+
+  // Day labels changed when back squat → leg press (the day-name is the log key). Re-key any
+  // workouts logged under the old labels so completed-workout history survives the rename.
+  // Idempotent + self-healing: runs each load, so if cloud sync re-introduces an old key it
+  // gets folded back in on the next load. Only writes when something actually changed.
+  function migrateDayNames(){
+    var rename = {
+      "Day 1 — Lower (Squat)": "Day 1 — Lower (Quads)",
+      "Day 1 — Lower (Squat & Hinge)": "Day 1 — Lower (Quads & Hinge)"
+    };
+    function filledSets(s){ var n=0; if(s&&s.ex) s.ex.forEach(function(x){ (x.sets||[]).forEach(function(st){ if(st&&(st.w||st.r||st.done)) n++; }); }); return n; }
+    try {
+      var L = lsGet("ff_log", null); if(!L || typeof L !== "object") return;
+      var out = {}, changed = false;
+      Object.keys(L).forEach(function(k){
+        var bar = k.indexOf("|"), nk = k;
+        if(bar >= 0){ var dn = k.slice(bar+1); if(rename[dn]){ nk = k.slice(0,bar) + "|" + rename[dn]; changed = true; } }
+        if(out[nk] === undefined) out[nk] = L[k];
+        else out[nk] = filledSets(L[k]) > filledSets(out[nk]) ? L[k] : out[nk];   // collision → keep the fuller log
+      });
+      if(changed) lsSet("ff_log", out);
+    } catch(e){}
+  }
   function escAttr(s){ return String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;"); }
   // The plan runs off a START DATE: once you start, it auto-knows your week. No dropdown.
   function planStart(){ return lsGet("ff_start", null); }
@@ -4830,6 +4853,7 @@
     render();
   }
 
+  try{ migrateDayNames(); }catch(e){}   // re-key workouts logged under the old "(Squat)" day labels
   restore();      // bring back the user's saved inputs/equipment/tab
   var sharedLink = applyShareParams();   // a shared ?link= overrides local state so friends see your numbers
   // Returning users (and shared-link viewers) start with the calculator collapsed to a summary.
