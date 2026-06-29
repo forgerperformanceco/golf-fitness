@@ -136,19 +136,31 @@ speed/power work in, so the deficit costs fat, not mph. Never frame a cut as "ju
   when volume is equated it doesn't beat a consistent concurrent week for size, and
   undulating/concurrent is equal-or-better for strength. No interference between
   lifting for size and for power.
-- 5-day: D1 Lower (heavy squat + accessories), D2 Upper push, D3 Speed & Power,
+- 5-day: D1 Lower (heavy leg press + accessories), D2 Upper push, D3 Speed & Power,
   D4 Lower hinge + power, D5 Upper pull + rotate.
-- 4-day (balanced, NOT a deletion): D1 Lower (squat + hinge), D2 Upper push,
+- 4-day (balanced, NOT a deletion): D1 Lower (leg press + hinge), D2 Upper push,
   D3 Speed & Power, D4 Upper pull + rotate. Keeps both lower patterns, anti-rotation,
   and pulling.
+- Main lower lift is the LEG PRESS (not back squat): lets the golfer load the prime
+  movers heavy and push explosively with much less spinal load and technical fatigue —
+  protects the lower back/swing and spares recovery for the speed day. Ground-force and
+  rotation are covered by the hinge, lunges, carries, and the power day. A lifter who
+  prefers the barbell squat can swap it back in.
 - Every day opens with a 5-min warm-up (hip + thoracic mobility, ramp sets).
 - Each lift day opens with ONE explosive primer done first & fresh (jump / med-ball
   pass / KB swing / rotational throw): few max-intent reps, full rest, no fatigue —
   trains speed 3–4x/week and potentiates the heavy lift.
 - Volume: ~10–20 hard sets/muscle/week (steep diminishing returns past ~10–12).
-  Rep ranges: 4–6 heavy for strength, 8–15 for hypertrophy, taken to ~0–3 RIR.
-- Progress by double progression: hit the top of the rep range on every set, then
-  add ~2.5–5 lb (upper) / 5–10 lb (lower). Deload every 6th week (~60% loads).
+  Rep ranges are STRENGTH-POWER BIASED for a golfer: big compounds 4–6 heavy reps
+  (strength → higher force ceiling → more speed); small accessories 8–12 for muscle,
+  joints and lean mass. All work to ~0–3 RIR. This builds dense, fast muscle rather
+  than pure-physique volume — exactly what converts to clubhead speed.
+- INTENT ON THE BIG LIFTS: drive the concentric ("up" phase) as FAST as possible even
+  when heavy (compensatory acceleration / speed-strength). Moving a heavy load with
+  max intent trains rate-of-force-development on the strength lifts, not just the plyos.
+- Progress on the big lifts strength-first: add weight while the top set still moves
+  fast, before chasing extra reps. Accessories use double progression (top of range,
+  then add load). Deload every 6th week (~60% loads).
 - Tempo: ~3-second lowering (eccentric) — cuts strain injuries; land jumps under
   control before chasing height. Add direct grip/wrist work (ball speed + lead
   wrist protection).
