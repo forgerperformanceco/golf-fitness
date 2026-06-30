@@ -76,6 +76,14 @@
   .wordmark .em { color: #7ef0a8; }
   .wordmark .ball { width: 14px; height: 14px; border-radius: 50%;
     background: radial-gradient(circle at 35% 30%, #fff, #d7e2d7); box-shadow: inset -2px -2px 4px rgba(0,0,0,.18); }
+  /* Refresh button — only shown when running as an installed app (no browser reload). */
+  .appbar-refresh { display: none; align-items: center; justify-content: center; flex: 0 0 auto;
+    width: 38px; height: 38px; padding: 0; border-radius: 50%; cursor: pointer; color: #eafff1;
+    background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2); -webkit-tap-highlight-color: transparent; }
+  .appbar-refresh:active { transform: scale(.92); }
+  .appbar-refresh.spin svg { animation: ffspin .6s linear; }
+  @keyframes ffspin { to { transform: rotate(360deg); } }
+  body.ff-standalone .appbar-refresh { display: inline-flex; }
 
   /* Big brand hero — Dashboard (Home) only. Matches the premium welcome. */
   .dash-hero {
@@ -1240,6 +1248,9 @@
         <button data-view="progress">Progress</button>
         <button data-view="account">Account</button>
       </div>
+      <button class="appbar-refresh" id="appRefresh" type="button" aria-label="Refresh app" title="Refresh">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.65-6.36"/><path d="M21 3v6h-6"/></svg>
+      </button>
     </div>
   </header>
 <div class="wrap">
@@ -1678,6 +1689,17 @@
   // The brand wordmark is a home button.
   var wordmark=$("wordmark");
   if(wordmark) wordmark.addEventListener("click", function(){ setView("dash"); });
+
+  // Installed-app refresh: standalone PWAs have no browser reload, so after the magic-link
+  // login (or any time you want fresh data) this re-runs the app. Only shown when installed.
+  if(ffStandalone()) document.body.classList.add("ff-standalone");
+  var appRefresh=$("appRefresh");
+  if(appRefresh) appRefresh.addEventListener("click", function(){
+    appRefresh.classList.add("spin");
+    try{ if(window.FF && window.FF.user) {} }catch(e){}
+    try{ if("serviceWorker" in navigator){ navigator.serviceWorker.getRegistration().then(function(r){ if(r) r.update(); }); } }catch(e){}
+    setTimeout(function(){ location.reload(); }, 350);
+  });
 
   /* ===================== PERSISTENCE (remember everything, per device) ===================== */
   function persist(){
