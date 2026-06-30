@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="color-scheme" content="light" />
+<meta name="supported-color-schemes" content="light" />
+<title>Your FairwayFuel sign-in code</title>
+</head>
+<body style="margin:0;padding:0;background:#eef3ee;-webkit-text-size-adjust:100%;">
+  <!-- Preheader (hidden preview text) -->
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#eef3ee;">Your code: {{ .Token }} — enter it in the app to sign in.</div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#eef3ee;">
+    <tr>
+      <td align="center" style="padding:28px 14px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:480px;background:#ffffff;border:1px solid #e2ebe2;border-radius:16px;overflow:hidden;">
+
+          <!-- Header -->
+          <tr>
+            <td style="background:#0b3d22;padding:22px 28px;">
+              <span style="font:800 22px -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#ffffff;letter-spacing:-.5px;">Fairway<span style="color:#7ef0a8;">Fuel</span></span>
+            </td>
+          </tr>
+
+          <!-- Intro -->
+          <tr>
+            <td style="padding:30px 28px 6px;">
+              <h1 style="margin:0 0 8px;font:800 21px -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#0f2417;letter-spacing:-.3px;">Your sign-in code</h1>
+              <p style="margin:0 0 20px;font:400 15px/1.55 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#4a5b50;">Enter this code in the FairwayFuel app to sign in. It expires in about an hour.</p>
+            </td>
+          </tr>
+
+          <!-- Code -->
+          <tr>
+            <td align="center" style="padding:0 28px 6px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td align="center" style="background:#eafaf0;border:1px solid #bfe6cd;border-radius:12px;padding:20px 10px;">
+                    <span style="font:800 38px -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;letter-spacing:10px;color:#0b3d22;">{{ .Token }}</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Link fallback -->
+          <tr>
+            <td align="center" style="padding:24px 28px 6px;">
+              <p style="margin:0 0 14px;font:400 13px -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#7b8b80;">Or tap the button to sign in:</p>
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td bgcolor="#7ef0a8" style="border-radius:10px;">
+                    <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:13px 28px;font:800 15px -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#0b3d22;text-decoration:none;border-radius:10px;">Sign in to FairwayFuel</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding:26px 28px 28px;">
+              <hr style="border:none;border-top:1px solid #e8efe8;margin:0 0 16px;" />
+              <p style="margin:0;font:400 12px/1.55 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#9aa89f;">If you didn’t request this, you can safely ignore this email — no changes were made and no one can sign in without this code.</p>
+            </td>
+          </tr>
+
+        </table>
+        <p style="max-width:480px;margin:14px auto 0;font:400 11px -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#a6b3a9;text-align:center;">FairwayFuel — build mass, swing faster · fairwayfuel.app</p>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
