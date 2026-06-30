@@ -1577,16 +1577,41 @@
   var FF_TIP_SIGNIN = { key:"signin", cls:"tip-signin", ic:"👋", t:"New here? Sign in first",
     b:"It's <b>free</b> and takes one tap (email link, no password). Signing in turns on the <b>AI coach</b> and saves your progress across devices.",
     cta:"Sign in — it's free" };
-  // "Add to Home Screen" hint — only when not already installed (and not yet dismissed).
+  // ---- Install-to-home-screen controller ----
+  // Android/desktop Chrome fire beforeinstallprompt; we capture it so a tap can show the
+  // real native install sheet (instead of telling people to dig through a menu). iOS has
+  // no API, so there we show the Share → Add to Home Screen steps.
   function ffStandalone(){ try{ return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone===true; }catch(e){ return false; } }
+  function ffIsIOS(){ return /iPad|iPhone|iPod/.test(navigator.userAgent||"") && !window.MSStream; }
+  var ffDeferredPrompt = null;
+  window.addEventListener("beforeinstallprompt", function(e){
+    e.preventDefault(); ffDeferredPrompt = e;
+    // The event can land after first paint — refresh the install affordances so the
+    // one-tap button appears.
+    try{ var av=document.querySelector(".view.active"); if(av) showTipFor(av.id.replace("view-","")); }catch(_){}
+    try{ if($("view-account") && $("view-account").classList.contains("active")) renderAccount(); }catch(_){}
+  });
+  window.addEventListener("appinstalled", function(){ ffDeferredPrompt = null; });
+  function ffPromptInstall(){
+    if(!ffDeferredPrompt) return false;
+    var p = ffDeferredPrompt; ffDeferredPrompt = null;
+    try{ p.prompt(); if(p.userChoice) p.userChoice.then(function(){}); }catch(e){}
+    return true;
+  }
   function ffInstallTip(){
     if(ffStandalone()) return null;
     var seen = lsGet("ff_tips_seen", []); if(seen.indexOf("install")>=0) return null;
-    var ios = /iPad|iPhone|iPod/.test(navigator.userAgent||"");
-    var body = ios
-      ? "Tap the <b>Share</b> icon in your browser bar, then <b>“Add to Home Screen.”</b> It installs like a real app and works offline."
-      : "Open your browser menu and tap <b>“Install app”</b> / <b>“Add to Home Screen.”</b> It installs like a real app and works offline.";
-    return { key:"install", cls:"tip-install", ic:"📲", t:"Keep FairwayFuel one tap away", b:body };
+    if(ffIsIOS()){
+      return { key:"install", cls:"tip-install", ic:"📲", t:"Keep FairwayFuel one tap away",
+        b:"Tap the <b>Share</b> icon (□ with ↑) in Safari's bar, then <b>“Add to Home Screen.”</b> It installs like a real app and works offline." };
+    }
+    if(ffDeferredPrompt){
+      return { key:"install", cls:"tip-install", ic:"📲", t:"Install FairwayFuel",
+        b:"Add it to your home screen — opens full-screen, works offline, always one tap away.",
+        cta:"Install app", ctaAction:"install" };
+    }
+    return { key:"install", cls:"tip-install", ic:"📲", t:"Keep FairwayFuel one tap away",
+      b:"In your browser menu, tap <b>“Install app”</b> / <b>“Add to Home Screen.”</b> It works offline like a real app." };
   }
   function showTipFor(view){
     var host = document.getElementById("view-"+view); if(!host) return;
@@ -1608,7 +1633,7 @@
     el.setAttribute("data-tipkey", tip.key);
     el.innerHTML = '<span class="tip-ic">'+tip.ic+'</span>'+
       '<div class="tip-tx"><div class="tip-t">'+tip.t+'</div><div class="tip-b">'+tip.b+'</div>'+
-      (tip.cta ? '<button type="button" class="tip-cta" data-tipsignin="1">'+tip.cta+'</button>' : '')+
+      (tip.cta ? '<button type="button" class="tip-cta" data-tipcta="'+(tip.ctaAction||'signin')+'">'+tip.cta+'</button>' : '')+
       '</div>'+
       '<button type="button" class="tip-x" data-tipclose="'+tip.key+'" aria-label="Dismiss">×</button>';
     var anchor = host.firstChild;
@@ -1620,8 +1645,12 @@
   document.addEventListener("click", function(e){
     var x = e.target.closest("[data-tipclose]");
     if(x){ var t=x.closest(".tip"); ffSeeTip(x.getAttribute("data-tipclose")); if(t) t.remove(); try{ persist(); }catch(_){} return; }
-    var s = e.target.closest("[data-tipsignin]");
-    if(s){ if(window.FF&&window.FF.signIn) window.FF.signIn(); else setView("account"); }
+    var c = e.target.closest("[data-tipcta]");
+    if(c){
+      var act = c.getAttribute("data-tipcta");
+      if(act==="install"){ ffPromptInstall(); }
+      else { if(window.FF&&window.FF.signIn) window.FF.signIn(); else setView("account"); }
+    }
   });
   function setView(view, scroll){
     [tabs, mobileTabs].forEach(function(bar){
@@ -4113,6 +4142,20 @@
     html+='<div class="acct-card"><div class="acct-head">⛳ Full access — unlocked</div>'+
       '<p class="acct-p">You’ve got everything: AI coaching, the full training plan, macro tuning, progress tracking and the leaderboard. No paywall.</p>'+
       '<div class="acct-plan">Plan: <b>Full access</b> · free</div></div>';
+    // Install-to-home-screen — only when not already running as an installed app.
+    if(!ffStandalone()){
+      if(ffIsIOS()){
+        html+='<div class="acct-card"><div class="acct-head">📲 Install the app</div>'+
+          '<p class="acct-p">Get the full-screen app: tap the <b>Share</b> icon (□ with ↑) in Safari, then <b>“Add to Home Screen.”</b> It opens like a native app and works offline.</p></div>';
+      } else if(ffDeferredPrompt){
+        html+='<div class="acct-card"><div class="acct-head">📲 Install the app</div>'+
+          '<p class="acct-p">Add FairwayFuel to your home screen — full-screen, offline, one tap away.</p>'+
+          '<button class="acct-btn" id="acctInstall">Install app</button></div>';
+      } else {
+        html+='<div class="acct-card"><div class="acct-head">📲 Install the app</div>'+
+          '<p class="acct-p">In your browser menu, tap <b>“Install app”</b> / <b>“Add to Home Screen”</b> to run FairwayFuel full-screen and offline.</p></div>';
+      }
+    }
     var t=lsGet("ff_targets",null), prof=lsGet("fairwayfuel",null);
     if(prof || t){
       html+='<div class="acct-card"><div class="acct-head">Your profile</div><div class="acct-list">'+
@@ -4150,6 +4193,7 @@
     var ed=$("acctEdit"); if(ed) ed.onclick=function(){ setView("calc"); };
     var su=$("acctSetup"); if(su) su.onclick=function(){ startOnboarding(true); };
     var af=$("acctFoods"); if(af) af.onclick=function(){ openFoodPrefs(); };
+    var ai=$("acctInstall"); if(ai) ai.onclick=function(){ if(!ffPromptInstall()) alert("Use your browser menu → “Install app” / “Add to Home Screen.”"); };
   }
 
   /* ----- Progress (bodyweight + clubhead speed) ----- */
@@ -4871,6 +4915,8 @@
   renderPhase();
   renderDash();         // home overview (default landing tab)
   try{ var bootView=(document.querySelector("#tabs button.active")||{getAttribute:function(){return "dash";}}).getAttribute("data-view"); showTipFor(bootView); }catch(e){}
+  // App-shortcut deep links (long-press the installed icon): ?go=plan|calc|gameday|progress
+  try{ var go=(new URLSearchParams(location.search)).get("go"); if(go && document.getElementById("view-"+go)) setView(go); }catch(e){}
   maybeOnboard(sharedLink);   // first-run guided setup (no-op for returning users)
 })();
 
