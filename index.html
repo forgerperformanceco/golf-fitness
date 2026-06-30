@@ -4116,14 +4116,14 @@
     var pct = r.score==null ? 0 : r.score;
     // Fuel gauge: a clean semicircular level arc (E→F) that fills with the score.
     var ARC=Math.PI*48, off=ARC*(1-pct/100);
-    var gauge = '<div class="ffscore-gauge"><svg width="120" height="82" viewBox="0 0 126 84">'+
+    var gauge = '<div class="ffscore-gauge"><svg width="120" height="86" viewBox="0 0 126 90">'+
       '<defs><linearGradient id="ffArc" x1="0" y1="0" x2="1" y2="0">'+
         '<stop offset="0" stop-color="#2f9e5d"/><stop offset="1" stop-color="#8be9ac"/></linearGradient></defs>'+
       '<path d="M15 66 A48 48 0 0 1 111 66" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="12" stroke-linecap="round"/>'+
       '<path d="M15 66 A48 48 0 0 1 111 66" fill="none" stroke="url(#ffArc)" stroke-width="12" stroke-linecap="round" '+
         'stroke-dasharray="'+ARC.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/>'+
-      '<text x="12" y="80" fill="#7fb295" font-size="11" font-weight="800">E</text>'+
-      '<text x="106" y="80" fill="#7fb295" font-size="11" font-weight="800">F</text></svg>'+
+      '<text x="11" y="86" fill="#7fb295" font-size="11" font-weight="800">E</text>'+
+      '<text x="107" y="86" fill="#7fb295" font-size="11" font-weight="800">F</text></svg>'+
       '<div class="num">'+(r.score==null?"–":r.score)+(r.score==null?"":'<i>/100</i>')+'</div></div>';
     var top = '<div class="ffscore-top">'+gauge+
       '<div class="ffscore-head"><h3>⛳ FAIRWAYFUEL SCORE</h3>'+
