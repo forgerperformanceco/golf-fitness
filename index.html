@@ -2514,20 +2514,26 @@
     var postIdx = n>=4 ? n-2 : (n-1);                         // the carb-loaded "around training" meal
     var w=[]; for(var i=0;i<n;i++) w.push(i===postIdx?1.6:(names[i]==="Snack"?0.7:1));
     var wsum=w.reduce(function(a,b){return a+b;},0)||1;
-    var pPer=t.p/n, slots=[], totP=0,totC=0,totF=0;
+    var slots=[], totP=0,totC=0,totF=0;
+    // Running budgets so the DAY sums to target instead of N independently-rounded meals.
+    // Whole-food servings round up, so fixed per-meal aims drift OVER; here each meal aims at
+    // what's left ÷ meals remaining, the last meal absorbs the remainder, and a meal with the
+    // carb budget already spent gets no forced carb. ~30g of carbs is held back for the pre snack.
+    var pLeft=t.p, preReserve=(n>=3?30:0), cLeft=Math.max(0,t.c-preReserve), wLeft=wsum;
     // Pass 1 — protein + carbs per meal (each carries its own natural fat)
     for(var j=0;j<n;j++){
-      var slot=(j===0?"am":null), isPost=(j===postIdx);
-      var cTarget=Math.round(t.c*w[j]/wsum);
-      if(n>=3 && isPost) cTarget=Math.max(20, cTarget-30);   // reserve ~30g for the pre-workout snack
-      var ps=ffProtScaled(ffRoleList(p,'prot',slot), Math.round(pPer), roll+j);
+      var slot=(j===0?"am":null), isPost=(j===postIdx), mealsLeft=n-j;
+      var pAim=Math.max(1, Math.round(pLeft/mealsLeft));
+      var cTarget=wLeft>0?Math.round(cLeft*w[j]/wLeft):0;
+      var ps=ffProtScaled(ffRoleList(p,'prot',slot), pAim, roll+j);
       var carbList=ffRoleList(p, isPost?'snack':'carb', slot);
       if(!carbList.length) carbList=ffRoleList(p,'carb',slot);
       // A veggie side rounds out the main meals (and surfaces liked/regional vegetables).
       var isMain=(names[j]==="Lunch"||names[j]==="Dinner"||names[j]==="Evening");
       var vlist=isMain?ffRoleList(p,'veg',null):[], veg=vlist.length?vlist[(roll+j)%vlist.length]:null;
       var protC=ps?ps.C:0, protF=ps?Math.round(ps.food.f*ps.mult):0;
-      var combo=ffCarbCombo(carbList, Math.max(0,cTarget-protC-(veg?veg.c:0)), roll+j);
+      var cNeed=Math.max(0, cTarget-protC-(veg?veg.c:0));
+      var combo=cNeed>=12 ? ffCarbCombo(carbList, cNeed, roll+j) : {picks:[],sum:0};
       var carbF=combo.picks.reduce(function(a,f){return a+f.f;},0);
       var labels=(ps?[ps.label]:[]).concat(combo.picks.map(ffLabel)).concat(veg?[ffLabel(veg)]:[]);
       var foods=[]; if(ps) foods.push({food:ps.food, servings:ps.mult});
@@ -2535,13 +2541,28 @@
       if(veg) foods.push({food:veg, servings:1});
       var P=(ps?ps.P:0)+(veg?veg.p:0), C=protC+combo.sum+(veg?veg.c:0), F=protF+carbF+(veg?veg.f:0);
       totP+=P; totC+=C; totF+=F;
+      pLeft-=P; cLeft-=C; wLeft-=w[j];
       slots.push({ name:names[j], items:labels, foods:foods, P:P, C:C, F:F, post:isPost });
+    }
+    // Pass 1b — top up CARBS toward target if a few-meal day undershot (high per-meal carb
+    // targets can outrun the liked foods). Adds into the biggest-carb meals until on target.
+    var cgap=Math.round((t.c-preReserve)-totC), carbPool=ffRoleList(p,'carb',null);
+    if(cgap>=15 && carbPool.length){
+      var corder=slots.map(function(s,i){return i;}).sort(function(a,b){ return slots[b].C-slots[a].C; });
+      for(var cc=0; cc<corder.length && cgap>=15; cc++){
+        var sidx=corder[cc], add=ffCarbCombo(carbPool, Math.min(cgap,35), roll+sidx+3);   // cap per meal so it spreads, not one kitchen-sink meal
+        add.picks.forEach(function(f){
+          slots[sidx].items.push(ffLabel(f)); slots[sidx].foods.push({food:f, servings:1});
+          slots[sidx].P+=f.p; slots[sidx].C+=f.c; slots[sidx].F+=f.f;
+          totP+=f.p; totC+=f.c; totF+=f.f; cgap-=f.c;
+        });
+      }
     }
     // Pass 2 — top up FAT to the daily target only, into the lowest-fat meals (avoids overshoot)
     var gap=Math.round((t.f||60)-totF), fatPool=ffRoleList(p,'fat',null);
-    if(gap>=8 && fatPool.length){
+    if(gap>=6 && fatPool.length){
       var order=slots.map(function(s,i){return i;}).sort(function(a,b){ return slots[a].F-slots[b].F; });
-      for(var k=0;k<order.length && gap>=8;k++){
+      for(var k=0;k<order.length && gap>=6;k++){
         var si=order[k], fat=ffPickFat(fatPool, Math.min(gap,20), roll+si);
         if(!fat) break;
         slots[si].items.push(fat.label); slots[si].foods.push({food:fat.food, servings:fat.mult});
