@@ -4212,14 +4212,11 @@
     var sess=Object.keys(getLog()).length, nw=nextWorkout();
     var fuel = t ? ('<b>'+t.kcal+'</b> kcal' ) : 'Set up →';
     var fuelSub = t ? (t.proteinG+'p · '+t.carbG+'c · '+t.fatG+'f') : 'tap to calculate';
-    var html = renderScoreCard(true);   // dashboard: compact, taps through to Progress
-    html += renderInsight();
-    html += renderAdaptiveCard();
-    // Obvious round-day entry: this card asks the question, so it's clear WHEN to use it.
-    html += '<button class="gameday-cta" data-goview="gameday">'+
-      '<span class="gd-flag">⛳</span>'+
-      '<span class="gd-cta-tx"><b>Playing a round today?</b><span>Get your tee-time fueling + first-tee warm-up plan</span></span>'+
-      '<span class="gd-cta-go">›</span></button>';
+    // Home order, by priority: where you stand → your focus → at-a-glance → log →
+    // coach → occasional tuning → situational round-day.
+    var html = renderScoreCard(true);   // 1. Score (taps through to Progress)
+    html += renderInsight();            // 2. Your one focus
+    // 3. At-a-glance tiles.
     var speedBig = lastSpeed ? ('<b>'+lastSpeed+'</b> mph') : '<span class="dt-go">Test it →</span>';
     var speedSub = sess+' workout'+(sess===1?'':'s')+' logged';
     html += '<div class="dash-grid">'+
@@ -4227,11 +4224,7 @@
       dTile('🏌️','This week', 'Week <b>'+wk+'</b>', nw?('Next: '+nw.replace(/Day \d+ — /,'')):'open plan', 'plan')+
       dTile('⚡','7-iron speed', speedBig, speedSub, 'plan')+
       '</div>';
-    // AI woven in: a contextual "read" on the user's own numbers.
-    html += '<button class="dash-ai" data-ask="read"><span class="dai-ic">💬</span>'+
-      '<span class="dai-tx"><b>Coach’s read</b><span>A quick AI take on your numbers &amp; what to focus on</span></span>'+
-      '<span class="dai-go">›</span></button>';
-    // Quick-add: log today's bodyweight + 7-iron speed straight from home (feeds the Score).
+    // 4. Log today — the core daily input, right by the numbers it feeds.
     html += '<div class="dash-log"><div class="dl-head">📈 Log today</div>'+
       '<div class="dl-row">'+
         '<input id="dBody" type="number" inputmode="decimal" placeholder="Weight (lb)" />'+
@@ -4240,6 +4233,17 @@
       '<div class="dl-hint">Bodyweight + clubhead speed feed your FairwayFuel Score. '+
         (lastSpeed?('Last: <b>'+lastSpeed+'</b> mph'):'Test 7-iron on a launch monitor — it’s the most repeatable.')+'</div>'+
       '</div>';
+    // 5. AI read on your own numbers.
+    html += '<button class="dash-ai" data-ask="read"><span class="dai-ic">💬</span>'+
+      '<span class="dai-tx"><b>Coach’s read</b><span>A quick AI take on your numbers &amp; what to focus on</span></span>'+
+      '<span class="dai-go">›</span></button>';
+    // 6. Metabolism check-in — occasional macro tuning (only renders when due).
+    html += renderAdaptiveCard();
+    // 7. Situational: round-day fueling + warm-up.
+    html += '<button class="gameday-cta" data-goview="gameday">'+
+      '<span class="gd-flag">⛳</span>'+
+      '<span class="gd-cta-tx"><b>Playing a round today?</b><span>Get your tee-time fueling + first-tee warm-up plan</span></span>'+
+      '<span class="gd-cta-go">›</span></button>';
     el.innerHTML=html;
   }
 
