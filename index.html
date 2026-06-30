@@ -1029,6 +1029,8 @@
   .il-plates { grid-column:1 / -1; font-size:10.5px; color:#8a6d1c; padding:1px 0 5px 34px; }
   .il-add { width:100%; margin-top:9px; background:#f1f6f2; border:0; color:var(--green-700); border-radius:9px; padding:11px; font:800 13px system-ui; cursor:pointer; }
   .il-add:active { transform:translateY(1px); }
+  .il-addlift { width:100%; margin-top:6px; background:#11643a; border:0; color:#fff; border-radius:12px; padding:15px; font:800 14.5px system-ui; cursor:pointer; box-shadow:0 4px 12px rgba(17,100,58,.22); }
+  .il-addlift:active { transform:translateY(1px); }
   /* Warm-up & primer — warm amber box so it stands out from the white logging cards */
   .prelift { background:linear-gradient(165deg,#fff7ec,#ffeed7); border:1px solid #f1d9b4; border-left:4px solid #e8923a;
     border-radius:12px; margin-bottom:13px; overflow:hidden; box-shadow:0 4px 14px rgba(184,120,30,.10); }
@@ -1114,6 +1116,10 @@
   .swap-opt.cur { border-color:#11643a; background:#eef7f0; color:var(--green-800); }
   .swap-opt.reset { font-weight:600; color:var(--muted); }
   .swap-now { font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:var(--green-700); }
+  .add-search { width:100%; box-sizing:border-box; border:1.5px solid var(--line); border-radius:12px; padding:13px 15px;
+    font:600 16px system-ui; margin-bottom:14px; position:sticky; top:0; background:#fff; z-index:1; }
+  .add-search:focus { outline:none; border-color:#11643a; }
+  .add-group { font:800 11px system-ui; text-transform:uppercase; letter-spacing:.7px; color:var(--muted); margin:14px 2px 8px; }
   .swap-coach { width:100%; margin-top:6px; background:#eef7f0; border:1px solid #cfe9d8; color:var(--green-700);
     border-radius:12px; padding:13px; font:700 13.5px system-ui; cursor:pointer; }
   .day-foot { padding:11px 15px 13px; border-top:1px solid var(--line); display:flex; justify-content:flex-end; align-items:center; gap:10px; }
@@ -3475,25 +3481,46 @@
   function applySwapName(name){ var s=getSwaps(); return s[name] || name; }
   function setSwap(orig, neu){ var s=getSwaps(); if(!neu || neu===orig) delete s[orig]; else s[orig]=neu; lsSet("ff_swaps", s); }
   // Valid, equally-hard alternatives by movement pattern (no weakling subs).
+  // ---- Exercise database — grouped by movement pattern. Powers swap options AND
+  // the "Add a lift" picker. Names match the plan/EX entries so swaps resolve gear. ----
+  var EXERCISE_DB = {
+    "Quads — squat pattern": ["Back Squat","Front Squat","Leg Press","Hack Squat","Goblet Squat","Smith Machine Squat","Belt Squat","Box Squat","Safety-Bar Squat","Pendulum Squat","Leg Extension","Sissy Squat","Zercher Squat"],
+    "Single-leg / lunge": ["Walking Lunge","Reverse Lunge","Bulgarian Split Squat","Step-up","Forward Lunge","Lateral Lunge","Curtsy Lunge","Split Squat","Pistol Squat","Cossack Squat"],
+    "Hinge / posterior chain": ["Conventional Deadlift","Romanian Deadlift","Trap-Bar Deadlift","Sumo Deadlift","Rack Pull","Good Morning","Single-Leg RDL","Hip Thrust","Single-Leg Hip Thrust","Glute-Ham Raise","Lying Leg Curl","Seated Leg Curl","Nordic Curl","Back Extension","45° Hyperextension","Cable Pull-Through"],
+    "Push — chest (horizontal)": ["Barbell Bench Press","Incline Barbell Press","Decline Bench Press","Flat DB Press","Incline DB Press","Machine Chest Press","Weighted Dip","Push-up","Deficit Push-up","Cable Fly","Pec Deck","Floor Press","Landmine Press"],
+    "Push — shoulders (vertical)": ["Standing Overhead Press","Seated DB Shoulder Press","Push Press","Arnold Press","Machine Shoulder Press","Z-Press","Lateral Raise","Cable Lateral Raise","Rear-Delt Fly","Face Pull","Front Raise","Upright Row"],
+    "Pull — lats (vertical)": ["Weighted Pull-up","Chin-up","Neutral-Grip Pull-up","Lat Pulldown","Neutral-Grip Pulldown","Wide-Grip Pulldown","Assisted Pull-up","Straight-Arm Pulldown"],
+    "Pull — back (horizontal)": ["Chest-Supported Row","Barbell Row","Pendlay Row","Seated Cable Row","T-Bar Row","Single-Arm DB Row","Machine Row","Inverted Row","Meadows Row","Kroc Row"],
+    "Biceps": ["DB Curl","Barbell Curl","Hammer Curl","Cable Curl","Preacher Curl","Incline DB Curl","Concentration Curl","EZ-Bar Curl","Spider Curl"],
+    "Triceps": ["Cable Triceps Pushdown","Overhead Triceps Extension","Close-Grip Bench Press","Weighted Dip","Skull Crusher","DB Kickback","Rope Pushdown","Diamond Push-up"],
+    "Calves": ["Standing Calf Raise","Seated Calf Raise","Leg-Press Calf Raise","Single-Leg Calf Raise","Smith Calf Raise","Tibialis Raise","Donkey Calf Raise"],
+    "Core / anti-rotation": ["Pallof Press","Cable Wood-chop","Landmine Rotation","Hanging Leg Raise","Cable Crunch","Ab Wheel Rollout","Plank","Side Plank","Russian Twist","Dead Bug","Bird Dog","Hollow Hold","Copenhagen Plank"],
+    "Grip / carries": ["Farmer Carry","Suitcase Carry","Trap-Bar Carry","Wrist Curl + Reverse","Reverse Wrist Curl","Plate Pinch","Dead Hang","Wrist Roller","Towel Pull-up"],
+    "Power / speed (golf)": ["Box Jump","Broad Jump","Lateral Bound","Vertical Jump","Depth Jump","Overhead Med-Ball Slam","Rotational Med-Ball Throw","Med-Ball Chest Pass","Med-Ball Scoop Toss","Kettlebell Swing","Hang Power Clean","Jump Squat","Trap-Bar Jump","Overspeed Swings","Ground-Force Footwork"]
+  };
+  var EX_GROUP_ORDER = Object.keys(EXERCISE_DB);
+  // Classify an exercise name → its group (specific patterns first, so e.g. "Leg Curl"
+  // lands in Hinge not Biceps, and "Close-Grip Bench" in Triceps not Chest).
+  function exGroupFor(n){
+    n=n||"";
+    if(/Jump|Bound|Slam|Throw|Chest Pass|Scoop|Overspeed|Footwork|Clean|Snatch|Plyo|Pogo|Banded Rotation/i.test(n)) return "Power / speed (golf)";
+    if(/Calf|Tibialis/i.test(n)) return "Calves";
+    if(/Carry|Farmer|Suitcase|Wrist|Forearm|Plate Pinch|Dead Hang|Wrist Roller|Towel Pull/i.test(n)) return "Grip / carries";
+    if(/Triceps|Pushdown|Skull|Close.?Grip|Kickback|Diamond Push|JM Press/i.test(n)) return "Triceps";
+    if(/Pallof|Wood.?chop|Landmine Rotation|Rotation|Russian Twist|\bPlank\b|Dead ?Bug|Bird ?Dog|Hollow|Ab Wheel|Crunch|Leg Raise|Copenhagen|Anti.?Rotation/i.test(n)) return "Core / anti-rotation";
+    if(/Curl/i.test(n) && !/Leg Curl|Ham|Nordic|Wrist/i.test(n)) return "Biceps";
+    if(/Lunge|Split Squat|Step.?up|Bulgarian|Pistol|Cossack/i.test(n)) return "Single-leg / lunge";
+    if(/Deadlift|Romanian|\bRDL\b|Trap.?Bar|Sumo|Rack Pull|Good ?Morning|Hip Thrust|Glute|Leg Curl|Nordic|Back Extension|Hyperext|Kettlebell Swing|\bSwing\b|Pull.?Through|Hinge/i.test(n)) return "Hinge / posterior chain";
+    if(/Squat|Leg Press|Hack|Leg Extension|Sissy|Belt Squat|Pendulum/i.test(n)) return "Quads — squat pattern";
+    if(/Overhead Press|Shoulder Press|Military|OHP|Arnold|Push Press|Z.?Press|Lateral Raise|Rear.?Delt|Face Pull|Front Raise|Upright Row/i.test(n)) return "Push — shoulders (vertical)";
+    if(/Bench|Incline.*Press|Decline|Chest Press|\bDip\b|Push.?up|\bFly\b|Pec Deck|Floor Press|Landmine Press/i.test(n)) return "Push — chest (horizontal)";
+    if(/Pull.?up|Chin.?up|Pulldown|\bLat\b/i.test(n)) return "Pull — lats (vertical)";
+    if(/Row|Meadows|Kroc|Pendlay/i.test(n)) return "Pull — back (horizontal)";
+    return null;
+  }
   function swapOptionsFor(n){
-    if(/Back Squat|Front Squat|Goblet|Hack Squat|Leg Press/i.test(n)) return ["Back Squat","Front Squat","Hack Squat","Leg Press","Bulgarian Split Squat"];
-    if(/Romanian|RDL/i.test(n)) return ["Romanian Deadlift","Single-Leg RDL","Good Morning","Trap-Bar Deadlift","Hip Thrust"];
-    if(/Deadlift|Trap.?Bar|Good Morning/i.test(n)) return ["Conventional Deadlift","Trap-Bar Deadlift","Romanian Deadlift","Rack Pull","Good Morning"];
-    if(/Hip Thrust|Glute Bridge/i.test(n)) return ["Barbell Hip Thrust","Single-Leg Hip Thrust","Romanian Deadlift","Glute-Ham Raise"];
-    if(/Bench Press|Incline|Chest Press|Dip|Chest Pass|Push-?up/i.test(n)) return ["Barbell Bench Press","Incline DB Press","Flat DB Press","Weighted Dip","Machine Chest Press"];
-    if(/Overhead Press|Shoulder Press|Arnold|Push Press/i.test(n)) return ["Standing Overhead Press","Seated DB Shoulder Press","Push Press","Arnold Press"];
-    if(/Pull-?up|Chin-?up|Pulldown/i.test(n)) return ["Weighted Pull-up","Lat Pulldown","Chin-up","Neutral-Grip Pulldown"];
-    if(/Row|Pendlay/i.test(n)) return ["Chest-Supported Row","Barbell Row","Seated Cable Row","T-Bar Row","Single-Arm DB Row"];
-    if(/Lunge|Split Squat|Step.?up/i.test(n)) return ["Walking Lunge","Bulgarian Split Squat","Reverse Lunge","Step-up"];
-    if(/Leg Curl|Ham/i.test(n)) return ["Lying Leg Curl","Seated Leg Curl","Nordic Curl","Romanian Deadlift"];
-    if(/Calf/i.test(n)) return ["Standing Calf Raise","Seated Calf Raise","Leg-Press Calf Raise"];
-    if(/Triceps|Pushdown|Skull/i.test(n)) return ["Cable Triceps Pushdown","Overhead Triceps Extension","Close-Grip Bench","Weighted Dip"];
-    if(/Curl/i.test(n)) return ["DB Curl","Barbell Curl","Hammer Curl","Cable Curl"];
-    if(/Pallof|Wood-?chop|Rotation|Landmine|Russian Twist|Punch/i.test(n)) return ["Pallof Press","Cable Wood-chop","Landmine Rotation","Med-Ball Rotational Throw"];
-    if(/Carry/i.test(n)) return ["Farmer Carry","Suitcase Carry","Trap-Bar Carry"];
-    if(/Face Pull|Lateral Raise|Rear.?Delt/i.test(n)) return ["Face Pull","Lateral Raise","Rear-Delt Fly","Cable Lateral Raise"];
-    if(/Leg Raise|Crunch|Plank|Ab/i.test(n)) return ["Hanging Leg Raise","Cable Crunch","Ab Wheel","Plank"];
-    if(/Wrist|Forearm|Grip/i.test(n)) return ["Wrist Curl + Reverse","Plate Pinch","Dead Hang","Farmer Carry"];
+    var g=exGroupFor(n);
+    if(g && EXERCISE_DB[g]) return EXERCISE_DB[g].slice();
     return ["Back Squat","Romanian Deadlift","Weighted Pull-up","Barbell Bench Press"];
   }
 
@@ -3588,7 +3615,8 @@
     plates.forEach(function(pl){ while(rem>=pl-0.01){ out.push(pl); rem-=pl; } });
     return rem>0.1 ? "" : out.join(" + ")+" /side";
   }
-  function restSecsFor(target){ var top=topReps(target); return (top && top<=6) ? 180 : 90; }
+  // Rest defaults: 2 min between sets of the same lift, 3 min before a different lift.
+  var REST_BETWEEN_SETS = 120, REST_BETWEEN_LIFTS = 180;
   function ilogBodyHtml(){
     var s=ilog.sess, week=ilog.week, day=ilog.day, last=lastSessionFor(day, week), html="", tot=0, done=0;
     s.ex.forEach(function(x, xi){
@@ -3620,6 +3648,7 @@
         setsHtml+
         '<button class="il-add" data-x="'+xi+'" data-iadd="1">＋ Add set</button></div>';
     });
+    html += '<button class="il-addlift" data-addlift="1">＋ Add a lift to today</button>';
     var pct = tot? Math.round(done/tot*100):0;
     return '<div class="il-prog"><div class="il-progbar" style="width:'+pct+'%"></div></div>'+html;
   }
@@ -3733,6 +3762,32 @@
     var m=$("swapModal"); m.hidden=false; document.body.style.overflow="hidden";
   }
   function closeSwap(){ var m=$("swapModal"); if(m) m.hidden=true; document.body.style.overflow=""; swapCtx=null; }
+  // Add a whole new lift to today's session — browse the full database, searchable.
+  function addLiftGroupsHtml(filter){
+    filter=(filter||"").trim().toLowerCase();
+    var html="";
+    EX_GROUP_ORDER.forEach(function(g){
+      var items=EXERCISE_DB[g].filter(function(o){ return !filter || o.toLowerCase().indexOf(filter)>=0; });
+      if(!items.length) return;
+      html+='<div class="add-group">'+g+'</div>';
+      items.forEach(function(o){ html+='<button class="swap-opt" data-addchoose="'+escAttr(o)+'">'+purposeFor(o)+' '+o+'</button>'; });
+    });
+    return html || '<div class="swap-sub">No match — try another search.</div>';
+  }
+  function openAddLift(){
+    swapCtx=null;
+    $("swapTitle").textContent="Add a lift";
+    $("swapBody").innerHTML='<input class="add-search" id="addSearch" type="text" placeholder="Search 140+ lifts…" autocomplete="off" />'+
+      '<div id="addList">'+addLiftGroupsHtml("")+'</div>';
+    var m=$("swapModal"); m.hidden=false; document.body.style.overflow="hidden";
+  }
+  function addLiftChoice(name){
+    if(ilog){
+      ilog.sess.ex.push({ name:name, orig:name, target:"3 × 10", sets:[{w:"",r:"",done:false},{w:"",r:"",done:false},{w:"",r:"",done:false}] });
+      saveILog(); renderILog();
+    }
+    closeSwap();
+  }
   function applySwapChoice(chosen){
     if(!swapCtx) return;
     setSwap(swapCtx.orig, chosen);
@@ -3744,7 +3799,9 @@
     closeSwap();
   }
   // ---- rest timer (floating pill) ----
-  function startRest(secs){ restEnd=Date.now()+secs*1000; if(!restTimer) restTimer=setInterval(tickRest,250); var pill=$("restPill"); if(pill) pill.hidden=false; tickRest(); }
+  function startRest(secs, label){ restEnd=Date.now()+secs*1000; if(!restTimer) restTimer=setInterval(tickRest,250);
+    var pill=$("restPill"); if(pill){ pill.hidden=false; var lb=pill.querySelector(".rp-label"); if(lb) lb.textContent="⏱ "+(label||"Rest"); }
+    tickRest(); }
   function stopRest(){ if(restTimer){ clearInterval(restTimer); restTimer=null; } var pill=$("restPill"); if(pill) pill.hidden=true; }
   function tickRest(){
     var pill=$("restPill"); if(!pill) return;
@@ -4516,12 +4573,17 @@
     if(fdc){ focusDay=fdc.getAttribute("data-focusday"); renderPhase(); return; }
     // ---- inline logger ----
     var idn=e.target.closest("[data-idone]");
-    if(idn && ilog){ var st=ilog.sess.ex[+idn.getAttribute("data-x")].sets[+idn.getAttribute("data-s")];
+    if(idn && ilog){ var dxi=+idn.getAttribute("data-x"), dsi=+idn.getAttribute("data-s");
+      var dex=ilog.sess.ex[dxi], st=dex.sets[dsi];
       st.done=!st.done; saveILog();
-      if(st.done) startRest(restSecsFor(ilog.sess.ex[+idn.getAttribute("data-x")].target));
+      if(st.done){
+        var lastSet = dsi >= dex.sets.length-1;   // finishing a lift → longer rest before the next one
+        startRest(lastSet ? REST_BETWEEN_LIFTS : REST_BETWEEN_SETS, lastSet ? "Rest — before next lift" : "Rest — between sets");
+      }
       renderILog(); return; }
     var iad=e.target.closest("[data-iadd]");
     if(iad && ilog){ ilog.sess.ex[+iad.getAttribute("data-x")].sets.push({w:"",r:"",done:false}); saveILog(); renderILog(); return; }
+    if(e.target.closest("[data-addlift]")){ openAddLift(); return; }
     var ifl=e.target.closest("[data-ifill]");
     if(ifl && ilog){ var xi=+ifl.getAttribute("data-x"), x=ilog.sess.ex[xi], ls=lastSessionFor(ilog.day, ilog.week), lx=null;
       if(ls) ls.ex.forEach(function(e2){ if(e2.name===x.name) lx=e2; });
@@ -4594,9 +4656,13 @@
     document.body.appendChild(m);
     m.addEventListener("click", function(e){
       if(e.target===m || e.target.closest("#swapX")){ closeSwap(); return; }
+      var add=e.target.closest("[data-addchoose]"); if(add){ addLiftChoice(add.getAttribute("data-addchoose")); return; }
       var ch=e.target.closest("[data-swapchoose]"); if(ch){ applySwapChoice(ch.getAttribute("data-swapchoose")); return; }
       if(e.target.closest("[data-swapcoach]")){ var c=swapCtx; closeSwap();
         if(window.FFCoach && window.FFCoach.ready()) window.FFCoach.ask("Suggest a hard, same-muscle replacement for "+(c?c.orig:"this lift")+" using my equipment — no weakling subs, with sets×reps.", "Swap idea"); }
+    });
+    m.addEventListener("input", function(e){
+      if(e.target.id==="addSearch"){ var list=$("addList"); if(list) list.innerHTML=addLiftGroupsHtml(e.target.value); }
     });
   })();
 
