@@ -1404,7 +1404,7 @@
         <div id="results"></div>
       </section>
 
-      <section class="card" id="ffMealsCard" aria-label="Meal ideas from your favorite foods" hidden>
+      <section class="card" id="ffMealsCard" aria-label="Your meals" hidden>
         <div id="ffMeals" class="ffm"></div>
       </section>
 
@@ -1782,6 +1782,7 @@
 
   /* ===================== MACRO CALCULATOR ===================== */
   var state = { sex: "male", goal: "leanbulk", workout: "morning", meals: null };
+  var lastMealPlan = null;   // last computed { meal, timing } — shared with the unified Meals card
 
   // Recommended number of main meals per plan (pre/post-workout feedings are extra, around training).
   var MEALS_REC = { leanbulk: 4, bulk: 5, maintain: 4, cut: 3 };
@@ -2057,6 +2058,7 @@
       trainTime: formatTime(slot.anchor), fasted: state.workout==="morning", note: g.timing
     };
     var meal = { n: mealN, recommended: MEALS_REC[state.goal], slot: slot.label, schedule: schedule };
+    lastMealPlan = { meal: meal, timing: timing };   // stash for the unified Meals card
 
     render({ bmr:bmr,tdee:tdee,target:target,activity:activity,
       proteinG:proteinG,fatG:fatG,carbG:carbG,
@@ -2627,37 +2629,23 @@
     var t=ffTargets();
     if(!t){ if(card) card.hidden=true; el.innerHTML=""; return; }
     if(card) card.hidden=false;
-    var p=ffPrefs();
-    if(!ffHasPrefs(p)){
-      el.innerHTML='<div class="ffm-cta"><div class="ffm-cta-ic">🍽️</div>'+
-        '<div class="ffm-cta-tx"><b>Make these meals yours</b><span>Pick the foods you actually eat and we’ll build your meal ideas and a full day around them.</span></div>'+
+    var p=ffPrefs(), hasPrefs=ffHasPrefs(p), html="";
+    // 1. Carb timing around training — "when to eat" sits right above "what to eat".
+    if(lastMealPlan && lastMealPlan.timing){ try{ html+=timingBlock(lastMealPlan.timing); }catch(e){} }
+    if(!hasPrefs){
+      // 2a. The generic per-meal split (the schedule the calculator builds) + an upgrade nudge.
+      if(lastMealPlan && lastMealPlan.meal){ try{ html+=mealBlock(lastMealPlan.meal); }catch(e){} }
+      html+='<div class="ffm-cta"><div class="ffm-cta-ic">🍽️</div>'+
+        '<div class="ffm-cta-tx"><b>Make these meals yours</b><span>Swap the example foods for the ones you actually eat — we’ll rebuild this split and a shopping list around them.</span></div>'+
         '<button type="button" class="ffm-cta-btn" data-ffaction="edit">Pick my foods</button></div>';
-      return;
-    }
-    var plan=ffPlanDay(p,t,ffRoll);
-    var ideas=[]; if(plan.slots[0]) ideas.push(plan.slots[0]);          // breakfast
-    if(plan.slots.length>1) ideas.push(plan.slots[plan.slots.length-1]); // a main meal
-    var snackPool=ffRoleList(p,'snack').filter(function(f){ return ffIsLiked(f,p) || !ffHasLikes(p); });
-    var html='<div class="ffm-head"><span>🍽️ Built around your favorites</span>'+
-      '<button type="button" class="ffm-mini" data-ffaction="reroll">🔁 Shuffle</button></div>'+
-      '<div class="ffm-sub">Balanced to your day: <b>'+t.p+'g</b> P · <b>'+t.c+'g</b> C · <b>'+t.f+'g</b> F — from foods you love.</div>'+
-      '<div class="ffm-meals"><span>Meals / day</span><span class="ffm-seg">'+
-        [3,4,5,6].map(function(n){ return '<button type="button" data-meals="'+n+'"'+((t.m||4)===n?' class="on"':'')+'>'+n+'</button>'; }).join("")+'</span></div>';
-    ideas.forEach(function(s){ if(!s) return;
-      html+='<div class="ffm-pair"><div class="ffm-pair-h">'+s.name+ffMealTag(s)+' <span>≈ '+s.P+'P · '+s.C+'C · '+s.F+'F</span></div>'+
-        '<div class="ffm-items">'+ffItemsHtml(s.items)+'</div></div>';
-    });
-    if(snackPool.length){
-      html+='<div class="ffm-snacks"><div class="ffm-snk-h">⚡ Quick snacks you like</div><div class="ffm-snk-chips">'+
-        snackPool.slice(0,6).map(function(f){ return '<span class="ffm-snk">'+f.e+' '+ffName(f).toLowerCase()+' <i>'+f.c+'C'+(f.f>=4?' · '+f.f+'F':'')+'</i></span>'; }).join("")+'</div></div>';
-    }
-    html+='<div class="ffm-acts">'+
-      '<button type="button" class="ffm-act primary" data-ffaction="day">🍱 Build my full day</button>'+
-      '<button type="button" class="ffm-act" data-ffaction="ideas">🤖 Coach ideas</button>'+
-      '<button type="button" class="ffm-act" data-ffaction="week">🗓️ Plan my week</button>'+
-      '<button type="button" class="ffm-act" data-ffaction="edit">✏️ Edit foods</button></div>';
-    if(ffShowDay){
-      html+='<div class="ffm-day"><div class="ffm-day-h">📅 Your full day — '+(t.m||4)+' meals</div>';
+    } else {
+      // 2b. The same per-meal split, built from foods you love, with a one-day shopping list.
+      var plan=ffPlanDay(p,t,ffRoll);
+      html+='<div class="meals"><div class="meals-head"><span>🍽️ Your Meals</span>'+
+        '<span class="meal-pick"><span class="meal-pick-lbl">meals/day</span><span class="seg meal-seg">'+
+          [3,4,5,6].map(function(n){ return '<button type="button" data-meals="'+n+'"'+((t.m||4)===n?' class="active"':'')+'>'+n+'</button>'; }).join("")+
+        '</span></span></div><div class="meals-body">';
+      html+='<div class="sched-title">📅 Your day — <b>'+(t.m||4)+' meals</b>, built around <b>foods you love</b></div>';
       plan.slots.forEach(function(s){
         html+='<div class="ffm-meal"><div class="ffm-meal-h">'+s.name+ffMealTag(s)+' <span>≈ '+s.P+'P · '+s.C+'C · '+s.F+'F</span></div>'+
           '<div class="ffm-items">'+ffItemsHtml(s.items)+'</div></div>';
@@ -2670,19 +2658,26 @@
         html+='<div class="ffm-groc"><div class="ffm-groc-h">🛒 Shopping list <span>· one day</span></div><ul class="ffm-shop">'+
           shop.map(function(it){ return '<li><span class="shop-n">'+it.food.e+' '+ffName(it.food)+'</span><span class="shop-q">'+ffQtyLabel(it)+'</span></li>'; }).join("")+'</ul></div>';
       }
-      html+='<div class="ffm-day-note">Macro-complete — protein, carbs <b>and</b> fat all targeted. Portions are starting points; nudge to taste. Faster carbs cluster around training.</div></div>';
+      html+='<div class="ffm-acts">'+
+        '<button type="button" class="ffm-act" data-ffaction="reroll">🔁 Shuffle</button>'+
+        '<button type="button" class="ffm-act" data-ffaction="ideas">🤖 Coach ideas</button>'+
+        '<button type="button" class="ffm-act" data-ffaction="week">🗓️ Plan my week</button>'+
+        '<button type="button" class="ffm-act" data-ffaction="edit">✏️ Edit foods</button></div>';
+      html+='<div class="meal-foot">Macro-complete — protein, carbs <b>and</b> fat all targeted. Portions are starting points; faster carbs cluster around training.</div>';
+      html+='</div></div>';
     }
     el.innerHTML=html;
     if(!ffMealsBound && card){
       ffMealsBound=true;
       card.addEventListener("click", function(e){
+        var row=e.target.closest(".sched-row.tappable");
+        if(row){ row.classList.toggle("open"); return; }   // tap a meal for a food example
         var mb=e.target.closest("[data-meals]");
         if(mb){ state.meals=parseInt(mb.getAttribute("data-meals"),10); calc(); return; }
         var b=e.target.closest("[data-ffaction]"); if(!b) return;
         var act=b.getAttribute("data-ffaction");
         if(act==="edit") openFoodPrefs();
         else if(act==="reroll"){ ffRoll++; renderFFMeals(); }
-        else if(act==="day"){ ffShowDay=!ffShowDay; renderFFMeals(); }
         else if(act==="ideas") ffAskCoach("ideas");
         else if(act==="week") openWeekPlan();
       });
@@ -2855,9 +2850,6 @@
       macroCard("c","Carbs",r.carbG,r.carbKcal,cPct)+
       macroCard("f","Fat",r.fatG,r.fatKcal,fPct)+'</div>';
     html+='<div class="golf-note"><b>⛳ '+r.goal.label+':</b> '+r.goal.note+'</div>';
-    // Carb timing around training + the per-meal P/C/F breakdown with food examples.
-    if(r.timing){ try{ html+=timingBlock(r.timing); }catch(e){} }
-    if(r.meal){ try{ html+=mealBlock(r.meal); }catch(e){} }
     html+='<details class="fold"><summary>How this is calculated</summary><div class="fold-body breakdown"><table>'+
       tr("BMR (Mifflin–St Jeor)",round5(r.bmr)+" kcal")+
       tr("Activity multiplier","×"+r.activity+" ("+ACTIVITY_LABELS[String(r.activity)]+")")+
