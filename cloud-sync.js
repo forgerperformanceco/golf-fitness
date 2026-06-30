@@ -17,7 +17,7 @@
 
   // Everything the app persists to localStorage — the full progress blob.
   // ff_start = the plan's start date (so the calendar/week follows you across devices).
-  var KEYS = ["fairwayfuel", "ff_week", "ff_log", "ff_body", "ff_start", "ff_planview", "ff_swaps", "ff_onboarded", "ff_handle", "ff_kcal_adj", "ff_lastcheckin", "ff_gameday", "ff_foodprefs", "ff_insights_seen", "ff_region", "ff_zip", "ff_tips_seen"];
+  var KEYS = ["fairwayfuel", "ff_week", "ff_log", "ff_body", "ff_start", "ff_planview", "ff_swaps", "ff_onboarded", "ff_handle", "ff_kcal_adj", "ff_lastcheckin", "ff_gameday", "ff_foodprefs", "ff_insights_seen", "ff_region", "ff_zip", "ff_tips_seen", "ff_history"];
 
   // Disabled until configured, or if the Supabase SDK didn't load (e.g. offline).
   if (!SUPABASE_URL || !SUPABASE_ANON || !window.supabase) return;
@@ -159,12 +159,26 @@
     out.sort(function (a, b) { return String(a.date || "").localeCompare(String(b.date || "")); });
     return out.concat(loose);
   }
+  function unionHistory(local, cloud) {
+    local = Array.isArray(local) ? local : [];
+    cloud = Array.isArray(cloud) ? cloud : [];
+    var byId = {};
+    cloud.concat(local).forEach(function (e) {                // later (local) wins ties via >=
+      if (!e) return;
+      var id = e.id || JSON.stringify(e);
+      if (!byId[id] || (e.ts || 0) >= (byId[id].ts || 0)) byId[id] = e;
+    });
+    var out = Object.keys(byId).map(function (k) { return byId[k]; });
+    out.sort(function (a, b) { return (b.ts || 0) - (a.ts || 0); });
+    return out;
+  }
   function mergeBlob(local, cloud) {
     local = local || {}; cloud = cloud || {};
     var out = {};
     KEYS.forEach(function (k) {
       if (k === "ff_log") out[k] = unionLog(local[k], cloud[k]);
       else if (k === "ff_body") out[k] = unionBody(local[k], cloud[k]);
+      else if (k === "ff_history") out[k] = unionHistory(local[k], cloud[k]);
       else if (cloud[k] !== undefined) out[k] = cloud[k];   // unchanged behavior for the rest
       else if (local[k] !== undefined) out[k] = local[k];
     });

@@ -868,10 +868,28 @@
   .dash-ai .dai-tx b { font-size:14px; }
   .dash-ai .dai-tx span { font-size:11.5px; color:#cdeedb; line-height:1.3; }
   .dash-ai .dai-go { font-size:22px; color:#9fe7bb; flex:0 0 auto; }
-  .train-ai { width:100%; text-align:left; background:#eef7f0; color:var(--green-800); border:1px solid #cfe9d8;
-    border-radius:12px; padding:12px 14px; font-size:13px; cursor:pointer; margin-bottom:14px; }
-  .train-ai b { color:var(--green-700); }
+  .train-ai { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; text-align:left;
+    background:#eef7f0; color:var(--green-800); border:1px solid #cfe9d8;
+    border-radius:12px; padding:13px 15px; font:600 13.5px system-ui; cursor:pointer; margin-bottom:14px; }
+  .train-ai b { color:var(--green-700); font-weight:800; }
+  .train-ai .tai-go { flex:0 0 auto; color:var(--green-700); font-weight:800; white-space:nowrap; }
   .train-ai:active { transform:translateY(1px); }
+  /* Finish workout — locks the session into permanent history */
+  .finish-btn { width:100%; margin:6px 0 16px; background:#11643a; color:#fff; border:0; border-radius:14px;
+    padding:17px; font:800 16px system-ui; cursor:pointer; box-shadow:0 6px 18px rgba(17,100,58,.28);
+    display:flex; flex-direction:column; align-items:center; gap:2px; }
+  .finish-btn:active { transform:translateY(1px); }
+  .finish-btn.done { background:#eef7f0; color:var(--green-800); box-shadow:none; border:1px solid #cfe9d8; }
+  .finish-btn .fb-sub { font:600 11.5px system-ui; opacity:.8; }
+  .ff-toast { position:fixed; left:50%; bottom:96px; transform:translate(-50%,12px); z-index:200;
+    background:#0f2417; color:#fff; font:700 13.5px system-ui; padding:12px 18px; border-radius:999px;
+    box-shadow:0 10px 30px rgba(8,40,22,.45); opacity:0; transition:opacity .3s, transform .3s; pointer-events:none; max-width:90vw; text-align:center; }
+  .ff-toast.show { opacity:1; transform:translate(-50%,0); }
+  .hist-row { border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin-bottom:9px; background:#fff; }
+  .hist-top { display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
+  .hist-day { font:800 14px system-ui; color:var(--green-800); }
+  .hist-date { font:600 12px system-ui; color:var(--muted); white-space:nowrap; flex:0 0 auto; }
+  .hist-meta { font:600 12px system-ui; color:var(--muted); margin-top:3px; }
 
   /* ===== Account ===== */
   .acct-card { background:var(--paper); border:1px solid var(--line); border-radius:16px; padding:18px;
@@ -3298,6 +3316,7 @@
       }).join("");
       html+='<div class="weekstrip">'+strip+'</div>';
       html+=dayCardHtml(featured, true, true);   // interactive inline logger
+      html+=finishBtnHtml();                     // lock the session into permanent history
     } else {
       var primerNoteShown=false;
       shown.forEach(function(d){
@@ -3307,10 +3326,11 @@
       });
     }
 
-    html+='<button class="train-ai" data-ask="train">💬 <b>Coach this week</b> — progress &amp; what to adjust ›</button>';
+    html+='<button class="train-ai" data-ask="train"><span>💬 <b>Coach this week</b></span><span class="tai-go">Adjust ›</span></button>';
 
     // Review: a slim shortcut to the full Stats tab (no duplicated chart here).
     html+='<button class="train-link" data-gostats="1"><span>📊 See your full progress</span><span class="tl-go">Stats ›</span></button>';
+    html+='<button class="train-link" data-gohistory="1"><span>📖 Workout history</span><span class="tl-go">All time ›</span></button>';
 
     // Learn: the three reference reads grouped under ONE playbook fold.
     html+='<details class="fold playbook"><summary>📚 Coaching playbook</summary><div class="fold-body">'+
@@ -3788,6 +3808,58 @@
       saveILog(); renderILog();
     }
     closeSwap();
+  }
+  // ---- Finish workout + permanent history ----
+  // ff_history is an append-only, calendar-dated log (independent of the week|day plan
+  // keys, so it survives the 20-week loop and plan resets) — kept indefinitely, synced.
+  function finishBtnHtml(){
+    if(typeof ilog==="undefined" || !ilog) return "";
+    if(ilog.sess.finishedAt) return '<button class="finish-btn done" data-finish="1"><span>✓ Workout saved to history</span><span class="fb-sub">'+escAttr(ilog.sess.finishedAt)+' · tap to re-save</span></button>';
+    return '<button class="finish-btn" data-finish="1">✓ Finish workout</button>';
+  }
+  function pushHistory(week, day, sess){
+    var hist=lsGet("ff_history", []); if(!Array.isArray(hist)) hist=[];
+    var date=sess.date||todayStr(), id=date+" · "+day, vol=0, setCount=0;
+    (sess.ex||[]).forEach(function(x){ (x.sets||[]).forEach(function(s){
+      if(s.w||s.r||s.done) setCount++;
+      var w=parseFloat(s.w), r=parseFloat(s.r); if(w>0&&r>0) vol+=w*r; }); });
+    var entry={ id:id, ts:Date.now(), date:date, day:day, week:week, sets:setCount, volume:Math.round(vol),
+      ex:(sess.ex||[]).map(function(x){ return { name:x.name, target:x.target,
+        sets:(x.sets||[]).filter(function(s){ return s.w||s.r||s.done; }).map(function(s){ return {w:s.w,r:s.r}; }) }; }) };
+    var idx=-1; for(var k=0;k<hist.length;k++){ if(hist[k].id===id){ idx=k; break; } }
+    if(idx>=0) hist[idx]=entry; else hist.push(entry);
+    lsSet("ff_history", hist);
+  }
+  function finishWorkout(){
+    if(!ilog) return;
+    if(!ilog.sess.date) ilog.sess.date=todayStr();
+    ilog.sess.finishedAt=todayStr();
+    saveILog();
+    pushHistory(ilog.week, ilog.day, ilog.sess);
+    focusDay = ilog.day;   // stay on the workout you just finished (show the saved state)
+    try{ renderPhase(); }catch(e){}
+    try{ if(typeof renderDash==="function") renderDash(); }catch(e){}
+    ffToast("Workout saved to history 💪 Nice work.");
+  }
+  function ffToast(msg){
+    var t=document.createElement("div"); t.className="ff-toast"; t.textContent=msg;
+    document.body.appendChild(t);
+    setTimeout(function(){ t.classList.add("show"); }, 15);
+    setTimeout(function(){ t.classList.remove("show"); setTimeout(function(){ t.remove(); }, 320); }, 2400);
+  }
+  function historyRowsHtml(){
+    var hist=(lsGet("ff_history", [])||[]).slice().sort(function(a,b){ return (b.ts||0)-(a.ts||0); });
+    if(!hist.length) return '<div class="swap-sub">No finished workouts yet. Tap <b>✓ Finish workout</b> at the bottom of a session to lock it into your history — kept for good.</div>';
+    return hist.map(function(h){
+      var nm=String(h.day||"").replace(/Days? [\d–-]+ — /,"").replace(/Day \d+ — /,"");
+      return '<div class="hist-row"><div class="hist-top"><span class="hist-day">'+escAttr(nm)+'</span><span class="hist-date">'+escAttr(h.date||"")+'</span></div>'+
+        '<div class="hist-meta">'+(h.sets||0)+' set'+((h.sets===1)?'':'s')+(h.volume?' · '+h.volume.toLocaleString()+' lb total':'')+(h.week?' · Week '+h.week:'')+'</div></div>';
+    }).join("");
+  }
+  function openHistory(){
+    swapCtx=null; $("swapTitle").textContent="Workout history";
+    $("swapBody").innerHTML='<div class="swap-sub">Every finished workout, kept for good — backed up when you’re signed in.</div>'+historyRowsHtml();
+    var m=$("swapModal"); m.hidden=false; document.body.style.overflow="hidden";
   }
   function applySwapChoice(chosen){
     if(!swapCtx) return;
@@ -4556,6 +4628,8 @@
   /* ----- Delegated plan events (calendar start, log buttons, progress add) ----- */
   $("phaseDetail").addEventListener("click", function(e){
     if(e.target.closest("[data-gostats]")){ setView("progress"); return; }
+    if(e.target.closest("[data-gohistory]")){ openHistory(); return; }
+    if(e.target.closest("[data-finish]")){ finishWorkout(); return; }
     var wu=e.target.closest("[data-wu]");                              // tap a warm-up move to check it off
     if(wu){ wu.classList.toggle("done"); return; }
     if(e.target.closest("#equipBar") && handleEquipClick(e)) return;   // equipment editor (in settings)
@@ -5037,8 +5111,8 @@ if ('serviceWorker' in navigator) {
 <script>window.FF_ACCOUNT_TAB = true;</script>
 <!-- Optional cloud login + progress sync. Inactive until you add Supabase keys in cloud-sync.js. -->
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script defer src="cloud-sync.js?v=83"></script>
+<script defer src="cloud-sync.js?v=88"></script>
 <!-- AI coach chat. Degrades gracefully until the Edge Function is deployed. -->
-<script defer src="coach.js?v=83"></script>
+<script defer src="coach.js?v=88"></script>
 </body>
 </html>
