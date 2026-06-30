@@ -2253,6 +2253,9 @@
     {id:"edamame",   n:"Edamame",        e:"🫛",cat:"protein",p:17,c:14,f:8, serv:"1 cup",        tags:[]},
     {id:"seitan",    n:"Seitan",         e:"🌱",cat:"protein",p:21,c:4, f:1, serv:"3 oz",         tags:["gluten"]},
     {id:"proteinbar",n:"Protein bar",    e:"🍫",cat:"protein",p:20,c:22,f:7, serv:"1 bar",        tags:[]},
+    {id:"chickenthigh",n:"Chicken thigh",e:"🍗",cat:"protein",p:25,c:0, f:11,serv:"4 oz cooked",  tags:["meat"]},
+    {id:"flanksteak",n:"Flank steak",    e:"🥩",cat:"protein",p:30,c:0, f:8, serv:"4 oz cooked",  tags:["meat"]},
+    {id:"groundchicken",n:"Ground chicken",e:"🍗",cat:"protein",p:23,c:0,f:9, serv:"4 oz 93/7",    tags:["meat"]},
     {id:"chocmilk",  n:"Chocolate milk", e:"🥛",cat:"fast",   p:8, c:26,f:5, serv:"1 cup",        tags:["dairy"]},
     {id:"brownrice", n:"Brown rice",     e:"🍚",cat:"carb",p:5, c:45,f:2, serv:"1 cup cooked", tags:[]},
     {id:"couscous",  n:"Couscous",       e:"🌾",cat:"carb",p:6, c:36,f:0, serv:"1 cup cooked", tags:["gluten"]},
@@ -2414,14 +2417,38 @@
   // Foods that fit a breakfast plate (keeps steak & tuna off the 7am meal).
   var FF_AM = {oats:1,eggs:1,eggwhite:1,greekyog:1,cottage:1,whey:1,fairlife:1,protcer:1,banana:1,berries:1,apple:1,orange:1,cocoapeb:1,bagel:1,bread:1,pb:1,honey:1,
     milk:1,skyr:1,chocmilk:1,englishmuffin:1,cereal:1,pancakes:1,waffle:1,creamwheat:1,blueberries:1,strawberries:1,juice:1,granolabar:1,proteinbar:1,almondbutter:1,chia:1,maple:1,cranberry:1};
+  // ---- Meal-context appropriateness — keep lunch/dinner savory & "real-meal", snacks light ----
+  // Breakfast uses FF_AM above. 'main' = lunch/dinner; 'snack' = a between-meals bite.
+  var FF_NOT_MAIN_PROT = {whey:1,greekyog:1,cottage:1,protcer:1,proteinbar:1,milk:1,skyr:1,stringcheese:1,jerky:1,fairlife:1,eggwhite:1,eggs:1};
+  var FF_NOT_MAIN_CARB = {oats:1,cereal:1,pancakes:1,waffle:1,creamwheat:1,englishmuffin:1};   // breakfast carbs
+  var FF_MAIN_FAT = {oliveoil:1,avocado:1,cheddar:1};   // dinner-friendly fats only — no nut butters / handfuls of nuts
+  var FF_SNACK_PROT = {jerky:1,deli:1,ham:1,stringcheese:1,greekyog:1,cottage:1,skyr:1,whey:1,fairlife:1,proteinbar:1,milk:1,eggs:1,tuna:1,canchicken:1,edamame:1};
+  function ffMainOk(f){
+    if(f.cat==='veg') return true;
+    if(f.cat==='protein') return !FF_NOT_MAIN_PROT[f.id];   // cooked meats/fish/tofu — not whey/yogurt/jerky
+    if(f.cat==='carb')    return !FF_NOT_MAIN_CARB[f.id];   // rice/pasta/potato/beans — not oats/cereal/pancakes
+    if(f.cat==='fat')     return !!FF_MAIN_FAT[f.id];       // olive oil / avocado / cheese only
+    return false;                                           // fruit / fast / snack aren't a dinner component
+  }
+  function ffSnackOk(f){
+    if(f.cat==='snack'||f.cat==='fast'||f.cat==='fruit'||f.cat==='fat') return true;
+    if(f.cat==='protein') return !!FF_SNACK_PROT[f.id];    // grab-and-go proteins, not a cooked steak
+    return false;                                           // no rice/pasta as a "snack"
+  }
+  function ffMealCtx(name){
+    if(name==="Breakfast") return "am";
+    if(name==="Lunch"||name==="Dinner"||name==="Evening") return "main";
+    if(name==="Snack") return "snack";
+    return null;
+  }
   // role list: liked-first, fall back to all allowed.
   // role 'prot'|'carb'|'snack'|'fat'.  slot 'am' biases to breakfast foods.
-  function ffRoleList(p, role, slot){
+  function ffRoleList(p, role, ctx){
     var cats = role==='prot' ? ['protein'] : (role==='snack' ? ['snack','fast','fruit'] : (role==='fat' ? ['fat'] : (role==='veg' ? ['veg'] : ['carb','fruit','fast','snack'])));
     var all=FF_FOODS.filter(function(f){ return cats.indexOf(f.cat)>=0 && ffAllowed(f,p); });
     if(role==='carb') all=all.filter(function(f){ return f.f<=6; });   // keep carb sources low-fat
     if(role==='fat')  all=all.filter(function(f){ return f.f>=10; });  // real fat sources only
-    if(slot==='am'){
+    if(ctx==='am'){
       var likedAm=all.filter(function(f){ return FF_AM[f.id] && ffIsLiked(f,p); });
       if(likedAm.length) return likedAm;                                // liked AND breakfast-y
       var likedAny=all.filter(function(f){ return ffIsLiked(f,p); });
@@ -2429,12 +2456,27 @@
       var am=all.filter(function(f){ return FF_AM[f.id]; });
       return am.length?am:all;
     }
+    if(ctx==='main' || ctx==='snack'){
+      // Keep meals true to context — savory mains at lunch/dinner, light bites at snacks — so a
+      // breakfast spread (peanut butter, cereal, yogurt) never lands on a dinner plate.
+      var okFn = ctx==='main' ? ffMainOk : ffSnackOk;
+      var ctxFoods=all.filter(okFn);
+      var likedCtx=ctxFoods.filter(function(f){ return ffIsLiked(f,p); });
+      if(likedCtx.length) return likedCtx;                              // liked AND meal-appropriate
+      if(ctxFoods.length) return ctxFoods;                              // appropriate beats a liked-but-wrong food
+      var likedAny2=all.filter(function(f){ return ffIsLiked(f,p); });
+      if(likedAny2.length) return likedAny2;
+      return all;
+    }
     var liked=all.filter(function(f){ return ffIsLiked(f,p); });
     return liked.length?liked:all;
   }
   function ffProtPick(list,target,roll){
     if(!list.length) return null;
-    var pool=list.slice().sort(function(a,b){ return Math.abs(a.p-target)-Math.abs(b.p-target); });
+    // Rank by closeness to the protein target, penalizing fat so we don't lean on a fatty
+    // protein (eggs/salmon) to hit a big number — that's what blew the fat budget.
+    var score=function(f){ return Math.abs(f.p-target)+f.f*1.2; };
+    var pool=list.slice().sort(function(a,b){ return score(a)-score(b); });
     var top=pool.slice(0,Math.min(4,pool.length));
     return top[(roll||0)%top.length];
   }
@@ -2487,6 +2529,7 @@
     var f=ffProtPick(list,target,roll); if(!f) return null;
     var mult = f.p>0 ? target/f.p : 1;
     mult = Math.max(1, Math.min(2.5, Math.round(mult*2)/2));   // 1–2.5× in half steps
+    if(f.f>=10) mult=Math.min(mult,1.5);   // fatty proteins (eggs, salmon) — don't pile on fat or unrealistic portions
     return { food:f, mult:mult, P:Math.round(f.p*mult), C:Math.round(f.c*mult), label:ffServLabel(f,mult) };
   }
   // pick & scale a fat source to cover a fat deficit (avocado, olive oil, nuts, PB)
@@ -2522,12 +2565,15 @@
     var pLeft=t.p, preReserve=(n>=3?30:0), cLeft=Math.max(0,t.c-preReserve), wLeft=wsum;
     // Pass 1 — protein + carbs per meal (each carries its own natural fat)
     for(var j=0;j<n;j++){
-      var slot=(j===0?"am":null), isPost=(j===postIdx), mealsLeft=n-j;
+      var isPost=(j===postIdx), mealsLeft=n-j, ctx=ffMealCtx(names[j]);
       var pAim=Math.max(1, Math.round(pLeft/mealsLeft));
       var cTarget=wLeft>0?Math.round(cLeft*w[j]/wLeft):0;
-      var ps=ffProtScaled(ffRoleList(p,'prot',slot), pAim, roll+j);
-      var carbList=ffRoleList(p, isPost?'snack':'carb', slot);
-      if(!carbList.length) carbList=ffRoleList(p,'carb',slot);
+      var ps=ffProtScaled(ffRoleList(p,'prot',ctx), pAim, roll+j);
+      // Post-workout SNACK meals get fast carbs; a post-workout MAIN meal keeps savory carbs
+      // (white rice/potato are already fast) so dinner isn't steak + berries + honey.
+      var snackCarb=isPost && ctx!=='main';
+      var carbList=ffRoleList(p, snackCarb?'snack':'carb', snackCarb?null:ctx);
+      if(!carbList.length) carbList=ffRoleList(p,'carb',ctx);
       // A veggie side rounds out the main meals (and surfaces liked/regional vegetables).
       var isMain=(names[j]==="Lunch"||names[j]==="Dinner"||names[j]==="Evening");
       var vlist=isMain?ffRoleList(p,'veg',null):[], veg=vlist.length?vlist[(roll+j)%vlist.length]:null;
@@ -2546,11 +2592,13 @@
     }
     // Pass 1b — top up CARBS toward target if a few-meal day undershot (high per-meal carb
     // targets can outrun the liked foods). Adds into the biggest-carb meals until on target.
-    var cgap=Math.round((t.c-preReserve)-totC), carbPool=ffRoleList(p,'carb',null);
-    if(cgap>=15 && carbPool.length){
+    var cgap=Math.round((t.c-preReserve)-totC);
+    if(cgap>=15){
       var corder=slots.map(function(s,i){return i;}).sort(function(a,b){ return slots[b].C-slots[a].C; });
       for(var cc=0; cc<corder.length && cgap>=15; cc++){
-        var sidx=corder[cc], add=ffCarbCombo(carbPool, Math.min(cgap,35), roll+sidx+3);   // cap per meal so it spreads, not one kitchen-sink meal
+        var sidx=corder[cc], cpool=ffRoleList(p,'carb',ffMealCtx(slots[sidx].name));   // carbs appropriate to THAT meal
+        if(!cpool.length) continue;
+        var add=ffCarbCombo(cpool, Math.min(cgap,35), roll+sidx+3);   // cap per meal so it spreads, not one kitchen-sink meal
         add.picks.forEach(function(f){
           slots[sidx].items.push(ffLabel(f)); slots[sidx].foods.push({food:f, servings:1});
           slots[sidx].P+=f.p; slots[sidx].C+=f.c; slots[sidx].F+=f.f;
@@ -2559,12 +2607,13 @@
       }
     }
     // Pass 2 — top up FAT to the daily target only, into the lowest-fat meals (avoids overshoot)
-    var gap=Math.round((t.f||60)-totF), fatPool=ffRoleList(p,'fat',null);
-    if(gap>=6 && fatPool.length){
+    var gap=Math.round((t.f||60)-totF);
+    if(gap>=6){
       var order=slots.map(function(s,i){return i;}).sort(function(a,b){ return slots[a].F-slots[b].F; });
       for(var k=0;k<order.length && gap>=6;k++){
-        var si=order[k], fat=ffPickFat(fatPool, Math.min(gap,20), roll+si);
-        if(!fat) break;
+        var si=order[k], fpool=ffRoleList(p,'fat',ffMealCtx(slots[si].name));   // dinner fats stay savory; spreads only at breakfast/snack
+        var fat=fpool.length?ffPickFat(fpool, Math.min(gap,20), roll+si):null;
+        if(!fat) continue;
         slots[si].items.push(fat.label); slots[si].foods.push({food:fat.food, servings:fat.mult});
         slots[si].P+=fat.P; slots[si].C+=fat.C; slots[si].F+=fat.F;
         totP+=fat.P; totC+=fat.C; totF+=fat.F; gap-=fat.F;
