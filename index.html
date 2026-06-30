@@ -3487,14 +3487,14 @@
     "Quads — squat pattern": ["Back Squat","Front Squat","Leg Press","Hack Squat","Goblet Squat","Smith Machine Squat","Belt Squat","Box Squat","Safety-Bar Squat","Pendulum Squat","Leg Extension","Sissy Squat","Zercher Squat"],
     "Single-leg / lunge": ["Walking Lunge","Reverse Lunge","Bulgarian Split Squat","Step-up","Forward Lunge","Lateral Lunge","Curtsy Lunge","Split Squat","Pistol Squat","Cossack Squat"],
     "Hinge / posterior chain": ["Conventional Deadlift","Romanian Deadlift","Trap-Bar Deadlift","Sumo Deadlift","Rack Pull","Good Morning","Single-Leg RDL","Hip Thrust","Single-Leg Hip Thrust","Glute-Ham Raise","Lying Leg Curl","Seated Leg Curl","Nordic Curl","Back Extension","45° Hyperextension","Cable Pull-Through"],
-    "Push — chest (horizontal)": ["Barbell Bench Press","Incline Barbell Press","Decline Bench Press","Flat DB Press","Incline DB Press","Machine Chest Press","Weighted Dip","Push-up","Deficit Push-up","Cable Fly","Pec Deck","Floor Press","Landmine Press"],
-    "Push — shoulders (vertical)": ["Standing Overhead Press","Seated DB Shoulder Press","Push Press","Arnold Press","Machine Shoulder Press","Z-Press","Lateral Raise","Cable Lateral Raise","Rear-Delt Fly","Face Pull","Front Raise","Upright Row"],
-    "Pull — lats (vertical)": ["Weighted Pull-up","Chin-up","Neutral-Grip Pull-up","Lat Pulldown","Neutral-Grip Pulldown","Wide-Grip Pulldown","Assisted Pull-up","Straight-Arm Pulldown"],
-    "Pull — back (horizontal)": ["Chest-Supported Row","Barbell Row","Pendlay Row","Seated Cable Row","T-Bar Row","Single-Arm DB Row","Machine Row","Inverted Row","Meadows Row","Kroc Row"],
-    "Biceps": ["DB Curl","Barbell Curl","Hammer Curl","Cable Curl","Preacher Curl","Incline DB Curl","Concentration Curl","EZ-Bar Curl","Spider Curl"],
-    "Triceps": ["Cable Triceps Pushdown","Overhead Triceps Extension","Close-Grip Bench Press","Weighted Dip","Skull Crusher","DB Kickback","Rope Pushdown","Diamond Push-up"],
+    "Push — chest (horizontal)": ["Barbell Bench Press","Incline Barbell Press","Decline Bench Press","Flat DB Press","Incline DB Press","Machine Chest Press","Weighted Dip","Push-up","Deficit Push-up","Cable Fly","High-to-Low Cable Fly","Low-to-High Cable Fly","Cable Crossover","Single-Arm Cable Fly","Single-Arm Cable Chest Press","Cable Chest Press","Pec Deck","Floor Press","Landmine Press"],
+    "Push — shoulders (vertical)": ["Standing Overhead Press","Seated DB Shoulder Press","Push Press","Arnold Press","Machine Shoulder Press","Z-Press","Lateral Raise","Cable Lateral Raise","Single-Arm Cable Lateral Raise","Rear-Delt Fly","Cable Rear-Delt Fly","Single-Arm Cable Rear-Delt Fly","Cable Y-Raise","Face Pull","Front Raise","Cable Front Raise","Upright Row"],
+    "Pull — lats (vertical)": ["Weighted Pull-up","Chin-up","Neutral-Grip Pull-up","Lat Pulldown","Single-Arm Lat Pulldown","Half-Kneeling Cable Pulldown","Neutral-Grip Pulldown","Wide-Grip Pulldown","Assisted Pull-up","Straight-Arm Pulldown","Single-Arm Straight-Arm Pulldown","Cable Pullover"],
+    "Pull — back (horizontal)": ["Chest-Supported Row","Barbell Row","Pendlay Row","Seated Cable Row","Single-Arm Cable Row","Single-Arm Low Cable Row","Wide Cable Row","T-Bar Row","Single-Arm DB Row","Machine Row","Inverted Row","Meadows Row","Kroc Row"],
+    "Biceps": ["DB Curl","Barbell Curl","Hammer Curl","Cable Curl","Single-Arm Cable Curl","Bayesian Cable Curl","Cable Rope Hammer Curl","High Cable Curl","Preacher Curl","Incline DB Curl","Concentration Curl","EZ-Bar Curl","Spider Curl"],
+    "Triceps": ["Cable Triceps Pushdown","Rope Pushdown","Single-Arm Cable Pushdown","Cable Overhead Triceps Extension","Single-Arm Cable Triceps Extension","Overhead Triceps Extension","Close-Grip Bench Press","Weighted Dip","Skull Crusher","DB Kickback","Diamond Push-up"],
     "Calves": ["Standing Calf Raise","Seated Calf Raise","Leg-Press Calf Raise","Single-Leg Calf Raise","Smith Calf Raise","Tibialis Raise","Donkey Calf Raise"],
-    "Core / anti-rotation": ["Pallof Press","Cable Wood-chop","Landmine Rotation","Hanging Leg Raise","Cable Crunch","Ab Wheel Rollout","Plank","Side Plank","Russian Twist","Dead Bug","Bird Dog","Hollow Hold","Copenhagen Plank"],
+    "Core / anti-rotation": ["Pallof Press","Single-Arm Pallof Press","Cable Wood-chop","High-to-Low Cable Chop","Low-to-High Cable Chop","Cable Rotation","Landmine Rotation","Hanging Leg Raise","Cable Crunch","Single-Arm Cable Crunch","Ab Wheel Rollout","Plank","Side Plank","Russian Twist","Dead Bug","Bird Dog","Hollow Hold","Copenhagen Plank"],
     "Grip / carries": ["Farmer Carry","Suitcase Carry","Trap-Bar Carry","Wrist Curl + Reverse","Reverse Wrist Curl","Plate Pinch","Dead Hang","Wrist Roller","Towel Pull-up"],
     "Power / speed (golf)": ["Box Jump","Broad Jump","Lateral Bound","Vertical Jump","Depth Jump","Overhead Med-Ball Slam","Rotational Med-Ball Throw","Med-Ball Chest Pass","Med-Ball Scoop Toss","Kettlebell Swing","Hang Power Clean","Jump Squat","Trap-Bar Jump","Overspeed Swings","Ground-Force Footwork"]
   };
@@ -3507,14 +3507,14 @@
     if(/Calf|Tibialis/i.test(n)) return "Calves";
     if(/Carry|Farmer|Suitcase|Wrist|Forearm|Plate Pinch|Dead Hang|Wrist Roller|Towel Pull/i.test(n)) return "Grip / carries";
     if(/Triceps|Pushdown|Skull|Close.?Grip|Kickback|Diamond Push|JM Press/i.test(n)) return "Triceps";
-    if(/Pallof|Wood.?chop|Landmine Rotation|Rotation|Russian Twist|\bPlank\b|Dead ?Bug|Bird ?Dog|Hollow|Ab Wheel|Crunch|Leg Raise|Copenhagen|Anti.?Rotation/i.test(n)) return "Core / anti-rotation";
+    if(/Pallof|Wood.?chop|\bChop\b|Landmine Rotation|Rotation|Russian Twist|\bPlank\b|Dead ?Bug|Bird ?Dog|Hollow|Ab Wheel|Crunch|Leg Raise|Copenhagen|Anti.?Rotation/i.test(n)) return "Core / anti-rotation";
     if(/Curl/i.test(n) && !/Leg Curl|Ham|Nordic|Wrist/i.test(n)) return "Biceps";
     if(/Lunge|Split Squat|Step.?up|Bulgarian|Pistol|Cossack/i.test(n)) return "Single-leg / lunge";
     if(/Deadlift|Romanian|\bRDL\b|Trap.?Bar|Sumo|Rack Pull|Good ?Morning|Hip Thrust|Glute|Leg Curl|Nordic|Back Extension|Hyperext|Kettlebell Swing|\bSwing\b|Pull.?Through|Hinge/i.test(n)) return "Hinge / posterior chain";
     if(/Squat|Leg Press|Hack|Leg Extension|Sissy|Belt Squat|Pendulum/i.test(n)) return "Quads — squat pattern";
-    if(/Overhead Press|Shoulder Press|Military|OHP|Arnold|Push Press|Z.?Press|Lateral Raise|Rear.?Delt|Face Pull|Front Raise|Upright Row/i.test(n)) return "Push — shoulders (vertical)";
-    if(/Bench|Incline.*Press|Decline|Chest Press|\bDip\b|Push.?up|\bFly\b|Pec Deck|Floor Press|Landmine Press/i.test(n)) return "Push — chest (horizontal)";
-    if(/Pull.?up|Chin.?up|Pulldown|\bLat\b/i.test(n)) return "Pull — lats (vertical)";
+    if(/Overhead Press|Shoulder Press|Military|OHP|Arnold|Push Press|Z.?Press|Lateral Raise|Rear.?Delt|Face Pull|Front Raise|Y.?Raise|Upright Row/i.test(n)) return "Push — shoulders (vertical)";
+    if(/Bench|Incline.*Press|Decline|Chest Press|\bDip\b|Push.?up|\bFly\b|Crossover|Pec Deck|Floor Press|Landmine Press/i.test(n)) return "Push — chest (horizontal)";
+    if(/Pull.?up|Chin.?up|Pulldown|Pullover|\bLat\b/i.test(n)) return "Pull — lats (vertical)";
     if(/Row|Meadows|Kroc|Pendlay/i.test(n)) return "Pull — back (horizontal)";
     return null;
   }
@@ -3679,7 +3679,7 @@
       return { why:"At impact nearly all your weight braces on the lead leg. Single-leg strength builds the lead-side post you slam into — a firm post snaps the club through faster.", cue:"Plant and brace the front leg like a wall — drive down through the heel." };
     if(m(/Overhead Press|Shoulder Press|Military|OHP/i))
       return { why:"Overhead pressing builds shoulder strength and stability so you can deliver force through a long, repeatable swing arc without breaking down.", cue:"Stack the bar over mid-foot, ribs down — no leaning back." };
-    if(m(/Bench|Push.?up|Chest|Incline|Dip/i))
+    if(m(/Bench|Push.?up|Chest|Incline|Dip|Fly|Crossover|Pec Deck/i))
       return { why:"Pressing strength feeds the trail-arm extension that adds speed late in the downswing, and armors the shoulders for high swing volume.", cue:"Press explosively, control the lowering." };
     if(m(/Row|Pull.?up|Chin|Lat|Pulldown|Face ?Pull|Rear Delt|Pull/i))
       return { why:"The lead arm pulls the club through impact, and a strong back decelerates the swing safely. Pulling adds whip on the way down and protects the shoulder on the way through.", cue:"Pull with the back, not the arms — squeeze the shoulder blade, control the return." };
@@ -3708,7 +3708,7 @@
     if(m(/Hip Thrust|Kettlebell Swing|KB Swing|Swing/i)) return { mu:"Glutes · hamstrings · core", cues:["Drive through the heels, ribs down.","Snap the hips to full extension, squeeze the glutes.","Chin tucked, don't arch the lower back.","Control the lowering."], miss:["Arching the lower back instead of using glutes.","Pushing through the toes."] };
     if(m(/Lunge|Split Squat|Step.?up|Bulgarian|Single.?Leg/i)) return { mu:"Quads · glutes · balance/stability", cues:["Most weight on the front leg.","Drop straight down, back knee toward the floor.","Drive through the front heel to stand.","Stay tall — brace the front leg like a post."], miss:["Pushing off the back foot too much.","Front knee collapsing inward.","Leaning the torso forward."] };
     if(m(/Overhead Press|Shoulder Press|Military|OHP/i)) return { mu:"Shoulders · triceps · upper chest · core", cues:["Stack the bar over mid-foot, ribs down.","Brace the core — no leaning back.","Press up and slightly back, finish overhead.","Lower under control to the collarbone."], miss:["Leaning back / arching the low back.","Flaring elbows too wide."] };
-    if(m(/Bench|Push.?up|Chest|Incline|Dip/i)) return { mu:"Chest · shoulders · triceps", cues:["Shoulder blades pinned, slight arch.","Lower under control to mid-chest.","Elbows ~45°, not flared to 90°.","Press explosively, drive the floor with your feet."], miss:["Flaring elbows straight out.","Bouncing the bar off the chest.","Hips lifting off the bench."] };
+    if(m(/Bench|Push.?up|Chest|Incline|Dip|Fly|Crossover|Pec Deck/i)) return { mu:"Chest · shoulders · triceps", cues:["Shoulder blades pinned, slight arch.","Lower under control to mid-chest.","Elbows ~45°, not flared to 90°.","Press explosively, drive the floor with your feet."], miss:["Flaring elbows straight out.","Bouncing the bar off the chest.","Hips lifting off the bench."] };
     if(m(/Row|Pull.?up|Chin|Lat|Pulldown|Face ?Pull|Rear Delt|Pull/i)) return { mu:"Lats · upper back · biceps · rear delts", cues:["Start by setting the shoulder blade (don't just yank with arms).","Pull the elbow toward the hip/ribs.","Squeeze the back at the top.","Control the return — full stretch."], miss:["Using only the arms / shrugging.","Heaving with momentum.","Half range — not controlling the lowering."] };
     if(m(/Carry|Farmer|Suitcase|Grip/i)) return { mu:"Grip · traps · core · whole body", cues:["Stand tall, shoulders back, ribs down.","Brace the core, walk with control.","Crush the handles — strong grip.","Don't lean; resist any tilt."], miss:["Leaning or rounding under the load.","Rushing / losing posture."] };
     if(m(/Plank|Anti.?Rotation|Dead ?Bug|Hollow|Bird ?Dog|Core| Ab|Abs/i)) return { mu:"Deep core · abs · obliques", cues:["Ribs down, squeeze glutes, flat line head-to-heels.","Brace like you're about to be punched.","Breathe behind the brace.","Quality over time — stop when form breaks."], miss:["Hips sagging or piking up.","Holding your breath."] };
@@ -3777,7 +3777,7 @@
   function openAddLift(){
     swapCtx=null;
     $("swapTitle").textContent="Add a lift";
-    $("swapBody").innerHTML='<input class="add-search" id="addSearch" type="text" placeholder="Search 140+ lifts…" autocomplete="off" />'+
+    $("swapBody").innerHTML='<input class="add-search" id="addSearch" type="text" placeholder="Search 170+ lifts…" autocomplete="off" />'+
       '<div id="addList">'+addLiftGroupsHtml("")+'</div>';
     var m=$("swapModal"); m.hidden=false; document.body.style.overflow="hidden";
   }
