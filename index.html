@@ -2855,6 +2855,9 @@
       macroCard("c","Carbs",r.carbG,r.carbKcal,cPct)+
       macroCard("f","Fat",r.fatG,r.fatKcal,fPct)+'</div>';
     html+='<div class="golf-note"><b>⛳ '+r.goal.label+':</b> '+r.goal.note+'</div>';
+    // Carb timing around training + the per-meal P/C/F breakdown with food examples.
+    if(r.timing){ try{ html+=timingBlock(r.timing); }catch(e){} }
+    if(r.meal){ try{ html+=mealBlock(r.meal); }catch(e){} }
     html+='<details class="fold"><summary>How this is calculated</summary><div class="fold-body breakdown"><table>'+
       tr("BMR (Mifflin–St Jeor)",round5(r.bmr)+" kcal")+
       tr("Activity multiplier","×"+r.activity+" ("+ACTIVITY_LABELS[String(r.activity)]+")")+
