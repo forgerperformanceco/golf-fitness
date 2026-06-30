@@ -1061,7 +1061,8 @@
   /* Rest-timer pill */
   .rest-pill { position:fixed; left:50%; transform:translateX(-50%); bottom:78px; z-index:75; display:flex; align-items:center; gap:10px;
     background:#11643a; color:#fff; border-radius:999px; padding:9px 9px 9px 16px; box-shadow:0 8px 24px rgba(8,40,22,.42); }
-  .rest-pill .rp-label { font-size:12px; font-weight:700; opacity:.85; }
+  .rest-pill .rp-label { font-size:12px; font-weight:700; opacity:.85; white-space:nowrap; flex:0 0 auto; }
+  .rest-pill .rp-btn { white-space:nowrap; flex:0 0 auto; }
   .rest-pill .rp-time { font-size:17px; font-weight:800; font-variant-numeric:tabular-nums; min-width:48px; text-align:center; }
   .rest-pill .rp-btn { background:rgba(255,255,255,.18); border:0; color:#fff; border-radius:999px; padding:7px 12px; font:700 12px system-ui; cursor:pointer; }
 
@@ -4578,7 +4579,7 @@
       st.done=!st.done; saveILog();
       if(st.done){
         var lastSet = dsi >= dex.sets.length-1;   // finishing a lift → longer rest before the next one
-        startRest(lastSet ? REST_BETWEEN_LIFTS : REST_BETWEEN_SETS, lastSet ? "Rest — before next lift" : "Rest — between sets");
+        startRest(lastSet ? REST_BETWEEN_LIFTS : REST_BETWEEN_SETS, lastSet ? "Next lift" : "Between sets");
       }
       renderILog(); return; }
     var iad=e.target.closest("[data-iadd]");
