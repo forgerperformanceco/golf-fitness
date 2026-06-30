@@ -885,11 +885,18 @@
     background:#0f2417; color:#fff; font:700 13.5px system-ui; padding:12px 18px; border-radius:999px;
     box-shadow:0 10px 30px rgba(8,40,22,.45); opacity:0; transition:opacity .3s, transform .3s; pointer-events:none; max-width:90vw; text-align:center; }
   .ff-toast.show { opacity:1; transform:translate(-50%,0); }
-  .hist-row { border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin-bottom:9px; background:#fff; }
+  .hist-row { border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin-bottom:9px; background:#fff; cursor:pointer; }
+  .hist-row:active { background:#f7faf7; }
   .hist-top { display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
   .hist-day { font:800 14px system-ui; color:var(--green-800); }
+  .hist-chev { display:inline-block; color:var(--muted); font-weight:800; transition:transform .2s; }
+  .hist-row.open .hist-chev { transform:rotate(90deg); }
   .hist-date { font:600 12px system-ui; color:var(--muted); white-space:nowrap; flex:0 0 auto; }
   .hist-meta { font:600 12px system-ui; color:var(--muted); margin-top:3px; }
+  .hist-detail { margin-top:11px; padding-top:11px; border-top:1px solid var(--line); display:flex; flex-direction:column; gap:7px; }
+  .hist-ex { display:flex; justify-content:space-between; gap:12px; align-items:baseline; }
+  .hex-name { font:700 12.5px system-ui; color:var(--green-800); }
+  .hex-sets { font:600 12.5px system-ui; color:var(--muted); text-align:right; font-variant-numeric:tabular-nums; }
 
   /* ===== Account ===== */
   .acct-card { background:var(--paper); border:1px solid var(--line); border-radius:16px; padding:18px;
@@ -3852,8 +3859,14 @@
     if(!hist.length) return '<div class="swap-sub">No finished workouts yet. Tap <b>✓ Finish workout</b> at the bottom of a session to lock it into your history — kept for good.</div>';
     return hist.map(function(h){
       var nm=String(h.day||"").replace(/Days? [\d–-]+ — /,"").replace(/Day \d+ — /,"");
-      return '<div class="hist-row"><div class="hist-top"><span class="hist-day">'+escAttr(nm)+'</span><span class="hist-date">'+escAttr(h.date||"")+'</span></div>'+
-        '<div class="hist-meta">'+(h.sets||0)+' set'+((h.sets===1)?'':'s')+(h.volume?' · '+h.volume.toLocaleString()+' lb total':'')+(h.week?' · Week '+h.week:'')+'</div></div>';
+      var detail=(h.ex||[]).filter(function(x){ return x.sets && x.sets.length; }).map(function(x){
+        var sets=x.sets.map(function(s){ return (s.w&&s.r)?(s.w+'×'+s.r):(s.w?s.w+' lb':(s.r?s.r+' reps':'✓')); }).join('  ·  ');
+        return '<div class="hist-ex"><span class="hex-name">'+escAttr(x.name)+'</span><span class="hex-sets">'+sets+'</span></div>';
+      }).join("") || '<div class="hist-ex"><span class="hex-name" style="color:var(--muted)">No set details saved for this one.</span></div>';
+      return '<div class="hist-row" data-histtoggle="'+escAttr(h.id)+'">'+
+        '<div class="hist-top"><span class="hist-day"><span class="hist-chev">›</span> '+escAttr(nm)+'</span><span class="hist-date">'+escAttr(h.date||"")+'</span></div>'+
+        '<div class="hist-meta">'+(h.sets||0)+' set'+((h.sets===1)?'':'s')+(h.volume?' · '+h.volume.toLocaleString()+' lb total':'')+(h.week?' · Week '+h.week:'')+'</div>'+
+        '<div class="hist-detail" hidden>'+detail+'</div></div>';
     }).join("");
   }
   function openHistory(){
@@ -4731,6 +4744,8 @@
     document.body.appendChild(m);
     m.addEventListener("click", function(e){
       if(e.target===m || e.target.closest("#swapX")){ closeSwap(); return; }
+      var ht=e.target.closest("[data-histtoggle]");
+      if(ht){ var d=ht.querySelector(".hist-detail"); if(d){ d.hidden=!d.hidden; ht.classList.toggle("open"); } return; }
       var add=e.target.closest("[data-addchoose]"); if(add){ addLiftChoice(add.getAttribute("data-addchoose")); return; }
       var ch=e.target.closest("[data-swapchoose]"); if(ch){ applySwapChoice(ch.getAttribute("data-swapchoose")); return; }
       if(e.target.closest("[data-swapcoach]")){ var c=swapCtx; closeSwap();
