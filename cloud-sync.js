@@ -256,10 +256,10 @@
     modal.innerHTML =
       '<div class="ff-card" role="dialog" aria-label="Sign in">'
       + '<h3>Save your progress</h3>'
-      + '<p id="ffSub">Enter your email — we’ll send a <b>6-digit code</b> and a login link, no password. '
+      + '<p id="ffSub">Enter your email — we’ll send a <b>sign-in code</b> and a login link, no password. '
       + 'Your calculator and full workout log then sync across your devices.</p>'
       + '<input type="email" id="ffEmail" placeholder="you@email.com" autocomplete="email" inputmode="email" />'
-      + '<input type="text" id="ffCode" placeholder="6-digit code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" style="display:none;letter-spacing:4px;text-align:center;font-weight:700;" />'
+      + '<input type="text" id="ffCode" placeholder="Enter the code" inputmode="numeric" autocomplete="one-time-code" maxlength="10" style="display:none;letter-spacing:4px;text-align:center;font-weight:700;" />'
       + '<button class="go" id="ffGo">Send my code</button>'
       + '<div class="ff-msg" id="ffMsg"></div>'
       + '<button class="x" id="ffX">Maybe later</button>'
@@ -286,7 +286,7 @@
         // reliable path for an installed iPhone app (the email link opens Safari, a separate
         // login). The link still works too for anyone who prefers it.
         stage = "code";
-        sub.innerHTML = 'We emailed <b>' + v + '</b>. Type the <b>6-digit code</b> below to sign in right here — or tap the link in the email.';
+        sub.innerHTML = 'We emailed <b>' + v + '</b>. Type the <b>code</b> below to sign in right here — or tap the link in the email.';
         email.setAttribute("readonly", "readonly");
         code.style.display = "block";
         go.textContent = "Verify & sign in";
@@ -301,7 +301,7 @@
     async function verifyCode() {
       var v = (email.value || "").trim();
       var t = (code.value || "").replace(/\D/g, "");
-      if (t.length < 6) { msg.className = "ff-msg err"; msg.textContent = "Enter the 6-digit code from the email."; return; }
+      if (t.length < 6) { msg.className = "ff-msg err"; msg.textContent = "Enter the code from the email."; return; }
       go.disabled = true; msg.className = "ff-msg"; msg.textContent = "Signing in…";
       try {
         var r = await sb.auth.verifyOtp({ email: v, token: t, type: "email" });
