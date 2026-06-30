@@ -2525,11 +2525,14 @@
     if(m){ var q=ffParseQty(m[1])*mult; return f.e+" "+ffFmtQty(q)+" "+m[2]+" "+ffName(f).toLowerCase(); }
     return f.e+" "+ffFmtQty(mult)+"× "+f.serv+" "+ffName(f).toLowerCase();
   }
-  function ffProtScaled(list,target,roll){
+  function ffProtScaled(list,target,roll,maxFat){
     var f=ffProtPick(list,target,roll); if(!f) return null;
     var mult = f.p>0 ? target/f.p : 1;
     mult = Math.max(1, Math.min(2.5, Math.round(mult*2)/2));   // 1–2.5× in half steps
-    if(f.f>=10) mult=Math.min(mult,1.5);   // fatty proteins (eggs, salmon) — don't pile on fat or unrealistic portions
+    if(f.f>=10) mult=Math.min(mult,1.5);   // fatty proteins (eggs, salmon) — realistic portions
+    if(maxFat!=null && f.f>0 && f.f*mult>maxFat){             // keep protein-borne fat inside the meal's fat budget
+      mult=Math.max(0.5, Math.floor((maxFat/f.f)*2)/2);       // (a fatty protein can drop below one serving when fat is tight)
+    }
     return { food:f, mult:mult, P:Math.round(f.p*mult), C:Math.round(f.c*mult), label:ffServLabel(f,mult) };
   }
   // pick & scale a fat source to cover a fat deficit (avocado, olive oil, nuts, PB)
@@ -2562,13 +2565,14 @@
     // Whole-food servings round up, so fixed per-meal aims drift OVER; here each meal aims at
     // what's left ÷ meals remaining, the last meal absorbs the remainder, and a meal with the
     // carb budget already spent gets no forced carb. ~30g of carbs is held back for the pre snack.
-    var pLeft=t.p, preReserve=(n>=3?30:0), cLeft=Math.max(0,t.c-preReserve), wLeft=wsum;
+    var pLeft=t.p, fLeft=(t.f||60), preReserve=(n>=3?30:0), cLeft=Math.max(0,t.c-preReserve), wLeft=wsum;
     // Pass 1 — protein + carbs per meal (each carries its own natural fat)
     for(var j=0;j<n;j++){
       var isPost=(j===postIdx), mealsLeft=n-j, ctx=ffMealCtx(names[j]);
       var pAim=Math.max(1, Math.round(pLeft/mealsLeft));
       var cTarget=wLeft>0?Math.round(cLeft*w[j]/wLeft):0;
-      var ps=ffProtScaled(ffRoleList(p,'prot',ctx), pAim, roll+j);
+      var fatShare=Math.max(6, Math.round(fLeft/mealsLeft));   // this meal's fair share of the fat budget
+      var ps=ffProtScaled(ffRoleList(p,'prot',ctx), pAim, roll+j, fatShare);
       // Post-workout SNACK meals get fast carbs; a post-workout MAIN meal keeps savory carbs
       // (white rice/potato are already fast) so dinner isn't steak + berries + honey.
       var snackCarb=isPost && ctx!=='main';
@@ -2587,7 +2591,7 @@
       if(veg) foods.push({food:veg, servings:1});
       var P=(ps?ps.P:0)+(veg?veg.p:0), C=protC+combo.sum+(veg?veg.c:0), F=protF+carbF+(veg?veg.f:0);
       totP+=P; totC+=C; totF+=F;
-      pLeft-=P; cLeft-=C; wLeft-=w[j];
+      pLeft-=P; cLeft-=C; wLeft-=w[j]; fLeft-=F;
       slots.push({ name:names[j], items:labels, foods:foods, P:P, C:C, F:F, post:isPost });
     }
     // Pass 1b — top up CARBS toward target if a few-meal day undershot (high per-meal carb
@@ -2634,7 +2638,35 @@
         }
       }
     }
-    return { slots:slots, totals:{P:totP,C:totC,F:totF}, target:{P:t.p,C:t.c,F:(t.f||60)} };
+    // Final reconcile: discrete whole-food servings round up, and topping one macro can nudge
+    // another over. Trim whatever overshot (worst macro first, biggest contributor in ½-serving
+    // steps) and rebuild every plate's labels + macros from its foods, so the plate, the per-meal
+    // numbers and the day total all agree and land at — not over — your targets.
+    ffReconcile(slots, {P:t.p, C:t.c, F:(t.f||60)});
+    var TP=0,TC=0,TF=0; slots.forEach(function(s){ TP+=s.P; TC+=s.C; TF+=s.F; });
+    return { slots:slots, totals:{P:TP,C:TC,F:TF}, target:{P:t.p,C:t.c,F:(t.f||60)} };
+  }
+  function ffReconcile(slots, target){
+    function rebuild(s){
+      var P=0,C=0,F=0;
+      s.foods.forEach(function(x){ P+=x.food.p*x.servings; C+=x.food.c*x.servings; F+=x.food.f*x.servings; });
+      s.P=Math.round(P); s.C=Math.round(C); s.F=Math.round(F);
+      s.items=s.foods.map(function(x){ return ffServLabel(x.food, x.servings); });
+    }
+    function totals(){ var T={p:0,c:0,f:0}; slots.forEach(function(s){ s.foods.forEach(function(x){ T.p+=x.food.p*x.servings; T.c+=x.food.c*x.servings; T.f+=x.food.f*x.servings; }); }); return T; }
+    var tgt={p:target.P,c:target.C,f:target.F}, tol={p:8,c:12,f:6};
+    for(var pass=0; pass<80; pass++){
+      var T=totals(), M=null, mx=0;
+      ['f','p','c'].forEach(function(k){ var over=T[k]-tgt[k]-tol[k]; if(over>mx){ mx=over; M=k; } });   // fat first, then protein, then carbs
+      if(!M) break;
+      var best=null, bv=0;
+      slots.forEach(function(s,si){ s.foods.forEach(function(x,xi){ var c=x.food[M]*x.servings; if(x.servings>0.5 && c>bv){ bv=c; best=[si,xi]; } }); });
+      if(!best) break;
+      var fx=slots[best[0]].foods[best[1]];
+      fx.servings=Math.round((fx.servings-0.5)*2)/2;
+      if(fx.servings<0.5) slots[best[0]].foods.splice(best[1],1);
+    }
+    slots.forEach(rebuild);
   }
   // Aggregate a day's foods into a shopping list with summed quantities.
   function ffShopping(slots){
