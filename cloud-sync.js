@@ -256,34 +256,66 @@
     modal.innerHTML =
       '<div class="ff-card" role="dialog" aria-label="Sign in">'
       + '<h3>Save your progress</h3>'
-      + '<p>Enter your email and we’ll send a one-tap login link — no password. '
+      + '<p id="ffSub">Enter your email — we’ll send a <b>6-digit code</b> and a login link, no password. '
       + 'Your calculator and full workout log then sync across your devices.</p>'
-      + '<input type="email" id="ffEmail" placeholder="you@email.com" autocomplete="email" />'
-      + '<button class="go" id="ffGo">Send my login link</button>'
+      + '<input type="email" id="ffEmail" placeholder="you@email.com" autocomplete="email" inputmode="email" />'
+      + '<input type="text" id="ffCode" placeholder="6-digit code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" style="display:none;letter-spacing:4px;text-align:center;font-weight:700;" />'
+      + '<button class="go" id="ffGo">Send my code</button>'
       + '<div class="ff-msg" id="ffMsg"></div>'
       + '<button class="x" id="ffX">Maybe later</button>'
       + '</div>';
     document.body.appendChild(modal);
     var email = modal.querySelector("#ffEmail");
+    var code = modal.querySelector("#ffCode");
     var go = modal.querySelector("#ffGo");
     var msg = modal.querySelector("#ffMsg");
+    var sub = modal.querySelector("#ffSub");
+    var stage = "email";
     email.focus();
     modal.addEventListener("click", function (e) { if (e.target === modal) closeModal(); });
     modal.querySelector("#ffX").addEventListener("click", closeModal);
-    go.addEventListener("click", async function () {
+
+    async function sendCode() {
       var v = (email.value || "").trim();
       if (!/.+@.+\..+/.test(v)) { msg.className = "ff-msg err"; msg.textContent = "Enter a valid email."; return; }
       go.disabled = true; msg.className = "ff-msg"; msg.textContent = "Sending…";
       try {
         var r = await sb.auth.signInWithOtp({ email: v, options: { emailRedirectTo: location.href } });
         if (r.error) throw r.error;
-        msg.className = "ff-msg ok"; msg.textContent = "Check your email for the login link ✉️";
+        // Move to code entry — typing the code signs you in IN THIS APP, which is the only
+        // reliable path for an installed iPhone app (the email link opens Safari, a separate
+        // login). The link still works too for anyone who prefers it.
+        stage = "code";
+        sub.innerHTML = 'We emailed <b>' + v + '</b>. Type the <b>6-digit code</b> below to sign in right here — or tap the link in the email.';
+        email.setAttribute("readonly", "readonly");
+        code.style.display = "block";
+        go.textContent = "Verify & sign in";
+        go.disabled = false;
+        msg.className = "ff-msg ok"; msg.textContent = "Check your email ✉️";
+        code.focus();
       } catch (e) {
         msg.className = "ff-msg err"; msg.textContent = (e && e.message) || "Couldn’t send — try again.";
         go.disabled = false;
       }
-    });
+    }
+    async function verifyCode() {
+      var v = (email.value || "").trim();
+      var t = (code.value || "").replace(/\D/g, "");
+      if (t.length < 6) { msg.className = "ff-msg err"; msg.textContent = "Enter the 6-digit code from the email."; return; }
+      go.disabled = true; msg.className = "ff-msg"; msg.textContent = "Signing in…";
+      try {
+        var r = await sb.auth.verifyOtp({ email: v, token: t, type: "email" });
+        if (r.error) throw r.error;
+        msg.className = "ff-msg ok"; msg.textContent = "Signed in ✓";
+        // onAuthStateChange (SIGNED_IN) closes the modal and runs the sync.
+      } catch (e) {
+        msg.className = "ff-msg err"; msg.textContent = (e && e.message) || "That code didn’t work — double-check it.";
+        go.disabled = false;
+      }
+    }
+    go.addEventListener("click", function () { if (stage === "email") sendCode(); else verifyCode(); });
     email.addEventListener("keydown", function (e) { if (e.key === "Enter") go.click(); });
+    code.addEventListener("keydown", function (e) { if (e.key === "Enter") go.click(); });
   }
   function closeModal() { if (modal) { modal.remove(); modal = null; } }
 

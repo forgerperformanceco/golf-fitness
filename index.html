@@ -64,9 +64,13 @@
     position: sticky; top: 0; z-index: 60;
     background: linear-gradient(160deg, #0f2417, #14532d);
     box-shadow: 0 2px 14px rgba(8,40,22,.18);
+    /* Installed iOS app draws under the status bar (viewport-fit=cover) — pad the
+       header down by the safe-area inset so the clock/battery don't overlap the brand. */
+    padding-top: env(safe-area-inset-top);
   }
   .appbar-in {
-    max-width: 760px; margin: 0 auto; height: 56px; padding: 0 18px;
+    max-width: 760px; margin: 0 auto; height: 56px;
+    padding: 0 max(18px, env(safe-area-inset-right)) 0 max(18px, env(safe-area-inset-left));
     display: flex; align-items: center; justify-content: space-between; gap: 14px;
   }
   .wordmark { display: inline-flex; align-items: center; gap: 8px; color: #fff; font-weight: 900; font-size: 20px; letter-spacing: -.6px;
