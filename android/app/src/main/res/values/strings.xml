@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">FairwayFuel</string>
+    <string name="title_activity_main">FairwayFuel</string>
+    <string name="package_name">app.fairwayfuel</string>
+    <string name="custom_url_scheme">app.fairwayfuel</string>
+</resources>
