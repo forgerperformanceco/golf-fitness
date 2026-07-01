@@ -7,6 +7,7 @@ supabase/
     _shared/cors.ts               # CORS + JSON helpers
     _shared/knowledge.ts          # the AI coach's cached knowledge base
     ai-coach/index.ts             # Claude-backed coach (signed-in users; no paywall)
+    delete-account/index.ts       # permanent account+data deletion (service-role)
     paddle-webhook/index.ts       # writes subscription state (service-role)
 ```
 
@@ -18,7 +19,9 @@ supabase/
 1. **Applies `schema.sql`** through the Supabase **Management API** using the
    `SUPABASE_ACCESS_TOKEN` secret — no database password needed. The schema is
    idempotent, so it's safe to re-apply on every push.
-2. **Deploys the `ai-coach` function** and sets its `ANTHROPIC_API_KEY` secret —
+2. **Deploys the `delete-account` function** — always (it needs no extra secret;
+   Supabase injects the service-role key into every function).
+3. **Deploys the `ai-coach` function** and sets its `ANTHROPIC_API_KEY` secret —
    *only if* `ANTHROPIC_API_KEY` is configured as a repo secret. If it isn't, the
    schema still applies (so the leaderboard works) and the coach step is skipped
    with a warning.

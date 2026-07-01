@@ -60,11 +60,17 @@ jobs:
             echo "::error::Schema apply failed (HTTP ${HTTP}). See response above."; exit 1; fi
           echo "✅ Database schema applied (leaderboard + profiles + RLS)."
 
-      # ── Deploy the Edge Function (only if the Anthropic key is present) ──
+      # ── Deploy Edge Functions ──
+      # The CLI is always installed (the access token is required anyway).
       - uses: supabase/setup-cli@v1
-        if: steps.chk.outputs.has_anthropic == 'true'
         with:
           version: latest
+
+      # delete-account needs no extra secret — SUPABASE_URL / SUPABASE_ANON_KEY /
+      # SUPABASE_SERVICE_ROLE_KEY are injected into every function by default — so
+      # it deploys on every push, gated only on the access token above.
+      - name: Deploy the delete-account function
+        run: supabase functions deploy delete-account --project-ref "$PROJECT_REF"
 
       - name: Set the Anthropic key as a server-side function secret
         if: steps.chk.outputs.has_anthropic == 'true'
@@ -77,6 +83,7 @@ jobs:
       - name: Summary
         run: |
           echo "✅ Schema applied to https://${PROJECT_REF}.supabase.co"
+          echo "✅ delete-account deployed → https://${PROJECT_REF}.supabase.co/functions/v1/delete-account"
           if [ "${{ steps.chk.outputs.has_anthropic }}" = "true" ]; then
             echo "✅ ai-coach deployed → https://${PROJECT_REF}.supabase.co/functions/v1/ai-coach"
           else
