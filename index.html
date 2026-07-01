@@ -3873,6 +3873,15 @@
              row:'<tr class="exwhy-row" id="'+id+'" hidden><td colspan="2"><div class="exwhy-panel">'+whyHtml(name,false)+'</div></td></tr>' };
   }
   function renderILog(){ var el=$("ilogBox"); if(el && ilog) el.innerHTML=ilogBodyHtml(); }
+  // Sync the barbell plate-math hint under one set's weight input, in place (no re-render → keeps focus).
+  function ilPlateSync(inp){
+    if(!ilog || !inp) return;
+    var xi=+inp.getAttribute("data-x"), row=inp.closest(".il-set"); if(!row) return;
+    var pm = isBarbell(ilog.sess.ex[xi].name) ? platesFor(inp.value) : "";
+    var next=row.nextElementSibling, hasP=next && next.classList && next.classList.contains("il-plates");
+    if(pm){ if(hasP) next.textContent="🏋️ "+pm; else { var d=document.createElement("div"); d.className="il-plates"; d.textContent="🏋️ "+pm; row.parentNode.insertBefore(d, row.nextSibling); } }
+    else if(hasP) next.remove();
+  }
   function saveILog(){ if(!ilog) return; if(!ilog.sess.date) ilog.sess.date=todayStr(); saveSession(ilog.week, ilog.day, ilog.sess); }
   // ---- swap picker ----
   var swapCtx=null;
@@ -4809,13 +4818,25 @@
     var xi=+t.getAttribute("data-x");
     ilog.sess.ex[xi].sets[+t.getAttribute("data-s")][t.getAttribute("data-f")]=t.value;
     saveILog();
-    if(t.getAttribute("data-f")==="w"){
-      var row=t.closest(".il-set"); if(!row) return;
-      var pm = isBarbell(ilog.sess.ex[xi].name) ? platesFor(t.value) : "";
-      var next=row.nextElementSibling, hasP=next && next.classList && next.classList.contains("il-plates");
-      if(pm){ if(hasP) next.textContent="🏋️ "+pm; else { var d=document.createElement("div"); d.className="il-plates"; d.textContent="🏋️ "+pm; row.parentNode.insertBefore(d, row.nextSibling); } }
-      else if(hasP){ next.remove(); }
+    if(t.getAttribute("data-f")==="w") ilPlateSync(t);
+  });
+  // Carry a set's entered weight/reps forward as the pre-filled default for the LATER sets of the
+  // same lift (only ones still blank & not marked done) — so set 1 seeds sets 2, 3, 4 in a session.
+  // Fires on commit (blur/Enter), not per keystroke, and fills in place so focus isn't stolen.
+  $("phaseDetail").addEventListener("change", function(e){
+    var t=e.target; if(!ilog || !t.classList.contains("il-in")) return;
+    var xi=+t.getAttribute("data-x"), si=+t.getAttribute("data-s"), f=t.getAttribute("data-f"), val=t.value;
+    if(val==="") return;
+    var ex=ilog.sess.ex[xi]; if(!ex) return;
+    var changed=false;
+    for(var k=si+1;k<ex.sets.length;k++){
+      var s2=ex.sets[k];
+      if(s2.done || (s2[f]!=null && s2[f]!=="")) continue;   // don't clobber a set you've already filled or completed
+      s2[f]=val; changed=true;
+      var inp=document.querySelector('#phaseDetail .il-in[data-x="'+xi+'"][data-s="'+k+'"][data-f="'+f+'"]');
+      if(inp){ inp.value=val; if(f==="w") ilPlateSync(inp); }
     }
+    if(changed) saveILog();
   });
 
   // "Another option" re-rolls the example portions from a different lead food.
