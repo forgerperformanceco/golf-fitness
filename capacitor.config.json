@@ -1,0 +1,21 @@
+{
+  "appId": "app.fairwayfuel",
+  "appName": "FairwayFuel",
+  "webDir": "www",
+  "backgroundColor": "#0b3d22",
+  "ios": {
+    "backgroundColor": "#0b3d22",
+    "contentInset": "always"
+  },
+  "android": {
+    "backgroundColor": "#0b3d22"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 600,
+      "backgroundColor": "#0b3d22",
+      "showSpinner": false,
+      "androidScaleType": "CENTER_CROP"
+    }
+  }
+}

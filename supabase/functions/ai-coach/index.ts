@@ -18,7 +18,7 @@
 
 import Anthropic from "npm:@anthropic-ai/sdk";
 import { createClient } from "npm:@supabase/supabase-js@^2";
-import { corsHeaders, preflight, json } from "../_shared/cors.ts";
+import { corsFor, preflight, json } from "../_shared/cors.ts";
 import { COACH_KNOWLEDGE } from "../_shared/knowledge.ts";
 
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY")!;
@@ -40,18 +40,18 @@ interface CoachRequest {
 }
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return preflight();
-  if (req.method !== "POST") return json({ error: "POST only" }, 405);
+  if (req.method === "OPTIONS") return preflight(req);
+  if (req.method !== "POST") return json(req, { error: "POST only" }, 405);
 
   // ── 1. Authenticate the caller via their Supabase JWT ────────────────────
   const authHeader = req.headers.get("Authorization") ?? "";
-  if (!authHeader.startsWith("Bearer ")) return json({ error: "Not signed in" }, 401);
+  if (!authHeader.startsWith("Bearer ")) return json(req, { error: "Not signed in" }, 401);
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     global: { headers: { Authorization: authHeader } },
   });
   const { data: { user }, error: authErr } = await supabase.auth.getUser();
-  if (authErr || !user) return json({ error: "Invalid session" }, 401);
+  if (authErr || !user) return json(req, { error: "Invalid session" }, 401);
 
   // ── 2. Access: open to all signed-in users (no paywall during early access) ─
   // The cost gate is intentionally removed for now — any logged-in golfer gets
@@ -59,8 +59,8 @@ Deno.serve(async (req) => {
 
   // ── 3. Build the prompt ──────────────────────────────────────────────────
   let body: CoachRequest;
-  try { body = await req.json(); } catch { return json({ error: "Bad JSON" }, 400); }
-  if (!body.message?.trim()) return json({ error: "Empty message" }, 400);
+  try { body = await req.json(); } catch { return json(req, { error: "Bad JSON" }, 400); }
+  if (!body.message?.trim()) return json(req, { error: "Empty message" }, 400);
 
   // The big knowledge base is a CACHED system block — written to Anthropic's
   // prompt cache once, then read at ~0.1x cost on every later message.
@@ -115,9 +115,9 @@ Deno.serve(async (req) => {
     });
 
     return new Response(sse, {
-      headers: { ...corsHeaders, "Content-Type": "text/event-stream", "Cache-Control": "no-cache" },
+      headers: { ...corsFor(req), "Content-Type": "text/event-stream", "Cache-Control": "no-cache" },
     });
   } catch (e) {
-    return json({ error: "coach_failed", detail: String(e) }, 500);
+    return json(req, { error: "coach_failed", detail: String(e) }, 500);
   }
 });
