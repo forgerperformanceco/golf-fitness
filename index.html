@@ -4662,6 +4662,11 @@
     html+='<div class="acct-card"><div class="acct-head">Show me around</div>'+
       '<p class="acct-p">New to the app or want a refresher? Replay the one-tap tips that explain what each tab does.</p>'+
       '<button class="acct-btn ghost" id="acctReplayTips">↻ Replay the tips</button></div>';
+    if(user){
+      html+='<div class="acct-card"><div class="acct-head">⚠️ Delete account</div>'+
+        '<p class="acct-p">Permanently delete your account and <b>all</b> synced data — workouts, bodyweight &amp; 7-iron history, Octane and any leaderboard entry. This can’t be undone.</p>'+
+        '<button class="acct-btn danger" id="acctDelete">Delete my account</button></div>';
+    }
     html+='<div class="acct-links">'+
       '<a href="mailto:bobbydenisclay@gmail.com?subject=FairwayFuel%20feedback">✉ Send feedback</a>'+
       '<span>·</span>'+
@@ -4677,6 +4682,17 @@
     };
     var si=$("acctSignIn"); if(si) si.onclick=function(){ if(window.FF&&window.FF.signIn) window.FF.signIn(); else alert("Sign-in needs an internet connection."); };
     var so=$("acctSignOut"); if(so) so.onclick=function(){ if(window.FF&&window.FF.signOut) window.FF.signOut(); };
+    var da=$("acctDelete"); if(da) da.onclick=function(){
+      if(!(window.FF&&window.FF.deleteAccount)){ alert("Deleting your account needs an internet connection. Reconnect and try again."); return; }
+      if(!confirm("Permanently delete your FairwayFuel account and ALL your data — workouts, bodyweight & 7-iron history, Octane and any leaderboard entry?\n\nThis cannot be undone.")) return;
+      if(!confirm("Are you absolutely sure? There is no way to recover this account or its data.")) return;
+      da.disabled=true; da.textContent="Deleting…";
+      window.FF.deleteAccount().then(function(r){
+        if(r&&r.ok){ alert("Your account and all your data have been permanently deleted."); location.reload(); }
+        else { da.disabled=false; da.textContent="Delete my account";
+          alert("Couldn’t delete your account ("+((r&&r.error)||"unknown error")+"). Please try again, or email us and we’ll remove it for you."); }
+      });
+    };
     var ed=$("acctEdit"); if(ed) ed.onclick=function(){ setView("calc"); };
     var su=$("acctSetup"); if(su) su.onclick=function(){ startOnboarding(true); };
     var af=$("acctFoods"); if(af) af.onclick=function(){ openFoodPrefs(); };
@@ -5472,7 +5488,7 @@ if ('serviceWorker' in navigator) {
 <script>window.FF_ACCOUNT_TAB = true;</script>
 <!-- Optional cloud login + progress sync. Inactive until you add Supabase keys in cloud-sync.js. -->
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script defer src="cloud-sync.js?v=99"></script>
+<script defer src="cloud-sync.js?v=100"></script>
 <!-- AI coach chat. Degrades gracefully until the Edge Function is deployed. -->
 <script defer src="coach.js?v=88"></script>
 </body>

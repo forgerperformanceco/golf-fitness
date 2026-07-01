@@ -40,6 +40,43 @@
   window.FF.signIn = function () { try { openModal(); } catch (e) {} };
   window.FF.signOut = function () { try { sb.auth.signOut(); } catch (e) {} };
 
+  // Permanently delete the account + all synced data (App Store requirement).
+  // Server-side deletion (auth user + cascaded rows) happens in the
+  // delete-account Edge Function; here we then wipe every local trace so a
+  // stale device can't re-push a "resurrected" profile. Returns {ok:true} or
+  // {error:...}; the caller confirms with the user and reloads on success.
+  window.FF.deleteAccount = async function () {
+    var token = null;
+    try { token = await window.FF.getAccessToken(); } catch (e) {}
+    if (!token) return { error: "not-signed-in" };
+    try {
+      var res = await fetch(SUPABASE_URL + "/functions/v1/delete-account", {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer " + token,
+          "apikey": SUPABASE_ANON,
+          "Content-Type": "application/json"
+        }
+      });
+      var out = {}; try { out = await res.json(); } catch (e) {}
+      if (!res.ok || !out.ok) return { error: (out && out.error) || ("http " + res.status) };
+      // Stop any pending push from re-creating a row, then wipe all local app data.
+      lastSnapshot = null;
+      try {
+        var drop = [];
+        for (var i = 0; i < localStorage.length; i++) {
+          var k = localStorage.key(i);
+          if (k === "fairwayfuel" || k.indexOf("ff_") === 0) drop.push(k);
+        }
+        drop.forEach(function (k) { localStorage.removeItem(k); });
+      } catch (e) {}
+      try { sessionStorage.removeItem("ff_synced_once"); } catch (e) {}
+      try { await sb.auth.signOut(); } catch (e) {}
+      user = null; window.FF.user = null;
+      return { ok: true };
+    } catch (e) { return { error: String(e) }; }
+  };
+
   // ---- Opt-in public leaderboard (handles only, never email) ----
   // Reads work for anyone (anon read of opted-in rows via RLS); writes require
   // a signed-in user and only ever touch that user's own row.

@@ -13,3 +13,10 @@ verify_jwt = false
 # Paddle calls this server-to-server with no Supabase JWT — it verifies Paddle's
 # own signature instead, so the gateway JWT check must be off.
 verify_jwt = false
+
+[functions.delete-account]
+# Same as ai-coach: keep the gateway check off so the browser's CORS preflight
+# (OPTIONS, no token) isn't 401'd before our code runs. The function does its
+# OWN auth — reads the Bearer token, calls getUser, and 401s if it's missing or
+# invalid — so account deletion is still fully protected.
+verify_jwt = false
