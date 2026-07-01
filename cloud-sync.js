@@ -17,7 +17,7 @@
 
   // Everything the app persists to localStorage — the full progress blob.
   // ff_start = the plan's start date (so the calendar/week follows you across devices).
-  var KEYS = ["fairwayfuel", "ff_week", "ff_log", "ff_body", "ff_start", "ff_planview", "ff_swaps", "ff_onboarded", "ff_handle", "ff_kcal_adj", "ff_lastcheckin", "ff_gameday", "ff_foodprefs", "ff_insights_seen", "ff_region", "ff_zip", "ff_tips_seen", "ff_history"];
+  var KEYS = ["fairwayfuel", "ff_week", "ff_log", "ff_body", "ff_start", "ff_planview", "ff_swaps", "ff_onboarded", "ff_handle", "ff_kcal_adj", "ff_lastcheckin", "ff_gameday", "ff_foodprefs", "ff_insights_seen", "ff_region", "ff_zip", "ff_tips_seen", "ff_history", "ff_deleted"];
 
   // Disabled until configured, or if the Supabase SDK didn't load (e.g. offline).
   if (!SUPABASE_URL || !SUPABASE_ANON || !window.supabase) return;
@@ -141,9 +141,21 @@
     var out = {};
     Object.keys(cloud).forEach(function (k) { out[k] = cloud[k]; });
     Object.keys(local).forEach(function (k) {
-      // Keep the more-complete log on a key collision; ties favor local (latest edit).
-      out[k] = (!(k in out) || loggedSetCount(local[k]) >= loggedSetCount(out[k])) ? local[k] : out[k];
+      if (!(k in out)) { out[k] = local[k]; return; }
+      // On a collision the newer edit wins (so a re-log after a delete survives); with no
+      // timestamps (older data) fall back to keeping the more-complete session.
+      var a = local[k], b = out[k], ta = (a && a._ts) || 0, tb = (b && b._ts) || 0;
+      out[k] = (ta !== tb) ? (ta > tb ? a : b) : (loggedSetCount(a) >= loggedSetCount(b) ? a : b);
     });
+    return out;
+  }
+  // Deletion tombstones: { "L:week|day": ts, "H:histId": ts } — keep the latest ts per key.
+  function unionDeleted(local, cloud) {
+    local = (local && typeof local === "object") ? local : {};
+    cloud = (cloud && typeof cloud === "object") ? cloud : {};
+    var out = {};
+    Object.keys(cloud).forEach(function (k) { out[k] = cloud[k]; });
+    Object.keys(local).forEach(function (k) { if (!(k in out) || local[k] > out[k]) out[k] = local[k]; });
     return out;
   }
   function unionBody(local, cloud) {
@@ -183,6 +195,23 @@
       else if (local[k] !== undefined) out[k] = local[k];
     });
     Object.keys(local).forEach(function (k) { if (out[k] === undefined) out[k] = local[k]; });
+    // Apply deletions last so a cleared workout stays gone across devices — unless it was
+    // re-logged / re-finished AFTER the delete (a newer timestamp beats the tombstone).
+    var del = unionDeleted(local.ff_deleted, cloud.ff_deleted);
+    if (out.ff_log) Object.keys(out.ff_log).forEach(function (k) {
+      var t = del["L:" + k], st = out.ff_log[k];
+      if (t && t > ((st && st._ts) || 0)) delete out.ff_log[k];
+    });
+    if (Array.isArray(out.ff_history)) out.ff_history = out.ff_history.filter(function (e) {
+      var t = e && del["H:" + e.id];
+      return !(t && t > (e.ts || 0));
+    });
+    // Drop tombstones the data has already outlived (re-created newer) so the set can't grow forever.
+    Object.keys(del).forEach(function (tk) {
+      if (tk.slice(0, 2) === "L:") { var st = out.ff_log && out.ff_log[tk.slice(2)]; if (st && ((st._ts) || 0) >= del[tk]) delete del[tk]; }
+      else if (tk.slice(0, 2) === "H:") { var id = tk.slice(2); if (Array.isArray(out.ff_history) && out.ff_history.some(function (e) { return e && e.id === id && (e.ts || 0) >= del[tk]; })) delete del[tk]; }
+    });
+    out.ff_deleted = del;
     return out;
   }
 

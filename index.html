@@ -881,17 +881,25 @@
   .finish-btn:active { transform:translateY(1px); }
   .finish-btn.done { background:#eef7f0; color:var(--green-800); box-shadow:none; border:1px solid #cfe9d8; }
   .finish-btn .fb-sub { font:600 11.5px system-ui; opacity:.8; }
+  .clear-workout { display:block; width:100%; margin:-8px 0 14px; background:none; border:0; padding:8px;
+    font:600 12.5px system-ui; color:var(--muted); cursor:pointer; }
+  .clear-workout:hover { color:#c0392b; }
+  .clear-workout.arm { color:#c0392b; font-weight:800; }
   .ff-toast { position:fixed; left:50%; bottom:96px; transform:translate(-50%,12px); z-index:200;
     background:#0f2417; color:#fff; font:700 13.5px system-ui; padding:12px 18px; border-radius:999px;
     box-shadow:0 10px 30px rgba(8,40,22,.45); opacity:0; transition:opacity .3s, transform .3s; pointer-events:none; max-width:90vw; text-align:center; }
   .ff-toast.show { opacity:1; transform:translate(-50%,0); }
   .hist-row { border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin-bottom:9px; background:#fff; cursor:pointer; }
   .hist-row:active { background:#f7faf7; }
-  .hist-top { display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
+  .hist-top { display:flex; align-items:center; justify-content:space-between; gap:10px; }
   .hist-day { font:800 14px system-ui; color:var(--green-800); }
   .hist-chev { display:inline-block; color:var(--muted); font-weight:800; transition:transform .2s; }
   .hist-row.open .hist-chev { transform:rotate(90deg); }
+  .hist-right { display:flex; align-items:center; gap:8px; flex:0 0 auto; }
   .hist-date { font:600 12px system-ui; color:var(--muted); white-space:nowrap; flex:0 0 auto; }
+  .hist-del { background:none; border:0; font-size:13px; line-height:1; opacity:.45; cursor:pointer; padding:3px 5px; border-radius:7px; }
+  .hist-del:hover { opacity:1; }
+  .hist-del.arm { opacity:1; color:#c0392b; font:800 11px system-ui; background:#fbeaea; }
   .hist-meta { font:600 12px system-ui; color:var(--muted); margin-top:3px; }
   .hist-detail { margin-top:11px; padding-top:11px; border-top:1px solid var(--line); display:flex; flex-direction:column; gap:7px; }
   .hist-ex { display:flex; justify-content:space-between; gap:12px; align-items:baseline; }
@@ -3423,7 +3431,7 @@
       }).join("");
       html+='<div class="weekstrip">'+strip+'</div>';
       html+=dayCardHtml(featured, true, true);   // interactive inline logger
-      html+=finishBtnHtml();                     // lock the session into permanent history
+      html+='<div id="finishBar">'+finishBtnHtml()+'</div>';   // finish + clear; refreshed in place as you log
     } else {
       var primerNoteShown=false;
       shown.forEach(function(d){
@@ -3579,7 +3587,7 @@
   }
   function getLog(){ return lsGet("ff_log",{}); }
   function getSession(w,d){ return getLog()[w+"|"+d]||null; }
-  function saveSession(w,d,s){ var L=getLog(); L[w+"|"+d]=s; lsSet("ff_log",L); }
+  function saveSession(w,d,s){ if(s) s._ts=Date.now(); var L=getLog(); L[w+"|"+d]=s; lsSet("ff_log",L); }
   function parseSets(t){ var m=String(t).match(/(\d+)\s*[×x]/); return m?Math.min(8,Math.max(1,parseInt(m[1],10))):3; }
   function findDay(name){ var f=null; activeDays().forEach(function(d){ if(d.name===name) f=d; }); return f; }
   function todayStr(){ try{ return new Date().toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"}); }catch(e){ return ""; } }
@@ -3875,7 +3883,9 @@
     return { cell:'<td><button class="exwhy-btn" type="button" data-whyrow="'+id+'" aria-expanded="false">'+pe+name+(extra||"")+' <span class="exwhy-i">ⓘ</span></button></td>',
              row:'<tr class="exwhy-row" id="'+id+'" hidden><td colspan="2"><div class="exwhy-panel">'+whyHtml(name,false)+'</div></td></tr>' };
   }
-  function renderILog(){ var el=$("ilogBox"); if(el && ilog) el.innerHTML=ilogBodyHtml(); }
+  function renderILog(){ var el=$("ilogBox"); if(el && ilog) el.innerHTML=ilogBodyHtml(); renderFinishBar(); }
+  // Refresh just the finish/clear bar (sibling of the inputs → safe to update mid-typing, no focus steal).
+  function renderFinishBar(){ var el=$("finishBar"); if(el) el.innerHTML=finishBtnHtml(); }
   // Sync the barbell plate-math hint under one set's weight input, in place (no re-render → keeps focus).
   function ilPlateSync(inp){
     if(!ilog || !inp) return;
@@ -3930,8 +3940,39 @@
   // keys, so it survives the 20-week loop and plan resets) — kept indefinitely, synced.
   function finishBtnHtml(){
     if(typeof ilog==="undefined" || !ilog) return "";
-    if(ilog.sess.finishedAt) return '<button class="finish-btn done" data-finish="1"><span>✓ Workout saved to history</span><span class="fb-sub">'+escAttr(ilog.sess.finishedAt)+' · tap to re-save</span></button>';
-    return '<button class="finish-btn" data-finish="1">✓ Finish workout</button>';
+    var logged=!!getSession(ilog.week, ilog.day);
+    var btn = ilog.sess.finishedAt
+      ? '<button class="finish-btn done" data-finish="1"><span>✓ Workout saved to history</span><span class="fb-sub">'+escAttr(ilog.sess.finishedAt)+' · tap to re-save</span></button>'
+      : '<button class="finish-btn" data-finish="1">✓ Finish workout</button>';
+    // Only offer a clear once there's actually something logged for this day.
+    return btn + (logged ? '<button class="clear-workout" data-clearworkout="1">Clear this workout</button>' : '');
+  }
+  function ffTomb(key){ var d=lsGet("ff_deleted",{}); if(!d||typeof d!=="object") d={}; d[key]=Date.now(); lsSet("ff_deleted",d); }
+  // Clear the active day: wipe its week log + any matching history entry, and drop a tombstone
+  // so the deletion holds through cloud sync (re-logging later re-creates it with a newer stamp).
+  function clearWorkout(){
+    if(!ilog) return;
+    var wk=ilog.week, day=ilog.day, L=getLog();
+    if(L[wk+"|"+day]!==undefined){ delete L[wk+"|"+day]; lsSet("ff_log",L); }
+    ffTomb("L:"+wk+"|"+day);
+    var hist=lsGet("ff_history",[]);
+    if(Array.isArray(hist)){
+      var kept=[]; hist.forEach(function(h){ if(h&&h.day===day&&h.week===wk){ ffTomb("H:"+h.id); } else kept.push(h); });
+      if(kept.length!==hist.length) lsSet("ff_history",kept);
+    }
+    focusDay=day;
+    try{ renderPhase(); }catch(e){}
+    try{ if(typeof renderDash==="function") renderDash(); }catch(e){}
+    ffToast("Workout cleared.");
+  }
+  function deleteHistory(id){
+    var hist=lsGet("ff_history",[]); if(!Array.isArray(hist)) return;
+    var kept=hist.filter(function(h){ return !(h&&h.id===id); });
+    if(kept.length===hist.length) return;
+    lsSet("ff_history",kept); ffTomb("H:"+id);
+    var body=$("swapBody"); if(body) body.innerHTML='<div class="swap-sub">Every finished workout, kept for good — backed up when you’re signed in.</div>'+historyRowsHtml();
+    try{ if(typeof renderDash==="function") renderDash(); }catch(e){}
+    ffToast("Removed from history.");
   }
   function pushHistory(week, day, sess){
     var hist=lsGet("ff_history", []); if(!Array.isArray(hist)) hist=[];
@@ -3973,7 +4014,9 @@
         return '<div class="hist-ex"><span class="hex-name">'+escAttr(x.name)+'</span><span class="hex-sets">'+sets+'</span></div>';
       }).join("") || '<div class="hist-ex"><span class="hex-name" style="color:var(--muted)">No set details saved for this one.</span></div>';
       return '<div class="hist-row" data-histtoggle="'+escAttr(h.id)+'">'+
-        '<div class="hist-top"><span class="hist-day"><span class="hist-chev">›</span> '+escAttr(nm)+'</span><span class="hist-date">'+escAttr(h.date||"")+'</span></div>'+
+        '<div class="hist-top"><span class="hist-day"><span class="hist-chev">›</span> '+escAttr(nm)+'</span>'+
+          '<span class="hist-right"><span class="hist-date">'+escAttr(h.date||"")+'</span>'+
+          '<button class="hist-del" data-histdel="'+escAttr(h.id)+'" aria-label="Delete this workout" title="Delete">🗑</button></span></div>'+
         '<div class="hist-meta">'+(h.sets||0)+' set'+((h.sets===1)?'':'s')+(h.volume?' · '+h.volume.toLocaleString()+' lb total':'')+(h.week?' · Week '+h.week:'')+'</div>'+
         '<div class="hist-detail" hidden>'+detail+'</div></div>';
     }).join("");
@@ -4762,6 +4805,13 @@
     if(e.target.closest("[data-gostats]")){ setView("progress"); return; }
     if(e.target.closest("[data-gohistory]")){ openHistory(); return; }
     if(e.target.closest("[data-finish]")){ finishWorkout(); return; }
+    var cw=e.target.closest("[data-clearworkout]");
+    if(cw){
+      if(cw.getAttribute("data-armed")==="1"){ clearWorkout(); return; }   // second tap confirms
+      cw.setAttribute("data-armed","1"); cw.textContent="Tap again to clear ✕"; cw.classList.add("arm");
+      setTimeout(function(){ if(cw&&cw.isConnected){ cw.removeAttribute("data-armed"); cw.textContent="Clear this workout"; cw.classList.remove("arm"); } }, 3500);
+      return;
+    }
     var wu=e.target.closest("[data-wu]");                              // tap a warm-up move to check it off
     if(wu){ wu.classList.toggle("done"); return; }
     if(e.target.closest("#equipBar") && handleEquipClick(e)) return;   // equipment editor (in settings)
@@ -4846,6 +4896,7 @@
       if(inp){ inp.value=val; if(f==="w") ilPlateSync(inp); }
     }
     if(changed) saveILog();
+    renderFinishBar();   // a session now exists → surface the Clear option
   });
 
   // "Another option" re-rolls the example portions from a different lead food.
@@ -4875,6 +4926,13 @@
     document.body.appendChild(m);
     m.addEventListener("click", function(e){
       if(e.target===m || e.target.closest("#swapX")){ closeSwap(); return; }
+      var hd=e.target.closest("[data-histdel]");
+      if(hd){   // two-tap delete, checked before the row toggle so it doesn't expand
+        if(hd.getAttribute("data-armed")==="1"){ deleteHistory(hd.getAttribute("data-histdel")); return; }
+        hd.setAttribute("data-armed","1"); hd.textContent="delete?"; hd.classList.add("arm");
+        setTimeout(function(){ if(hd&&hd.isConnected){ hd.removeAttribute("data-armed"); hd.textContent="🗑"; hd.classList.remove("arm"); } }, 3000);
+        return;
+      }
       var ht=e.target.closest("[data-histtoggle]");
       if(ht){ var d=ht.querySelector(".hist-detail"); if(d){ d.hidden=!d.hidden; ht.classList.toggle("open"); } return; }
       var add=e.target.closest("[data-addchoose]"); if(add){ addLiftChoice(add.getAttribute("data-addchoose")); return; }
@@ -5257,7 +5315,7 @@ if ('serviceWorker' in navigator) {
 <script>window.FF_ACCOUNT_TAB = true;</script>
 <!-- Optional cloud login + progress sync. Inactive until you add Supabase keys in cloud-sync.js. -->
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script defer src="cloud-sync.js?v=88"></script>
+<script defer src="cloud-sync.js?v=99"></script>
 <!-- AI coach chat. Degrades gracefully until the Edge Function is deployed. -->
 <script defer src="coach.js?v=88"></script>
 </body>
