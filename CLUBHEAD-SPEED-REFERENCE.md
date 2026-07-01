@@ -332,7 +332,66 @@ analogous evidence:
 
 ---
 
-## 10. Sources & further reading (independent)
+## 10. Designing the Speed & Power session (evidence-ranked)
+
+> A second independent deep-research pass (peer-reviewed-first, adversarially verified) on how to
+> build **one** golf power session. **Bottom line: build the day around a lower-body _jump_ and
+> upper-body ballistic _throws_ — the two families with the strongest measured link to clubhead speed
+> — done first while the CNS is fresh, with low reps so every rep stays fast.**
+
+### 10.1 What actually predicts clubhead speed (HIGH confidence — two independent meta-analyses)
+
+| Physical quality | Link to driver clubhead speed | Source |
+|---|---|---|
+| **Lower-body jump impulse/power** | **strongest of all** — zr ≈ 0.82; CMJ impulse r ≈ 0.79 | Brennan et al. 2024 meta (20 studies, ~1,087 golfers); Wells et al. 2018 (n=27) |
+| **Upper-body explosive power** (med-ball throw velocity) | zr ≈ 0.67 (vs 0.48 for non-explosive strength) | Brennan 2024; Ehlert 2021 meta |
+| Maximal strength | moderate — below power | Ehlert 2021 |
+| **Flexibility** | **no significant association** | Brennan 2024 |
+
+- **The winning pair.** A lower-body **jump** + an upper-body **throw** jointly explain **~49–74% of
+  clubhead-speed variance** in regression models (Read et al. 2013, n=48 → 49%; Turner et al. 2016,
+  PGA pros n=20 → 74%). This is the spine of the session.
+- **Best jump variant:** **countermovement jump (CMJ) > squat jump > drop jump** (Wells 2018) —
+  program CMJ-style vertical jumps as the primary lower-body ballistic exercise.
+- **Best throw variant is population-dependent:** the **standing rotational** throw is the top
+  predictor in club-level amateurs (r ≈ 0.67, Read 2013), but in **elite PGA pros a _seated,
+  non-rotational_ throw dominated** (r ≈ 0.71) while rotational didn't reach significance (Turner 2016).
+  → include **both** a rotational and a seated/chest throw.
+
+### 10.2 Does power training actually raise clubhead speed? (MEDIUM — small samples)
+
+- 8-week **plyometric** program added to normal practice: **~3% clubhead speed + carry** vs
+  non-improving controls (Bliss et al. 2015, n=16 skilled adolescents).
+- 8-week **combined weights + plyometrics**, 2×/week: significant clubhead-speed and driving-distance
+  gains (Fletcher & Hartwell 2004, n=11). Suggested dose: **3–4 sets × ~5 reps, high velocity.**
+- **Combined** resistance + golf-specific work yields the largest effect (~**4.1%** CHS, Uthoff 2021
+  review — matches §9.3).
+- Caveat: every golf intervention study is **small (n ≈ 11–16), young, skilled, mostly male** — real
+  and directionally consistent, but modest and low-powered.
+
+### 10.3 Order, dosing & frequency (MEDIUM — general S&C principle, not a golf RCT)
+
+Almost no golf study has tested within-session order, rest, or reps-to-velocity-dropoff, so this is
+**extrapolated from established strength-and-conditioning practice (NSCA)** and graded accordingly:
+
+- **Explosive work FIRST, on a fresh CNS** — highest-velocity, most neurally demanding drills before
+  any strength/accessory work.
+- **Low reps to keep every rep fast** — ~**3–5 reps/set** for ballistic/velocity work; end the set the
+  moment speed visibly drops.
+- **Full rest between efforts** — this is quality work, not conditioning.
+- **~2 quality sessions/week**, periodized toward a **taper** before a speed test or event (§7).
+- **Don't overrate potentiation/PAP warm-ups** — the one golf study of a Theraband "PAP" warm-up found
+  **no** driving-performance benefit (Rusdiana et al. 2020, null); contrast/PAP for CHS is unproven in
+  golf.
+
+> **Net effect on the program:** the Speed & Power day is rebuilt to **lead with a CMJ-style jump and
+> rotational + seated med-ball throws** (the top predictors), keep reps low for velocity, and demote
+> overspeed swings to an optional, honestly-framed adjunct (§9). Same movement families the plan
+> already used — re-ranked to match the evidence.
+
+---
+
+## 11. Sources & further reading (independent)
 
 - **Launch-monitor norms:** TrackMan & FlightScope publicly published average club/ball
   data (tour and amateur).
@@ -356,6 +415,13 @@ analogous evidence:
   "Do They Work and Are They Safe?" (PMC7930148).
 - **Golf warm-up safety:** Hamada et al. 2025 (Transl Sports Med, PMC12358233, double-blind RCT —
   dynamic warm-up reduces golfers' low-back pain).
+- **What predicts / builds clubhead speed (session design, see §10):** Brennan et al. 2024
+  (meta-analysis of physical characteristics vs CHS, PMC11239735); Ehlert 2021 (three-level
+  meta-analysis, Eur J Sport Sci); Read et al. 2013 (J Strength Cond Res, PMID 23287829, med-ball +
+  jump determinants); Turner et al. 2016 (J Strength Cond Res, determinants of CHS in PGA pros);
+  Wells et al. 2018 (PMID 29300147, jump-metric correlates); Bliss et al. 2015 (Int J Golf Sci,
+  8-wk plyometrics RCT); Fletcher & Hartwell 2004 (combined weights + plyometrics); Rusdiana et al.
+  2020 (PLOS ONE, PMC7575068, null Theraband "PAP" warm-up).
 - **Golf-strength practitioner sources (credible):** University of Utah Health golf clinic;
   Golf Digest ("ground-up sport"); Par4Success — the same public sources cited in
   `NUTRITION-AND-TRAINING-REFERENCE.md`.
