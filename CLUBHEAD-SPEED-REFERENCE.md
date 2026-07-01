@@ -221,7 +221,118 @@ The case for training the body, in **public** numbers (no vendor data):
 
 ---
 
-## 9. Sources & further reading (independent)
+## 9. Overspeed & speed-training: what the evidence actually says (independent review)
+
+> **Why this section exists.** "Overspeed training" (swinging a *light* club at max intent, often
+> paired with a *heavier* one) is marketed hard with big numbers. We ran an independent,
+> peer-reviewed-first review before leaning on it. **Bottom line: the _mechanism_ is sound and
+> general strength/power training reliably adds speed — but the evidence for overspeed *clubs
+> specifically* is thin, mostly acute, and far more modest than the marketing. So FairwayFuel uses
+> overspeed as a low-cost _adjunct_, never as a headline promise.** Every quantitative figure below
+> carries its source and a confidence level.
+
+### 9.1 What's well-supported (HIGH confidence)
+
+- **The mechanism is real.** Maximal *intent* to contract explosively (ballistic intent) drives
+  velocity-specific neuromuscular adaptations **independent of the actual speed achieved**, and
+  early gains are predominantly **neural** (more motor-unit recruitment + faster rate coding) — which
+  is why swing speed can climb within weeks, before any muscle is added. *(Behm et al. 2024 review,
+  Appl Physiol Nutr Metab; grounded in Behm & Sale 1993 RCT, n=16; Del Vecchio et al. 2019, J Physiol.
+  High confidence in the principle; the landmark RCT is small and lower-limb, so whole-body rotational
+  transfer is inferred, not measured.)*
+- **Load specificity is confirmed.** Heavy loads preferentially build **force** (and muscle size);
+  light, fast loads preferentially build **velocity**; **power** trains across a wide load range. This
+  is the exact rationale for pairing a *light* (overspeed) and *heavy* (overload) implement.
+  *(Saez de Villarreal et al. 2021 RCT, Scand J Med Sci Sports, n=45. Caveat: older adults, leg press —
+  mechanism evidence, not golf numbers.)*
+
+### 9.2 Golf-specific evidence for overspeed clubs (thin, and mostly ACUTE)
+
+The independent peer-reviewed studies that actually name these products are **warm-up studies, not
+training programs** — and the result is humbling:
+
+- A weighted-club warm-up produced a **small, transient +2.6 mph clubhead speed in the _first set
+  only_**, and it **did not transfer to ball speed** — smash factor actually *dropped* significantly
+  (d = -0.82). More clubhead speed, **no extra distance.** *(Hebert-Losier & Wardell 2021, Sports
+  Biomechanics; n=12 skilled golfers, crossover RCT. High confidence.)*
+- A second study found overspeed sticks were **no better than a plain bodyweight warm-up** at raising
+  clubhead speed or carry. *(Bliss, Livingstone & Tallent 2021, J Sport Exerc Sci; n=13 skilled. High
+  confidence.)*
+- **No independent, peer-reviewed, multi-week randomized trial** of clubhead-speed gains was found for
+  **SuperSpeed _or_ The Stack System.** The marquee "**+5 mph in 6 weeks**"-type figures come from
+  **vendor/affiliated sources**, not independent science. (For context, the two companies have even
+  litigated over each other's advertising claims.)
+- A widely-shared "**+8.2 mph average**" tester figure (MyGolfSpy) was specifically fact-checked and
+  **refuted in this review — do not cite it.**
+
+### 9.3 What DOES reliably add clubhead speed (the defensible number)
+
+The strongest golf evidence is for **resistance + power training in general**, not overspeed clubs:
+
+| Training | Clubhead speed | Distance |
+|---|---|---|
+| General/nonspecific strength alone | **~+1.6%** | ~+4.8% |
+| **Combined** nonspecific **+** golf-specific | **~+4.1%** | ~+5.2% |
+
+*(Uthoff, Sommerfield & Pichardo 2021 systematic review, J Strength Cond Res — 20 studies, 4,557
+records screened; per-study CHS range 1.5–11.1%. Independent, indexed journal. High confidence.)*
+**~4% is the honest ceiling** for a well-built multi-week program — for a ~93 mph amateur that's about
+**+3–4 mph → roughly +8–12 yards.** Real and worth chasing; a world away from the marketing.
+
+### 9.4 The baseball transfer — a genuine cautionary tale (MEDIUM confidence, indirect)
+
+Overload/overspeed is best-studied in **baseball weighted balls**, and it's a mixed, risky picture:
+
+- **Velocity gains are small and inconsistent:** best RCT ~**+3.3%** *(Reinold et al. 2018)*; one
+  Driveline-data study found **no significant change** *(Boddy et al. 2018)*; a systematic review found
+  most studies positive but rated the overall evidence **"very poor."** *(Caldwell et al. 2019.)*
+- **Injury risk is real and serious:** in the best-controlled RCT, **~24% of the weighted-ball group
+  sustained structural elbow injuries** (olecranon stress fractures, partial and full UCL tears needing
+  surgery) versus **0% of controls** doing the same program with normal balls — several appearing the
+  *following* season. *(Reinold et al. 2018.)*
+- **Transfer to golf is an inference, not a fact.** Throwing is a one-arm overhead pattern stressing the
+  elbow/UCL; the golf swing is a bilateral rotational pattern stressing the **obliques, lead-side trunk,
+  low back, and lead wrist.** The *lesson* that transfers is the caution, not the exact numbers.
+
+### 9.5 Safety & how we mitigate
+
+No golf-specific injury-incidence study for overspeed training exists, so we govern by principle and the
+analogous evidence:
+
+- **Warm up thoroughly first** — a dynamic golf warm-up is independently shown to **reduce low-back
+  pain** in golfers. *(Hamada et al. 2025 double-blind RCT, n=45 high-school golfers.)*
+- **Ramp in, don't dive in** — start low-volume with lighter implements; add over weeks.
+- **Max intent, but stop the set the moment speed drops** — grinding fatigued reps adds risk without
+  speed benefit.
+- **Rest fully between efforts and keep a deload** — max-intent rotation is high-CNS, high-tissue-stress.
+- **Train both lead and trail side** — the swing is one-sided; balance it so you don't reinforce the
+  asymmetry (and its injury pattern).
+
+### 9.6 What this means for FairwayFuel (and what we will NOT claim)
+
+- **Lead with the well-evidenced levers:** heavy strength + explosive/plyometric + med-ball rotational
+  power — that's where the reliable ~4% lives.
+- **Keep overspeed as a low-cost adjunct/primer,** framed honestly: *"trains the nervous system to fire
+  faster; most golfers can do it with a light stick — results vary."* Mechanism-plausible and cheap, but
+  **not** a guaranteed number.
+- **Never print vendor-style promises** ("+5 mph in 6 weeks," "+8 mph"). If we cite a figure, cite the
+  independent **~4% combined-training** number and frame it as *typical, not promised.*
+- **Prove it per-user, not by claim:** the app's own before/after driver-carry + 7-iron trend is the
+  honest substitute for a marketing stat — *your own numbers are the evidence.*
+- **Ship accessibility + safety copy with any overspeed feature:** DIY light/heavy options, warm-up
+  first, ramp-in, both sides, stop-when-slow.
+
+### 9.7 Open questions (what the evidence still can't answer)
+
+- No independent longitudinal RCT isolates overspeed *clubs* (vs general training) for multi-week
+  clubhead-speed gain.
+- Golf-specific injury incidence for max-intent overspeed is unmeasured.
+- Optimal dose (sets/reps, weekly frequency, overspeed:overload ratio, lead:trail balance) and the
+  **durability of gains after training stops** are unknown.
+
+---
+
+## 10. Sources & further reading (independent)
 
 - **Launch-monitor norms:** TrackMan & FlightScope publicly published average club/ball
   data (tour and amateur).
@@ -231,8 +342,20 @@ The case for training the body, in **public** numbers (no vendor data):
   reviewed work on the proximal-to-distal sequence and X-factor stretch vs. clubhead speed
   (e.g. Cheetham et al.; Nesbit & Serrano); force-plate / ground-reaction-force studies in
   the golf swing.
-- **Strength, power & overspeed:** general resistance-training and rate-of-force-
-  development literature; overspeed-training studies on clubhead-speed gains.
+- **Strength, power & overspeed (see §9 for the full independent review + confidence levels):**
+  Behm et al. 2024 (Appl Physiol Nutr Metab, ballistic intent / velocity-specific adaptation);
+  Behm & Sale 1993 (J Appl Physiol, PMID 8444715); Del Vecchio et al. 2019 (J Physiol, PMC6441907,
+  early neural gains); Saez de Villarreal et al. 2021 (Scand J Med Sci Sports, PMID 34618979,
+  load specificity); **Uthoff, Sommerfield & Pichardo 2021** (J Strength Cond Res, 20-study
+  systematic review — the ~1.6%/~4.1% clubhead-speed figures); Hebert-Losier & Wardell 2021
+  (Sports Biomechanics, acute SuperSpeed warm-up, n=12); Bliss, Livingstone & Tallent 2021
+  (J Sport Exerc Sci, overspeed = bodyweight warm-up, n=13).
+- **Weighted-ball transfer & injury (baseball analogue):** Reinold et al. 2018 (PMID 29882722,
+  velocity + ~24% injury RCT); Boddy et al. 2018 (PeerJ, PMC6254244, null velocity result);
+  Caldwell/Alexander/Ahmad 2019 (PMC8016422, "very poor" evidence-quality review); Reiman/Lisman
+  "Do They Work and Are They Safe?" (PMC7930148).
+- **Golf warm-up safety:** Hamada et al. 2025 (Transl Sports Med, PMC12358233, double-blind RCT —
+  dynamic warm-up reduces golfers' low-back pain).
 - **Golf-strength practitioner sources (credible):** University of Utah Health golf clinic;
   Golf Digest ("ground-up sport"); Par4Success — the same public sources cited in
   `NUTRITION-AND-TRAINING-REFERENCE.md`.
