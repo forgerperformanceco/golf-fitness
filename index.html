@@ -856,6 +856,8 @@
   .pc-add .pc-addrow input:focus { outline:none; border-color:var(--green-600); }
   .pc-add .pc-addrow button { flex:0 0 auto; background:#11643a; color:#fff; border:0; border-radius:10px; padding:0 20px; font:800 14px system-ui; cursor:pointer; }
   .pc-add .pc-addrow button:active { transform:translateY(1px); }
+  .pc-add .pc-addwide { width:100%; margin-top:8px; background:#11643a; color:#fff; border:0; border-radius:10px; padding:12px; font:800 14px system-ui; cursor:pointer; }
+  .pc-add .pc-addwide:active { transform:translateY(1px); }
   .pc-addhint { font-size:11.5px; color:var(--muted); margin-top:8px; line-height:1.4; }
   /* empty */
   .pc-empty-card { text-align:center; padding:30px 20px; }
@@ -1232,8 +1234,11 @@
 
   /* progress */
   .prog-row { display:grid; grid-template-columns:1fr 1fr auto; gap:9px; align-items:end; margin-bottom:12px; }
+  .prog-row.three { grid-template-columns:1fr 1fr 1fr; }
   .prog-row label { font-size:11px; font-weight:700; color:#243a2c; }
   .prog-row .addp { background:var(--green-600); color:#fff; border:none; border-radius:10px; padding:13px 16px; font-weight:800; cursor:pointer; font-size:14px; }
+  .addp-wide { display:block; width:100%; margin:0 0 12px; background:var(--green-600); color:#fff; border:none; border-radius:10px; padding:13px; font-weight:800; cursor:pointer; font-size:14px; }
+  .addp-wide:active { transform:translateY(1px); }
   .prog-list { font-size:12.5px; }
   .prog-list .pe { display:flex; justify-content:space-between; padding:7px 0; border-top:1px dashed var(--line); color:#2b3a30; }
   .prog-list .pe b { color:var(--green-800); }
@@ -4208,6 +4213,18 @@
     var last=l[l.length-1], first=l[0];
     return { latest:Math.round(last.y), baseline:Math.round(first.y), gain:Math.round(last.y-first.y), n:l.length };
   }
+  // Single writer for the weight / 7-iron / driver log — merges into one entry per day so the
+  // three log spots (dashboard, Stats, Train progress) all behave the same and never dupe a date.
+  function logBodyEntry(wv, sv, dv){
+    wv=(wv||"").trim(); sv=(sv||"").trim(); dv=(dv||"").trim();
+    if(!wv && !sv && !dv) return false;
+    var body=lsGet("ff_body",[]), today=todayStr(), row=null;
+    for(var bi=body.length-1;bi>=0;bi--){ if(body[bi] && body[bi].date===today){ row=body[bi]; break; } }
+    if(!row){ row={ date:today }; body.push(row); }
+    if(wv!=="") row.w=wv; if(sv!=="") row.s=sv; if(dv!=="") row.d=dv;
+    lsSet("ff_body", body);
+    return true;
+  }
   function saveScoreSnapshot(r){
     // Stash the Octane score + pillars so the AI coach can explain & coach toward it.
     try { localStorage.setItem("ff_score", JSON.stringify({ score:r.score,
@@ -4597,15 +4614,16 @@
   function renderProgressFold(){
     var body=lsGet("ff_body",[]), sessCount=Object.keys(getLog()).length;
     var rows = body.slice(-8).reverse().map(function(e){
-      return '<div class="pe"><span>'+e.date+'</span><span><b>'+(e.w||"–")+'</b> lb &middot; <b>'+(e.s||"–")+'</b> mph 7-iron</span></div>';
+      return '<div class="pe"><span>'+e.date+'</span><span><b>'+(e.w||"–")+'</b> lb &middot; <b>'+(e.s||"–")+'</b> mph'+(e.d?(' &middot; <b>'+e.d+'</b> yd drv'):'')+'</span></div>';
     }).join("") || '<div class="prog-empty">No entries yet — log your weight and 7-iron speed to watch the trend.</div>';
     var spark = sparkline(body.map(function(e){ return parseFloat(e.s); }));
     return '<details class="fold" id="progFold"><summary>📊 Progress &amp; history</summary><div class="fold-body">'+
-      '<div class="prog-row">'+
-        '<div><label>Bodyweight (lb)</label><input type="number" inputmode="decimal" id="pBody" placeholder="185" /></div>'+
-        '<div><label>7-iron speed (mph)</label><input type="number" inputmode="decimal" id="pSpeed" placeholder="85" /></div>'+
-        '<button class="addp" id="pAdd">Add</button></div>'+
-      '<div class="prog-empty" style="margin:0 0 10px;">Tip: test 7-iron clubhead speed on a launch monitor — it’s more repeatable than driver, so the weekly trend is a cleaner signal.</div>'+
+      '<div class="prog-row three">'+
+        '<div><label>Weight (lb)</label><input type="number" inputmode="decimal" id="pBody" placeholder="185" /></div>'+
+        '<div><label>7-iron mph</label><input type="number" inputmode="decimal" id="pSpeed" placeholder="85" /></div>'+
+        '<div><label>Driver yds</label><input type="number" inputmode="decimal" id="pDrive" placeholder="250" /></div></div>'+
+      '<button class="addp addp-wide" id="pAdd">Add</button>'+
+      '<div class="prog-empty" style="margin:0 0 10px;">Tip: 7-iron speed is the cleanest weekly trend (more repeatable than driver), while driver carry is your headline distance.</div>'+
       (spark?'<div class="prog-empty" style="margin:2px 0 -2px;">7-iron speed trend</div>'+spark:"")+
       '<div class="prog-list">'+rows+'</div>'+
       '<div class="prog-empty" style="margin-top:10px;">🏋️ Workouts logged: <b>'+sessCount+'</b></div>'+
@@ -4744,11 +4762,12 @@
 
     // ---- Quick add (always available) ----
     html += '<div class="pcard pc-add"><div class="pc-t" style="margin-bottom:10px">📈 Log today</div>'+
-      '<div class="pc-addrow">'+
-        '<input id="prBody" type="number" inputmode="decimal" placeholder="Weight (lb)" />'+
-        '<input id="prSpeed" type="number" inputmode="decimal" placeholder="7-iron (mph)" />'+
-        '<button id="prAdd" type="button">Add</button></div>'+
-      '<div class="pc-addhint">Bodyweight + clubhead speed feed your trends and your Octane score.</div></div>';
+      '<div class="pc-addrow three">'+
+        '<input id="prBody" type="number" inputmode="decimal" placeholder="Weight" />'+
+        '<input id="prSpeed" type="number" inputmode="decimal" placeholder="7-iron mph" />'+
+        '<input id="prDrive" type="number" inputmode="decimal" placeholder="Driver yds" /></div>'+
+      '<button id="prAdd" class="pc-addwide" type="button">Add</button>'+
+      '<div class="pc-addhint">Driver carry is your headline number; weight &amp; 7-iron speed feed your trends and <b>Octane</b>.</div></div>';
 
     // ---- Leaderboard (opt-in, competitive) ----
     html += renderLeaderboardCard();
@@ -4922,9 +4941,7 @@
       if(window.FFCoach && window.FFCoach.ready()) window.FFCoach.ask("Why does "+ln+" build my clubhead speed, and how do I execute it for maximum power transfer into the swing? Keep it specific and practical.", "Why this lift");
       return; }
     if(e.target.id==="pAdd"){
-      var wv=$("pBody").value, sv=$("pSpeed").value;
-      if(!wv && !sv) return;
-      var body=lsGet("ff_body",[]); body.push({ date:todayStr(), w:wv, s:sv }); lsSet("ff_body", body);
+      if(!logBodyEntry($("pBody")&&$("pBody").value, $("pSpeed")&&$("pSpeed").value, $("pDrive")&&$("pDrive").value)) return;
       renderPhase(); var pf=$("progFold"); if(pf) pf.open=true;
     }
   });
@@ -5025,13 +5042,7 @@
         if(a){ var nx=Math.max(-600, Math.min(600, lsGet("ff_kcal_adj",0)+a.deltaKcal)); lsSet("ff_kcal_adj", nx); } }
       lsSet("ff_lastcheckin", Date.now()); try{ calc(); }catch(e2){} renderDash(); return; }
     if(e.target.id==="dAdd"){
-      var wv=$("dBody")?$("dBody").value:"", sv=$("dSpeed")?$("dSpeed").value:"", dv=$("dDrive")?$("dDrive").value:"";
-      if(!wv && !sv && !dv) return;
-      var body=lsGet("ff_body",[]), today=todayStr(), row=null;
-      for(var bi=body.length-1;bi>=0;bi--){ if(body[bi] && body[bi].date===today){ row=body[bi]; break; } }
-      if(!row){ row={ date:today }; body.push(row); }           // one merged entry per day
-      if(wv!=="") row.w=wv; if(sv!=="") row.s=sv; if(dv!=="") row.d=dv;
-      lsSet("ff_body", body);
+      if(!logBodyEntry($("dBody")&&$("dBody").value, $("dSpeed")&&$("dSpeed").value, $("dDrive")&&$("dDrive").value)) return;
       renderDash();
       return;
     }
@@ -5054,9 +5065,7 @@
   var pb=$("progressBody");
   if(pb) pb.addEventListener("click", function(e){
     if(e.target.id==="prAdd"){
-      var wv=$("prBody")?$("prBody").value:"", sv=$("prSpeed")?$("prSpeed").value:"";
-      if(!wv && !sv) return;
-      var body=lsGet("ff_body",[]); body.push({ date:todayStr(), w:wv, s:sv }); lsSet("ff_body", body);
+      if(!logBodyEntry($("prBody")&&$("prBody").value, $("prSpeed")&&$("prSpeed").value, $("prDrive")&&$("prDrive").value)) return;
       try{ sessionStorage.removeItem("ff_lb_pub"); }catch(e2){}   // new data → republish to board
       renderProgress();
       return;
@@ -5115,7 +5124,7 @@
   }
   function startOnboarding(seed){
     var ob={ step:0, total:8, goal:"leanbulk", sex:"male", age:"", weight:"",
-             hf:"5", hin:"10", activity:"1.55", workout:"morning", freq:4, equip:"", speed:"", based:false };
+             hf:"5", hin:"10", activity:"1.55", workout:"morning", freq:4, equip:"", speed:"", drive:"", based:false };
     // On a re-run (from Account) seed every field from saved numbers. On a brand-new
     // first run, leave age & weight blank so the user gives real answers (biggest macro
     // drivers) — height/activity keep sensible soft defaults they can tweak.
@@ -5167,9 +5176,9 @@
     // Seed the first bodyweight/speed entry once, as the Score's baseline.
     function pushBaseline(){
       if(ob.based) return; ob.based=true;
-      if(ob.weight || ob.speed){
+      if(ob.weight || ob.speed || ob.drive){
         var body=lsGet("ff_body",[]);
-        body.push({ date:todayStr(), w:ob.weight||"", s:ob.speed||"" });
+        body.push({ date:todayStr(), w:ob.weight||"", s:ob.speed||"", d:ob.drive||"" });
         lsSet("ff_body", body);
       }
     }
@@ -5198,7 +5207,7 @@
         ob.hin=($("obHin").value||"").trim()||"10";
       }
       if(s===3) ob.activity=$("obAct").value;
-      if(s===5) ob.speed=($("obSpeed").value||"").trim();
+      if(s===5){ ob.speed=($("obSpeed")?$("obSpeed").value:"").trim(); ob.drive=($("obDrive")?$("obDrive").value:"").trim(); }
     }
     function advance(s){
       readStep(s);
@@ -5271,11 +5280,13 @@
               '<span class="obo-t">'+g.t+'</span><span class="obo-d">'+g.d+'</span></span></button>';
           }).join("")+'</div>';
       } else if(s===5){
-        kicker="Step 5 of 7 · Baseline"; title="Your speed starting line";
-        body='<p class="ob-p" style="margin-top:-4px">Your <b>7-iron clubhead speed</b> is the truest sign training is working. Drop in today’s number to set your baseline — or skip and add it later.</p>'+
+        kicker="Step 5 of 7 · Baseline"; title="Your starting line";
+        body='<p class="ob-p" style="margin-top:-4px">Set your starting numbers so you can watch them climb. Add either — or skip and log later.</p>'+
+          '<div class="ob-field"><label>Driver carry (yds) — your headline distance</label>'+
+            '<input class="ob-in" id="obDrive" type="number" inputmode="decimal" placeholder="e.g. 245" value="'+ob.drive+'" /></div>'+
           '<div class="ob-field"><label>7-iron clubhead speed (mph)</label>'+
             '<input class="ob-in" id="obSpeed" type="number" inputmode="decimal" placeholder="e.g. 85" value="'+ob.speed+'" /></div>'+
-          '<p class="ob-p" style="font-size:12.5px;color:#9ccfb0;margin:0">Test it on a launch monitor — 7-iron is more repeatable than driver, so the weekly trend is a cleaner signal.</p>';
+          '<p class="ob-p" style="font-size:12.5px;color:#9ccfb0;margin:0">A launch monitor or an on-course guess both work. 7-iron speed is the cleanest weekly trend; driver carry is the number you’ll brag about.</p>';
         nextLabel="Continue →";
       } else if(s===6){
         kicker="Step 6 of 7 · Your foods"; title="What do you actually eat?";
