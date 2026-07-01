@@ -1112,6 +1112,8 @@
   .lift-hero .lh-week { font-size:11px; font-weight:800; letter-spacing:1.4px; color:#9fe7bb; }
   .lift-hero .lh-name { margin:5px 0 4px; font:900 26px/1.04 system-ui; color:#fff; letter-spacing:-.6px; }
   .lift-hero .lh-sub { font-size:12.5px; color:#bfe3cd; }
+  .lift-hero .lh-done { color:#7ef0a8; font-weight:800; }
+  .lift-hero .lh-dot { opacity:.45; margin:0 3px; }
   .lift-hero .lh-prog { margin-top:12px; height:5px; max-width:240px; background:rgba(255,255,255,.15); border-radius:999px; overflow:hidden; }
   .lift-hero .lh-prog > span { display:block; height:100%; background:linear-gradient(90deg,#34d27b,#7ef0a8); border-radius:999px; box-shadow:0 0 8px rgba(126,240,168,.45); }
   .lift-hero .lh-mode { flex:0 0 auto; font-size:11px; font-weight:800; padding:6px 12px; border-radius:999px; }
@@ -3389,7 +3391,7 @@
       return;
     }
 
-    var retain=trainRetain(), mode=planViewMode();
+    var retain=trainRetain(), mode=planViewMode(), wd=weekDoneCount();
     var featName=(focusDay && shown.some(function(d){return d.name===focusDay;}))?focusDay:nextWorkout();
     var featured=null; shown.forEach(function(d){ if(d.name===featName) featured=d; });
     if(!featured) featured=shown[0];
@@ -3399,7 +3401,8 @@
     html+='<div class="lift-hero"><div class="lh-l">'+
       '<div class="lh-week">WEEK '+wk+' / 20</div>'+
       '<h2 class="lh-name">'+heroName+'</h2>'+
-      '<div class="lh-sub">'+(mode==="today"?('Day '+dayOfPlan()+' of your week'):'Browsing the full week')+'</div>'+
+      '<div class="lh-sub">'+(mode==="today"?('Day '+dayOfPlan()+' of your week'):'Browsing the full week')+
+        (wd.total?(' <span class="lh-dot">·</span> '+(wd.done>=wd.total?'<b class="lh-done">week complete ✓</b>':'<b class="lh-done">'+wd.done+' of '+wd.total+' done</b>')):'')+'</div>'+
       '<div class="lh-prog"><span style="width:'+Math.max(5,Math.round(wk/20*100))+'%"></span></div></div>'+
       '<span class="lh-mode '+(retain?"retain":"build")+'">'+(retain?"Retain":"Build")+'</span></div>';
 
@@ -4158,6 +4161,12 @@
     var wk=curWeek(), days=activeDays(), L=getLog();
     for(var i=0;i<days.length;i++){ if(!L[wk+"|"+days[i].name]) return days[i].name; }
     return days.length ? days[0].name : null;
+  }
+  // How many of this week's scheduled sessions (lifts + speed day) are logged — for the hero nudge.
+  function weekDoneCount(){
+    var wk=curWeek(), total=0, done=0;
+    activeDays().forEach(function(d){ if(d.type==="rest") return; total++; if(getSession(wk,d.name)) done++; });
+    return { done:done, total:total };
   }
   function dTile(icon, label, big, sub, goview){
     return '<button class="dtile" data-goview="'+goview+'"><span class="dt-ic">'+icon+'</span>'+
