@@ -499,7 +499,7 @@
   .speed-callout p { margin:0 0 8px; font-size:12.8px; color:#7a5320; line-height:1.5; }
   .speed-callout ul { margin:0; padding-left:18px; font-size:12.8px; color:#7a5320; line-height:1.6; }
 
-  /* ===== FairwayFuel Score ===== */
+  /* ===== Octane score ===== */
   .ffscore { margin-bottom:14px; background:radial-gradient(135% 135% at 6% 0%,#1a5031 0%,#0d2216 72%);
     color:#eafff1; border-radius:18px; padding:17px 18px 16px; box-shadow:0 10px 26px rgba(8,40,22,.22);
     border:1px solid rgba(255,255,255,.06); }
@@ -517,6 +517,28 @@
     letter-spacing:.8px; font-weight:800; }
   .ffscore-head .ff-sum { margin:0; font-size:12.5px; color:#dff3e7; line-height:1.5; }
   .ffscore-head .ff-sum b { color:#ffe08a; font-weight:700; }
+  /* Dashboard hero: driver carry as the star, Octane engine underneath */
+  .hero-card { display:block; width:100%; text-align:left; cursor:pointer; }
+  .hero-card:active { transform:translateY(1px); }
+  .hero-kick { font:800 11px system-ui; letter-spacing:1.4px; color:#9fe7bb; text-transform:uppercase; }
+  .hero-dist { margin:6px 0 3px; color:#fff; font-weight:900; letter-spacing:-2px; line-height:.95; }
+  .hero-dist b { font-size:58px; }
+  .hero-dist .u { font-size:21px; font-weight:800; letter-spacing:-.5px; margin-left:5px; color:#dff3e7; }
+  .hero-gainrow { display:flex; align-items:center; gap:11px; flex-wrap:wrap; }
+  .hero-gain { display:inline-flex; align-items:center; gap:5px; font:800 14.5px system-ui; color:#7ef0a8;
+    background:rgba(126,240,168,.13); padding:5px 11px; border-radius:999px; }
+  .hero-gain.neg { color:#ffce8a; background:rgba(255,196,120,.13); }
+  .hero-since { font:600 12px system-ui; color:#9fbfab; }
+  .hero-since.solo { display:block; margin-top:8px; }
+  .hero-empty { margin:8px 0 2px; }
+  .hero-empty b { display:block; color:#fff; font:900 21px system-ui; letter-spacing:-.5px; }
+  .hero-empty span { display:block; font:600 12.5px/1.45 system-ui; color:#bfe3cd; margin-top:4px; }
+  .hero-engine { margin-top:15px; padding-top:14px; border-top:1px solid rgba(255,255,255,.10);
+    display:flex; align-items:center; gap:12px; }
+  .hero-etx { flex:1; min-width:0; }
+  .hero-ename { font:900 17px system-ui; letter-spacing:1px; color:#7ef0a8; text-transform:uppercase; }
+  .hero-esub { font:600 12px/1.4 system-ui; color:#bfe3cd; margin-top:2px; }
+  .hero-esub b { color:#fff; }
   .ffscore-bars { margin-top:15px; display:flex; flex-direction:column; gap:10px; }
   .ffp { display:flex; align-items:center; gap:12px; font-size:12.5px; }
   .ffp-label { width:112px; flex:0 0 auto; color:#dff3e7; }
@@ -553,6 +575,9 @@
   .dash-log .dl-row button { flex:0 0 auto; background:#11643a; color:#fff; border:0; border-radius:10px;
     padding:0 20px; font:700 14px system-ui; cursor:pointer; }
   .dash-log .dl-row button:active { transform:translateY(1px); }
+  .dash-log .dl-add { width:100%; margin-top:8px; background:#11643a; color:#fff; border:0; border-radius:10px;
+    padding:12px; font:700 14.5px system-ui; cursor:pointer; }
+  .dash-log .dl-add:active { transform:translateY(1px); }
   .dash-log .dl-hint { font-size:11.5px; color:var(--muted); margin-top:8px; line-height:1.4; }
   .dash-log .dl-hint b { color:var(--green-700); }
 
@@ -1618,13 +1643,13 @@
   function ffSignedIn(){ return !!(window.FF && window.FF.user); }
   var FF_TIPS = {
     dash:    { key:"dash",  ic:"🏠", t:"This is your home base",
-      b:"Your daily <b>FairwayFuel Score</b>, a coach's read, and quick tiles into every part of the app live here. Tap any tile to dive in." },
+      b:"Your daily <b>Octane score</b>, a coach's read, and quick tiles into every part of the app live here. Tap any tile to dive in." },
     calc:    { key:"calc",  ic:"🍽️", t:"Fuel — your meals & macros",
       b:"Set your numbers once, then tap <b>“Build my day”</b> for a full day of meals and a shopping list built around your favorite foods." },
     plan:    { key:"plan",  ic:"🏋️", t:"Train — your 20-week speed plan",
       b:"Each session starts with the <b>warm-up + daily power</b> work (the amber box) — don't skip it, that's where clubhead speed is made." },
     progress:{ key:"prog",  ic:"📈", t:"Stats — track it to grow it",
-      b:"Log your <b>lifts, bodyweight and 7-iron speed</b> here. Every entry feeds your Score so you can watch the trend climb." },
+      b:"Log your <b>lifts, bodyweight and 7-iron speed</b> here. Every entry feeds your Octane so you can watch the trend climb." },
     gameday: { key:"gday",  ic:"⛳", t:"Game Day — fuel your round",
       b:"Enter your tee time and we build a <b>timed plan</b>: pre-round meal, first-tee warm-up, on-course fueling and the turn snack." },
     account: { key:"acct",  ic:"☁", t:"You — sign in to unlock everything",
@@ -4048,7 +4073,7 @@
     if(t){ var m=Math.floor(left/60), sc=left%60; t.textContent=(m>0?m+":":"")+(m>0&&sc<10?"0":"")+sc; }
   }
 
-  /* ----- FairwayFuel Score — one number for build-to-speed progress -----
+  /* ----- Octane score — one number for build-to-speed progress -----
      A composite of the data the app already records: showing up (consistency),
      getting faster (7-iron speed), getting stronger (logged e1RM), and turning
      mass into speed (power-to-weight). It scores YOUR trajectory + consistency —
@@ -4159,19 +4184,10 @@
     var tone = r.score>=80 ? "Dialed in. " : (r.score>=55 ? "Solid trajectory. " : "Early days. ");
     return tone + "Biggest lever now: <b>" + (FF_LEVER[pick.key]||"keep stacking sessions") + "</b>.";
   }
-  function renderScoreCard(compact){
-    var r = ffScore();
-    // Stash a compact score summary so the AI coach can explain & coach toward it.
-    try {
-      localStorage.setItem("ff_score", JSON.stringify({
-        score: r.score,
-        pillars: r.parts.map(function(p){ return { name:p.label, pts:p.pts, max:p.max, have:p.have, detail:p.detail }; })
-      }));
-    } catch(e){}
-    var pct = r.score==null ? 0 : r.score;
-    // Fuel gauge: a clean semicircular level arc (E→F) that fills with the score.
-    var ARC=Math.PI*48, off=ARC*(1-pct/100);
-    var gauge = '<div class="ffscore-gauge"><svg width="120" height="86" viewBox="0 0 126 90">'+
+  // The Octane engine gauge — semicircular fuel-style arc (E→F) that fills with the score.
+  function octaneGaugeHtml(score){
+    var pct = score==null ? 0 : score, ARC=Math.PI*48, off=ARC*(1-pct/100);
+    return '<div class="ffscore-gauge"><svg width="120" height="86" viewBox="0 0 126 90">'+
       '<defs><linearGradient id="ffArc" x1="0" y1="0" x2="1" y2="0">'+
         '<stop offset="0" stop-color="#2f9e5d"/><stop offset="1" stop-color="#8be9ac"/></linearGradient></defs>'+
       '<path d="M15 66 A48 48 0 0 1 111 66" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="12" stroke-linecap="round"/>'+
@@ -4179,16 +4195,55 @@
         'stroke-dasharray="'+ARC.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/>'+
       '<text x="11" y="86" fill="#7fb295" font-size="11" font-weight="800">E</text>'+
       '<text x="107" y="86" fill="#7fb295" font-size="11" font-weight="800">F</text></svg>'+
-      '<div class="num">'+(r.score==null?"–":r.score)+(r.score==null?"":'<i>/100</i>')+'</div></div>';
-    var top = '<div class="ffscore-top">'+gauge+
-      '<div class="ffscore-head"><h3>⛳ FAIRWAYFUEL SCORE</h3>'+
+      '<div class="num">'+(score==null?"–":score)+'</div></div>';
+  }
+  // Driver-carry distance (yards) — the hero outcome. Stored on ff_body entries as `d` so it
+  // rides the same sync/merge: works for a launch-monitor carry OR an eyeballed "how far I hit it".
+  function driveList(){
+    return lsGet("ff_body",[]).filter(function(e){ return e && e.d!=null && e.d!=="" && !isNaN(parseFloat(e.d)); })
+      .map(function(e){ return { date:e.date, y:parseFloat(e.d) }; });
+  }
+  function driveStats(){
+    var l=driveList(); if(!l.length) return null;
+    var last=l[l.length-1], first=l[0];
+    return { latest:Math.round(last.y), baseline:Math.round(first.y), gain:Math.round(last.y-first.y), n:l.length };
+  }
+  function saveScoreSnapshot(r){
+    // Stash the Octane score + pillars so the AI coach can explain & coach toward it.
+    try { localStorage.setItem("ff_score", JSON.stringify({ score:r.score,
+      pillars:r.parts.map(function(p){ return { name:p.label, pts:p.pts, max:p.max, have:p.have, detail:p.detail }; }) })); } catch(e){}
+  }
+  // Dashboard hero: driver carry + gain up top, the Octane engine gauge underneath.
+  function renderHeroCard(){
+    var r=ffScore(); saveScoreSnapshot(r);
+    var d=driveStats(), top;
+    if(d){
+      var gain = d.n>=2 ? d.gain : null;
+      top = '<div class="hero-kick">⛳ Driver carry</div>'+
+        '<div class="hero-dist"><b>'+d.latest+'</b><span class="u">yds</span></div>'+
+        (gain!=null
+          ? '<div class="hero-gainrow"><span class="hero-gain'+(gain>=0?'':' neg')+'">'+(gain>=0?'▲ +':'▼ ')+Math.abs(gain)+' yds</span>'+
+            '<span class="hero-since">vs your start · was '+d.baseline+'</span></div>'
+          : '<div class="hero-since solo">Your baseline is set — log again in a few weeks to see the gain.</div>');
+    } else {
+      top = '<div class="hero-kick">⛳ Driver carry</div>'+
+        '<div class="hero-empty"><b>Add your driver distance</b><span>From a launch monitor, or just how far you hit it — log it below and watch it climb.</span></div>';
+    }
+    var engine = '<div class="hero-engine">'+octaneGaugeHtml(r.score)+
+      '<div class="hero-etx"><div class="hero-ename">Octane</div>'+
+      '<div class="hero-esub">Your engine — <b>lifting, fuel &amp; speed work.</b> Keep it high and the yards follow.</div></div></div>';
+    return '<button class="ffscore hero-card" data-goview="progress">'+top+engine+'</button>';
+  }
+  // Progress tab: the full Octane card with its four component pillars.
+  function renderScoreCard(compact){
+    var r = ffScore(); saveScoreSnapshot(r);
+    var top = '<div class="ffscore-top">'+octaneGaugeHtml(r.score)+
+      '<div class="ffscore-head"><h3>⛽ OCTANE</h3>'+
       '<p class="ff-sum">'+ffScoreSummary(r)+'</p></div></div>';
-    // Dashboard: compact — the number + one-line read, tap through to the full breakdown.
     if(compact){
       return '<button class="ffscore ffscore-compact" data-goview="progress">'+top+
         '<span class="ffscore-more">See the full breakdown ›</span></button>';
     }
-    // Progress: full — the four component pillars.
     var bars = r.parts.map(function(p){
       var w = p.max>0 ? Math.round(p.pts/p.max*100) : 0;
       return '<div class="ffp'+(p.have?"":" locked")+'">'+
@@ -4296,7 +4351,7 @@
 
     if(daysIdle!=null && daysIdle>=6 && hasData)
       out.push({prio:95, sig:"reengage:"+Math.floor(Date.now()/(3*864e5)), ic:"👋", title:"Pick the streak back up",
-        body:"It's been <b>"+daysIdle+" days</b> since your last entry. One quick log today — bodyweight or a workout — keeps your trend and Score alive.", ask:null});
+        body:"It's been <b>"+daysIdle+" days</b> since your last entry. One quick log today — bodyweight or a workout — keeps your trend and Octane alive.", ask:null});
 
     if(daysIdle!=null && daysIdle<6){
       if(thisWk===0)
@@ -4304,7 +4359,7 @@
           body:"Get one in to keep your momentum. Your plan calls for <b>"+freq+"</b> this week — even a single session protects the habit.", ask:null});
       else if(thisWk<freq)
         out.push({prio:74, sig:"streak:wk"+wk+":"+thisWk, ic:"🔥", title:thisWk+" of "+freq+" sessions this week",
-          body:"<b>"+(freq-thisWk)+" more</b> keeps your week on plan. Showing up is the single biggest lever on your Score — consistency beats intensity.", ask:null});
+          body:"<b>"+(freq-thisWk)+" more</b> keeps your week on plan. Showing up is the single biggest lever on your Octane — consistency beats intensity.", ask:null});
     }
 
     if(spd.length>=2){
@@ -4347,7 +4402,7 @@
         body:"<b>"+sessions.length+"</b> workout"+(sessions.length===1?"":"s")+" logged"+(lastSpeed?(" · 7-iron at <b>"+lastSpeed+" mph</b>"):"")+". The system works when the inputs are consistent — keep logging bodyweight, speed and sessions, and the trends do the rest.", ask:null});
     else
       out.push({prio:40, sig:"firststeps", ic:"🌟", title:"Let's get your first data points",
-        body:"Log a workout on the <b>Train</b> tab and drop today's bodyweight + 7-iron speed below. Two data points and your trends — and your Score — start climbing.", ask:null});
+        body:"Log a workout on the <b>Train</b> tab and drop today's bodyweight + 7-iron speed below. Two data points and your trends — and your Octane — start climbing.", ask:null});
 
     return out.sort(function(a,b){ return b.prio-a.prio; });
   }
@@ -4366,13 +4421,13 @@
   function renderDash(){
     var el=$("dashBody"); if(!el) return;
     var t=lsGet("ff_targets",null), wk=curWeek();
-    var body=lsGet("ff_body",[]), lastSpeed=body.length?body[body.length-1].s:null;
+    var body=lsGet("ff_body",[]), spdE=body.filter(function(e){ return e&&e.s; }), lastSpeed=spdE.length?spdE[spdE.length-1].s:null;
     var sess=Object.keys(getLog()).length, nw=nextWorkout();
     var fuel = t ? ('<b>'+t.kcal+'</b> kcal' ) : 'Set up →';
     var fuelSub = t ? (t.proteinG+'p · '+t.carbG+'c · '+t.fatG+'f') : 'tap to calculate';
     // Home order, by priority: where you stand → your focus → at-a-glance → log →
     // coach → occasional tuning → situational round-day.
-    var html = renderScoreCard(true);   // 1. Score (taps through to Progress)
+    var html = renderHeroCard();        // 1. Driver carry + gain, Octane engine underneath
     html += renderInsight();            // 2. Your one focus
     // 3. At-a-glance tiles.
     var speedBig = lastSpeed ? ('<b>'+lastSpeed+'</b> mph') : '<span class="dt-go">Test it →</span>';
@@ -4383,13 +4438,16 @@
       dTile('⚡','7-iron speed', speedBig, speedSub, 'plan')+
       '</div>';
     // 4. Log today — the core daily input, right by the numbers it feeds.
+    var lastDrive=(driveStats()||{}).latest;
     html += '<div class="dash-log"><div class="dl-head">📈 Log today</div>'+
       '<div class="dl-row">'+
-        '<input id="dBody" type="number" inputmode="decimal" placeholder="Weight (lb)" />'+
-        '<input id="dSpeed" type="number" inputmode="decimal" placeholder="7-iron (mph)" />'+
-        '<button id="dAdd" type="button">Add</button></div>'+
-      '<div class="dl-hint">Bodyweight + clubhead speed feed your FairwayFuel Score. '+
-        (lastSpeed?('Last: <b>'+lastSpeed+'</b> mph'):'Test 7-iron on a launch monitor — it’s the most repeatable.')+'</div>'+
+        '<input id="dBody" type="number" inputmode="decimal" placeholder="Weight" />'+
+        '<input id="dSpeed" type="number" inputmode="decimal" placeholder="7-iron mph" />'+
+        '<input id="dDrive" type="number" inputmode="decimal" placeholder="Driver yds" />'+
+      '</div>'+
+      '<button id="dAdd" class="dl-add" type="button">Add</button>'+
+      '<div class="dl-hint">Driver carry is your headline number; weight, 7-iron speed &amp; a lift feed your <b>Octane</b>. '+
+        (lastDrive?('Last drive: <b>'+lastDrive+'</b> yds'):'Log your driver carry — off a launch monitor, or just how far you hit it.')+'</div>'+
       '</div>';
     // 5. AI read on your own numbers.
     html += '<button class="dash-ai" data-ask="read"><span class="dai-ic">💬</span>'+
@@ -4467,7 +4525,7 @@
     } else {
       html+='<div class="acct-card hero center"><div class="acct-bigico">☁</div>'+
         '<h3>Save &amp; sync your progress</h3>'+
-        '<p>One-tap email login — no password. Your calculator, workout log and Score follow you across devices.</p>'+
+        '<p>One-tap email login — no password. Your calculator, workout log and Octane follow you across devices.</p>'+
         '<button class="acct-btn" id="acctSignIn">Sign in / Create account</button></div>';
     }
     html+='<div class="acct-card"><div class="acct-head">⛳ Full access — unlocked</div>'+
@@ -4555,7 +4613,7 @@
   }
 
   /* ===================== PROGRESS / STATS VIEW =====================
-     A dedicated analytics screen: the FairwayFuel Score up top, then the
+     A dedicated analytics screen: the Octane score up top, then the
      trends that prove the system works — clubhead speed (the north star),
      bodyweight, estimated 1RM on the big lifts, and training consistency.
      All from data the app already records (ff_body + the workout log). */
@@ -4690,7 +4748,7 @@
         '<input id="prBody" type="number" inputmode="decimal" placeholder="Weight (lb)" />'+
         '<input id="prSpeed" type="number" inputmode="decimal" placeholder="7-iron (mph)" />'+
         '<button id="prAdd" type="button">Add</button></div>'+
-      '<div class="pc-addhint">Bodyweight + clubhead speed feed your trends and your FairwayFuel Score.</div></div>';
+      '<div class="pc-addhint">Bodyweight + clubhead speed feed your trends and your Octane score.</div></div>';
 
     // ---- Leaderboard (opt-in, competitive) ----
     html += renderLeaderboardCard();
@@ -4967,9 +5025,13 @@
         if(a){ var nx=Math.max(-600, Math.min(600, lsGet("ff_kcal_adj",0)+a.deltaKcal)); lsSet("ff_kcal_adj", nx); } }
       lsSet("ff_lastcheckin", Date.now()); try{ calc(); }catch(e2){} renderDash(); return; }
     if(e.target.id==="dAdd"){
-      var wv=$("dBody")?$("dBody").value:"", sv=$("dSpeed")?$("dSpeed").value:"";
-      if(!wv && !sv) return;
-      var body=lsGet("ff_body",[]); body.push({ date:todayStr(), w:wv, s:sv }); lsSet("ff_body", body);
+      var wv=$("dBody")?$("dBody").value:"", sv=$("dSpeed")?$("dSpeed").value:"", dv=$("dDrive")?$("dDrive").value:"";
+      if(!wv && !sv && !dv) return;
+      var body=lsGet("ff_body",[]), today=todayStr(), row=null;
+      for(var bi=body.length-1;bi>=0;bi--){ if(body[bi] && body[bi].date===today){ row=body[bi]; break; } }
+      if(!row){ row={ date:today }; body.push(row); }           // one merged entry per day
+      if(wv!=="") row.w=wv; if(sv!=="") row.s=sv; if(dv!=="") row.d=dv;
+      lsSet("ff_body", body);
       renderDash();
       return;
     }
@@ -5227,7 +5289,7 @@
             '<div class="ob-sumv"><div class="v">'+(t?t.kcal:"—")+'</div><div class="k">kcal / day</div></div>'+
             '<div class="ob-sumv"><div class="v">'+(t?t.proteinG:"—")+'<small>g</small></div><div class="k">protein</div></div>'+
             '<div class="ob-sumv"><div class="v">'+(t?t.carbG:"—")+'<small>g</small></div><div class="k">carbs</div></div></div>'+
-          '<p class="ob-p">That’s your daily fuel for <b>'+((GOALS[ob.goal]&&GOALS[ob.goal].label)||"your goal")+'</b>. Your 20-week training plan and FairwayFuel Score are ready.</p>'+
+          '<p class="ob-p">That’s your daily fuel for <b>'+((GOALS[ob.goal]&&GOALS[ob.goal].label)||"your goal")+'</b>. Your 20-week training plan and Octane score are ready.</p>'+
           '<div class="ob-startcue">📅 Tapping below makes <b>today Day 1</b> — your Week 1 plan starts <b>right now</b> and counts forward from today. (Just looking? Use the link below — nothing starts until you say go.)</div>';
         nextLabel="Start — today is Day 1 →";
       }
