@@ -391,7 +391,132 @@ Almost no golf study has tested within-session order, rest, or reps-to-velocity-
 
 ---
 
-## 11. Sources & further reading (independent)
+## 11. Does muscle actually turn into distance? (the thesis, stress-tested)
+
+> A third independent deep-research pass (peer-reviewed / independent-first, adversarially
+> verified — 25 claims checked, 23 confirmed, 2 killed) aimed straight at FairwayFuel's core
+> premise: **does building the body actually produce clubhead speed and driving distance?**
+> **Bottom line: yes — the evidence backs the thesis — but the honest version is "turn muscle
+> into _power_ into distance." It's lean, fast-firing muscle that drives speed, not bulk, and
+> flexibility for its own sake does essentially nothing for it.**
+
+### 11.1 Mass → speed: supported, with the right framing (HIGH confidence)
+
+- **Lean/fat-free mass tracks with speed gains.** In a 2-year longitudinal study of 19 skilled
+  junior golfers, clubhead-speed improvement correlated with **fat-free-mass gain (r ≈ 0.42,
+  P = 0.06)**, and the authors explicitly recommended adding **active muscle mass, not total
+  bodyweight.** In 33 elite males (Hcp +5→0), **body mass ↔ clubhead speed r ≈ 0.51.** In 90 male
+  college students, trunk and arm muscle mass were higher in golfers and predicted better scoring.
+- **How big?** Modest-to-moderate — roughly **~20–26% of the variance** in these samples. Real,
+  but not the whole story, and correlational.
+- **The honest caveat we keep:** the junior-golfer data are confounded by **growth/maturation**
+  (body *height* was actually the single strongest correlate there, r ≈ 0.56). So we frame mass as
+  **"lean / quality mass,"** a *means to power* — exactly the `mass + clubhead-speed` throughline in
+  the intro, not "get big to hit it far."
+
+### 11.2 Strength & power dominate; flexibility is trivial (HIGH — two meta-analyses)
+
+Two independent meta-analyses agree on the ranking of physical qualities vs clubhead speed:
+
+| Quality | Correlation with clubhead speed | Source |
+|---|---|---|
+| **Upper-body power** (explosive / med-ball) | **r ≈ 0.51** | Ehlert 2021 meta |
+| **Lower-body strength** | r ≈ 0.46 | Ehlert 2021 |
+| Upper-body strength | r ≈ 0.41 | Ehlert 2021 |
+| Lower-body power | r ≈ 0.38 | Ehlert 2021 |
+| **General / passive flexibility** | **r ≈ 0.03 (95% CI −0.08 to 0.14 — crosses zero)** | Ehlert 2021 |
+
+- The 2024 *Sports Medicine* meta-analysis (Brennan et al., ~1,087 golfers) corroborates:
+  **strength/power r ≈ 0.47–0.82; flexibility/balance not significantly associated.**
+- **This is the contrarian core of the app, and it's well-evidenced:** train the engine (strength +
+  power), and don't sell stretching as a speed lever. (Mobility still matters — for *injury* — see
+  §11.6. That's a different claim.)
+
+### 11.3 Which lifts transfer, and does causation hold up? (HIGH)
+
+- **Best-evidenced lifts:** **1RM back squat ↔ CHS r ≈ 0.54** (Hellström, elite) and **r ≈ 0.64**
+  (Oranchuk, collegiate); **power clean r ≈ 0.70; CMJ r ≈ 0.73.** Grip strength is a moderate
+  correlate (r ≈ 0.31–0.36). **Dynamic barbell strength beats isometric** (1RM squat shows stronger
+  CHS links than the isometric mid-thigh pull).
+- **It's causal, not just correlational.** In an **8-week periodized barbell program**, NCAA D-II
+  golfers gained clubhead speed, ball speed, squat, clean and CMJ, while a **bodyweight/rotational
+  control group's clubhead speed actually declined (p = 0.028)** — a rare between-group result. A
+  **10-week supervised resistance program** in 45 amateur **female** golfers raised **driver speed
+  (p = 0.001) and driver distance (p = 0.020).**
+- **Caveat:** intervention samples are small (n ≈ 12–45) and several lacked a true non-training
+  control; individually underpowered, but **directionally consistent** across studies and with the
+  meta-analytic correlations.
+
+### 11.4 What fast swingers *do* differently (HIGH — biomechanics)
+
+- A **5-metric model** — X-factor at impact, peak pelvis velocity, peak lead-foot ground force, and
+  the *timing* of peak trunk and peak arm velocity — explained **85% of ball-velocity variance**
+  (McHugh et al. 2024, n = 33 males).
+- Proficient golfers showed **greater X-factor held into impact** (≈ 9° more than average, 15° more
+  than unskilled) and **much sharper pre-impact trunk deceleration** (≈ 83% more than average) —
+  i.e., the **proximal-to-distal kinematic sequence** (§2) executed harder and later. Unskilled
+  swingers were *slow* to reach peak trunk velocity and peak lead-foot force.
+- These are **sequencing/technique** variables — the reason we say we *build the engine, the coach
+  refines the sequence.*
+
+### 11.5 Ground force: rotation and bracing, not just pushing down (HIGH)
+
+- A **2025/26 *Sports Medicine* systematic review** (24 studies) found **moderate-to-strong** ground-
+  reaction-force / centre-of-pressure links to clubhead speed and skill, and calls GRF/CoP a
+  **trainable** contributor.
+- The key nuance: it isn't just *vertical* force **magnitude**. In Han et al. (n = 63, Hcp ≤ 3, dual
+  force plates), the **forward/backward GRF moment** and the **vertical free (pivoting/rotational)
+  moment** were the primary moments tied to CHS; the instant the **lead arm is parallel to the
+  ground** is peak angular effort, and **loading onto the lead foot** near that instant is critical.
+  → This is exactly why the plan trains **lead-leg bracing and rotational power,** not just vertical
+  jumps. *(Citation note: the Han force-plate study is **PMID 31042142**, not 28822263.)*
+
+### 11.6 Mobility is an injury lever, not a speed lever (MEDIUM — don't conflate the two)
+
+- **General/passive flexibility → speed: essentially nothing** (r ≈ 0.03, §11.2).
+- **But specific rotational mobility → injury: real.** Amateur golfers **with low-back pain** had a
+  **~10° deficit in lead-hip internal rotation** (21.1° vs 31.1°; estimated Cohen's *d* ≈ 1.1, a
+  **large** effect). Association, not proof of cause — and only in the *lead* hip.
+- **The distinction we must preserve:** "general flexibility doesn't predict speed" is well-supported;
+  it does **not** license claiming rotational hip/thoracic **mobility** is useless — that's a
+  *different construct*, and reduced lead-hip IR is tied to injury risk. So: **mobility work earns its
+  place as injury-proofing (§8), framed honestly — not sold as a speed hack.** (Direct evidence
+  linking *thoracic* rotation ROM to clubhead speed was **not** confirmed in this pass — an open
+  question, §11.8.)
+
+### 11.7 Special populations (MEDIUM — thinner data)
+
+- **Women:** the same levers work — 10-week resistance training raised driver speed and distance
+  (Hegedus 2016).
+- **Older (50+):** an 8-week progressive program in ~71-year-old men raised **clubhead speed +4.9%**
+  while controls declined.
+- **Evidence gap:** **higher-handicap recreational *men*** are genuinely underrepresented — most
+  correlational data come from skilled/elite males. We should treat the numbers as *directional* for
+  the everyday player, and lean on **the app's own before/after driver-carry trend** as the per-user
+  proof (same stance as §9.6).
+
+### 11.8 What this pass could NOT confirm (open questions)
+
+- **A maximal-strength "threshold"** — the point where more max strength stops adding speed and
+  velocity/power work takes over — was **not quantified** by any verified source. We keep both
+  strength *and* dedicated speed work rather than assuming a cutoff.
+- **Tapering/peaking and detraining time-course** (how fast speed fades when training stops) — no
+  claim survived verification here; §7's taper guidance stays flagged as general S&C, not golf-RCT.
+- **Thoracic-spine rotation ROM vs clubhead speed** specifically — unconfirmed (only lead-hip-IR-vs-
+  injury and general-flexibility-vs-speed were established).
+- Two claims were **killed in verification** and are *not* used: a specific force-plate study's
+  subject-count characterization, and a claim that traditional and golf-specific resistance training
+  are strictly equivalent.
+
+> **Net effect on FairwayFuel:** the thesis holds — **build lean muscle, convert it to power, and the
+> yards follow** — so nothing in the program needs to change. What this sharpens is the *language*:
+> say **"lean/quality mass → power → distance,"** keep flexibility out of the speed pitch (it's
+> injury insurance), and keep proving it **per-user** with the driver-carry and 7-iron trends rather
+> than leaning on any single study's number.
+
+---
+
+## 12. Sources & further reading (independent)
 
 - **Launch-monitor norms:** TrackMan & FlightScope publicly published average club/ball
   data (tour and amateur).
@@ -425,6 +550,24 @@ Almost no golf study has tested within-session order, rest, or reps-to-velocity-
 - **Golf-strength practitioner sources (credible):** University of Utah Health golf clinic;
   Golf Digest ("ground-up sport"); Par4Success — the same public sources cited in
   `NUTRITION-AND-TRAINING-REFERENCE.md`.
+- **Thesis validation — mass/strength/power vs clubhead speed (see §11):** Brennan et al. 2024
+  (*Sports Medicine* meta-analysis of physical characteristics vs CHS, ~1,087 golfers, PMC11239735);
+  Ehlert 2021 (three-level meta-analysis, *Eur J Sport Sci*, strength/power vs flexibility r-values);
+  Hellström 2008 (*Relation between physical tests and CHS in elite golfers*, body mass / 1RM squat
+  correlations); the 2-year junior-golfer longitudinal study (fat-free-mass ↔ CHS r ≈ 0.42, PMID
+  36722710); college-golfer trunk/arm muscle-mass comparison (amateur/pro vs non-golfer);
+  **Oranchuk et al. 2020** (*J Strength Cond Res*, 8-week barbell strength-and-power RCT in collegiate
+  golfers — between-group CHS result); **Hegedus et al. 2016** (10-week resistance training in 45
+  amateur **female** golfers — driver speed & distance); **Thompson et al. 2007** (8-week program in
+  older men, PMID 17313268, CHS +4.9%).
+- **Biomechanics & ground force (see §11.4–11.5):** McHugh et al. 2024 (*J Strength Cond Res* —
+  5-metric model = 85% of ball-velocity variance; X-factor at impact + trunk deceleration); the
+  2025/26 *Sports Medicine* PRISMA systematic review of GRF & centre-of-pressure vs CHS/skill
+  (24 studies, DOI 10.1007/s40279-025-02391-3); **Han et al.** dual-force-plate golfer–ground
+  interaction moments (**PMID 31042142** — forward/backward & vertical free moment as primary drivers;
+  note: *not* PMID 28822263).
+- **Mobility vs injury (contrarian check, see §11.6):** amateur golfers with low-back pain — lead-hip
+  internal-rotation deficit (~10°, PMID 19897166); general-flexibility-vs-CHS null from Ehlert 2021.
 
 > Where a specific number mattered (e.g. tour averages), it was checked against multiple
 > public sources. This document deliberately uses **independent, public** references and

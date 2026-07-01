@@ -307,12 +307,27 @@ This is the short list — almost everything above is general fitness. Golf only
 > X-factor, ground force, the driver→exercise map, and public speed benchmarks — lives in
 > its companion doc [`CLUBHEAD-SPEED-REFERENCE.md`](./CLUBHEAD-SPEED-REFERENCE.md).
 
+> **Does the "mass → distance" thesis actually hold?** An independent, peer-reviewed-first
+> research pass (verified in `CLUBHEAD-SPEED-REFERENCE.md` §11) says **yes, with the framing this
+> program already uses.** Lean/fat-free mass tracks with clubhead-speed gains (fat-free-mass ↔ CHS
+> **r ≈ 0.42**; body mass **r ≈ 0.51** in elite males); **strength and power are the dominant
+> physical drivers** (upper-body power **r ≈ 0.51**, lower-body strength **r ≈ 0.46**; 1RM back
+> squat **r ≈ 0.54–0.64**), and controlled programs *raise* driver speed and distance in men, women,
+> and 50+ golfers. The nuance that shapes our language: it's **lean, fast-firing muscle → power →
+> distance**, **not bulk** — and **general flexibility does essentially nothing for speed
+> (r ≈ 0.03).** So build the muscle, convert it to power, and keep the mobility work for what it
+> *actually* earns (injury-proofing, below).
+
 1. **Power-to-weight ratio.** Clubhead speed comes from power *relative to bodyweight* and
    how fast you rotate — not raw size. Don't bulk into immobility. A leaner, more powerful
    athlete often out-drives a heavier, slower one. This is why FairwayFuel frames bulking
    as a *means to speed*, with a Lean Out phase to follow.
-2. **Mobility & rotation are sacred.** Big muscles that can't turn won't help your driver.
-   Keep thoracic-rotation and hip-mobility work in even during a hard bulk.
+2. **Mobility & rotation earn their place — mostly as injury insurance.** Big muscles that
+   can't turn won't help your driver, but be honest about *why* we train mobility: passive
+   flexibility does **not** predict clubhead speed (r ≈ 0.03), whereas a **lead-hip
+   internal-rotation deficit (~10°) is strongly tied to golfers' low-back pain.** So we keep
+   thoracic-rotation and hip-mobility work in — even during a hard bulk — to **protect the
+   back and preserve the range the swing needs**, not as a speed hack. *(Detail: CLUBHEAD §11.6.)*
 3. **On-course fueling (the genuinely golf-specific bit).** A round is **4–5 hours of
    low-intensity walking plus repeated high-skill, high-focus efforts.** Nutrition goals
    shift from *building* to *sustaining energy and cognition*:
