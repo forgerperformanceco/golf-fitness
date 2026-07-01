@@ -1,0 +1,100 @@
+# FairwayFuel — cloud builds via Codemagic (no Mac needed).
+#
+# Codemagic runs a cloud macOS machine, so a Windows user can build, sign and
+# ship the iOS app to the App Store — and optionally the Android app to Play.
+#
+# The native ios/ and android/ projects are generated FRESH in CI from the
+# committed Capacitor config (capacitor.config.json + package.json + www/), so
+# you don't have to generate them on Windows. Signing is handled by Codemagic's
+# integrations (see CODEMAGIC-SETUP.md for the one-time UI setup).
+#
+# Docs: https://docs.codemagic.io/yaml-quick-start/building-a-capacitor-app/
+
+workflows:
+  # ────────────────────────────────────────────────────────────────────────
+  # iOS → App Store / TestFlight   (the reason we're here — no Mac required)
+  # ────────────────────────────────────────────────────────────────────────
+  ios-app-store:
+    name: FairwayFuel iOS — App Store
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    integrations:
+      # Name of the App Store Connect API key you add in the Codemagic UI
+      # (Teams/Personal → Integrations → App Store Connect). Rename to match.
+      app_store_connect: FairwayFuel ASC key
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: app.fairwayfuel
+      node: 20
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Install npm dependencies
+        script: npm ci
+      - name: Build the web bundle (www/)
+        script: npm run build:www
+      - name: Generate / sync the iOS project
+        script: |
+          if [ -d "ios" ]; then npx cap sync ios; else npx cap add ios; fi
+      - name: Set up automatic code signing
+        script: xcode-project use-profiles
+      - name: Set the build number
+        script: |
+          cd ios/App
+          agvtool new-version -all "$PROJECT_BUILD_NUMBER"
+      - name: Build the signed IPA
+        script: |
+          xcode-project build-ipa \
+            --workspace "ios/App/App.xcworkspace" \
+            --scheme "App"
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        # Flip to true (and add a beta group) once you're happy on TestFlight:
+        # submit_to_app_store: false
+
+  # ────────────────────────────────────────────────────────────────────────
+  # Android → Google Play   (optional — you can also build this locally on
+  # Windows in Android Studio; see CODEMAGIC-SETUP.md)
+  # ────────────────────────────────────────────────────────────────────────
+  android-play:
+    name: FairwayFuel Android — Play
+    instance_type: linux_x2
+    max_build_duration: 60
+    environment:
+      android_signing:
+        # Name of the keystore you upload in the Codemagic UI
+        # (Teams/Personal → Code signing identities → Android keystores).
+        - fairwayfuel_upload
+      node: 20
+      vars:
+        PACKAGE_NAME: "app.fairwayfuel"
+    scripts:
+      - name: Install npm dependencies
+        script: npm ci
+      - name: Build the web bundle (www/)
+        script: npm run build:www
+      - name: Generate / sync the Android project
+        script: |
+          if [ -d "android" ]; then npx cap sync android; else npx cap add android; fi
+      - name: Point Gradle at the SDK
+        script: echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
+      - name: Build the release AAB
+        script: |
+          cd android
+          ./gradlew bundleRelease
+    artifacts:
+      - android/app/build/outputs/**/*.aab
+      - android/app/build/outputs/**/*.apk
+    publishing:
+      google_play:
+        # Add a Google Play service-account JSON as an encrypted env var in the
+        # Codemagic UI, named GCLOUD_SERVICE_ACCOUNT_CREDENTIALS.
+        credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+        track: internal
+        submit_as_draft: true

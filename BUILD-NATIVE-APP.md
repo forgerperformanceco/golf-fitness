@@ -15,15 +15,18 @@ keeps working exactly as-is; this is packaging, not a rewrite.
 | CORS (`supabase/functions/_shared/cors.ts`) | Already allows the native shells (`capacitor://localhost`, `http://localhost`) |
 | SW guard (`index.html`) | Service worker is skipped inside the native shell |
 
-**What you do (needs a Mac + the store accounts):** everything below.
+**What you do:** everything below — **on a Mac.** If you're on **Windows/Linux
+(no Mac), use Codemagic cloud builds instead → see [`CODEMAGIC-SETUP.md`](./CODEMAGIC-SETUP.md).**
+Android can be built locally on Windows (§4); only iOS needs macOS or a cloud Mac.
 
 ---
 
 ## 0. One-time prerequisites
 
 - **Node 18+** (you have it).
-- **Xcode** (latest) + **CocoaPods** (`sudo gem install cocoapods`) — iOS builds. **macOS only.**
-- **Android Studio** (latest) + JDK 17 — Android builds. Any OS.
+- **Xcode** (latest) + **CocoaPods** (`sudo gem install cocoapods`) — iOS builds.
+  **macOS only** — on Windows, use Codemagic (`CODEMAGIC-SETUP.md`) instead.
+- **Android Studio** (latest) + JDK 17 — Android builds. **Any OS, incl. Windows.**
 - **Apple Developer Program** — $99/yr → https://developer.apple.com/programs/
 - **Google Play Developer** — $25 once → https://play.google.com/console/signup
 
