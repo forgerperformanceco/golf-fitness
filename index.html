@@ -438,6 +438,12 @@
   /* speed day — same clean table as lifts, kept distinct with a warm accent */
   .speedday .day-head { background:#fdf1e3; color:#9a5b1c; }
   .speed-intro { padding:11px 15px; font-size:12.5px; color:#7a5320; background:#fffaf3; border-bottom:1px solid var(--line); line-height:1.45; }
+  .speed-toggle { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:11px 15px; background:#fffaf3; border-bottom:1px solid var(--line); }
+  .speed-toggle .st-lbl { font:700 12px system-ui; color:#9a5b1c; }
+  .seg.speed-seg { width:auto; flex:0 0 auto; background:#f2e3d0; }
+  .seg.speed-seg button { padding:6px 13px; font-size:13px; color:#9a5b1c; }
+  .seg.speed-seg button.active { background:#fff; color:#8a4d15; }
+  .speed-why { margin:11px 15px 0; padding:10px 12px; font-size:11.5px; line-height:1.5; color:#6b7a63; background:#f4f8f4; border:1px solid var(--line); border-radius:10px; }
   .speedday table.ex td { vertical-align:top; }
   .exname-main { font-weight:600; color:#243a2c; }
   .exnote { font-size:11.5px; color:var(--muted); margin-top:2px; line-height:1.35; }
@@ -3083,15 +3089,30 @@
       chips: ["💪 Size + strength + speed every week", "📈 Progressive overload", "🔁 Same week × 20", "🪫 Deload every 6th week"],
       speed: {
         title: "Speed & Power",
-        intro: "Max-intent reps, full recovery \u2014 every rep fast or it doesn't count. Weekly, plus a short speed burst after one lift day; keep a rest day around heavy overspeed and build a strength base first.",
-        ex: [
-          ["Overspeed swings", "5 \u00d7 6", "Light sticks swung at MAX speed \u2014 light beats heavy here. Both sides, full rest, track on a radar."],
-          ["Ground-force footwork", "4 \u00d7 5 / side", "Lead-foot push \u2014 drive into the ground from the top."],
-          ["Rotational med-ball throws", "5 \u00d7 4 / side", "Side throw + step-behind, max effort."],
-          ["Overhead med-ball slam", "4 \u00d7 5", "Vertical power \u2014 full overhead reach, slam hard, reset every rep."],
-          ["Box or broad jump", "5 \u00d7 3", "Full recovery between jumps."],
-          ["Lateral bound", "4 \u00d7 4 / side", "Explosive side-to-side \u2014 the swing's weight shift."]
-        ]
+        note: "Why this order: a hard vertical jump + explosive throws are the strongest measured predictors of clubhead speed (two independent meta-analyses), so they lead while you're fresh. Overspeed swings have weaker, mostly short-term evidence \u2014 an optional add-on, not the main event. Your own driver + 7-iron trend is the real proof.",
+        field: {
+          intro: "Power turns muscle into clubhead speed \u2014 the two biggest levers are a hard vertical jump and explosive throws. Do these FIRST, while you're fresh: max-intent, full rest, low reps so nothing slows down. Warm up first, ramp in over your first weeks, and train both sides.",
+          ex: [
+            ["Countermovement jump", "4 \u00d7 3", "Dip and explode straight up \u2014 max height, land soft, full recovery between reps. (The #1 physical predictor of clubhead speed.)"],
+            ["Rotational med-ball throw", "4 \u00d7 4 / side", "Rotate and release at max speed; reset every rep. Both sides."],
+            ["Seated chest throw", "3 \u00d7 4", "Sit on the floor, explosive chest pass \u2014 pure upper-body pop, no legs."],
+            ["Lateral bound", "3 \u00d7 4 / side", "Explosive side-to-side \u2014 the downswing weight shift."],
+            ["Overhead med-ball slam", "3 \u00d7 4", "Full overhead reach, slam hard \u2014 total-body vertical power."],
+            ["Ground-force footwork", "3 \u00d7 5 / side", "Lead-foot push \u2014 drive into the ground from the top of the swing."],
+            ["Overspeed swings (optional)", "3 \u00d7 5", "Light stick at max intent, both sides, full rest. A cheap nudge to your top gear \u2014 modest evidence, ramp in."]
+          ]
+        },
+        gym: {
+          intro: "Same power qualities, built with a barbell, dumbbells and a kettlebell \u2014 loaded so you can progress them. Explosive work first while you're fresh: light loads moved at MAX speed, full rest, low reps. If a rep slows down, the set's over. Warm up first, ramp in.",
+          ex: [
+            ["Trap-bar jump", "4 \u00d7 3", "Light load \u2014 explode straight off the ground, land soft, full recovery. (No trap bar? Dumbbell jump squat.)"],
+            ["Landmine rotational throw", "4 \u00d7 4 / side", "Drive from the hips and rotate the bar across at max speed. (No landmine? Fast cable or band chop.)"],
+            ["Speed bench press", "4 \u00d7 4", "Light bar (~half your usual) \u2014 every rep max velocity up. Upper-body ballistic power. (Or an explosive DB push press.)"],
+            ["Kettlebell swing", "3 \u00d7 6", "Explosive hip snap \u2014 the ground force that starts the downswing. Hips, not arms."],
+            ["Cable lateral chop", "3 \u00d7 4 / side", "Explosive rotation across the body \u2014 the weight shift. (A band works too.)"],
+            ["Overspeed swings (optional)", "3 \u00d7 5", "Light stick at max intent, both sides, full rest. A cheap nudge to your top gear \u2014 modest evidence, ramp in."]
+          ]
+        }
       },
       days5: [
         { name:"Day 1 \u2014 Lower (Quads)", tag:"Lift", ex:[
@@ -3226,6 +3247,13 @@
   };
   function normName(n){ return n.replace(/\([^)]*\)/g,"").replace(/\s+/g," ").trim(); }
   function have(k){ return !!planState.equip[k]; }
+  // Speed & Power day: functional "Field" version vs loaded "Gym" version. Remembered once set;
+  // otherwise defaulted from equipment (a barbell → you're probably in a gym).
+  function speedMode(){
+    var m=lsGet("ff_speedmode", null);
+    if(m==="field" || m==="gym") return m;
+    return have("barbell") ? "gym" : "field";
+  }
   function resolveEx(rawName, sr){
     var e = EX[normName(rawName)];
     if(!e) return { name:rawName, sr:sr, status:"ok" };
@@ -3358,7 +3386,7 @@
         '<div class="restday">Active recovery: walk a casual 9, mobility flow, foam roll. Light is fine — but let the body rebuild. This is when muscle and speed are made.</div></div>';
     }
     if(d.type==="speed"){
-      var s=p.speed;
+      var smode=speedMode(), s=p.speed[smode];
       var srows = s.ex.map(function(e){
         var id="why"+(whyId++);
         return '<tr><td><button class="exwhy-btn" type="button" data-whyrow="'+id+'" aria-expanded="false"><span class="exname-main">'+purposeFor(e[0])+' '+e[0]+'</span> <span class="exwhy-i">ⓘ</span></button>'+
@@ -3366,11 +3394,20 @@
                '<td class="sets">'+e[1]+'</td></tr>'+
                '<tr class="exwhy-row" id="'+id+'" hidden><td colspan="2"><div class="exwhy-panel">'+whyHtml(e[0],false)+'</div></td></tr>';
       }).join("");
-      var noGear = "No gear for overspeed? Use a light stick or your driver. No med ball? A heavy backpack, band, or dumbbell works.";
+      var noGear = smode==="gym"
+        ? "No cable? A band anchored at chest/hip height covers the chops. No landmine? Wedge a barbell into a corner."
+        : "No gear for overspeed? A light stick or your driver. No med ball? A heavy backpack, band, or dumbbell works.";
+      var toggle = '<div class="speed-toggle"><span class="st-lbl">Training at a…</span>'+
+        '<span class="seg sm speed-seg">'+
+          '<button type="button" data-speedmode="field"'+(smode==="field"?' class="active"':'')+'>⛳ Field</button>'+
+          '<button type="button" data-speedmode="gym"'+(smode==="gym"?' class="active"':'')+'>🏋️ Gym</button>'+
+        '</span></div>';
       return '<div class="day speedday"><div class="day-head">'+d.name+' <span class="tag '+(d.tag)+'">'+labelFor(d.tag)+'</span></div>'+
+        toggle+
         warmupHtml("speed", false)+
         '<div class="speed-intro">'+s.intro+'</div>'+
         '<table class="ex"><tr><th>Drill</th><th style="text-align:right">Sets × Reps</th></tr>'+srows+'</table>'+
+        '<div class="speed-why">'+p.speed.note+'</div>'+
         '<div class="equip-note" style="padding:10px 15px 8px;">'+noGear+'</div>'+logFoot(d.name)+'</div>';
     }
     var rows = d.ex.map(function(row){
@@ -3696,7 +3733,7 @@
     if(existing) return JSON.parse(JSON.stringify(existing));
     var ex;
     if(day.type==="speed"){
-      ex = PHASES[0].speed.ex.map(function(e){ var n=parseSets(e[1]), sets=[]; for(var i=0;i<n;i++) sets.push({w:"",r:"",done:false});
+      ex = PHASES[0].speed[speedMode()].ex.map(function(e){ var n=parseSets(e[1]), sets=[]; for(var i=0;i<n;i++) sets.push({w:"",r:"",done:false});
         return { name:e[0], target:e[1], sets:sets }; });
     } else {
       ex = day.ex.map(function(row){ var base=applySwapName(row[0]);   // user swap first
@@ -4903,6 +4940,8 @@
     if(e.target.closest("[data-reset]")){ if(confirm("Restart the plan from week 1?")) resetPlan(); return; }
     var pv=e.target.closest("[data-planview]");
     if(pv && !pv.disabled){ lsSet("ff_planview", pv.getAttribute("data-planview")); focusDay=null; renderPhase(); return; }
+    var spm=e.target.closest("[data-speedmode]");
+    if(spm){ lsSet("ff_speedmode", spm.getAttribute("data-speedmode")); renderPhase(); return; }
     var fdc=e.target.closest("[data-focusday]");
     if(fdc){ focusDay=fdc.getAttribute("data-focusday"); renderPhase(); return; }
     // ---- inline logger ----
