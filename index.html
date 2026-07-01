@@ -444,6 +444,9 @@
   .seg.speed-seg button { padding:6px 13px; font-size:13px; color:#9a5b1c; }
   .seg.speed-seg button.active { background:#fff; color:#8a4d15; }
   .speed-why { margin:11px 15px 0; padding:10px 12px; font-size:11.5px; line-height:1.5; color:#6b7a63; background:#f4f8f4; border:1px solid var(--line); border-radius:10px; }
+  .speed101-wrap { padding:0 15px; }
+  .speed101 { margin-top:12px; }
+  .speed101 > summary { color:#9a5b1c; font-weight:800; }
   .speedday table.ex td { vertical-align:top; }
   .exname-main { font-weight:600; color:#243a2c; }
   .exnote { font-size:11.5px; color:var(--muted); margin-top:2px; line-height:1.35; }
@@ -3406,6 +3409,7 @@
         toggle+
         warmupHtml("speed", false)+
         '<div class="speed-intro">'+s.intro+'</div>'+
+        '<div class="speed101-wrap">'+speed101Html()+'</div>'+
         '<table class="ex"><tr><th>Drill</th><th style="text-align:right">Sets × Reps</th></tr>'+srows+'</table>'+
         '<div class="speed-why">'+p.speed.note+'</div>'+
         '<div class="equip-note" style="padding:10px 15px 8px;">'+noGear+'</div>'+logFoot(d.name)+'</div>';
@@ -3863,7 +3867,7 @@
     var n=name||""; function m(re){ return re.test(n); }
     // Speed-day drills first (most direct clubhead-speed transfer).
     if(m(/Overspeed|Speed Stick|SuperSpeed|Swing Trainer|Whoosh/i))
-      return { why:"Overspeed training tells your nervous system it's allowed to move faster than your normal swing — the most direct way to raise your speed ceiling. Light beats heavy here; you're training pure velocity.", cue:"Swing as fast as you physically can — speed is the only goal, both sides." };
+      return { why:"Overspeed swinging nudges your nervous system to allow a bit more speed than your normal swing. A light stick lets you move faster than usual — the evidence is modest, so treat it as a cheap add-on, not the main event.", cue:"Swing as fast as you physically can — speed is the only goal, both sides." };
     if(m(/Footwork|Ground.?force/i))
       return { why:"Clubhead speed starts from the ground up. Drilling the lead-foot push grooves the pressure shift that fires your hips — the move that turns leg drive into speed.", cue:"Drive hard into the ground from the top, like pushing the floor away." };
     if(m(/Med.?ball|Throw|Slam|Chest Pass|Punch|Scoop/i))
@@ -3900,7 +3904,7 @@
   // Curated and movement-pattern matched (IP-clean, offline). Pairs with liftWhy().
   function exerciseForm(name){
     var n=name||""; function m(re){ return re.test(n); }
-    if(m(/Overspeed|Speed Stick|Whoosh/i)) return { mu:"Full body · CNS / fast-twitch", cues:["Use a light stick — light beats heavy for speed.","Make smooth, balanced full swings at MAX effort.","Swing both directions (dominant + non-dominant) each set.","Full rest between reps — every swing is all-out."], miss:["Swinging too hard and losing balance.","Going too heavy — kills the overspeed effect."] };
+    if(m(/Overspeed|Speed Stick|Whoosh/i)) return { mu:"Full body · CNS / fast-twitch", cues:["Use a light stick — it lets you swing faster than normal.","Make smooth, balanced full swings at MAX effort.","Swing both directions (dominant + non-dominant) each set.","Full rest between reps — every swing is all-out."], miss:["Swinging too hard and losing balance.","Grinding it as strength work — this is pure speed, ramp the volume in."] };
     if(m(/Footwork|Ground.?force/i)) return { mu:"Glutes · quads · calves · feet", cues:["Set up athletic, weight balanced.","Drive the lead foot hard into the ground from the top.","Feel the pressure shift toward the lead side.","Stay tall — push the floor, don't sway."], miss:["Swaying instead of pressing into the ground.","Standing too upright with no leg drive."] };
     if(m(/Med.?ball|Throw|Slam|Chest Pass|Punch|Scoop/i)) return { mu:"Core · hips · chest/shoulders", cues:["Load the back hip, then explode through.","Accelerate all the way through the release.","Throw violently — full follow-through.","Reset and rest fully between reps."], miss:["Holding back at release — defeats the purpose.","Using only the arms instead of the hips/core."] };
     if(m(/Jump|Bound|Broad|Hop|Plyo|Pogo/i)) return { mu:"Glutes · quads · hamstrings · calves", cues:["Load with a quick dip, arms back.","Explode up/out as fast as possible.","Land soft and balanced — absorb quietly.","Full reset every rep; quality over quantity."], miss:["Landing stiff or off-balance.","Grinding reps when they slow down — stop the set."] };
@@ -3923,6 +3927,23 @@
   }
   // YouTube form-video search (opens externally) — no media bundled, IP-clean.
   function formVideoUrl(name){ return "https://www.youtube.com/results?search_query=" + encodeURIComponent("how to "+name+" proper form technique"); }
+  // Speed 101 — teaches a strong-but-new-to-speed lifter WHY this day works and HOW to progress it
+  // (speed work progresses differently from hypertrophy). Collapsible, premium, on the speed card.
+  function speed101Html(){
+    return '<details class="fold speed101"><summary>🧠 New to speed work? How it works &amp; how to progress</summary><div class="fold-body">'+
+      '<div class="pb-sec"><h4>⚙️ Why this makes you longer</h4>'+
+        '<p>Lifting builds the <b>engine</b> — how much force your muscles can make (plus the mass behind the ball). But clubhead speed is about how <i>fast</i> you deliver that force, not just how much. This day is the <b>transmission</b>: it teaches your nervous system to fire your strength <b>fast</b>, in the swing’s pattern.</p>'+
+        '<p>That’s why in the research, <b>jump power and throw speed predict clubhead speed better than max strength</b> — and flexibility doesn’t predict it at all. <b>Strong-but-slow</b> is exactly the gap this day closes.</p></div>'+
+      '<div class="pb-sec"><h4>⚡ How to do it right</h4>'+
+        '<p><b>Every rep max-velocity.</b> The opposite of a set to failure — move as fast as you physically can on every single rep.</p>'+
+        '<p><b>Low reps, full rest.</b> 3–5 reps, then rest fully. The instant a rep visibly slows down, the set is over — a slow rep trains the engine, not the speed.</p>'+
+        '<p><b>Fresh, not fried.</b> Do this rested (not straight after a leg-crushing session), and warm up first — max-intent rotation needs a ready body.</p></div>'+
+      '<div class="pb-sec"><h4>📈 How speed work progresses (not like your lifts)</h4>'+
+        '<p><b>Gym version:</b> add a little <b>load</b> to the ballistic moves (trap-bar jump, speed bench) — <i>but only while every rep still flies.</i> If the bar slows, drop back. Keep the speed; nudge the load.</p>'+
+        '<p><b>Field version:</b> progress by <b>output</b> — jump a little higher, throw a little farther — and slowly ramp your overspeed swings.</p>'+
+        '<p><b>The real scoreboard:</b> retest your <b>7-iron and driver every couple of weeks</b>. That number climbing is the progression that actually matters — everything above is just the input.</p></div>'+
+      '</div></details>';
+  }
   function whyHtml(name, withCoach){
     var w=liftWhy(name);
     return '<div class="why-why">'+w.why+'</div>'+
