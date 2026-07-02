@@ -52,11 +52,30 @@ jobs:
         with:
           enablement: true
 
+      - name: Stage served files only
+        # Publish ONLY what the app serves. Keep the .md strategy/reference docs,
+        # the backend (supabase/), the native projects (android/, ios/) and build
+        # tooling OFF the public app domain — they're already in the public repo,
+        # but there's no reason to serve them at fairwayfuel.app. CNAME MUST be
+        # kept or the custom domain breaks. Deny-list (not allow-list) so a new
+        # served asset is never accidentally dropped.
+        run: |
+          mkdir -p _site
+          rsync -a ./ _site/ \
+            --exclude '.git' --exclude '.github' --exclude '_site' \
+            --exclude 'node_modules' --exclude 'www' \
+            --exclude 'supabase' --exclude 'android' --exclude 'ios' \
+            --exclude 'assets' --exclude 'scripts' --exclude 'social' \
+            --exclude '*.md' --exclude '.env*' --exclude '.gitignore' \
+            --exclude 'package.json' --exclude 'package-lock.json' \
+            --exclude 'capacitor.config.json' --exclude 'codemagic.yaml' \
+            --exclude 'logo-source*.png'
+          echo "── Published to Pages ──"; find _site -type f | sort
+
       - name: Upload site
         uses: actions/upload-pages-artifact@v3
         with:
-          # The whole repo root — index.html lives here.
-          path: .
+          path: _site
 
       - name: Deploy to GitHub Pages
         id: deployment
