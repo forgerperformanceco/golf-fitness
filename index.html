@@ -1010,6 +1010,10 @@
   .acct-btn.danger { background:#fff; color:#b3402f; border:1.5px solid #eccac4; }
   .acct-btn.danger:active { background:#fbeeeb; }
   .acct-list { margin-bottom:13px; }
+  .acct-set { margin-top:15px; }
+  .acct-head + .acct-set { margin-top:4px; }
+  .acct-set-lbl { font:700 12.5px system-ui; color:var(--ink); margin-bottom:7px; }
+  .acct-set-lbl small { font-weight:500; color:var(--muted); }
   .goal-chips { display:flex; flex-wrap:wrap; gap:8px; }
   .goal-chips button { flex:1; min-width:52px; padding:11px 6px; border:1px solid var(--line); background:#fcfdfc;
     border-radius:12px; font:800 14px system-ui; color:var(--muted); cursor:pointer; }
@@ -4721,6 +4725,10 @@
   if(ffNotifPlugin()){ setTimeout(function(){ try{ ffNotifReschedule(); }catch(e){} }, 2500); }
 
   function acctRow(k,v){ return '<div class="acct-li"><span>'+k+'</span><b>'+v+'</b></div>'; }
+  // Reflect an Account-tab change onto the matching segmented control elsewhere
+  // (the calculator / Train fold) so the two stay in sync without a reload.
+  function ffSyncSeg(id, attr, val){ var s=$(id); if(!s) return;
+    Array.prototype.forEach.call(s.querySelectorAll("button"), function(b){ b.classList.toggle("active", b.getAttribute(attr)===val); }); }
   function renderAccount(){
     var el=$("accountBody"); if(!el) return;
     var user = window.FF && window.FF.user;
@@ -4762,22 +4770,29 @@
     }
     var t=lsGet("ff_targets",null), prof=lsGet("fairwayfuel",null);
     if(prof || t){
-      html+='<div class="acct-card"><div class="acct-head">Your profile</div><div class="acct-list">'+
+      html+='<div class="acct-card"><div class="acct-head">Your numbers</div><div class="acct-list">'+
         acctRow('Goal', t?t.goal:((prof&&prof.goal)||'—'))+
-        acctRow('Distance mission', goalYds()?('+'+goalYds()+' yds'):'—')+
         acctRow('Bodyweight', (prof&&prof.weight)?prof.weight+' lb':'—')+
-        acctRow('Training', ((prof&&prof.freq)||4)+' days/week')+
         acctRow('Daily target', t?t.kcal+' kcal':'—')+
         '</div><button class="acct-btn ghost" id="acctEdit">Edit my numbers</button>'+
         '<button class="acct-btn ghost" id="acctSetup">↻ Re-run guided setup</button></div>';
     }
-    // Distance mission — the swing goal, editable anytime with a tap (no dialog).
+    // Training setup — the three golf-plan levers, all tap-to-change, in one place
+    // (previously scattered: mission here, days in the Train fold, time in the calculator).
     var gy=goalYds();
-    html+='<div class="acct-card"><div class="acct-head">🎯 Your distance mission</div>'+
-      '<p class="acct-p">Yards to add to your driver over the 20 weeks — the dashboard tracks it against your real drives. Tap to change.</p>'+
-      '<div class="goal-chips" id="acctGoalChips">'+[5,10,15,20,25,30].map(function(y){
-        return '<button type="button" data-gy="'+y+'" class="'+(gy===y?'on':'')+'">+'+y+'</button>';
-      }).join("")+'</div></div>';
+    var curFreq=(typeof planState!=="undefined" && planState.freq)||((prof&&prof.freq)||4);
+    var curWk=(typeof state!=="undefined" && state.workout)||((prof&&prof.workout)||"morning");
+    html+='<div class="acct-card"><div class="acct-head">🎯 Your training setup</div>'+
+      '<div class="acct-set"><div class="acct-set-lbl">Distance mission <small>yards to add in 20 weeks</small></div>'+
+        '<div class="goal-chips" id="acctGoalChips">'+[5,10,15,20,25,30].map(function(y){
+          return '<button type="button" data-gy="'+y+'" class="'+(gy===y?'on':'')+'">+'+y+'</button>'; }).join("")+'</div></div>'+
+      '<div class="acct-set"><div class="acct-set-lbl">Training days / week <small>re-plans your week</small></div>'+
+        '<div class="seg" id="acctFreq">'+[4,5].map(function(f){
+          return '<button type="button" data-af="'+f+'" class="'+(curFreq===f?'active':'')+'">'+f+' days</button>'; }).join("")+'</div></div>'+
+      '<div class="acct-set"><div class="acct-set-lbl">Training time <small>sets meal timing + reminders</small></div>'+
+        '<div class="seg" id="acctWk">'+[["morning","Morning"],["midday","Midday"],["afternoon","Afternoon"],["evening","Evening"]].map(function(o){
+          return '<button type="button" data-aw="'+o[0]+'" class="'+(curWk===o[0]?'active':'')+'">'+o[1]+'</button>'; }).join("")+'</div></div>'+
+      '</div>';
     html+='<div class="acct-card"><div class="acct-head">🍽️ Your favorite foods</div>'+
       '<p class="acct-p">Tell us what you actually eat and your meal ideas + day plans get built around it. Set it once, tweak anytime.</p>'+
       '<button class="acct-btn ghost" id="acctFoods">Edit my foods</button></div>';
@@ -4824,6 +4839,25 @@
       var v=parseInt(b.getAttribute("data-gy"),10)||15;
       lsSet("ff_goalyds", v); try{ window.dispatchEvent(new Event("ff-data-changed")); }catch(_){}
       renderAccount(); try{ renderDash(); }catch(_){}
+    };
+    var afq=$("acctFreq"); if(afq) afq.onclick=function(ev){
+      var b=ev.target.closest("[data-af]"); if(!b) return;
+      var v=parseInt(b.getAttribute("data-af"),10)||4;
+      if(typeof planState!=="undefined") planState.freq=v;
+      ffSyncSeg("freqSeg","data-freq",String(v));      // keep the Train-tab fold in sync
+      try{ persist(); }catch(_){}
+      try{ renderPhase(); }catch(_){}
+      try{ ffNotifReschedule(); }catch(_){}             // reminders follow the new plan now
+      renderAccount();
+    };
+    var awk=$("acctWk"); if(awk) awk.onclick=function(ev){
+      var b=ev.target.closest("[data-aw]"); if(!b) return;
+      var v=b.getAttribute("data-aw");
+      if(typeof state!=="undefined") state.workout=v;
+      ffSyncSeg("workoutSeg","data-workout",v);          // keep the calculator in sync
+      try{ persist(); }catch(_){}
+      try{ ffNotifReschedule(); }catch(_){}              // reminder hour follows training time
+      renderAccount();
     };
     var su=$("acctSetup"); if(su) su.onclick=function(){ startOnboarding(true); };
     var af=$("acctFoods"); if(af) af.onclick=function(){ openFoodPrefs(); };
