@@ -1010,6 +1010,12 @@
   .acct-btn.danger { background:#fff; color:#b3402f; border:1.5px solid #eccac4; }
   .acct-btn.danger:active { background:#fbeeeb; }
   .acct-list { margin-bottom:13px; }
+  .calc-trainref { width:100%; text-align:left; display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;
+    background:#f5f8f4; border:1px solid var(--line); border-radius:12px; padding:12px 14px; cursor:pointer; }
+  .calc-trainref b { font:800 14px system-ui; color:var(--green-800); }
+  .calc-trainref span { font:600 12px system-ui; color:var(--muted); }
+  .calc-trainref span b { color:var(--green-700); font-weight:800; }
+  .calc-trainref:active { transform:translateY(1px); }
   .acct-set { margin-top:15px; }
   .acct-head + .acct-set { margin-top:4px; }
   .acct-set-lbl { font:700 12.5px system-ui; color:var(--ink); margin-bottom:7px; }
@@ -1446,12 +1452,10 @@
 
         <label class="field">
           <span class="lbl">When do you train? <span class="unit-suffix">drives your carb timing</span></span>
-          <div class="seg" id="workoutSeg">
-            <button type="button" data-workout="morning" class="active">Morning</button>
-            <button type="button" data-workout="midday">Midday</button>
-            <button type="button" data-workout="afternoon">Afternoon</button>
-            <button type="button" data-workout="evening">Evening</button>
-          </div>
+          <button type="button" class="calc-trainref" data-goview="account">
+            <b id="calcTrainTime">Morning</b>
+            <span>Meals are timed around this — change it in the <b>You</b> tab ›</span>
+          </button>
         </label>
 
         <label class="field" style="margin-bottom:8px;">
@@ -1800,6 +1804,7 @@
       v.classList.toggle("active", v.id === "view-" + view);
     });
     if(view==="dash") { try{ renderDash(); }catch(e){} }
+    if(view==="calc") { try{ ffRefreshCalcTrainTime(); }catch(e){} }
     if(view==="account") { try{ renderAccount(); }catch(e){} }
     if(view==="progress") { try{ renderProgress(); }catch(e){} }
     if(view==="gameday") { try{ renderGameDay(); }catch(e){} }
@@ -1978,7 +1983,8 @@
     });
   }
   wireSeg("sexSeg","data-sex","sex");
-  wireSeg("workoutSeg","data-workout","workout");
+  // Training time is edited in the Account "training setup" card (single home); the
+  // Fuel tab only references it — so no workoutSeg control lives here anymore.
 
   $("goals").addEventListener("click", function(e){
     var btn=e.target.closest(".goal"); if(!btn) return;
@@ -4729,6 +4735,11 @@
   // (the calculator / Train fold) so the two stay in sync without a reload.
   function ffSyncSeg(id, attr, val){ var s=$(id); if(!s) return;
     Array.prototype.forEach.call(s.querySelectorAll("button"), function(b){ b.classList.toggle("active", b.getAttribute(attr)===val); }); }
+  // The Fuel tab shows training time read-only (it's edited in Account) — keep that
+  // reference in sync with the single source of truth, state.workout.
+  var FF_WK_LABEL = { morning:"Morning", midday:"Midday", afternoon:"Afternoon", evening:"Evening" };
+  function ffRefreshCalcTrainTime(){ var el=$("calcTrainTime");
+    if(el) el.textContent = FF_WK_LABEL[(typeof state!=="undefined" && state.workout) || "morning"] || "—"; }
   function renderAccount(){
     var el=$("accountBody"); if(!el) return;
     var user = window.FF && window.FF.user;
@@ -4854,7 +4865,8 @@
       var b=ev.target.closest("[data-aw]"); if(!b) return;
       var v=b.getAttribute("data-aw");
       if(typeof state!=="undefined") state.workout=v;
-      ffSyncSeg("workoutSeg","data-workout",v);          // keep the calculator in sync
+      ffSyncSeg("workoutSeg","data-workout",v);          // keep any legacy control in sync
+      try{ ffRefreshCalcTrainTime(); }catch(_){}          // update the Fuel-tab reference
       try{ persist(); }catch(_){}
       try{ ffNotifReschedule(); }catch(_){}              // reminder hour follows training time
       renderAccount();
