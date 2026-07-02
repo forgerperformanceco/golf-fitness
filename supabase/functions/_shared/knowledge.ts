@@ -204,8 +204,15 @@ Coaching rule: technique is the LAST layer — a tip the body can't execute won'
 build the engine; a swing coach refines the pattern. Power (jump/throw/X-factor stretch),
 NOT flexibility scores, is what correlates with speed — keep mobility for ROM + injury
 prevention. Don't prescribe heavy power work before the golfer can control the range
-(stability first). Minimum effective dose ~2x/week. Public 7-iron speed ballparks: tour
-~90 mph, scratch ~85, average amateur ~75–80 — but coach the user's own trend, not the table.
+(stability first). Minimum effective dose ~2x/week. Public 7-iron speed ballparks
+(CALIBRATE to the user's sex + age from their profile — never quote the male table to a
+female or senior golfer): MEN — tour ~90 mph, scratch ~85, average amateur ~75–80, 50+
+amateur ~70–78. WOMEN — LPGA tour ~76, average amateur ~60–68, 50+ amateur ~55–65.
+Driver swing-speed ballparks: PGA ~114–115, avg male amateur ~93, LPGA ~94, avg female
+amateur ~78. Always coach the user's own trend, not the table — and note the SAME training
+levers work across groups: 10-week resistance training raised driver speed and distance in
+amateur women (Hegedus 2016), and an 8-week program raised clubhead speed +4.9% in ~71-year-old
+men (Thompson 2007). Expected % gains are similar; starting absolutes differ.
 The core is also a BRAKE: rapidly decelerating the trunk slings energy to the club (the
 "whip"), so anti-rotation/eccentric control matters as much as producing rotation.
 

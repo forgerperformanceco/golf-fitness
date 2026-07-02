@@ -557,6 +557,12 @@
   .hero-gain.neg { color:#ffce8a; background:rgba(255,196,120,.13); }
   .hero-since { font:600 12px system-ui; color:#9fbfab; }
   .hero-since.solo { display:block; margin-top:8px; }
+  .hero-mission { display:flex; align-items:center; gap:10px; margin-top:9px; width:100%; }
+  .hero-mission .hm-lbl { font:800 11px system-ui; letter-spacing:.6px; color:#9fe7bb; text-transform:uppercase; white-space:nowrap; }
+  .hero-mission .hm-track { flex:1; height:5px; border-radius:99px; background:rgba(255,255,255,.12); overflow:hidden; }
+  .hero-mission .hm-fill { display:block; height:100%; border-radius:99px; background:linear-gradient(90deg,#2f9e5d,#8be9ac); }
+  .hero-mission.hit .hm-lbl { color:#7ef0a8; }
+  .hero-mission.hit .hm-fill { background:#7ef0a8; }
   .hero-empty { margin:8px 0 2px; }
   .hero-empty b { display:block; color:#fff; font:900 21px system-ui; letter-spacing:-.5px; }
   .hero-empty span { display:block; font:600 12.5px/1.45 system-ui; color:#bfe3cd; margin-top:4px; }
@@ -579,6 +585,12 @@
 
   /* ===== Dashboard ===== */
   .dash-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:11px; }
+  .wk-recap { display:flex; align-items:center; gap:10px; width:100%; margin-top:11px; padding:13px 15px;
+    background:#fff; border:1px solid var(--line); border-radius:16px; cursor:pointer; text-align:left; }
+  .wk-recap .wr-t { font:800 12px system-ui; color:var(--green-800); white-space:nowrap; }
+  .wk-recap .wr-b { flex:1; font:600 12.5px system-ui; color:var(--muted); }
+  .wk-recap .wr-b b { color:var(--ink); }
+  .wk-recap .wr-cta { font:700 12px system-ui; color:var(--green-600); white-space:nowrap; }
   .dtile { display:flex; flex-direction:column; align-items:flex-start; gap:3px; text-align:left;
     background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:14px 13px;
     box-shadow:var(--shadow); cursor:pointer; transition:transform .12s, box-shadow .12s; }
@@ -856,6 +868,7 @@
   .pc-now.muted { color:var(--line); }
   .pc-svg { display:block; margin:4px 0 2px; max-height:108px; }
   .pc-foot { display:flex; justify-content:space-between; font-size:11.5px; color:var(--muted); margin-top:4px; }
+  .pc-bench { font:500 11px/1.5 system-ui; color:var(--muted); margin-top:7px; padding-top:7px; border-top:1px dashed #e2ece5; }
   .pc-foot b { color:var(--green-700); }
   .pc-payoff { margin-top:9px; padding:9px 11px; border-radius:10px; background:linear-gradient(135deg,#ecfbf1,#e2f6ea);
     border:1px solid #c7ecd3; font-size:12.5px; line-height:1.45; color:var(--green-800); }
@@ -997,6 +1010,8 @@
   .acct-btn.danger { background:#fff; color:#b3402f; border:1.5px solid #eccac4; }
   .acct-btn.danger:active { background:#fbeeeb; }
   .acct-list { margin-bottom:13px; }
+  .acct-inline { margin-left:7px; padding:2px 9px; border:1px solid #cfe4d6; border-radius:999px;
+    background:#f4f9f5; color:var(--green-700); font:700 11px system-ui; cursor:pointer; }
   .acct-li { display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid var(--line); font-size:13px; }
   .acct-li:last-child { border-bottom:0; }
   .acct-li span { color:var(--muted); }
@@ -3507,7 +3522,7 @@
 
     // ---- clean hero: the workout, front and centre ----
     html+='<div class="lift-hero"><div class="lh-l">'+
-      '<div class="lh-week">WEEK '+wk+' / 20</div>'+
+      '<div class="lh-week">WEEK '+wk+' / 20'+(goalYds()?' · MISSION +'+goalYds()+' YDS':'')+'</div>'+
       '<h2 class="lh-name">'+heroName+'</h2>'+
       '<div class="lh-sub">'+(mode==="today"?('Day '+dayOfPlan()+' of your week'):'Browsing the full week')+
         (wd.total?(' <span class="lh-dot">·</span> '+(wd.done>=wd.total?'<b class="lh-done">week complete ✓</b>':'<b class="lh-done">'+wd.done+' of '+wd.total+' done</b>')):'')+'</div>'+
@@ -4331,16 +4346,40 @@
       pillars:r.parts.map(function(p){ return { name:p.label, pts:p.pts, max:p.max, have:p.have, detail:p.detail }; }) })); } catch(e){}
   }
   // Dashboard hero: driver carry + gain up top, the Octane engine gauge underneath.
+  function goalYds(){ var g=parseInt(lsGet("ff_goalyds",0),10); return (g>0)?g:null; }
+  // Reference numbers calibrated to the user's group (sex + 50+), from public
+  // launch-monitor / amateur norms. Used for input placeholders and soft context
+  // lines only — scoring stays trend-vs-your-own-baseline everywhere.
+  function ffBench(sx, age){
+    sx = sx || (typeof state!=="undefined" && state.sex) || "male";
+    age = parseInt(age!=null?age:($("age")&&$("age").value), 10) || 0;
+    var senior = age >= 50;
+    if(sx === "female"){
+      return senior
+        ? { seven:60, drive:160, weight:145, label:"typical 50+ female amateur", range:"~55–65 mph 7-iron" }
+        : { seven:65, drive:175, weight:145, label:"typical female amateur",     range:"~60–68 mph 7-iron" };
+    }
+    return senior
+      ? { seven:75, drive:210, weight:185, label:"typical 50+ male amateur", range:"~70–78 mph 7-iron" }
+      : { seven:85, drive:245, weight:180, label:"typical male amateur",     range:"~75–80 mph 7-iron" };
+  }
   function renderHeroCard(){
     var r=ffScore(); saveScoreSnapshot(r);
-    var d=driveStats(), top;
+    var d=driveStats(), top, gy=goalYds();
     if(d){
       var gain = d.n>=2 ? d.gain : null;
+      var missionHtml='';
+      if(gain!=null && gy){
+        var hit = gain>=gy, pctG = clamp(Math.round(gain/gy*100), 0, 100);
+        missionHtml = '<div class="hero-mission'+(hit?' hit':'')+'">'+
+          '<span class="hm-lbl">'+(hit?'🏁 Mission complete — +'+gy+' yds':'Mission: +'+gy+' yds')+'</span>'+
+          '<span class="hm-track"><span class="hm-fill" style="width:'+Math.max(4,pctG)+'%"></span></span></div>';
+      }
       top = '<div class="hero-kick">⛳ Driver carry</div>'+
         '<div class="hero-dist"><b>'+d.latest+'</b><span class="u">yds</span></div>'+
         (gain!=null
           ? '<div class="hero-gainrow"><span class="hero-gain'+(gain>=0?'':' neg')+'">'+(gain>=0?'▲ +':'▼ ')+Math.abs(gain)+' yds</span>'+
-            '<span class="hero-since">vs your start · was '+d.baseline+'</span></div>'
+            '<span class="hero-since">vs your start · was '+d.baseline+'</span></div>'+missionHtml
           : '<div class="hero-since solo">Your baseline is set — log again in a few weeks to see the gain.</div>');
     } else {
       top = '<div class="hero-kick">⛳ Driver carry</div>'+
@@ -4558,6 +4597,7 @@
       dTile('🏌️','This week', 'Week <b>'+wk+'</b>', nw?('Next: '+nw.replace(/Day \d+ — /,'')):'open plan', 'plan')+
       dTile('⚡','7-iron speed', speedBig, speedSub, 'plan')+
       '</div>';
+    html += renderWeekRecap();          // 3.5 This calendar week + the board
     // 4. Log today — the core daily input, right by the numbers it feeds.
     var lastDrive=(driveStats()||{}).latest;
     html += '<div class="dash-log"><div class="dl-head">📈 Log today</div>'+
@@ -4632,6 +4672,51 @@
   }
 
   /* ----- Account ----- */
+  /* ----- Workout reminders (native app only — Capacitor local notifications) -----
+     No backend: on every app open (and on toggle) we cancel + reschedule the next
+     7 days at the user's training-slot hour, with day-aware copy (train vs recover). */
+  function ffNotifPlugin(){
+    try{ return (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications) || null; }
+    catch(e){ return null; }
+  }
+  function ffNotifOn(){ return !!lsGet("ff_notif", false); }
+  var FF_SLOT_HOUR = { morning:7, midday:12, afternoon:16, evening:19 };
+  async function ffNotifReschedule(){
+    var LN=ffNotifPlugin(); if(!LN) return;
+    try{
+      var pend=await LN.getPending();
+      if(pend && pend.notifications && pend.notifications.length) await LN.cancel({ notifications: pend.notifications.map(function(n){ return { id:n.id }; }) });
+    }catch(e){}
+    if(!ffNotifOn()) return;
+    var hour = FF_SLOT_HOUR[state.workout] || 17;
+    var dop = dayOfPlan(), wk = curWeek(), slots = stripDays();
+    if(dop==null) return;                               // plan not started yet
+    var list=[], now=Date.now();
+    for(var o=0;o<7;o++){
+      var d=new Date(); d.setDate(d.getDate()+o); d.setHours(hour,0,0,0);
+      if(d.getTime()<=now) continue;                    // today's slot already passed
+      var day=slots[(dop-1+o)%7]||{};
+      var rest = day.type==="rest";
+      list.push({ id:100+o,
+        title: rest ? "Recovery day 🌱" : "Time to train ⛳",
+        body: rest ? "Walk, mobility, foam roll — growth happens today."
+                   : ((day.name||"Your session").replace(/^Day \d+ — /,"")+" · Week "+wk+" — your yards are waiting."),
+        schedule:{ at:d, allowWhileIdle:true } });
+    }
+    if(list.length){ try{ await LN.schedule({ notifications:list }); }catch(e){} }
+  }
+  async function ffNotifToggle(){
+    var LN=ffNotifPlugin(); if(!LN) return false;
+    if(ffNotifOn()){ lsSet("ff_notif", false); await ffNotifReschedule(); return false; }
+    try{
+      var p=await LN.requestPermissions();
+      if(!p || p.display!=="granted"){ alert("Notifications are blocked — allow them in your phone's settings for FairwayFuel."); return false; }
+    }catch(e){ return false; }
+    lsSet("ff_notif", true); await ffNotifReschedule(); return true;
+  }
+  // Keep the 7-day window fresh on every launch of the installed app.
+  if(ffNotifPlugin()){ setTimeout(function(){ try{ ffNotifReschedule(); }catch(e){} }, 2500); }
+
   function acctRow(k,v){ return '<div class="acct-li"><span>'+k+'</span><b>'+v+'</b></div>'; }
   function renderAccount(){
     var el=$("accountBody"); if(!el) return;
@@ -4666,10 +4751,17 @@
           '<p class="acct-p">In your browser menu, tap <b>“Install app”</b> / <b>“Add to Home Screen”</b> to run FairwayFuel full-screen and offline.</p></div>';
       }
     }
+    if(ffNotifPlugin()){
+      var non=ffNotifOn();
+      html+='<div class="acct-card"><div class="acct-head">🔔 Workout reminders</div>'+
+        '<p class="acct-p">A daily nudge at your training time — the session on training days, recovery on rest days. No account needed; it all happens on your phone.</p>'+
+        '<button class="acct-btn'+(non?' ghost':'')+'" id="acctNotif">'+(non?"Reminders on — tap to turn off":"Turn on reminders")+'</button></div>';
+    }
     var t=lsGet("ff_targets",null), prof=lsGet("fairwayfuel",null);
     if(prof || t){
       html+='<div class="acct-card"><div class="acct-head">Your profile</div><div class="acct-list">'+
         acctRow('Goal', t?t.goal:((prof&&prof.goal)||'—'))+
+        acctRow('Distance mission', goalYds()?('+'+goalYds()+' yds <button class="acct-inline" id="acctGoalYds">edit</button>'):('<button class="acct-inline" id="acctGoalYds">set one</button>'))+
         acctRow('Bodyweight', (prof&&prof.weight)?prof.weight+' lb':'—')+
         acctRow('Training', ((prof&&prof.freq)||4)+' days/week')+
         acctRow('Daily target', t?t.kcal+' kcal':'—')+
@@ -4717,9 +4809,17 @@
       });
     };
     var ed=$("acctEdit"); if(ed) ed.onclick=function(){ setView("calc"); };
+    var gyb=$("acctGoalYds"); if(gyb) gyb.onclick=function(ev){ ev.stopPropagation();
+      var cur=goalYds()||15, v=prompt("Yards to add over the 20 weeks (your mission):", cur);
+      if(v==null) return; v=parseInt(v,10);
+      if(!v || v<1 || v>60){ alert("Pick a number between 1 and 60 yards."); return; }
+      lsSet("ff_goalyds", v); try{ window.dispatchEvent(new Event("ff-data-changed")); }catch(_){}
+      renderAccount(); try{ renderDash(); }catch(_){}
+    };
     var su=$("acctSetup"); if(su) su.onclick=function(){ startOnboarding(true); };
     var af=$("acctFoods"); if(af) af.onclick=function(){ openFoodPrefs(); };
     var ai=$("acctInstall"); if(ai) ai.onclick=function(){ if(!ffPromptInstall()) alert("Use your browser menu → “Install app” / “Add to Home Screen.”"); };
+    var nb=$("acctNotif"); if(nb) nb.onclick=function(){ nb.disabled=true; ffNotifToggle().then(function(){ renderAccount(); }); };
   }
 
   /* ----- Progress (bodyweight + clubhead speed) ----- */
@@ -4739,9 +4839,9 @@
     var spark = sparkline(body.map(function(e){ return parseFloat(e.s); }));
     return '<details class="fold" id="progFold"><summary>📊 Progress &amp; history</summary><div class="fold-body">'+
       '<div class="prog-row three">'+
-        '<div><label>Weight (lb)</label><input type="number" inputmode="decimal" id="pBody" placeholder="185" /></div>'+
-        '<div><label>7-iron mph</label><input type="number" inputmode="decimal" id="pSpeed" placeholder="85" /></div>'+
-        '<div><label>Driver yds</label><input type="number" inputmode="decimal" id="pDrive" placeholder="250" /></div></div>'+
+        '<div><label>Weight (lb)</label><input type="number" inputmode="decimal" id="pBody" placeholder="'+ffBench().weight+'" /></div>'+
+        '<div><label>7-iron mph</label><input type="number" inputmode="decimal" id="pSpeed" placeholder="'+ffBench().seven+'" /></div>'+
+        '<div><label>Driver yds</label><input type="number" inputmode="decimal" id="pDrive" placeholder="'+ffBench().drive+'" /></div></div>'+
       '<button class="addp addp-wide" id="pAdd">Add</button>'+
       '<div class="prog-empty" style="margin:0 0 10px;">Tip: 7-iron speed is the cleanest weekly trend (more repeatable than driver), while driver carry is your headline distance.</div>'+
       (spark?'<div class="prog-empty" style="margin:2px 0 -2px;">7-iron speed trend</div>'+spark:"")+
@@ -4846,6 +4946,7 @@
           ? '<div class="pc-payoff">🎯 That’s roughly <b>+'+Math.round(spGain*YDS_PER_MPH)+' yards</b> of 7-iron carry since your baseline. <span>Speed is distance — ~2 yds per mph.</span></div>'
           : (spF.length>=2 ? '<div class="pc-payoff muted">Every <b>+1 mph</b> here is about <b>+2 yards</b> of carry. Keep the trend climbing.</div>' : ""))+
         (spF.length>=2?'<div class="pc-foot"><span>baseline <b>'+spBase+'</b></span><span>best <b>'+spBest+'</b> mph</span></div>':"")+
+        (spNow!=null?'<div class="pc-bench">Context: '+ffBench().label+' is '+ffBench().range+' — but your trend vs your own baseline is the number that matters.</div>':"")+
         '</div>';
 
       // ---- Strength: estimated 1RM on the big lifts ----
@@ -4902,6 +5003,36 @@
   }
 
   /* ----- Leaderboard: opt-in, golf-relevant boards (Score / Speed / Streak) ----- */
+  // ---- Calendar week (Mon 00:00 local) — the shared clock for weekly boards/recap ----
+  function weekStartDateCal(){ var d=new Date(); var dow=(d.getDay()+6)%7; d.setHours(0,0,0,0); d.setDate(d.getDate()-dow); return d; }
+  function weekStartStr(){ var d=weekStartDateCal(); var m=d.getMonth()+1, dd=d.getDate();
+    return d.getFullYear()+"-"+(m<10?"0":"")+m+"-"+(dd<10?"0":"")+dd; }
+  function thisWeekStats(){
+    var ws=weekStartDateCal().getTime(), wsStr=weekStartStr();
+    var n=lsGet("ff_history",[]).filter(function(h){ return h && (h.ts||0)>=ws; }).length;
+    var body=lsGet("ff_body",[]), spdIn=[], wtIn=[], spdPrev=null, wtPrev=null;
+    body.forEach(function(e){
+      if(!e || !e.date) return;
+      var inWk = e.date>=wsStr;
+      var s=parseFloat(e.s), w=parseFloat(e.w);
+      if(!isNaN(s)){ if(inWk) spdIn.push(s); else spdPrev=s; }
+      if(!isNaN(w)){ if(inWk) wtIn.push(w); else wtPrev=w; }
+    });
+    return { sessions:n,
+      spd:(spdIn.length && spdPrev!=null) ? Math.round((spdIn[spdIn.length-1]-spdPrev)*10)/10 : null,
+      wt:(wtIn.length && wtPrev!=null) ? Math.round((wtIn[wtIn.length-1]-wtPrev)*10)/10 : null };
+  }
+  function renderWeekRecap(){
+    var s=thisWeekStats(), freq=(typeof planState!=="undefined" && planState.freq)||4;
+    var bits=['<b>'+s.sessions+'</b> of '+freq+' workouts'];
+    if(s.spd!=null) bits.push('7-iron <b>'+(s.spd>=0?'+':'')+s.spd+' mph</b>');
+    if(s.wt!=null) bits.push('weight <b>'+(s.wt>=0?'+':'')+s.wt+' lb</b>');
+    return '<button class="pcard wk-recap" data-goview="progress">'+
+      '<span class="wr-t">📊 Week so far</span>'+
+      '<span class="wr-b">'+bits.join(' · ')+'</span>'+
+      '<span class="wr-cta">Leaderboard ›</span></button>';
+  }
+
   var lbBoard = "score";
   function lbReady(){ return !!(window.FF && window.FF.leaderboard); }
   function lbSignedIn(){ return !!(window.FF && window.FF.user); }
@@ -4920,18 +5051,21 @@
     var gain = sp.length>=2 ? Math.round((sp[sp.length-1]-sp[0])/sp[0]*1000)/10 : null;
     return { score:r.score, speed:speed, speed_gain:gain,
       sessions:Object.keys(getLog()).length, streak:lbStreak(),
+      week_sessions:thisWeekStats().sessions, week_start:weekStartStr(),
       goal:(lsGet("ff_targets",null)||{}).goal || state.goal };
   }
   function lbGoalTag(g){ return (GOALS[g] && GOALS[g].label) || ""; }
+  function lbWeekSessions(r){ return (r.week_start===weekStartStr()) ? (r.week_sessions||0) : 0; }
   function lbVal(r){
     if(lbBoard==="speed")  return r.speed!=null  ? r.speed+" mph" : "—";
     if(lbBoard==="streak") return (r.streak||0)+" wk";
+    if(lbBoard==="week")   return lbWeekSessions(r)+" this wk";
     return r.score!=null ? r.score : "—";
   }
   function renderLeaderboardCard(){
-    var seg=["score","speed","streak"].map(function(b){
+    var seg=["week","score","speed","streak"].map(function(b){
       return '<button data-lb="'+b+'" class="'+(lbBoard===b?"on":"")+'">'+
-        ({score:"Score",speed:"Speed",streak:"Streak"}[b])+'</button>'; }).join("");
+        ({week:"This week",score:"Score",speed:"Speed",streak:"Streak"}[b])+'</button>'; }).join("");
     return '<div class="pcard lb"><div class="pc-head"><span class="pc-t">🏆 Leaderboard</span>'+
       '<div class="lb-seg" id="lbSeg">'+seg+'</div></div>'+
       '<div id="lbBody"><div class="pc-need">Loading the board…</div></div></div>';
@@ -4976,6 +5110,11 @@
     }
     if(!$("lbBody")) return;                        // user navigated away mid-fetch
     var rows = await window.FF.leaderboard.list(lbBoard, 50);
+    if(lbBoard==="week"){
+      // Rows published in an earlier calendar week count as 0 — zero them and re-rank.
+      rows = rows.map(function(r){ return r; }).sort(function(a,b){ return lbWeekSessions(b)-lbWeekSessions(a); })
+        .filter(function(r){ return lbWeekSessions(r)>0; });
+    }
     var box=$("lbBody"); if(box) box.innerHTML = lbJoinHtml(mine) + lbListHtml(rows, mine);
   }
   async function lbJoin(){
@@ -5250,7 +5389,8 @@
   }
   function startOnboarding(seed){
     var ob={ step:0, total:8, goal:"leanbulk", sex:"male", age:"", weight:"",
-             hf:"5", hin:"10", activity:"1.55", workout:"morning", freq:4, equip:"", speed:"", drive:"", based:false };
+             hf:"5", hin:"10", activity:"1.55", workout:"morning", freq:4, equip:"", speed:"", drive:"", based:false,
+             goalyds:(lsGet("ff_goalyds",null)||15) };
     // On a re-run (from Account) seed every field from saved numbers. On a brand-new
     // first run, leave age & weight blank so the user gives real answers (biggest macro
     // drivers) — height/activity keep sensible soft defaults they can tweak.
@@ -5310,6 +5450,7 @@
     }
     function finish(startNow){
       applyProfile(); pushBaseline(); ffSavePrefs(ob.prefs); lsSet("ff_onboarded", true);
+      lsSet("ff_goalyds", parseInt(ob.goalyds,10)||15);
       close();
       if(startNow){ try{ startPlanAtWeek(1); }catch(e){} setView("plan"); try{ renderPhase(); }catch(e){} }
       else setView("dash");
@@ -5360,7 +5501,7 @@
           '<p class="ob-cite">Independent research backs it: <b>strength &amp; power</b> are the top physical drivers of clubhead speed (r ≈ 0.5) — general flexibility barely moves it (r ≈ 0.03).</p>'+
           '<div class="ob-feats">'+
             '<div class="ob-feat"><span>🍽️</span><b>Macro engine</b><small>Meals + shopping list</small></div>'+
-            '<div class="ob-feat"><span>⚡</span><b>20-week plan</b><small>Mass → clubhead speed</small></div>'+
+            '<div class="ob-feat"><span>⚡</span><b>20-week plan</b><small>Built to add real yards</small></div>'+
             '<div class="ob-feat"><span>💬</span><b>AI coach</b><small>Reads your numbers</small></div>'+
           '</div>';
         nextLabel="Build my plan →";
@@ -5381,7 +5522,7 @@
           '<div class="ob-row"><div class="ob-field" style="flex:1"><label>Age</label>'+
             '<input class="ob-in" id="obAge" type="number" inputmode="numeric" placeholder="32" value="'+ob.age+'" /></div>'+
             '<div class="ob-field" style="flex:1"><label>Weight (lb)</label>'+
-            '<input class="ob-in" id="obWeight" type="number" inputmode="decimal" placeholder="180" value="'+ob.weight+'" /></div></div>'+
+            '<input class="ob-in" id="obWeight" type="number" inputmode="decimal" placeholder="'+ffBench(ob.sex, ob.age).weight+'" value="'+ob.weight+'" /></div></div>'+
           '<div class="ob-field"><label>Height</label><div class="ob-row">'+
             '<input class="ob-in" id="obHf" type="number" inputmode="numeric" placeholder="ft" value="'+ob.hf+'" />'+
             '<input class="ob-in" id="obHin" type="number" inputmode="numeric" placeholder="in" value="'+ob.hin+'" /></div></div>';
@@ -5410,10 +5551,14 @@
         kicker="Step 5 of 7 · Baseline"; title="Your starting line";
         body='<p class="ob-p" style="margin-top:-4px">Set your starting numbers so you can watch them climb. Add either — or skip and log later.</p>'+
           '<div class="ob-field"><label>Driver carry (yds) — your headline distance</label>'+
-            '<input class="ob-in" id="obDrive" type="number" inputmode="decimal" placeholder="e.g. 245" value="'+ob.drive+'" /></div>'+
+            '<input class="ob-in" id="obDrive" type="number" inputmode="decimal" placeholder="e.g. '+ffBench(ob.sex, ob.age).drive+'" value="'+ob.drive+'" /></div>'+
           '<div class="ob-field"><label>7-iron clubhead speed (mph)</label>'+
-            '<input class="ob-in" id="obSpeed" type="number" inputmode="decimal" placeholder="e.g. 85" value="'+ob.speed+'" /></div>'+
-          '<p class="ob-p" style="font-size:12.5px;color:#9ccfb0;margin:0">A launch monitor or an on-course guess both work. 7-iron speed is the cleanest weekly trend; driver carry is the number you’ll brag about.</p>';
+            '<input class="ob-in" id="obSpeed" type="number" inputmode="decimal" placeholder="e.g. '+ffBench(ob.sex, ob.age).seven+'" value="'+ob.speed+'" /></div>'+
+          '<div class="ob-field"><label>Your mission — yards to add over the 20 weeks</label>'+
+            '<div class="ob-seg" id="obGoalYds">'+[10,15,25].map(function(y){
+              return '<button type="button" data-v="'+y+'" class="'+(String(ob.goalyds)===String(y)?"sel":"")+'">+'+y+' yds</button>';
+            }).join("")+'</div></div>'+
+          '<p class="ob-p" style="font-size:12.5px;color:#9ccfb0;margin:0">A launch monitor or an on-course guess both work. Your mission is a goal you chase — the app tracks it against your real drives.</p>';
         nextLabel="Continue →";
       } else if(s===6){
         kicker="Step 6 of 7 · Your foods"; title="What do you actually eat?";
@@ -5427,7 +5572,7 @@
             '<div class="ob-sumv"><div class="v">'+(t?t.kcal:"—")+'</div><div class="k">kcal / day</div></div>'+
             '<div class="ob-sumv"><div class="v">'+(t?t.proteinG:"—")+'<small>g</small></div><div class="k">protein</div></div>'+
             '<div class="ob-sumv"><div class="v">'+(t?t.carbG:"—")+'<small>g</small></div><div class="k">carbs</div></div></div>'+
-          '<p class="ob-p">That’s your daily fuel for <b>'+((GOALS[ob.goal]&&GOALS[ob.goal].label)||"your goal")+'</b>. Your 20-week training plan and Octane score are ready.</p>'+
+          '<p class="ob-p">That’s your daily fuel for <b>'+((GOALS[ob.goal]&&GOALS[ob.goal].label)||"your goal")+'</b>. Your 20-week plan is aimed at <b>+'+(parseInt(ob.goalyds,10)||15)+' yds</b> — tracked against your real drives.</p>'+
           '<div class="ob-startcue">📅 Tapping below makes <b>today Day 1</b> — your Week 1 plan starts <b>right now</b> and counts forward from today. (Just looking? Use the link below — nothing starts until you say go.)</div>';
         nextLabel="Start — today is Day 1 →";
       }
@@ -5451,6 +5596,7 @@
       if(s===1) Array.prototype.forEach.call(root.querySelectorAll("[data-goal]"), function(b){
         b.onclick=function(){ ob.goal=b.getAttribute("data-goal"); render(); }; });
       if(s===2) segPick("obSex", function(v){ ob.sex=v; });
+      if(s===5) segPick("obGoalYds", function(v){ ob.goalyds=parseInt(v,10)||15; });
       if(s===3){ segPick("obWk", function(v){ ob.workout=v; }); segPick("obFreq", function(v){ ob.freq=parseInt(v,10); }); }
       if(s===4) Array.prototype.forEach.call(root.querySelectorAll("[data-equip]"), function(b){
         b.onclick=function(){ ob.equip=b.getAttribute("data-equip"); applyEquipPreset(ob.equip); render(); }; });
@@ -5517,7 +5663,7 @@ if ('serviceWorker' in navigator && !window.Capacitor) {
 <script>window.FF_ACCOUNT_TAB = true;</script>
 <!-- Optional cloud login + progress sync. Inactive until you add Supabase keys in cloud-sync.js. -->
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script defer src="cloud-sync.js?v=101"></script>
+<script defer src="cloud-sync.js?v=102"></script>
 <!-- AI coach chat. Degrades gracefully until the Edge Function is deployed. -->
 <script defer src="coach.js?v=88"></script>
 </body>

@@ -135,6 +135,11 @@ create table if not exists public.leaderboard (
   updated_at  timestamptz not null default now()
 );
 
+-- Weekly board: sessions completed in the current calendar week (client-computed,
+-- stamped with that week's Monday so stale rows rank as zero the following week).
+alter table public.leaderboard add column if not exists week_sessions int;
+alter table public.leaderboard add column if not exists week_start date;
+
 alter table public.leaderboard enable row level security;
 
 -- Public read — but only of rows the user has opted into showing.
@@ -163,6 +168,7 @@ create policy "leaderboard_delete_own"
 create index if not exists leaderboard_score_idx  on public.leaderboard (score  desc) where opted_in;
 create index if not exists leaderboard_speed_idx  on public.leaderboard (speed  desc) where opted_in;
 create index if not exists leaderboard_streak_idx on public.leaderboard (streak desc) where opted_in;
+create index if not exists leaderboard_week_idx   on public.leaderboard (week_sessions desc) where opted_in;
 
 -- Table-level privileges (RLS still governs which rows each role can touch).
 -- Explicit so reads/writes work regardless of project default-privilege config.
