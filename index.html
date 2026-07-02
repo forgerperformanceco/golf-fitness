@@ -3408,10 +3408,10 @@
   function dayCardHtml(d, showPrimerNote, interactive){
     var p = PHASES[planState.phase];
     if(d.type==="rest"){
-      var rdone=restDone(curWeek(), d.name);
+      var rdone=restDone(curWeek(), dayKey(d));
       return '<div class="day'+(rdone?" rest-done":"")+'"><div class="day-head">'+d.name+' <span class="tag rest">Recover</span></div>'+
         '<div class="restday">Active recovery: walk a casual 9, mobility flow, foam roll. Light is fine — but let the body rebuild. This is when muscle and speed are made.</div>'+
-        '<button class="rest-check'+(rdone?" done":"")+'" type="button" data-restday="'+escAttr(d.name)+'">'+
+        '<button class="rest-check'+(rdone?" done":"")+'" type="button" data-restday="'+escAttr(dayKey(d))+'">'+
           (rdone?"✓ Recovery logged — tap to undo":"Mark recovery done")+'</button></div>';
     }
     if(d.type==="speed"){
@@ -3519,7 +3519,7 @@
     if(mode==="today"){
       var todayDate = new Date();
       var strip = stripDays().map(function(d, i){
-        var done = d.type==="rest" ? restDone(wk, d.name) : !!getSession(wk, d.name);
+        var done = d.type==="rest" ? restDone(wk, dayKey(d)) : !!getSession(wk, d.name);
         var cd = chipDate(i), isToday = sameDay(cd, todayDate);
         var dateLbl = isToday ? "Today" : (cd ? fmtChipDate(cd) : ("Day "+(i+1)));
         return '<button class="ws-chip'+(d.name===featured.name?" cur":"")+(done?" done":"")+(isToday?" today":"")+'" data-focusday="'+escAttr(d.name)+'">'+
@@ -3694,6 +3694,10 @@
   function getRest(){ var r=lsGet("ff_rest",{}); return (r&&typeof r==="object")?r:{}; }
   function restDone(w,d){ return !!getRest()[w+"|"+d]; }
   function toggleRestDone(w,d){ var r=getRest(), k=w+"|"+d; if(r[k]) delete r[k]; else r[k]=Date.now(); lsSet("ff_rest",r); }
+  // Every rest day shares the display name "Rest / Play 18", so key its check-off
+  // by the day's slot position in the week — otherwise both rest days would toggle
+  // as one. Training days have unique names, so they key by name as before.
+  function dayKey(d){ if(!d) return ""; if(d.type!=="rest") return d.name; var i=activeDays().indexOf(d); return i>=0?("rest@"+i):d.name; }
   function parseSets(t){ var m=String(t).match(/(\d+)\s*[×x]/); return m?Math.min(8,Math.max(1,parseInt(m[1],10))):3; }
   function findDay(name){ var f=null; activeDays().forEach(function(d){ if(d.name===name) f=d; }); return f; }
   function todayStr(){ try{ return new Date().toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"}); }catch(e){ return ""; } }
