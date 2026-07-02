@@ -355,6 +355,41 @@ Par4Success) converge on the same priorities — which this program already cove
 - **Single-leg & lateral work** — stability plus the swing's lateral weight shift. *(A lateral
   bound was added to the speed day for exactly this.)*
 
+### Building the hinge — the deadlift, in the right order
+The posterior-chain hinge (RDL / deadlift) is the highest-value golf strength lift: it builds
+exactly the glute–hamstring–back drive the downswing runs on. Build it in three stages — a
+standard, injury-smart strength-and-conditioning progression, reinforced by golf-fitness
+coaching:
+
+1. **Screen readiness first (a club is all you need).**
+   - **Seated good morning** — sit tall, club across the shoulders, hinge from the hips to ~45°
+     past vertical keeping a **neutral spine** (no rounding, no over-arching). Isolates and
+     grooves the hip hinge.
+   - **Single-leg RDL (± rotation)** — balance on one leg, hinge to mid-shin, fire the glute;
+     add a rotation over the lead side for a golf-specific version. Tests balance, glute
+     control and ground contact *before* you load a bar. If the pattern is ragged here, groove
+     it before loading.
+2. **Learn light, then load: band → kettlebell → barbell.** A band teaches the fire-through-the
+   -range feel with **zero spinal load**; a kettlebell adds load with less technical demand than
+   a bar; the barbell comes once the pattern is automatic. Cues throughout: **chest down, knees
+   out, hips back, neutral spine — drop into the ground, then push up.**
+3. **Then progressively overload.** Once the pattern is solid, drive the big lift up over
+   **6–12 weeks** (higher reps / lighter → heavier / lower reps) — the same double-progression
+   the plan already uses.
+
+**Trap-bar first for most golfers.** Of the deadlift variants, the **trap-bar** is the top
+pick: it loads the legs hard with **less shear stress on the spine** than a conventional pull —
+leg drive without hammering the back, which is exactly golf's need. Conventional and sumo are
+fine alternates for variety or hip preference. *(The plan already features RDLs and a trap-bar
+jump; a trap-bar deadlift is the natural heavy-hinge option.)*
+
+**The swing payoff — and the fault it fixes.** Hinge strength shows up as **holding posture
+through impact.** When the glutes/posterior chain are too weak to stabilize, golfers stand up
+out of their hinge into the ball — **early extension** — which sprays the strike and leaks
+speed. A strong, stable hinge is what lets you keep your angles and *deliver* force instead of
+giving up position. (Consistency matters as much as load: train the hinge regularly and heavy
+stops feeling "novel" — long gaps are what make a return to lifting feel stiff and sore.)
+
 Everything else — TDEE, macros, protein targets, surplus/deficit size, nutrient timing,
 meal frequency — is **the same as for any fit, muscle-building athlete.**
 
