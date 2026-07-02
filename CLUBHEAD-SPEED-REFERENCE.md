@@ -341,12 +341,26 @@ analogous evidence:
 
 ### 10.1 What actually predicts clubhead speed (HIGH confidence — two independent meta-analyses)
 
-| Physical quality | Link to driver clubhead speed | Source |
-|---|---|---|
-| **Lower-body jump impulse/power** | **strongest of all** — zr ≈ 0.82; CMJ impulse r ≈ 0.79 | Brennan et al. 2024 meta (20 studies, ~1,087 golfers); Wells et al. 2018 (n=27) |
-| **Upper-body explosive power** (med-ball throw velocity) | zr ≈ 0.67 (vs 0.48 for non-explosive strength) | Brennan 2024; Ehlert 2021 meta |
-| Maximal strength | moderate — below power | Ehlert 2021 |
-| **Flexibility** | **no significant association** | Brennan 2024 |
+**Exact pooled effect sizes** — Brennan et al. 2024 *Sports Medicine* meta-analysis (20 studies of
+3039 screened; pooled as z-transformed r, `zr`, with 95% CI). Ranked strongest → weakest:
+
+| Physical quality | Association with driver CHS (zr [95% CI]) |
+|---|---|
+| **Jump impulse** | **0.82 [0.63–1.02]** — strongest of all |
+| **Upper-body explosive strength** (e.g. med-ball throw velocity) | **0.67 [0.53–0.80]** |
+| **Jump peak power** | 0.66 [0.53–0.79] |
+| **Jump displacement** (how high) | 0.53 [0.28–0.78] |
+| Upper-body (non-explosive) strength | 0.48 [0.28–0.68] |
+| Lower-body strength | 0.47 [0.24–0.69] |
+| Anthropometry (size/mass) | 0.43 [0.29–0.58] |
+| Muscle capacity | 0.17 [0.04–0.31] (trivial but significant) |
+| **Flexibility** | **−0.04 [−0.33 to 0.26] — NOT significant** |
+| **Balance** | **−0.06 [−0.46 to 0.34] — NOT significant** |
+
+Two headline reads: **jump _impulse_ is the single strongest correlate**, and **explosive** upper-body
+strength (0.67) beats non-explosive strength (0.48) — it's *how fast* you make force, not just how much.
+Independently corroborated in NCAA D-I golfers (n=21): the strongest relationships with golf-shot data
+were **isometric upper-body strength and vertical-jump ability, r = 0.70–0.82** (Johnson et al. 2025).
 
 - **The winning pair.** A lower-body **jump** + an upper-body **throw** jointly explain **~49–74% of
   clubhead-speed variance** in regression models (Read et al. 2013, n=48 → 49%; Turner et al. 2016,
@@ -426,8 +440,15 @@ Two independent meta-analyses agree on the ranking of physical qualities vs club
 | Lower-body power | r ≈ 0.38 | Ehlert 2021 |
 | **General / passive flexibility** | **r ≈ 0.03 (95% CI −0.08 to 0.14 — crosses zero)** | Ehlert 2021 |
 
-- The 2024 *Sports Medicine* meta-analysis (Brennan et al., ~1,087 golfers) corroborates:
-  **strength/power r ≈ 0.47–0.82; flexibility/balance not significantly associated.**
+- The 2024 *Sports Medicine* meta-analysis (Brennan et al., 20 studies) corroborates with exact
+  pooled effect sizes: **strength & power zr = 0.47–0.82** (jump impulse strongest at 0.82;
+  explosive upper-body 0.67 > non-explosive 0.48), while **flexibility (zr = −0.04) and balance
+  (zr = −0.06) are NOT significant** — both CIs cross zero (full table in §10.1).
+- **Same levers, different starting lines by sex.** In NCAA D-I golfers (n = 21, 11 F / 10 M),
+  anthropometry, jump ability, upper-extremity rotational velocity and clubhead speed all differed
+  significantly between men and women — but the **rotational-kinematic** pattern did **not**
+  (Johnson et al. 2025). That's the evidence behind our sex-calibrated benchmarks (§11.7): absolute
+  numbers differ, the *trainable levers* are shared.
 - **This is the contrarian core of the app, and it's well-evidenced:** train the engine (strength +
   power), and don't sell stretching as a speed lever. (Mobility still matters — for *injury* — see
   §11.6. That's a different claim.)
@@ -629,8 +650,18 @@ that the plan matches how speed is actually produced:
 - **Golf-strength practitioner sources (credible):** University of Utah Health golf clinic;
   Golf Digest ("ground-up sport"); Par4Success — the same public sources cited in
   `NUTRITION-AND-TRAINING-REFERENCE.md`.
+- **Anchor meta-analysis (exact effect sizes, §10.1 & §11.2):** **Brennan, Murray, Mountjoy,
+  Hellström, Coughlan, Wells, Brearley, Ehlert, Jarvis, Turner & Bishop 2024** — "Associations
+  Between Physical Characteristics and Golf Clubhead Speed: A Systematic Review with Meta-Analysis,"
+  *Sports Medicine* 54:1553–1577, doi:10.1007/s40279-024-02004-5 (open access, CC BY; 20 studies of
+  3039 screened; pooled zr with 95% CIs — jump impulse 0.82, explosive UB 0.67, flexibility −0.04 NS).
+- **Collegiate KPI study (§10.1, §11.2):** **Johnson, Yang, Ziola, Sun, Moore, Sutton, Fry & Smith
+  2025** — "Key Performance Indicators for the Golf Swing in Elite Collegiate Golf Athletes: An
+  Exploratory Study," *Int. J. Strength & Conditioning* 5(1), doi:10.47206/ijsc.v5i1.490 (open access,
+  CC BY; n = 21 NCAA D-I; isometric UB strength + vertical jump r = 0.70–0.82 with CHS; load-velocity
+  rotational profiling). *Small exploratory sample — treat as supporting, not definitive.*
 - **Thesis validation — mass/strength/power vs clubhead speed (see §11):** Brennan et al. 2024
-  (*Sports Medicine* meta-analysis of physical characteristics vs CHS, ~1,087 golfers, PMC11239735);
+  (as above, PMC11239735);
   Ehlert 2021 (three-level meta-analysis, *Eur J Sport Sci*, strength/power vs flexibility r-values);
   Hellström 2008 (*Relation between physical tests and CHS in elite golfers*, body mass / 1RM squat
   correlations); the 2-year junior-golfer longitudinal study (fat-free-mass ↔ CHS r ≈ 0.42, PMID
