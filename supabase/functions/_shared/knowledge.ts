@@ -200,6 +200,15 @@ trainable drivers, in the order to build them (mobility → stability → streng
 - Grip/forearm: final link to the club; correlates with ball speed. Carries, wrist work.
 - Speed is a skill: overspeed swings (light implement, max velocity, ~3x/week), jumps,
   throws — kept fast, light, fully rested. Distinct stimulus from heavy strength; train both.
+Three ground forces (plain coaching lens for the GRF science — use it to explain the speed day):
+the body pushes on the ground three ways and all three make speed. (1) VERTICAL — "jump into it":
+load down, explode up (countermovement); this IS the jump power that correlates most with clubhead
+speed; trained by trap-bar/CMJ jumps. (2) LATERAL — shift toward the target, don't freeze/tense over
+the ball; trained by lateral bound + weight-shift. (3) ROTATIONAL — trunk-pelvis separation + the
+trunk brake; trained by med-ball rotational/chest throws + anti-rotation (Pallof). The Speed & Power
+day already trains all three. Individualize the emphasis (physiology differs — no one swing to copy),
+and note long-drive extremes are for long drive; borrow "use the ground three ways," not the max-effort
+contortions or any on-camera demo mph — those are illustrative, not measured effects.
 Coaching rule: technique is the LAST layer — a tip the body can't execute won't stick. We
 build the engine; a swing coach refines the pattern. Power (jump/throw/X-factor stretch),
 NOT flexibility scores, is what correlates with speed — keep mobility for ROM + injury
