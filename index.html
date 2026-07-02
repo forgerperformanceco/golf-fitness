@@ -1010,8 +1010,11 @@
   .acct-btn.danger { background:#fff; color:#b3402f; border:1.5px solid #eccac4; }
   .acct-btn.danger:active { background:#fbeeeb; }
   .acct-list { margin-bottom:13px; }
-  .acct-inline { margin-left:7px; padding:2px 9px; border:1px solid #cfe4d6; border-radius:999px;
-    background:#f4f9f5; color:var(--green-700); font:700 11px system-ui; cursor:pointer; }
+  .goal-chips { display:flex; flex-wrap:wrap; gap:8px; }
+  .goal-chips button { flex:1; min-width:52px; padding:11px 6px; border:1px solid var(--line); background:#fcfdfc;
+    border-radius:12px; font:800 14px system-ui; color:var(--muted); cursor:pointer; }
+  .goal-chips button.on { background:#11643a; border-color:#11643a; color:#fff; }
+  .goal-chips button:active { transform:translateY(1px); }
   .acct-li { display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid var(--line); font-size:13px; }
   .acct-li:last-child { border-bottom:0; }
   .acct-li span { color:var(--muted); }
@@ -4761,13 +4764,20 @@
     if(prof || t){
       html+='<div class="acct-card"><div class="acct-head">Your profile</div><div class="acct-list">'+
         acctRow('Goal', t?t.goal:((prof&&prof.goal)||'—'))+
-        acctRow('Distance mission', goalYds()?('+'+goalYds()+' yds <button class="acct-inline" id="acctGoalYds">edit</button>'):('<button class="acct-inline" id="acctGoalYds">set one</button>'))+
+        acctRow('Distance mission', goalYds()?('+'+goalYds()+' yds'):'—')+
         acctRow('Bodyweight', (prof&&prof.weight)?prof.weight+' lb':'—')+
         acctRow('Training', ((prof&&prof.freq)||4)+' days/week')+
         acctRow('Daily target', t?t.kcal+' kcal':'—')+
         '</div><button class="acct-btn ghost" id="acctEdit">Edit my numbers</button>'+
         '<button class="acct-btn ghost" id="acctSetup">↻ Re-run guided setup</button></div>';
     }
+    // Distance mission — the swing goal, editable anytime with a tap (no dialog).
+    var gy=goalYds();
+    html+='<div class="acct-card"><div class="acct-head">🎯 Your distance mission</div>'+
+      '<p class="acct-p">Yards to add to your driver over the 20 weeks — the dashboard tracks it against your real drives. Tap to change.</p>'+
+      '<div class="goal-chips" id="acctGoalChips">'+[5,10,15,20,25,30].map(function(y){
+        return '<button type="button" data-gy="'+y+'" class="'+(gy===y?'on':'')+'">+'+y+'</button>';
+      }).join("")+'</div></div>';
     html+='<div class="acct-card"><div class="acct-head">🍽️ Your favorite foods</div>'+
       '<p class="acct-p">Tell us what you actually eat and your meal ideas + day plans get built around it. Set it once, tweak anytime.</p>'+
       '<button class="acct-btn ghost" id="acctFoods">Edit my foods</button></div>';
@@ -4809,10 +4819,9 @@
       });
     };
     var ed=$("acctEdit"); if(ed) ed.onclick=function(){ setView("calc"); };
-    var gyb=$("acctGoalYds"); if(gyb) gyb.onclick=function(ev){ ev.stopPropagation();
-      var cur=goalYds()||15, v=prompt("Yards to add over the 20 weeks (your mission):", cur);
-      if(v==null) return; v=parseInt(v,10);
-      if(!v || v<1 || v>60){ alert("Pick a number between 1 and 60 yards."); return; }
+    var gc=$("acctGoalChips"); if(gc) gc.onclick=function(ev){
+      var b=ev.target.closest("[data-gy]"); if(!b) return;
+      var v=parseInt(b.getAttribute("data-gy"),10)||15;
       lsSet("ff_goalyds", v); try{ window.dispatchEvent(new Event("ff-data-changed")); }catch(_){}
       renderAccount(); try{ renderDash(); }catch(_){}
     };
