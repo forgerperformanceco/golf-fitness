@@ -3497,9 +3497,12 @@
     }
 
     var retain=trainRetain(), mode=planViewMode(), wd=weekDoneCount();
-    var featName=(focusDay && shown.some(function(d){return d.name===focusDay;}))?focusDay:nextWorkout();
-    var featured=null; shown.forEach(function(d){ if(d.name===featName) featured=d; });
+    // Focus is tracked by dayKey (not name) so the two identically-named rest days
+    // don't both resolve/highlight as the focused day.
+    var featName=(focusDay && shown.some(function(d){return dayKey(d)===focusDay;}))?focusDay:nextWorkout();
+    var featured=null; shown.forEach(function(d){ if(dayKey(d)===featName) featured=d; });
     if(!featured) featured=shown[0];
+    var featKey=dayKey(featured);
     var heroName=(mode==="today")?((featured.name.split("—")[1]||featured.name).trim()):"Your training week";
 
     // ---- clean hero: the workout, front and centre ----
@@ -3522,7 +3525,7 @@
         var done = d.type==="rest" ? restDone(wk, dayKey(d)) : !!getSession(wk, d.name);
         var cd = chipDate(i), isToday = sameDay(cd, todayDate);
         var dateLbl = isToday ? "Today" : (cd ? fmtChipDate(cd) : ("Day "+(i+1)));
-        return '<button class="ws-chip'+(d.name===featured.name?" cur":"")+(done?" done":"")+(isToday?" today":"")+'" data-focusday="'+escAttr(d.name)+'">'+
+        return '<button class="ws-chip'+(dayKey(d)===featKey?" cur":"")+(done?" done":"")+(isToday?" today":"")+'" data-focusday="'+escAttr(dayKey(d))+'">'+
           '<span class="ws-date">'+dateLbl+'</span>'+
           '<span class="ws-name">'+(done?"✓ ":"")+wsShort(d)+'</span></button>';
       }).join("");
