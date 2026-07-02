@@ -1,11 +1,25 @@
 name: Deploy FairwayFuel to GitHub Pages
 
-# Auto-deploys the site on every push to the working branch.
+# Auto-deploys the site on pushes that change SERVED files. Docs (*.md), the
+# backend (supabase/), and the native projects (android/, ios/, build tooling)
+# don't change what GitHub Pages serves, so they're ignored — this stops a full
+# Pages deploy (and the single-file deployment queue) firing on every doc edit.
 on:
   push:
     branches:
       - main
       - claude/golf-macro-calculator-j2e9vk
+    paths-ignore:
+      - '**.md'
+      - 'supabase/**'
+      - 'android/**'
+      - 'ios/**'
+      - 'assets/**'
+      - 'scripts/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'capacitor.config.json'
+      - 'codemagic.yaml'
   workflow_dispatch:
 
 # Allow the workflow to publish to GitHub Pages.
@@ -14,10 +28,13 @@ permissions:
   pages: write
   id-token: write
 
-# Only one deploy at a time; let an in-progress run finish.
+# One deploy at a time. cancel-in-progress: true so a newer push supersedes an
+# older queued/in-progress deploy (latest wins) instead of stacking into a queue
+# that eventually times out — Pages publishes atomically, so cancelling a
+# superseded run is safe and never leaves the live site half-updated.
 concurrency:
   group: pages
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   deploy:
