@@ -34,6 +34,13 @@ build the body that repeats it.
 > **Consistency is a physical quality before a technical one.** A repeatable swing needs
 > the body to move through the same sequence every time, under fatigue and pressure.
 > Mobility + stability + strength are what make the pattern repeatable.
+>
+> *Nuance (motor control):* "repeatable" doesn't mean **identical**. Skilled golfers show
+> **functional movement variability** — small kinematic differences swing-to-swing that don't
+> degrade the outcome, and may even protect against overuse injury. So the goal is a *stable,
+> repeatable pattern with room to adapt* — not a robotic, frozen one — which is also why we
+> individualize rather than force one model swing on everyone. *(Evans & Tuttle 2015, clinical
+> review.)*
 
 ---
 
@@ -660,6 +667,11 @@ that the plan matches how speed is actually produced:
   Exploratory Study," *Int. J. Strength & Conditioning* 5(1), doi:10.47206/ijsc.v5i1.490 (open access,
   CC BY; n = 21 NCAA D-I; isometric UB strength + vertical jump r = 0.70–0.82 with CHS; load-velocity
   rotational profiling). *Small exploratory sample — treat as supporting, not definitive.*
+- **Motor-control / clinical review (§1 variability nuance):** Evans & Tuttle 2015, "Improving
+  performance in golf: current research and implications from a clinical perspective," *Braz J Phys
+  Ther* 19(5):381–389, doi:10.1590/bjpt-rbf.2014.0122. Older review — its physical-determinants
+  content is largely superseded by the 2024 meta-analyses; cited only for the functional-movement-
+  variability / individualization point.
 - **Thesis validation — mass/strength/power vs clubhead speed (see §11):** Brennan et al. 2024
   (as above, PMC11239735);
   Ehlert 2021 (three-level meta-analysis, *Eur J Sport Sci*, strength/power vs flexibility r-values);
