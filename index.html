@@ -4372,13 +4372,12 @@
     return null;
   }
   // How many of this week's scheduled sessions (lifts + speed day) are logged — for the hero nudge.
+  // Counts training sessions only (lifts + speed) — the week's actual work. Rest
+  // days are check-off-able for satisfaction (the ✓ chip), but they don't gate
+  // "week complete", so nailing every workout always reads as a complete week.
   function weekDoneCount(){
     var wk=curWeek(), total=0, done=0;
-    activeDays().forEach(function(d){
-      total++;
-      if(d.type==="rest"){ if(restDone(wk,d.name)) done++; }
-      else if(getSession(wk,d.name)) done++;
-    });
+    activeDays().forEach(function(d){ if(d.type==="rest") return; total++; if(getSession(wk,d.name)) done++; });
     return { done:done, total:total };
   }
   function dTile(icon, label, big, sub, goview){
