@@ -516,7 +516,86 @@ Two independent meta-analyses agree on the ranking of physical qualities vs club
 
 ---
 
-## 12. Sources & further reading (independent)
+## 12. The three ground forces — a coaching lens (vertical · lateral · rotational)
+
+> Long-drive and speed coaches teach a **"power trifecta"**: the body pushes on the ground
+> three ways — **vertical** (up/down), **lateral** (toward the target), and **rotational**
+> (twist). This isn't a competing theory; it's the same **ground-reaction-force** science
+> from §2 and §11.5 in plain coaching language — a force plate literally measures those three
+> components (vertical, anterior–posterior, and the rotational *free moment*). We fold it in
+> as vocabulary that maps 1:1 onto the peer-reviewed evidence — **not** as any brand's method.
+> *(Articulated well in long-drive instruction, e.g. Martin Borgmeier's; the force
+> decomposition itself is standard biomechanics, independent of any coach or app.)*
+
+**Confidence:** that the three forces exist and drive speed is **HIGH** (it's force-plate
+physics + the GRF reviews we already cite). The *coaching application* — drills, emphasis —
+is practitioner-level, so treat the specifics as informed craft, not measured effect sizes.
+
+### 12.1 Vertical — "jump into it" (load down, explode up)
+- The move is **countermovement**: dip/load the legs, then drive up — an *up → down → up*
+  sequence, exactly how you'd prime a vertical jump before boxing up. **High hands and width**
+  in the backswing create the room to apply it.
+- This is our **best-evidenced lever.** The jump family (CMJ, impulse) is the single
+  strongest correlate of clubhead speed (§10, §11.2). So "using vertical force" *is* the jump
+  power the research ranks #1 — the coaches and the meta-analyses are describing the same thing.
+- **Trains as:** trap-bar / countermovement jumps, ground-force work, plus hip/ankle mobility
+  for the dip. *(Our Speed & Power day already leads with a jump.)*
+- **Honesty caveat:** long-drive athletes exaggerate the vertical load; **most tour players
+  use far less** — a moderate up-move or staying level. Big sink-and-spring is a long-drive
+  *extreme*. Use as much vertical as you can **control**, not as much as a long-driver. (And an
+  on-camera "sink vs load" demo popping ~20 mph is an illustrative, self-selected extreme — a
+  *mechanism* demonstration, not a measured training effect. We never quote it as a number.)
+
+### 12.2 Lateral — shift, don't freeze
+- A **weight shift toward the lead side** starts the downswing. The failure mode is
+  **freezing/tensing over the ball** like a robot trying to steer the clubface — it strangles
+  power. A **step / trigger drill** frees it: from a feet-together setup, *step toward the
+  target to start*, then swing — **order matters** (the body moves first, the clubhead last).
+- Maps to **lead-leg loading and weight transfer** — the forward/backward GRF the force-plate
+  review flags as a primary driver (§11.5).
+- **Trains as:** lateral bound *(already on our speed day)*, single-leg and lunge work, and
+  athletic movement so the shift is dynamic, not stiff.
+
+### 12.3 Rotational — separation + hand-path
+- Rotational force = the **pivoting free moment** (§11.5) plus **trunk–pelvis separation**
+  (X-factor, §2), delivered as high-velocity rotation *and* the trunk **brake** that slings
+  the club (the whip).
+- **Hand-path length** is the trade-off: a **short backswing** gives less runway, so it must
+  be repaid with more force/speed; a **longer, higher arc** buys hand-path but needs the
+  mobility and control to use it. This is why two elite bombers can look opposite — a short,
+  compact swing vs a long, high one — and both be very fast.
+- **Trains as:** med-ball **rotational** throws + a seated/chest throw *(both on our speed
+  day)*, and anti-rotation core (Pallof) for the brake.
+
+### 12.4 The real lesson: individualize, and build athleticism — not swing-mimicry
+- **Everyone favors different forces** by physiology; there is no one swing to copy. Match the
+  *emphasis* to the player in front of you, then train the capacity that unlocks it.
+- The deeper point is **exactly our thesis:** golf fitness is **not** miming the swing with
+  cables and hoping it transfers — it's building the **athletic capacity** (jump, shift,
+  rotate, use the ground, get tall) that the swing then draws on. Train the engine's *outputs*;
+  let a swing coach apply them.
+- **Import the principles, not the extremes.** Long-drive technique is *for long drive* —
+  even its own athletes say so. Borrow "use the ground three ways"; leave the max-effort
+  contortions on the long-drive tee.
+
+### 12.5 Our program already covers the trifecta
+The Speed & Power day is, by design, a **three-force day** — which is a clean sanity check
+that the plan matches how speed is actually produced:
+
+| Force | Where we train it |
+|---|---|
+| **Vertical** | Trap-bar / countermovement jump; squat & hinge strength |
+| **Lateral** | Lateral bound; single-leg / lunge work; weight-shift drills |
+| **Rotational** | Med-ball rotational + seated/chest throws; anti-rotation core (Pallof) |
+
+> **Net:** the "vertical/lateral/rotational" coaching lens gives FairwayFuel a simple, honest
+> way to explain *why* the speed day looks the way it does — three ways to push the ground,
+> each backed by the GRF evidence, each already in the program. Use it in copy and coaching;
+> keep the long-drive extremes and the demo mph figures out of it.
+
+---
+
+## 13. Sources & further reading (independent)
 
 - **Launch-monitor norms:** TrackMan & FlightScope publicly published average club/ball
   data (tour and amateur).
@@ -568,6 +647,11 @@ Two independent meta-analyses agree on the ranking of physical qualities vs club
   note: *not* PMID 28822263).
 - **Mobility vs injury (contrarian check, see §11.6):** amateur golfers with low-back pain — lead-hip
   internal-rotation deficit (~10°, PMID 19897166); general-flexibility-vs-CHS null from Ehlert 2021.
+- **Three-force coaching lens (§12):** long-drive / speed-coaching instruction on vertical, lateral
+  and rotational ground force (e.g. Martin Borgmeier). Used only as *vocabulary* mapping onto the
+  independent force-plate GRF science already cited (§2, §11.5); no branded protocol, dataset, or
+  program text is reproduced, and the coach's on-camera demo speeds are treated as illustrative, not
+  as measured effects.
 
 > Where a specific number mattered (e.g. tour averages), it was checked against multiple
 > public sources. This document deliberately uses **independent, public** references and
