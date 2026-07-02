@@ -447,6 +447,11 @@
   table.ex td.sets { text-align:right; font-weight:700; color:var(--green-800); white-space:nowrap; }
   table.ex tr.note td { font-size:11.5px; color:var(--muted); font-style:italic; border-top:none; padding-top:0; }
   .restday { padding:14px 15px; font-size:13px; color:var(--muted); }
+  .rest-check { display:block; width:calc(100% - 30px); margin:0 15px 15px; padding:12px; border:1px solid #cfe4d6;
+    background:#f4f9f5; color:var(--green-800); font:700 14px system-ui; border-radius:12px; cursor:pointer; }
+  .rest-check:active { transform:translateY(1px); }
+  .rest-check.done { background:#eafaf0; border-color:#bfe3cd; }
+  .day.rest-done .day-head .tag.rest { background:#1f9d52; color:#fff; }
 
   /* speed day — same clean table as lifts, kept distinct with a warm accent */
   .speedday .day-head { background:#fdf1e3; color:#9a5b1c; }
@@ -3403,8 +3408,11 @@
   function dayCardHtml(d, showPrimerNote, interactive){
     var p = PHASES[planState.phase];
     if(d.type==="rest"){
-      return '<div class="day"><div class="day-head">'+d.name+' <span class="tag rest">Recover</span></div>'+
-        '<div class="restday">Active recovery: walk a casual 9, mobility flow, foam roll. Light is fine — but let the body rebuild. This is when muscle and speed are made.</div></div>';
+      var rdone=restDone(curWeek(), d.name);
+      return '<div class="day'+(rdone?" rest-done":"")+'"><div class="day-head">'+d.name+' <span class="tag rest">Recover</span></div>'+
+        '<div class="restday">Active recovery: walk a casual 9, mobility flow, foam roll. Light is fine — but let the body rebuild. This is when muscle and speed are made.</div>'+
+        '<button class="rest-check'+(rdone?" done":"")+'" type="button" data-restday="'+escAttr(d.name)+'">'+
+          (rdone?"✓ Recovery logged — tap to undo":"Mark recovery done")+'</button></div>';
     }
     if(d.type==="speed"){
       var smode=speedMode(), s=p.speed[smode];
@@ -3511,7 +3519,7 @@
     if(mode==="today"){
       var todayDate = new Date();
       var strip = stripDays().map(function(d, i){
-        var done = d.type!=="rest" && !!getSession(wk, d.name);
+        var done = d.type==="rest" ? restDone(wk, d.name) : !!getSession(wk, d.name);
         var cd = chipDate(i), isToday = sameDay(cd, todayDate);
         var dateLbl = isToday ? "Today" : (cd ? fmtChipDate(cd) : ("Day "+(i+1)));
         return '<button class="ws-chip'+(d.name===featured.name?" cur":"")+(done?" done":"")+(isToday?" today":"")+'" data-focusday="'+escAttr(d.name)+'">'+
@@ -3681,6 +3689,11 @@
   function getLog(){ return lsGet("ff_log",{}); }
   function getSession(w,d){ return getLog()[w+"|"+d]||null; }
   function saveSession(w,d,s){ if(s) s._ts=Date.now(); var L=getLog(); L[w+"|"+d]=s; lsSet("ff_log",L); }
+  // Rest-day check-off — kept in its OWN key so it never counts as a training
+  // session (Octane, streaks, leaderboard all read ff_log, not this).
+  function getRest(){ var r=lsGet("ff_rest",{}); return (r&&typeof r==="object")?r:{}; }
+  function restDone(w,d){ return !!getRest()[w+"|"+d]; }
+  function toggleRestDone(w,d){ var r=getRest(), k=w+"|"+d; if(r[k]) delete r[k]; else r[k]=Date.now(); lsSet("ff_rest",r); }
   function parseSets(t){ var m=String(t).match(/(\d+)\s*[×x]/); return m?Math.min(8,Math.max(1,parseInt(m[1],10))):3; }
   function findDay(name){ var f=null; activeDays().forEach(function(d){ if(d.name===name) f=d; }); return f; }
   function todayStr(){ try{ return new Date().toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"}); }catch(e){ return ""; } }
@@ -4361,7 +4374,11 @@
   // How many of this week's scheduled sessions (lifts + speed day) are logged — for the hero nudge.
   function weekDoneCount(){
     var wk=curWeek(), total=0, done=0;
-    activeDays().forEach(function(d){ if(d.type==="rest") return; total++; if(getSession(wk,d.name)) done++; });
+    activeDays().forEach(function(d){
+      total++;
+      if(d.type==="rest"){ if(restDone(wk,d.name)) done++; }
+      else if(getSession(wk,d.name)) done++;
+    });
     return { done:done, total:total };
   }
   function dTile(icon, label, big, sub, goview){
@@ -5004,6 +5021,10 @@
     if(spm){ lsSet("ff_speedmode", spm.getAttribute("data-speedmode")); renderPhase(); return; }
     var fdc=e.target.closest("[data-focusday]");
     if(fdc){ focusDay=fdc.getAttribute("data-focusday"); renderPhase(); return; }
+    var rdc=e.target.closest("[data-restday]");
+    if(rdc){ toggleRestDone(curWeek(), rdc.getAttribute("data-restday"));
+      try{ window.dispatchEvent(new Event("ff-data-changed")); }catch(_){}   // nudge cloud-sync
+      renderPhase(); return; }
     // ---- inline logger ----
     var idn=e.target.closest("[data-idone]");
     if(idn && ilog){ var dxi=+idn.getAttribute("data-x"), dsi=+idn.getAttribute("data-s");
@@ -5490,7 +5511,7 @@ if ('serviceWorker' in navigator && !window.Capacitor) {
 <script>window.FF_ACCOUNT_TAB = true;</script>
 <!-- Optional cloud login + progress sync. Inactive until you add Supabase keys in cloud-sync.js. -->
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script defer src="cloud-sync.js?v=100"></script>
+<script defer src="cloud-sync.js?v=101"></script>
 <!-- AI coach chat. Degrades gracefully until the Edge Function is deployed. -->
 <script defer src="coach.js?v=88"></script>
 </body>

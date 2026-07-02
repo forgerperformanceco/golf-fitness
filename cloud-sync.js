@@ -17,7 +17,7 @@
 
   // Everything the app persists to localStorage — the full progress blob.
   // ff_start = the plan's start date (so the calendar/week follows you across devices).
-  var KEYS = ["fairwayfuel", "ff_week", "ff_log", "ff_body", "ff_start", "ff_planview", "ff_swaps", "ff_onboarded", "ff_handle", "ff_kcal_adj", "ff_lastcheckin", "ff_gameday", "ff_foodprefs", "ff_insights_seen", "ff_region", "ff_zip", "ff_tips_seen", "ff_history", "ff_deleted"];
+  var KEYS = ["fairwayfuel", "ff_week", "ff_log", "ff_body", "ff_start", "ff_planview", "ff_swaps", "ff_onboarded", "ff_handle", "ff_kcal_adj", "ff_lastcheckin", "ff_gameday", "ff_foodprefs", "ff_insights_seen", "ff_region", "ff_zip", "ff_tips_seen", "ff_history", "ff_deleted", "ff_rest"];
 
   // Disabled until configured, or if the Supabase SDK didn't load (e.g. offline).
   if (!SUPABASE_URL || !SUPABASE_ANON || !window.supabase) return;
@@ -228,6 +228,7 @@
       if (k === "ff_log") out[k] = unionLog(local[k], cloud[k]);
       else if (k === "ff_body") out[k] = unionBody(local[k], cloud[k]);
       else if (k === "ff_history") out[k] = unionHistory(local[k], cloud[k]);
+      else if (k === "ff_rest") out[k] = unionDeleted(local[k], cloud[k]);   // rest check-offs: latest ts per day wins
       else if (cloud[k] !== undefined) out[k] = cloud[k];   // unchanged behavior for the rest
       else if (local[k] !== undefined) out[k] = local[k];
     });
