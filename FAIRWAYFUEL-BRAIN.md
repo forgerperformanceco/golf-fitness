@@ -118,7 +118,7 @@ merges a blob to `profiles` with additive unions (`ff_log`, `ff_body`,
 `ffBench()` sex/age-calibrated reference numbers.
 
 **Deployment:** GitHub Pages (Fastly CDN) on the **main** branch, custom domain
-**fairwayfuel.app** (CNAME). Repo: **forgerperformanceco/golf-fitness** (public).
+**fairwayfuel.app** (CNAME). Repo: **forgerperformanceco/fairwayfuel** (public).
 
 ---
 
