@@ -44,7 +44,7 @@ one-time UI setup that pairs with the committed `codemagic.yaml`.
   Codemagic's automatic signing create it on the first build.)
 
 ### 4. Connect the repo and run
-1. Codemagic → **Add application → GitHub → `forgerperformanceco/golf-fitness`**.
+1. Codemagic → **Add application → GitHub → `forgerperformanceco/fairwayfuel`**.
    It auto-detects `codemagic.yaml`.
 2. Pick the **FairwayFuel iOS — App Store** workflow → **Start new build**.
 3. Codemagic will: install deps → build `www/` → generate the iOS project →
