@@ -1435,6 +1435,11 @@
   .ev-note b{ color:var(--green-700); }
   .ev-clear{ margin-top:9px; border:1px solid var(--line); background:none; color:var(--muted); border-radius:10px;
     padding:9px 14px; font-weight:700; font-size:13px; cursor:pointer; }
+  .swap-divide{ margin:12px 2px 7px; font-size:12px; font-weight:800; letter-spacing:.05em; text-transform:uppercase;
+    color:var(--muted); border-top:1px dashed var(--line); padding-top:10px; }
+  .swap-opt.nogear{ opacity:.62; }
+  .swap-need{ display:inline-block; margin-left:6px; font-size:11.5px; font-weight:700; color:#8a5a08;
+    background:#fff6e3; border:1px solid #edd9a8; border-radius:999px; padding:2px 8px; }
 
   /* ===== Today spine (Home) — one primary action + the day as a timeline ===== */
   .nu-card{ display:block; width:100%; text-align:left; position:relative; margin:0 0 14px; border:0; cursor:pointer;
@@ -1852,6 +1857,7 @@
   html:not([data-theme="light"]) .sc-chip.mid{ background:#252014; color:#e1d5c0; border:1px solid #4d432b; }
   html:not([data-theme="light"]) .sc-chip.miss{ background:#1a1c1a; border:1px solid #2f3931; }
   html:not([data-theme="light"]) .sc-share{ color:#c4e3d1; }
+  html:not([data-theme="light"]) .swap-need{ color:#e1d5c0; background:#252014; border:1px solid #4d432b; }
   html:not([data-theme="light"]) .tl-dot{ border:2.5px solid #34493a; }
   html:not([data-theme="light"]) .pl-dot.cur{ background:#274933; }
   html:not([data-theme="light"]) .pl-whybox .pl-howto{ background:#274933; color:#c9e5d5; }
@@ -2099,6 +2105,7 @@
   html[data-theme="dark"] .sc-chip.mid{ background:#252014; color:#e1d5c0; border:1px solid #4d432b; }
   html[data-theme="dark"] .sc-chip.miss{ background:#1a1c1a; border:1px solid #2f3931; }
   html[data-theme="dark"] .sc-share{ color:#c4e3d1; }
+  html[data-theme="dark"] .swap-need{ color:#e1d5c0; background:#252014; border:1px solid #4d432b; }
   html[data-theme="dark"] .tl-dot{ border:2.5px solid #34493a; }
   html[data-theme="dark"] .pl-dot.cur{ background:#274933; }
   html[data-theme="dark"] .pl-whybox .pl-howto{ background:#274933; color:#c9e5d5; }
@@ -4073,6 +4080,49 @@
   };
   function normName(n){ return n.replace(/\([^)]*\)/g,"").replace(/\s+/g," ").trim(); }
   function have(k){ return !!planState.equip[k]; }
+  /* Infer what gear a lift needs from its name — the EX map is authoritative for
+     the ~40 programmed lifts; everything else in the 250-lift library is classified
+     by pattern. "machine-any" = any selected machine counts. Imperfect inference is
+     fine: unmet needs only BADGE and SORT options in the pickers, never hide them. */
+  function equipNeedsFor(name){
+    var e=EX[normName(name)]; if(e) return e.needs;
+    var n=name||""; function m(re){ return re.test(n); }
+    if(m(/Smith/i)) return ["smith"];
+    if(m(/Leg Press/i)) return ["legpress"];
+    if(m(/Hack Squat|Pendulum Squat/i)) return ["hacksquat"];
+    if(m(/Leg Extension/i)) return ["legext"];
+    if(m(/Leg Curl|Glute-?Ham Raise/i)) return ["legcurl"];
+    if(m(/Pec Deck/i)) return ["pecdeck"];
+    if(m(/Machine (Chest|Shoulder) Press/i)) return [m(/Chest/i)?"chestpress":"shoulderpress"];
+    if(m(/Pulldown|Cable Pullover/i)) return ["latpulldown"];
+    if(m(/Seated Cable Row/i)) return ["seatedrow"];
+    if(m(/T-?Bar Row/i)) return ["tbarrow"];
+    if(m(/Assisted (Pull|Dip)/i)) return ["assisted"];
+    if(m(/Preacher/i)) return ["preacher"];
+    if(m(/Cable|Face Pull|Rope /i)) return ["cable"];
+    if(m(/Machine|Belt Squat|Reverse Hyper|Hyperextension|Back Extension/i)) return ["machine-any"];
+    if(m(/Kettlebell|\bKB\b/i)) return ["kettlebell"];
+    if(m(/Med-?Ball|Medicine Ball|Shotput|Scoop Toss/i)) return ["medball"];
+    if(m(/\bBand(ed)?\b/i)) return ["bands"];
+    if(m(/Box Jump|Depth Jump|Step-?up/i)) return ["box"];
+    if(m(/Pull-?up|Chin-?up|Dead Hang|Towel Pull|Hanging (Leg|Knee)/i)) return ["pullupbar"];
+    if(m(/\bDB\b|Dumbbell|Goblet|Arnold|Kroc|Meadows|Concentration|Zottman|Tate|Kickback|Farmer|Suitcase/i))
+      return m(/Incline|Decline|Flat .*Press|Seal Row|Chest-Supported/i) ? ["dumbbells","bench"] : ["dumbbells"];
+    if(m(/Lateral Raise|Rear-?Delt|Front Raise|Shrug|Upright Row|Curl|Skull|Fly\b/i) && !m(/Nordic|Leg Curl/i)) return ["dumbbells"];
+    if(m(/Barbell|Bench Press|Deadlift|Back Squat|Front Squat|Safety-Bar|Zercher|Box Squat|Overhead Press|Push Press|Z-?Press|Military|Pendlay|Landmine|EZ-?Bar|Close-?Grip|Good ?Morning|Rack Pull|Snatch|Clean|High Pull|Hip Thrust|Trap-?Bar|Seal Row|JM Press|Floor Press|Wrist Roller|Plate /i))
+      return m(/Bench|Incline|Decline|Seal Row|Hip Thrust/i) ? ["barbell","bench"] : ["barbell"];
+    if(m(/Weighted Dip|Bench Dip/i)) return ["bench"];
+    return [];   // bodyweight / no special gear
+  }
+  function equipOk(name){
+    return equipNeedsFor(name).every(function(k){
+      if(k==="machine-any") return MACHINE_KEYS.some(have);
+      return have(k);
+    });
+  }
+  function equipNeedsLabel(name){
+    return equipNeedsFor(name).map(function(k){ return k==="machine-any"?"a machine":eqLabel(k); }).join(" + ");
+  }
   // Speed & Power day: functional "Field" version vs loaded "Gym" version. Remembered once set;
   // otherwise defaulted from equipment (a barbell → you're probably in a gym).
   function speedMode(){
@@ -4975,9 +5025,21 @@
   var swapCtx=null;
   function openSwap(xi, orig, cur){
     swapCtx={ xi:xi, orig:orig };
-    var opts=swapOptionsFor(orig), html='<div class="swap-sub">Pick a valid replacement — same muscles, equally hard. It sticks in your plan.</div>';
-    opts.forEach(function(o){ var active=(o===cur);
-      html+='<button class="swap-opt'+(active?" cur":"")+'" data-swapchoose="'+escAttr(o)+'">'+o+(active?' <span class="swap-now">current</span>':'')+'</button>'; });
+    var opts=swapOptionsFor(orig);
+    var owned=[], missing=[];
+    opts.forEach(function(o){ (equipOk(o)?owned:missing).push(o); });
+    function opt(o, flagged){
+      var active=(o===cur);
+      return '<button class="swap-opt'+(active?" cur":"")+(flagged?" nogear":"")+'" data-swapchoose="'+escAttr(o)+'">'+purposeFor(o)+' '+o+
+        (active?' <span class="swap-now">current</span>':'')+
+        (flagged?' <span class="swap-need">needs '+equipNeedsLabel(o)+'</span>':'')+'</button>';
+    }
+    var html='<div class="swap-sub">Pick a valid replacement — same muscles, equally hard. It sticks in your plan.</div>';
+    html+=owned.map(function(o){ return opt(o,false); }).join("");
+    if(missing.length){
+      html+='<div class="swap-divide">Needs gear you haven’t added — still selectable</div>'+
+        missing.map(function(o){ return opt(o,true); }).join("");
+    }
     if(cur!==orig) html+='<button class="swap-opt reset" data-swapchoose="'+escAttr(orig)+'">↩ Reset to original ('+orig+')</button>';
     html+='<button class="swap-coach" data-swapcoach="1">💬 Ask the coach for another idea</button>';
     $("swapBody").innerHTML=html; $("swapTitle").textContent="Swap "+cur;
@@ -5004,7 +5066,9 @@
       var items=EXERCISE_DB[g].filter(function(o){ return !f || o.toLowerCase().indexOf(f)>=0; });
       if(!items.length) return;
       html+='<div class="add-group">'+g+'</div>';
-      items.forEach(function(o){ html+='<button class="swap-opt" data-addchoose="'+escAttr(o)+'">'+purposeFor(o)+' '+o+'</button>'; });
+      items.forEach(function(o){ var ok=equipOk(o);
+        html+='<button class="swap-opt'+(ok?"":" nogear")+'" data-addchoose="'+escAttr(o)+'">'+purposeFor(o)+' '+o+
+          (ok?'':' <span class="swap-need">needs '+equipNeedsLabel(o)+'</span>')+'</button>'; });
     });
     return html || '<div class="swap-sub">Type a name above, then tap “Add as a custom lift”.</div>';
   }
