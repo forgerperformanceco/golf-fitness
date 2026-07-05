@@ -1388,6 +1388,60 @@
   .qlog-hint{ font-size:13px; color:var(--muted); margin-top:8px; line-height:1.45; }
   .qlog-hint b{ color:var(--green-700); }
 
+  /* ===== Today spine (Home) — one primary action + the day as a timeline ===== */
+  .nu-card{ display:block; width:100%; text-align:left; position:relative; margin:0 0 14px; border:0; cursor:pointer;
+    border-radius:18px; padding:17px 44px 17px 18px; color:#eafbef;
+    background:linear-gradient(135deg,#134b2b,#0b2f1b); border:1px solid #1d5c38;
+    box-shadow:0 10px 26px rgba(8,40,22,.30); }
+  .nu-card.alt{ background:linear-gradient(135deg,#173a4e,#0d2230); border-color:#254b61; box-shadow:0 10px 26px rgba(10,30,45,.28); }
+  .nu-card.rest{ background:linear-gradient(135deg,#2e4636,#18271e); border-color:#3c5a47; }
+  .nu-kick{ font-size:12px; font-weight:800; letter-spacing:.09em; text-transform:uppercase; color:#8fd6a8; margin-bottom:4px; }
+  .nu-card.alt .nu-kick{ color:#8ec8e8; }
+  .nu-title{ font-size:21px; font-weight:900; letter-spacing:-.02em; line-height:1.15; }
+  .nu-sub{ margin-top:5px; font-size:13px; color:#b9dcc6; line-height:1.45; }
+  .nu-card.alt .nu-sub{ color:#a9cfe4; }
+  .nu-go{ position:absolute; right:15px; top:50%; transform:translateY(-50%); font-size:26px; color:#8be9ac; }
+  .nu-card.alt .nu-go{ color:#8ec8e8; }
+  .tl{ margin:2px 0 14px; }
+  .tl-h{ font-size:12px; font-weight:800; letter-spacing:.09em; text-transform:uppercase; color:var(--muted); margin:0 2px 8px; }
+  .tl-item{ display:flex; gap:0; align-items:stretch; }
+  .tl-when{ flex:0 0 62px; text-align:right; padding:13px 10px 0 0; font-size:12px; font-weight:800; color:var(--muted); }
+  .tl-rail{ flex:0 0 22px; position:relative; }
+  .tl-rail::before{ content:""; position:absolute; left:10px; top:0; bottom:0; width:2px; background:var(--line); }
+  .tl-item:first-of-type .tl-rail::before{ top:18px; }
+  .tl-item:last-of-type .tl-rail::before{ bottom:auto; height:18px; }
+  .tl-dot{ position:absolute; left:5px; top:16px; width:12px; height:12px; border-radius:50%;
+    background:var(--card); border:2.5px solid #b9cdbf; }
+  .tl-item.done .tl-dot{ background:#16a34a; border-color:#16a34a; }
+  .tl-item.now .tl-dot{ border-color:#16a34a; box-shadow:0 0 0 4px rgba(34,197,94,.18); }
+  .tl-card{ flex:1; min-width:0; margin:4px 0; background:var(--card); border:1px solid var(--line); border-radius:13px;
+    padding:11px 13px; display:flex; align-items:center; gap:10px; text-align:left; cursor:pointer; color:var(--ink); }
+  .tl-card:disabled{ cursor:default; }
+  .tl-item.done .tl-card{ opacity:.72; }
+  .tl-ic{ font-size:18px; flex:0 0 auto; }
+  .tl-tx{ flex:1; min-width:0; }
+  .tl-t{ display:block; font-weight:800; font-size:14px; letter-spacing:-.01em; }
+  .tl-s{ display:block; }
+  .tl-item.done .tl-t{ text-decoration:line-through; text-decoration-color:#9db8a5; text-decoration-thickness:1.5px; }
+  .tl-s{ font-size:12.5px; color:var(--muted); margin-top:1px; line-height:1.4; }
+  .tl-go{ color:#9db8a5; font-size:17px; flex:0 0 auto; }
+  .ff-fab{ position:fixed; right:16px; bottom:calc(76px + env(safe-area-inset-bottom)); z-index:45;
+    width:58px; height:58px; border-radius:50%; border:0; cursor:pointer;
+    background:linear-gradient(150deg,#22b45e,#11643a); color:#fff; font-size:30px; line-height:1; font-weight:600;
+    box-shadow:0 8px 22px rgba(10,80,40,.42); }
+  .ff-fab:active{ transform:scale(.94); }
+  @media (min-width:761px){ .ff-fab{ bottom:24px; } }
+  .qsheet{ position:fixed; inset:0; z-index:210; background:rgba(8,20,13,.55); display:flex; align-items:flex-end; }
+  .qsheet-card{ width:100%; max-width:760px; margin:0 auto; background:var(--card); border-radius:20px 20px 0 0;
+    padding:8px 16px calc(16px + env(safe-area-inset-bottom)); box-shadow:0 -12px 40px rgba(0,0,0,.28); }
+  .qsheet-grab{ width:44px; height:5px; border-radius:99px; background:var(--line); margin:4px auto 10px; }
+  .qsheet-h{ font-weight:900; font-size:16px; color:var(--ink); margin:0 0 2px; }
+  .qsheet-acts{ display:flex; flex-direction:column; gap:8px; margin-top:12px; }
+  .qsheet-act{ display:flex; align-items:center; gap:11px; width:100%; text-align:left; border:1px solid var(--line);
+    background:var(--paper); border-radius:13px; padding:13px 14px; font-weight:800; font-size:14.5px; color:var(--ink); cursor:pointer; }
+  .qsheet-act .qa-sub{ display:block; font-weight:600; font-size:12.5px; color:var(--muted); margin-top:1px; }
+  .qsheet-act .qa-go{ margin-left:auto; color:#9db8a5; font-size:17px; }
+
   /* ===== Workout Player — full-screen guided session. Always dark: it's a focus
      mode (gym lighting, one thing at a time), identical in both themes. ===== */
   .pl-start{ display:block; width:100%; margin:0 0 12px; border:0; border-radius:16px; cursor:pointer;
@@ -1734,6 +1788,11 @@
   html:not([data-theme="light"]) .tip.tip-install{ background:linear-gradient(165deg,#14261a,#182c1e); border-color:#2a4a33; }
   html:not([data-theme="light"]) .tip.tip-install .tip-t{ color:#c4e3d1; }
   html:not([data-theme="light"]) .tip.tip-install .tip-b{ color:#c4e2cf; }
+  html:not([data-theme="light"]) .tl-dot{ border:2.5px solid #34493a; }
+  html:not([data-theme="light"]) .pl-dot.cur{ background:#274933; }
+  html:not([data-theme="light"]) .pl-rest-fill{ background:#274933; }
+  html:not([data-theme="light"]) .pl-next{ background:#274933; color:#c9e5d5; }
+  html:not([data-theme="light"]) .pl-share{ border:1.5px solid #2f543c; }
   html:not([data-theme="light"]) .stest-card{ background:#132318; border:1px solid #26442f; color:#c5ddd5; }
   html:not([data-theme="light"]) .stest-go{ background:#274933; color:#c9e5d5; }
   html:not([data-theme="light"]) .stest-link{ color:#bcdfc9; }
@@ -1969,6 +2028,11 @@
   html[data-theme="dark"] .tip.tip-install{ background:linear-gradient(165deg,#14261a,#182c1e); border-color:#2a4a33; }
   html[data-theme="dark"] .tip.tip-install .tip-t{ color:#c4e3d1; }
   html[data-theme="dark"] .tip.tip-install .tip-b{ color:#c4e2cf; }
+  html[data-theme="dark"] .tl-dot{ border:2.5px solid #34493a; }
+  html[data-theme="dark"] .pl-dot.cur{ background:#274933; }
+  html[data-theme="dark"] .pl-rest-fill{ background:#274933; }
+  html[data-theme="dark"] .pl-next{ background:#274933; color:#c9e5d5; }
+  html[data-theme="dark"] .pl-share{ border:1.5px solid #2f543c; }
   html[data-theme="dark"] .stest-card{ background:#132318; border:1px solid #26442f; color:#c5ddd5; }
   html[data-theme="dark"] .stest-go{ background:#274933; color:#c9e5d5; }
   html[data-theme="dark"] .stest-link{ color:#bcdfc9; }
@@ -5905,41 +5969,91 @@
       (i.ask?'<button class="insight-cta" data-insask="'+escAttr(i.ask)+'">💬 Go deeper with the coach</button>':'')+
       '</div>';
   }
+  /* ----- HOME = the Today spine: one primary action, then the day in time order.
+     Deep dives stay on their tabs; Home answers "what do I do right now?" ----- */
+  function todaySlot(){ var dop=dayOfPlan(); if(dop==null) return null; return stripDays()[dop-1]||null; }
+  function nextUpCard(){
+    if(!planStart())
+      return '<button type="button" class="nu-card" data-goview="plan"><span class="nu-go">›</span>'+
+        '<div class="nu-kick">Next up</div><div class="nu-title">Start your 20-week plan</div>'+
+        '<div class="nu-sub">Today becomes Day 1 — fuel, lifts and speed work, dialed to you.</div></button>';
+    var wk=curWeek(), d=todaySlot();
+    if(d && d.type!=="rest"){
+      var sess=getSession(wk, d.name);
+      if(!(sess && sess.finishedAt)){
+        var started=!!(sess && (sess.ex||[]).some(function(x){ return (x.sets||[]).some(function(st){ return st.w||st.r||st.done; }); }));
+        return '<button type="button" class="nu-card" data-startplayer="'+escAttr(d.name)+'"><span class="nu-go">›</span>'+
+          '<div class="nu-kick">Next up · Week '+wk+' · '+WAVES[waveFor(wk)].label+'</div>'+
+          '<div class="nu-title">'+(started?'Resume: ':'▶ ')+d.name.replace(/^Day \d+ — /,"")+'</div>'+
+          '<div class="nu-sub">'+(started?'Picking up right where you left off — everything’s saved.':'Guided player — warm-up, prescribed loads, rest timer.')+'</div></button>';
+      }
+    }
+    if(speedTestDue() && lsGet("ff_body",[]).some(function(e){ return e && e.s; }))
+      return '<button type="button" class="nu-card alt" data-speedtest="1"><span class="nu-go">›</span>'+
+        '<div class="nu-kick">Next up · The scoreboard</div><div class="nu-title">🎯 Speed Test Day</div>'+
+        '<div class="nu-sub">3 max-intent 7-iron swings — best one counts. Two weeks of work; time to cash it in.</div></button>';
+    if(mobDue())
+      return '<button type="button" class="nu-card alt" data-mobscreen="1"><span class="nu-go">›</span>'+
+        '<div class="nu-kick">Next up · 3 minutes</div><div class="nu-title">🧭 Mobility screen</div>'+
+        '<div class="nu-sub">Trunk · hips · deep squat — completes your Octane and tunes your warm-ups.</div></button>';
+    if(d && d.type==="rest"){
+      var doneR=restDone(wk, dayKey(d));
+      return '<button type="button" class="nu-card rest" data-nurest="'+escAttr(dayKey(d))+'"><span class="nu-go">'+(doneR?'✓':'›')+'</span>'+
+        '<div class="nu-kick">Next up · Recovery day</div><div class="nu-title">'+(doneR?'Recovery banked ✓':'🌱 Recover on purpose')+'</div>'+
+        '<div class="nu-sub">'+(doneR?'Growth happens today. See you tomorrow.':'Walk a casual 9, mobility flow, foam roll — tap to log it.')+'</div></button>';
+    }
+    return '<button type="button" class="nu-card rest" data-goview="plan"><span class="nu-go">›</span>'+
+      '<div class="nu-kick">Next up</div><div class="nu-title">Today is banked ✓</div>'+
+      '<div class="nu-sub">Session done. Eat to your targets and let it build — tomorrow’s plan is ready.</div></button>';
+  }
+  function timelineHtml(){
+    if(!planStart()) return '';
+    var hour=FF_SLOT_HOUR[(typeof state!=="undefined" && state.workout)||"morning"]||17;
+    var nowH=new Date().getHours();
+    var today=todayStr(), row=null, body=lsGet("ff_body",[]);
+    for(var i=body.length-1;i>=0;i--){ if(body[i] && body[i].date===today){ row=body[i]; break; } }
+    var weighed=!!(row && row.w);
+    var d=todaySlot(), train=d && d.type!=="rest";
+    var sess=train?getSession(curWeek(), d.name):null, trained=!!(sess && sess.finishedAt);
+    var restDoneToday=(d && d.type==="rest")?restDone(curWeek(), dayKey(d)):false;
+    function item(when, ic, t, sub, opts){
+      opts=opts||{};
+      return '<div class="tl-item'+(opts.done?" done":"")+(opts.now?" now":"")+'">'+
+        '<div class="tl-when">'+when+'</div><div class="tl-rail"><span class="tl-dot"></span></div>'+
+        '<button type="button" class="tl-card"'+(opts.attr||' disabled')+'>'+
+        '<span class="tl-ic">'+ic+'</span><span class="tl-tx"><span class="tl-t">'+t+'</span><span class="tl-s">'+sub+'</span></span>'+
+        (opts.attr?'<span class="tl-go">›</span>':'')+'</button></div>';
+    }
+    var h='<div class="tl"><div class="tl-h">📅 Your day</div>';
+    h+=item("AM","⚖️","Morning weigh-in", weighed?("Logged — "+row.w+" lb ✓"):"Same scale, same time — feeds your trend & Octane",
+      { done:weighed, now:!weighed && nowH<11, attr:' data-qopen="1"' });
+    if(train){
+      h+=item(fmtMin((hour-1)*60),"🍚","Pre-workout fuel","Carbs + lean protein ~60–90 min out — see your meals",
+        { attr:' data-goview="calc"', done:trained || nowH>hour });
+      h+=item(fmtMin(hour*60),"🏋️",d.name.replace(/^Day \d+ — /,""),
+        trained?"Done — banked to history":(WAVES[waveFor(curWeek())].label+" week · guided player"),
+        { attr:' data-startplayer="'+escAttr(d.name)+'"', done:trained, now:!trained && Math.abs(nowH-hour)<=2 });
+      h+=item(fmtMin((hour+1)*60),"🥤","Post-workout meal","Protein + fast carbs within ~45 min",
+        { attr:' data-goview="calc"', done:trained && nowH>hour+1 });
+    } else if(d){
+      h+=item(fmtMin(12*60),"🌱","Active recovery", restDoneToday?"Recovery logged":"Walk 9, mobility flow, foam roll — growth day",
+        { attr:' data-nurest="'+escAttr(dayKey(d))+'"', done:restDoneToday, now:!restDoneToday });
+    }
+    h+=item("Any","⛳","Playing a round?","Tee-time fueling + first-tee warm-up plan",{ attr:' data-goview="gameday"' });
+    h+='</div>';
+    return h;
+  }
   function renderDash(){
     var el=$("dashBody"); if(!el) return;
-    var t=lsGet("ff_targets",null), wk=curWeek();
-    var body=lsGet("ff_body",[]), spdE=body.filter(function(e){ return e&&e.s; }), lastSpeed=spdE.length?spdE[spdE.length-1].s:null;
-    var sess=Object.keys(getLog()).length, nw=nextWorkout();
-    var fuel = t ? ('<b>'+t.kcal+'</b> kcal' ) : 'Set up →';
-    var fuelSub = t ? (t.proteinG+'p · '+t.carbG+'c · '+t.fatG+'f') : 'tap to calculate';
-    // Home order, by priority: where you stand → your focus → at-a-glance → log →
-    // coach → occasional tuning → situational round-day.
-    var html = renderHeroCard();        // 1. Driver carry + gain, Octane engine underneath
-    html += renderInsight();            // 2. Your one focus
-    // 3. At-a-glance tiles.
-    var speedBig = lastSpeed ? ('<b>'+lastSpeed+'</b> mph') : '<span class="dt-go">Test it →</span>';
-    var speedSub = sess+' workout'+(sess===1?'':'s')+' logged';
-    html += '<div class="dash-grid">'+
-      dTile('🍽️','Daily fuel', fuel, fuelSub, 'calc')+
-      dTile('🏌️','This week', 'Week <b>'+wk+'</b>', nw?('Next: '+nw.replace(/Day \d+ — /,'')):'open plan', 'plan')+
-      dTile('⚡','7-iron speed', speedBig, speedSub, 'plan')+
-      '</div>';
-    html += renderWeekRecap();          // 3.5 This calendar week + the board
-    // 4. Log today — the core daily input, right by the numbers it feeds.
-    var lastDrive=(driveStats()||{}).latest;
-    html += quickLogHtml('d', 'Driver carry is your headline number; weight, 7-iron speed &amp; a lift feed your <b>Octane</b>. '+
-      (lastDrive?('Last drive: <b>'+lastDrive+'</b> yds'):'Log your driver carry — off a launch monitor, or just how far you hit it.'));
-    // 5. AI read on your own numbers.
+    var html = renderHeroCard();     // where you stand: driver carry + Octane
+    html += nextUpCard();            // the ONE thing to do right now
+    html += renderInsight();         // your focus (secondary nudge)
+    html += timelineHtml();          // the day, in time order
+    html += renderAdaptiveCard();    // metabolism check-in (only when due)
+    html += renderWeekRecap();       // week so far + the board
     html += '<button class="dash-ai" data-ask="read"><span class="dai-ic">💬</span>'+
       '<span class="dai-tx"><b>Coach’s read</b><span>A quick AI take on your numbers &amp; what to focus on</span></span>'+
       '<span class="dai-go">›</span></button>';
-    // 6. Metabolism check-in — occasional macro tuning (only renders when due).
-    html += renderAdaptiveCard();
-    // 7. Situational: round-day fueling + warm-up.
-    html += '<button class="gameday-cta" data-goview="gameday">'+
-      '<span class="gd-flag">⛳</span>'+
-      '<span class="gd-cta-tx"><b>Playing a round today?</b><span>Get your tee-time fueling + first-tee warm-up plan</span></span>'+
-      '<span class="gd-cta-go">›</span></button>';
     el.innerHTML=html;
   }
 
@@ -6737,13 +6851,54 @@
       if(act==="apply"){ var a=adaptiveCheck();
         if(a){ var nx=Math.max(-600, Math.min(600, lsGet("ff_kcal_adj",0)+a.deltaKcal)); lsSet("ff_kcal_adj", nx); } }
       lsSet("ff_lastcheckin", Date.now()); try{ calc(); }catch(e2){} renderDash(); return; }
-    if(e.target.id==="dAdd"){
-      if(!logBodyEntry($("dBody")&&$("dBody").value, $("dSpeed")&&$("dSpeed").value, $("dDrive")&&$("dDrive").value)) return;
-      renderDash();
-      return;
-    }
+    var nr=e.target.closest("[data-nurest]");
+    if(nr){ toggleRestDone(curWeek(), nr.getAttribute("data-nurest"));
+      try{ window.dispatchEvent(new Event("ff-data-changed")); }catch(_){}
+      renderDash(); return; }
+    if(e.target.closest("[data-qopen]")){ var fb=$("ffFab"); if(fb) fb.click(); return; }
     var t=e.target.closest("[data-goview]"); if(t) setView(t.getAttribute("data-goview"));
   });
+  /* ---- Global quick-log: the floating ＋ and its bottom sheet. One entry point
+     for the daily inputs (weight / 7-iron / driver) plus jump-offs to the player,
+     speed test and mobility screen — replaces the form that lived on Home. ---- */
+  (function(){
+    var fab=document.createElement("button");
+    fab.className="ff-fab"; fab.id="ffFab"; fab.type="button"; fab.setAttribute("aria-label","Quick log");
+    fab.textContent="＋";
+    document.body.appendChild(fab);
+    var sheet=document.createElement("div");
+    sheet.className="qsheet"; sheet.id="qSheet"; sheet.hidden=true;
+    document.body.appendChild(sheet);
+    function openSheet(){
+      var d=(typeof todaySlot==="function")?todaySlot():null;
+      var train=d && d.type!=="rest" && planStart();
+      sheet.innerHTML='<div class="qsheet-card"><div class="qsheet-grab"></div>'+
+        '<div class="qsheet-h">Quick log</div>'+
+        quickLogHtml("q","Weight, 7-iron &amp; driver feed your trends, Octane and the board.")+
+        '<div class="qsheet-acts">'+
+        (train?('<button type="button" class="qsheet-act" data-startplayer="'+escAttr(d.name)+'">🏋️ <span>Start today’s workout<span class="qa-sub">'+d.name.replace(/^Day \d+ — /,"")+' · guided player</span></span><span class="qa-go">›</span></button>'):'')+
+        '<button type="button" class="qsheet-act" data-speedtest="1">🎯 <span>Speed test<span class="qa-sub">3 max swings — best one counts</span></span><span class="qa-go">›</span></button>'+
+        '<button type="button" class="qsheet-act" data-mobscreen="1">🧭 <span>Mobility screen<span class="qa-sub">3 moves · ~3 minutes</span></span><span class="qa-go">›</span></button>'+
+        '</div></div>';
+      sheet.hidden=false; document.body.style.overflow="hidden";
+    }
+    function closeSheet(){ sheet.hidden=true; document.body.style.overflow=""; }
+    fab.addEventListener("click", openSheet);
+    sheet.addEventListener("click", function(e){
+      if(e.target===sheet){ closeSheet(); return; }
+      if(e.target.id==="qAdd"){
+        if(!logBodyEntry($("qBody")&&$("qBody").value, $("qSpeed")&&$("qSpeed").value, $("qDrive")&&$("qDrive").value)) return;
+        try{ sessionStorage.removeItem("ff_lb_pub"); }catch(e2){}
+        closeSheet(); ffToast("Logged 📈");
+        try{ renderDash(); }catch(e2){}
+        try{ if($("view-progress") && $("view-progress").classList.contains("active")) renderProgress(); }catch(e2){}
+        return;
+      }
+      // Action rows open their overlays via the document-level listeners — just get out of the way.
+      if(e.target.closest("[data-startplayer],[data-speedtest],[data-mobscreen]")) closeSheet();
+    });
+  })();
+
   // Game Day controls (tee time / holes / transport), warm-up check-off, back.
   var gdb=$("gamedayBody");
   if(gdb){
