@@ -3660,18 +3660,25 @@
   function escAttr(s){ return String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;"); }
   // The plan runs off a START DATE: once you start, it auto-knows your week. No dropdown.
   function planStart(){ return lsGet("ff_start", null); }
+  // Whole CALENDAR days from the plan's start day to today. Both ends are normalized to
+  // local midnight and the diff is rounded, so the plan rolls over exactly when a new
+  // calendar day begins (not at the clock-time you happened to start) and DST's 23/25-hour
+  // days can't push the count off by one.
+  function daysSinceStart(){
+    var s = planStart(); if(!s) return null;
+    var start = new Date(s); start.setHours(0,0,0,0);
+    var today = new Date(); today.setHours(0,0,0,0);
+    return Math.max(0, Math.round((today.getTime() - start.getTime()) / 864e5));
+  }
   function curWeek(){
-    var s = planStart();
-    if(s){
-      var days = Math.floor((Date.now() - new Date(s).getTime()) / 864e5);
-      return Math.max(1, Math.min(20, Math.floor(days/7) + 1));
+    if(planStart()!=null){
+      return Math.max(1, Math.min(20, Math.floor(daysSinceStart()/7) + 1));
     }
     return lsGet("ff_week", 1);   // legacy fallback before the plan is started
   }
   function dayOfPlan(){            // 1–7 within the current week
-    var s = planStart(); if(!s) return null;
-    var days = Math.floor((Date.now() - new Date(s).getTime()) / 864e5);
-    return (days % 7) + 1;
+    if(planStart()==null) return null;
+    return (daysSinceStart() % 7) + 1;
   }
   // Real calendar dates for the week strip, anchored to when the user started.
   function weekStartDate(){
@@ -5686,6 +5693,26 @@
   renderEquip();
   renderPhase();
   renderDash();         // home overview (default landing tab)
+  // The plan/day are derived live from the start date, but they only recompute when something
+  // renders. An installed PWA / native shell can sit open (or backgrounded) across midnight or a
+  // whole week boundary and never re-render — so the workouts appear "stuck" on the old week.
+  // Re-render the date-driven views whenever the app is shown again on a NEW calendar day, and
+  // move the reminders to match. Cheap (only fires on an actual day change), so it's safe to
+  // hang off visibility/focus/pageshow.
+  var ffLastDay = todayStr();
+  function ffRefreshForNewDay(){
+    try{
+      var now = todayStr();
+      if(now === ffLastDay) return;   // same day — nothing to roll over
+      ffLastDay = now;
+      renderPhase();
+      if(typeof renderDash==="function") renderDash();
+      try{ ffNotifReschedule(); }catch(_){}   // reminders follow the new week/day
+    }catch(e){}
+  }
+  document.addEventListener("visibilitychange", function(){ if(!document.hidden) ffRefreshForNewDay(); });
+  window.addEventListener("focus", ffRefreshForNewDay);
+  window.addEventListener("pageshow", ffRefreshForNewDay);
   try{ var bootView=(document.querySelector("#tabs button.active")||{getAttribute:function(){return "dash";}}).getAttribute("data-view"); showTipFor(bootView); }catch(e){}
   // App-shortcut deep links (long-press the installed icon): ?go=plan|calc|gameday|progress
   try{ var go=(new URLSearchParams(location.search)).get("go"); if(go && document.getElementById("view-"+go)) setView(go); }catch(e){}
