@@ -136,6 +136,23 @@ along the way, and the follow-ups they open up.
 - **Onboarding step 0** trimmed to brand + one-line promise — the feature
   pitch was re-selling the app to someone who already opened it.
 
+**Follow-up (same week): manual theme control + contrast audit.** User feedback
+surfaced unreadable text. A programmatic contrast audit (Playwright walking every
+visible text node vs its effective background, both schemes) found four real
+issues: `.sb-link` was near-white green on a white card in the Train settings
+fold (pre-existing light-mode bug — now `--green-700`, with the light variant
+scoped to the dark start banner); the mobile tab bar kept its light rgba
+background in dark mode (rgba is skipped by the generator — now a hand pin);
+the amber nutrient-timing surfaces use `var(--sand)` (no hex to transform —
+`--sand`/`--sand-dark` now overridden in the dark root); and the white-on-gray
+"Recover"/"Speed" day tags were under 3:1 in both modes (chips darkened).
+An **Appearance setting (Auto / Light / Dark)** was added to the You tab:
+`ff_theme` is stored per-device (deliberately not synced), a pre-paint head
+script applies it to avoid a flash, and the generator now emits every dark rule
+twice — `@media (prefers-color-scheme: dark)` guarded by
+`html:not([data-theme="light"])`, plus a forced `html[data-theme="dark"]`
+variant (~36KB total). The contrast audit script pattern is worth keeping in CI.
+
 **Deliberate deviations / not done**
 - No full px→rem conversion: the type bump addresses legibility directly;
   a rem sweep across ~600 declarations is high-churn for marginal gain. If
