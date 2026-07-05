@@ -3180,7 +3180,7 @@
         { name:"Day 3 \u2014 Speed & Power", tag:"speed", type:"speed" },
         { name:"Day 4 \u2014 Lower (Hinge + Power)", tag:"Lift", ex:[
           ["Deadlift","4 \u00d7 4 (heavy \u00b7 fast up)"],["Hip Thrust","4 \u00d7 8"],
-          ["Bulgarian Split Squat","3 \u00d7 8 / leg"],["Pallof Press","3 \u00d7 12 / side"],["Farmer Carry","3 \u00d7 40 yd"]
+          ["Bulgarian Split Squat","3 \u00d7 8 / leg"],["Seated Leg Curl","3 \u00d7 12"],["Pallof Press","3 \u00d7 12 / side"],["Farmer Carry","3 \u00d7 40 yd"]
         ]},
         { name:"Day 5 \u2014 Upper (Pull + Rotate)", tag:"Lift", ex:[
           ["Weighted Pull-up","4 \u00d7 6 (fast up)"],["Chest-Supported Row","4 \u00d7 8"],["Lat Pulldown","3 \u00d7 12"],["Single-Arm DB Row","3 \u00d7 8 / side"],
@@ -3280,6 +3280,8 @@
     "Hip Thrust":{needs:["barbell","bench"],subs:[{needs:["dumbbells","bench"],name:"DB Hip Thrust"},{needs:["bodyweight"],name:"Single-leg Glute Bridge"}]},
     "Leg Extension":{needs:["legext"],subs:[{needs:["bodyweight"],name:"Sissy Squat"}]},
     "Leg Curl":{needs:["legcurl"],subs:[{needs:["bands"],name:"Band Leg Curl"},{needs:["bodyweight"],name:"Nordic / Slider Leg Curl"}]},
+    "Seated Leg Curl":{needs:["legcurl"],subs:[{needs:["bands"],name:"Band Leg Curl"},{needs:["bodyweight"],name:"Nordic / Slider Leg Curl"}]},
+    "Lying Leg Curl":{needs:["legcurl"],subs:[{needs:["bands"],name:"Band Leg Curl"},{needs:["bodyweight"],name:"Nordic / Slider Leg Curl"}]},
     "Pallof Press":{needs:["cable"],subs:[{needs:["bands"],name:"Band Pallof Press"},{needs:["bodyweight"],name:"Side Plank"}]},
     "Farmer Carry":{needs:["dumbbells"],subs:[{needs:["kettlebell"],name:"Kettlebell Carry"},{needs:["bodyweight"],name:"Loaded Carry (backpack / any heavy object)"}]},
     "Weighted Pull-up":{needs:["pullupbar"],subs:[{needs:["latpulldown"],name:"Lat Pulldown"},{needs:["bands"],name:"Band Lat Pulldown"},{needs:["dumbbells"],name:"DB Row"},{needs:["bodyweight"],name:"Inverted Row (under a sturdy table)"}]},
@@ -3965,6 +3967,8 @@
       return { why:"Direct quad work builds the knee-extension strength that stabilizes your lead leg at impact — a firmer post lets the hips fire the club through faster. Placed after the big lifts, it isolates the quads for extra growth without pre-fatiguing your heavy compounds.", cue:"Squeeze the quads hard at the top, lower slow — strict isolation, leave the ego off." };
     if(m(/Squat|Leg Press|Hack/i))
       return { why:"Vertical ground force is the #1 driver of clubhead speed — the best players push the ground hardest. Heavy squatting builds the leg drive that fires your hips through impact.", cue:"Drive the floor away explosively out of the hole — push the ground, don't just stand up." };
+    if(m(/Leg Curl|Nordic|Glute-?Ham|Ham(string)? Curl/i))
+      return { why:"Curls train the hamstring's other job — bending the knee — which balances all your hip-hinge work and armors the muscle against the strains that fast, rotational movement like the swing can cause.", cue:"Keep the hips flat on the pad, curl hard, then fight the weight down slowly." };
     if(m(/Deadlift|Romanian|RDL|Hinge|Good ?Morning|Hip Thrust|Kettlebell Swing|Swing/i))
       return { why:"The downswing is a violent hip extension — the snap of the glutes and hamstrings. Hinge work builds that posterior-chain pop that whips the club through the ball.", cue:"Snap the hips forward and squeeze the glutes hard at lockout — that's impact." };
     if(m(/Lunge|Split Squat|Step.?up|Bulgarian|Single.?Leg/i))
@@ -3997,6 +4001,7 @@
     if(m(/Pallof|Chop|Russian|Wood ?chop|Rotation|Rotational|Twist|Landmine/i)) return { mu:"Obliques · deep core · hips", cues:["Brace the core hard before you move.","Rotate from the hips, keep the spine stacked.","Control the return — don't let it snap you back.","Breathe behind the brace."], miss:["Bending the spine instead of turning the hips.","Going so heavy you lose the brace."] };
     if(m(/Leg Extension|Sissy Squat|Knee Extension/i)) return { mu:"Quads (isolation)", cues:["Sit back in the seat, pad on the lower shin.","Extend to full lockout and squeeze the quads.","Lower slowly — resist all the way down.","Strict reps — no swinging or thrusting the weight up."], miss:["Using momentum to kick the weight up.","Cutting the range short at the top."] };
     if(m(/Squat|Leg Press|Hack/i)) return { mu:"Quads · glutes · core", cues:["Brace, big breath, chest tall.","Sit between your hips to at least parallel.","Drive the floor away — push through mid-foot.","Knees track over toes, don't cave in."], miss:["Knees caving inward.","Heels rising / rounding the lower back.","Cutting depth short."] };
+    if(m(/Leg Curl|Nordic|Glute-?Ham/i)) return { mu:"Hamstrings (knee flexion)", cues:["Hips flat on the pad — don't let them pop up.","Curl the heels all the way toward you.","Squeeze the hamstrings hard at the peak.","Lower slowly — resist the weight down."], miss:["Jerking / using the hips to move the weight.","Cutting the range short at the top or bottom."] };
     if(m(/Deadlift|Romanian|RDL|Hinge|Good ?Morning/i)) return { mu:"Hamstrings · glutes · lower back", cues:["Soft knees, hinge from the hips — push hips back.","Keep the bar/weight close, back flat.","Feel a hamstring stretch, then snap the hips forward.","Squeeze the glutes hard at the top — don't lean back."], miss:["Rounding the back.","Squatting it instead of hinging.","Hyperextending / leaning back at the top."] };
     if(m(/Hip Thrust|Kettlebell Swing|KB Swing|Swing/i)) return { mu:"Glutes · hamstrings · core", cues:["Drive through the heels, ribs down.","Snap the hips to full extension, squeeze the glutes.","Chin tucked, don't arch the lower back.","Control the lowering."], miss:["Arching the lower back instead of using glutes.","Pushing through the toes."] };
     if(m(/Lunge|Split Squat|Step.?up|Bulgarian|Single.?Leg/i)) return { mu:"Quads · glutes · balance/stability", cues:["Most weight on the front leg.","Drop straight down, back knee toward the floor.","Drive through the front heel to stand.","Stay tall — brace the front leg like a post."], miss:["Pushing off the back foot too much.","Front knee collapsing inward.","Leaning the torso forward."] };
