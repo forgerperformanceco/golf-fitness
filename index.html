@@ -1424,6 +1424,17 @@
   .sc-chip.miss{ background:#f4f5f4; color:#7d8a80; border:1px solid #dde3de; }
   .sc-share{ display:block; width:100%; margin-top:12px; border:1.5px solid #16a34a; border-radius:12px; background:none;
     color:#0f5a2e; font-weight:800; font-size:13.5px; padding:11px; cursor:pointer; }
+  .ev-grid{ display:grid; grid-template-columns:1fr 1.35fr; gap:9px; }
+  @media (max-width:380px){ .ev-grid{ grid-template-columns:1fr; } }
+  .ev-f{ display:block; }
+  .ev-f span{ display:block; font-size:12px; font-weight:800; color:var(--muted); margin:0 0 5px 2px;
+    text-transform:uppercase; letter-spacing:.05em; }
+  .ev-f span em{ font-style:normal; text-transform:none; letter-spacing:0; font-weight:600; }
+  .ev-f input{ width:100%; min-height:47px; }
+  .ev-note{ margin:9px 0 0; font-size:13px; color:var(--muted); line-height:1.5; }
+  .ev-note b{ color:var(--green-700); }
+  .ev-clear{ margin-top:9px; border:1px solid var(--line); background:none; color:var(--muted); border-radius:10px;
+    padding:9px 14px; font-weight:700; font-size:13px; cursor:pointer; }
 
   /* ===== Today spine (Home) — one primary action + the day as a timeline ===== */
   .nu-card{ display:block; width:100%; text-align:left; position:relative; margin:0 0 14px; border:0; cursor:pointer;
@@ -1506,6 +1517,7 @@
   .pl-exname{ font-size:26px; font-weight:900; letter-spacing:-.02em; line-height:1.12; margin:4px 0 2px; }
   .pl-target{ display:inline-block; margin:6px 8px 2px 0; background:rgba(255,255,255,.1); padding:5px 12px;
     border-radius:999px; font-weight:800; font-size:13.5px; }
+  .pl-target.dim{ background:rgba(255,255,255,.05); color:#9fc4ac; font-weight:700; }
   .pl-presc{ margin:10px 0 2px; font-size:14px; color:#bfe9cd; }
   .pl-presc b{ color:#8be9ac; font-size:18px; }
   .pl-cue{ margin:8px 0 0; font-size:13px; color:#9fc4ac; line-height:1.55; }
@@ -1842,6 +1854,7 @@
   html:not([data-theme="light"]) .sc-share{ color:#c4e3d1; }
   html:not([data-theme="light"]) .tl-dot{ border:2.5px solid #34493a; }
   html:not([data-theme="light"]) .pl-dot.cur{ background:#274933; }
+  html:not([data-theme="light"]) .pl-whybox .pl-howto{ background:#274933; color:#c9e5d5; }
   html:not([data-theme="light"]) .pl-rest-fill{ background:#274933; }
   html:not([data-theme="light"]) .pl-next{ background:#274933; color:#c9e5d5; }
   html:not([data-theme="light"]) .pl-share{ border:1.5px solid #2f543c; }
@@ -2088,6 +2101,7 @@
   html[data-theme="dark"] .sc-share{ color:#c4e3d1; }
   html[data-theme="dark"] .tl-dot{ border:2.5px solid #34493a; }
   html[data-theme="dark"] .pl-dot.cur{ background:#274933; }
+  html[data-theme="dark"] .pl-whybox .pl-howto{ background:#274933; color:#c9e5d5; }
   html[data-theme="dark"] .pl-rest-fill{ background:#274933; }
   html[data-theme="dark"] .pl-next{ background:#274933; color:#c9e5d5; }
   html[data-theme="dark"] .pl-share{ border:1.5px solid #2f543c; }
@@ -4305,10 +4319,13 @@
       var smode=speedMode(), s=p.speed[smode];
       var srows = s.ex.map(function(e){
         var id="why"+(whyId++);
-        return '<tr><td><button class="exwhy-btn" type="button" data-whyrow="'+id+'" aria-expanded="false"><span class="exname-main">'+purposeFor(e[0])+' '+e[0]+'</span> <span class="exwhy-i">ⓘ</span></button>'+
-               '<div class="exnote">'+e[2]+'</div></td>'+
-               '<td class="sets">'+speedDrillTarget(e[0], e[1], curWeek())+'</td></tr>'+
-               '<tr class="exwhy-row" id="'+id+'" hidden><td colspan="2"><div class="exwhy-panel">'+whyHtml(e[0],false)+'</div></td></tr>';
+        var base=applySwapName(e[0]), swapped=base!==e[0];
+        var note=swapped ? ('⚡ '+liftWhy(base).cue) : e[2];
+        return '<tr'+(swapped?' class="swap"':'')+'><td><button class="exwhy-btn" type="button" data-whyrow="'+id+'" aria-expanded="false"><span class="exname-main">'+purposeFor(base)+' '+base+'</span>'+
+               (swapped?' <span class="swap-badge">⇄ your swap</span>':'')+' <span class="exwhy-i">ⓘ</span></button>'+
+               '<div class="exnote">'+note+'</div></td>'+
+               '<td class="sets">'+speedDrillTarget(base, e[1], curWeek())+'</td></tr>'+
+               '<tr class="exwhy-row" id="'+id+'" hidden><td colspan="2"><div class="exwhy-panel">'+whyHtml(base,false)+'</div></td></tr>';
       }).join("");
       var noGear = smode==="gym"
         ? "No cable? A band anchored at chest/hip height covers the chops. No landmine? Wedge a barbell into a corner."
@@ -4688,9 +4705,10 @@
     if(existing) return JSON.parse(JSON.stringify(existing));
     var ex;
     if(day.type==="speed"){
-      ex = PHASES[0].speed[speedMode()].ex.map(function(e){ var tgt=speedDrillTarget(e[0], e[1], week);
+      ex = PHASES[0].speed[speedMode()].ex.map(function(e){ var base=applySwapName(e[0]);
+        var tgt=speedDrillTarget(base, e[1], week);
         var n=parseSets(tgt), sets=[]; for(var i=0;i<n;i++) sets.push({w:"",r:"",done:false});
-        return { name:e[0], target:tgt, sets:sets }; });
+        return { name:base, orig:e[0], target:tgt, sets:sets }; });
     } else {
       ex = day.ex.map(function(row){ var base=applySwapName(row[0]);   // user swap first
         var r=resolveEx(base,row[1]); var nm=(r.status==="swap")?r.name:base;
@@ -4968,7 +4986,7 @@
   function closeSwap(){ var m=$("swapModal"); if(m) m.hidden=true;
     // Keep the page locked if the player (or another sheet) is still underneath.
     document.body.style.overflow=(typeof player!=="undefined" && player)?"hidden":"";
-    swapCtx=null; swapFromPlayer=false; }
+    swapCtx=null; swapFromPlayer=false; addFromPlayer=false; }
   // Add a whole new lift to today's session — browse the full database, searchable.
   function addLiftGroupsHtml(filter){
     var raw=(filter||"").trim(), f=raw.toLowerCase();
@@ -4997,8 +5015,15 @@
       '<div id="addList">'+addLiftGroupsHtml("")+'</div>';
     var m=$("swapModal"); m.hidden=false; document.body.style.overflow="hidden";
   }
+  var addFromPlayer=false;
   function addLiftChoice(name){
-    if(ilog){
+    if(addFromPlayer && player){
+      player.sess.ex.push({ name:name, orig:name, target:"3 × 10", sets:[{w:"",r:"",done:false},{w:"",r:"",done:false},{w:"",r:"",done:false}] });
+      var nxi=player.sess.ex.length-1;
+      player.stations.splice(player.stations.length-1, 0, { type:"lift", xi:nxi });
+      player.st=player.stations.length-2;   // land on the new lift, recap stays last
+      plSave(); plRender();
+    } else if(ilog){
       ilog.sess.ex.push({ name:name, orig:name, target:"3 × 10", sets:[{w:"",r:"",done:false},{w:"",r:"",done:false},{w:"",r:"",done:false}] });
       saveILog(); renderILog();
     }
@@ -5566,7 +5591,7 @@
       var whyOpen=!!(player.whyOpen && player.whyOpen[st.xi]);
       var acts='<div class="pl-acts">'+
         '<button type="button" class="'+(whyOpen?'on':'')+'" data-plwhy="'+st.xi+'">🛈 Why this lift</button>'+
-        (player.day.type!=="speed"?'<button type="button" data-plswap="'+st.xi+'">⇄ Swap</button>':'')+
+        '<button type="button" data-plswap="'+st.xi+'">⇄ Swap</button>'+
         '</div>';
       var whyBox=whyOpen
         ? '<div class="pl-whybox">'+liftWhy(x.name).why+
@@ -5575,6 +5600,7 @@
       return '<div class="pl-skick">Lift '+(st.xi+1)+' of '+player.sess.ex.length+'</div>'+
         '<div class="pl-exname">'+purposeFor(x.name)+' '+x.name+'</div>'+
         '<span class="pl-target">'+x.target+'</span>'+
+        '<span class="pl-target dim">'+(purposeFor(x.name)==="⚡"?"max intent · full rest":effortNote(x.target))+'</span>'+
         '<div class="pl-presc">'+prescLine+'</div>'+
         '<div class="pl-cue">⚡ '+cue+'</div>'+
         acts+whyBox+
@@ -5605,6 +5631,7 @@
         '<div class="pl-stat"><div class="v">'+octNow+(dOct>0?' <small style="color:#8be9ac">▲'+dOct+'</small>':'')+'</div><div class="k">Octane</div></div>'+
       '</div>'+
       '<div class="pl-cue" style="text-align:center">'+(prs.length?'Force is the raw material for clubhead speed — that PR is yards in the bank.':'Consistency is the biggest lever on your Octane. Session banked.')+'</div>'+
+      '<button class="pl-share" data-pladdlift="1" style="border-color:rgba(255,255,255,.25);color:#dff1e4;">＋ Add one more lift</button>'+
       '<button class="pl-share" data-plshare="1">📤 Share this session</button>'+
       '</div>';
   }
@@ -5697,6 +5724,7 @@
         s2[f]=String(nv);
         plSave(); plRender(); return;
       }
+      if(e.target.closest("[data-pladdlift]")){ addFromPlayer=true; openAddLift(); return; }
       var pw=e.target.closest("[data-plwhy]");
       if(pw){ var wxi=+pw.getAttribute("data-plwhy");
         player.whyOpen=player.whyOpen||{};
@@ -6523,13 +6551,15 @@
       (function(){
         var ev=eventInfo();
         return '<div class="acct-set"><div class="acct-set-lbl">🏆 Big event <small>the taper re-anchors to peak for it</small></div>'+
-          '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">'+
-          '<input type="date" id="acctEvDate" value="'+escAttr(ev?ev.date:"")+'" style="flex:1;min-width:150px;" />'+
-          '<input type="text" id="acctEvName" placeholder="Club champs, member-guest…" maxlength="40" value="'+escAttr(ev?ev.name:"")+'" style="flex:1.4;min-width:170px;" />'+
-          (ev?'<button type="button" class="acct-btn ghost" id="acctEvClear" style="flex:0 0 auto;width:auto;padding:10px 14px;margin:0;">Clear</button>':'')+
+          '<div class="ev-grid">'+
+            '<label class="ev-f"><span>Date</span><input type="date" id="acctEvDate" value="'+escAttr(ev?ev.date:"")+'" /></label>'+
+            '<label class="ev-f"><span>Name <em>(optional)</em></span><input type="text" id="acctEvName" placeholder="Club champs, member-guest…" maxlength="40" value="'+escAttr(ev?ev.name:"")+'" /></label>'+
           '</div>'+
-          (ev && ev.week && !ev.past ? '<div class="acct-p" style="margin:8px 0 0;">Lands in <b>week '+ev.week+'</b> — weeks '+(ev.week-1)+'–'+ev.week+' become your peak.</div>'
-           : (ev && !ev.week && !ev.past ? '<div class="acct-p" style="margin:8px 0 0;">Outside the current 20-week block — the base plan cadence applies.</div>' : ''))+
+          (ev && ev.week && !ev.past ? '<div class="ev-note">🏆 Lands in <b>week '+ev.week+'</b> — weeks <b>'+(ev.week-1)+'–'+ev.week+'</b> become your peak, week '+(ev.week+1)+' recovers.</div>'
+           : (ev && ev.past ? '<div class="ev-note">That date has passed — set your next one, or clear it.</div>'
+           : (ev ? '<div class="ev-note">Outside the current 20-week block — the base plan cadence applies.</div>'
+                 : '<div class="ev-note">Set a date and the plan tapers you into it — volume drops, intensity holds, you arrive fresh and fast.</div>')))+
+          (ev?'<button type="button" class="ev-clear" id="acctEvClear">✕ Clear event</button>':'')+
           '</div>';
       })()+
       '</div>';

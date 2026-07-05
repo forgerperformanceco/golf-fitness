@@ -215,6 +215,21 @@ for its speed/weight deltas; queued as tech debt.
   at the event week and explains the re-anchor in its footer; without an
   event it invites you to set one.
 
+## 7 · Player round 2 + drill swaps + event UI (user feedback)
+
+- **Speed-day drills are swappable everywhere** ("I don't have or know those
+  things sometimes"): the player, the inline logger and the day cards all
+  honor `ff_swaps` for drills now — swap a landmine throw for a med-ball
+  throw once and it sticks. Swapped drills show the badge and swap their
+  stale drill note for the new movement's power cue.
+- **Player additions:** per-lift effort chip (RIR + rest for lifts, "max
+  intent · full rest" for power work — never RIR-grade a jump), and
+  "＋ Add one more lift" on the recap station (inserts a new station and
+  lands on it; recap stays last).
+- **Big Event selector redesigned** from inline-styled flex soup to labeled
+  DATE / NAME fields on a grid, a status note ("Lands in week 4 — weeks 3–4
+  become your peak"), and a proper clear button. Verified light + dark.
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob
