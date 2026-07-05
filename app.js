@@ -5,6 +5,120 @@
 /* ────────── js/app/005-core-boot.js ────────── */
 
 
+/* ────────── js/app/007-motion.js ────────── */
+  /* ===================== MOTION — the app's physics layer ===================== */
+  // Count-up numbers, gauge sweeps, PR celebration, haptic ticks. Everything in
+  // this module is decorative: every entry point is try/guarded so a motion
+  // failure can never break behavior, and prefers-reduced-motion turns it all off.
+
+  function ffReduced(){
+    try{ return window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){ return false; }
+  }
+
+  // Haptic tick. Android Chrome vibrates; iOS Safari ignores navigator.vibrate
+  // silently, so this is a free upgrade where supported and a no-op elsewhere.
+  function ffTick(pattern){
+    try{ if(!ffReduced() && navigator.vibrate) navigator.vibrate(pattern||10); }catch(e){}
+  }
+
+  // Count-up: any element rendered as
+  //   <span data-countup="31740" data-cu-fmt="locale" data-cu-suffix=" lb">31,740 lb</span>
+  // gets its number animated 0 → value with an ease-out curve. The FINAL value is
+  // already in the markup, so if motion is off (or JS dies) the number is simply there.
+  function ffCountUps(root){
+    if(ffReduced()) return;
+    try{
+      var els=(root||document).querySelectorAll("[data-countup]");
+      Array.prototype.forEach.call(els, function(el){
+        if(el.__ffCU) return; el.__ffCU=true;
+        var target=parseFloat(el.getAttribute("data-countup"));
+        if(isNaN(target) || target===0) return;
+        var suffix=el.getAttribute("data-cu-suffix")||"";
+        var locale=el.getAttribute("data-cu-fmt")==="locale";
+        var dur=Math.min(900, 450+Math.abs(target));   // small numbers settle fast
+        var t0=null;
+        function frame(t){
+          if(!el.isConnected) return;                   // view re-rendered mid-flight
+          if(t0===null) t0=t;
+          var p=Math.min(1,(t-t0)/dur); p=1-Math.pow(1-p,3);
+          var v=Math.round(target*p);
+          el.textContent=(locale?v.toLocaleString():String(v))+suffix;
+          if(p<1) requestAnimationFrame(frame);
+        }
+        requestAnimationFrame(frame);
+      });
+    }catch(e){}
+  }
+
+  // Gauge sweep: the Octane arc is rendered at its final stroke-dashoffset. Pull
+  // it back to empty, force a reflow, then release — the CSS transition on
+  // .ffsweep does the E→score sweep.
+  function ffSweepGauges(root){
+    if(ffReduced()) return;
+    try{
+      var arcs=(root||document).querySelectorAll(".ffscore-gauge svg path[stroke-dasharray]");
+      Array.prototype.forEach.call(arcs, function(p){
+        if(p.__ffSwept) return; p.__ffSwept=true;
+        var final=p.getAttribute("stroke-dashoffset"), full=p.getAttribute("stroke-dasharray");
+        if(final==null || full==null || final===full) return;
+        p.style.transition="none"; p.style.strokeDashoffset=full;
+        void p.getBoundingClientRect();
+        p.style.transition="stroke-dashoffset .9s cubic-bezier(.25,.9,.35,1)";
+        p.style.strokeDashoffset=final;
+      });
+    }catch(e){}
+  }
+
+  // One observer animates everything: renders in this app are innerHTML swaps,
+  // so instead of threading "now animate" calls through every render site, watch
+  // the document and sweep any new [data-countup] / gauge on the next frame.
+  (function(){
+    var queued=false;
+    function run(){ queued=false; ffCountUps(document); ffSweepGauges(document); }
+    try{
+      new MutationObserver(function(){
+        if(queued) return; queued=true; requestAnimationFrame(run);
+      }).observe(document.documentElement, { childList:true, subtree:true });
+    }catch(e){}
+    document.addEventListener("DOMContentLoaded", run);
+  })();
+
+  // PR celebration: a short confetti burst in brand greens + gold. Canvas overlay,
+  // self-removing, capped at ~1.4s — a moment, not a light show.
+  function ffCelebrate(){
+    if(ffReduced()) return;
+    try{
+      if(document.getElementById("ffConfetti")) return;
+      var c=document.createElement("canvas"); c.id="ffConfetti";
+      c.style.cssText="position:fixed;inset:0;z-index:400;pointer-events:none;";
+      var dpr=Math.min(2, window.devicePixelRatio||1);
+      c.width=innerWidth*dpr; c.height=innerHeight*dpr;
+      document.body.appendChild(c);
+      var ctx=c.getContext("2d"); ctx.scale(dpr,dpr);
+      var colors=["#2f9e5d","#8be9ac","#f7c948","#ffffff","#14532d"];
+      var parts=[], N=90;
+      for(var i=0;i<N;i++){
+        parts.push({ x:innerWidth/2, y:innerHeight*0.42,
+          vx:(Math.random()-0.5)*11, vy:-(4+Math.random()*9),
+          s:4+Math.random()*5, r:Math.random()*Math.PI, vr:(Math.random()-0.5)*0.3,
+          col:colors[i%colors.length] });
+      }
+      var t0=performance.now();
+      (function frame(t){
+        var dt=(t-t0)/1000;
+        ctx.clearRect(0,0,innerWidth,innerHeight);
+        parts.forEach(function(p){
+          p.x+=p.vx; p.y+=p.vy; p.vy+=0.35; p.r+=p.vr;
+          ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.r);
+          ctx.globalAlpha=Math.max(0,1-dt/1.4);
+          ctx.fillStyle=p.col; ctx.fillRect(-p.s/2,-p.s/2,p.s,p.s*0.6);
+          ctx.restore();
+        });
+        if(dt<1.4) requestAnimationFrame(frame); else c.remove();
+      })(t0);
+    }catch(e){}
+  }
+
 /* ────────── js/app/010-tab-nav-top-mobile-bottom-bar.js ────────── */
   /* ===================== TAB NAV (top + mobile bottom bar) ===================== */
   var tabs = document.getElementById("tabs");
@@ -120,20 +234,30 @@
     }
   });
   function setView(view, scroll){
-    [tabs, mobileTabs].forEach(function(bar){
-      Array.prototype.forEach.call(bar.querySelectorAll("button"), function(b){
-        b.classList.toggle("active", b.getAttribute("data-view")===view);
+    var apply=function(){
+      [tabs, mobileTabs].forEach(function(bar){
+        Array.prototype.forEach.call(bar.querySelectorAll("button"), function(b){
+          b.classList.toggle("active", b.getAttribute("data-view")===view);
+        });
       });
-    });
-    Array.prototype.forEach.call(document.querySelectorAll(".view"), function(v){
-      v.classList.toggle("active", v.id === "view-" + view);
-    });
-    if(view==="dash") { try{ renderDash(); }catch(e){} }
-    if(view==="calc") { try{ ffRefreshCalcTrainTime(); }catch(e){} }
-    if(view==="account") { try{ renderAccount(); }catch(e){} }
-    if(view==="progress") { try{ renderProgress(); }catch(e){} }
-    if(view==="gameday") { try{ renderGameDay(); }catch(e){} }
-    try{ showTipFor(view); }catch(e){}
+      Array.prototype.forEach.call(document.querySelectorAll(".view"), function(v){
+        v.classList.toggle("active", v.id === "view-" + view);
+      });
+      if(view==="dash") { try{ renderDash(); }catch(e){} }
+      if(view==="calc") { try{ ffRefreshCalcTrainTime(); }catch(e){} }
+      if(view==="account") { try{ renderAccount(); }catch(e){} }
+      if(view==="progress") { try{ renderProgress(); }catch(e){} }
+      if(view==="gameday") { try{ renderGameDay(); }catch(e){} }
+      try{ showTipFor(view); }catch(e){}
+    };
+    // Cross-fade between tabs — an instant swap reads cheap. Falls back to the
+    // plain swap where the View Transitions API is missing or motion is reduced.
+    var wasActive=document.querySelector(".view.active");
+    var changing=!wasActive || wasActive.id!=="view-"+view;
+    try{
+      if(changing && document.startViewTransition && !ffReduced()) document.startViewTransition(apply);
+      else apply();
+    }catch(e){ apply(); }
     if(scroll!==false) window.scrollTo({ top: 0, behavior: "smooth" });
     try { persist(); } catch(e){}
   }
@@ -3456,11 +3580,11 @@
     var octNow=ffScore().score||0, dOct=octNow-player.octBefore;
     return '<div class="pl-recap">'+
       '<div class="pl-recap-kick">Session complete</div>'+
-      '<div class="pl-recap-big">'+(vol>0?(vol.toLocaleString()+'<span style="font-size:18px;color:#9fc4ac"> lb moved</span>'):'Work banked 💪')+'</div>'+
+      '<div class="pl-recap-big">'+(vol>0?('<span data-countup="'+vol+'" data-cu-fmt="locale">'+vol.toLocaleString()+'</span><span style="font-size:18px;color:#9fc4ac"> lb moved</span>'):'Work banked 💪')+'</div>'+
       prs.map(function(p){ return '<div class="pl-pr">🚀 PR — '+p.name+' e1RM '+p.e1+' lb</div>'; }).join(" ")+
       (firsts.length?'<div class="pl-first">📌 Benchmarks set: '+firsts.join(", ")+'</div>':'')+
       '<div class="pl-statrow">'+
-        '<div class="pl-stat"><div class="v">'+done+'</div><div class="k">sets logged</div></div>'+
+        '<div class="pl-stat"><div class="v" data-countup="'+done+'">'+done+'</div><div class="k">sets logged</div></div>'+
         '<div class="pl-stat"><div class="v">'+mins+'m</div><div class="k">session time</div></div>'+
         '<div class="pl-stat"><div class="v">'+octNow+(dOct>0?' <small style="color:#8be9ac">▲'+dOct+'</small>':'')+'</div><div class="k">Octane</div></div>'+
       '</div>'+
@@ -3482,6 +3606,11 @@
     $("plBody").scrollTop=0;
     $("plPrev").disabled=player.st===0;
     $("plNext").textContent = (player.stations[player.st].type==="recap") ? "✓ Finish workout" : "Next ›";
+    // PR moment: the first time this session's recap shows a PR, make it feel like one.
+    if(player.stations[player.st].type==="recap" && !player.celebrated && $("plBody").querySelector(".pl-pr")){
+      player.celebrated=true;
+      try{ ffCelebrate(); ffTick([25,45,25]); }catch(e){}
+    }
   }
   function plFinish(){
     if(!player) return;
@@ -3578,6 +3707,7 @@
         s3.done=!s3.done;
         plSave();
         if(s3.done){
+          ffTick(12);
           var lastSet = si2>=x2.sets.length-1;
           plStartRest(lastSet?REST_BETWEEN_LIFTS:REST_BETWEEN_SETS, lastSet?"Next lift":"Between sets");
         }
@@ -3751,7 +3881,7 @@
         'stroke-dasharray="'+ARC.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/>'+
       '<text x="11" y="86" fill="#9ccfb0" font-size="12" font-weight="800">E</text>'+
       '<text x="107" y="86" fill="#9ccfb0" font-size="12" font-weight="800">F</text></svg>'+
-      '<div class="num">'+(score==null?"–":score)+'</div></div>';
+      '<div class="num"'+(score==null?'':' data-countup="'+score+'"')+'>'+(score==null?"–":score)+'</div></div>';
   }
   // Driver-carry distance (yards) — the hero outcome. Stored on ff_body entries as `d` so it
   // rides the same sync/merge: works for a launch-monitor carry OR an eyeballed "how far I hit it".

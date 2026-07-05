@@ -98,20 +98,30 @@
     }
   });
   function setView(view, scroll){
-    [tabs, mobileTabs].forEach(function(bar){
-      Array.prototype.forEach.call(bar.querySelectorAll("button"), function(b){
-        b.classList.toggle("active", b.getAttribute("data-view")===view);
+    var apply=function(){
+      [tabs, mobileTabs].forEach(function(bar){
+        Array.prototype.forEach.call(bar.querySelectorAll("button"), function(b){
+          b.classList.toggle("active", b.getAttribute("data-view")===view);
+        });
       });
-    });
-    Array.prototype.forEach.call(document.querySelectorAll(".view"), function(v){
-      v.classList.toggle("active", v.id === "view-" + view);
-    });
-    if(view==="dash") { try{ renderDash(); }catch(e){} }
-    if(view==="calc") { try{ ffRefreshCalcTrainTime(); }catch(e){} }
-    if(view==="account") { try{ renderAccount(); }catch(e){} }
-    if(view==="progress") { try{ renderProgress(); }catch(e){} }
-    if(view==="gameday") { try{ renderGameDay(); }catch(e){} }
-    try{ showTipFor(view); }catch(e){}
+      Array.prototype.forEach.call(document.querySelectorAll(".view"), function(v){
+        v.classList.toggle("active", v.id === "view-" + view);
+      });
+      if(view==="dash") { try{ renderDash(); }catch(e){} }
+      if(view==="calc") { try{ ffRefreshCalcTrainTime(); }catch(e){} }
+      if(view==="account") { try{ renderAccount(); }catch(e){} }
+      if(view==="progress") { try{ renderProgress(); }catch(e){} }
+      if(view==="gameday") { try{ renderGameDay(); }catch(e){} }
+      try{ showTipFor(view); }catch(e){}
+    };
+    // Cross-fade between tabs — an instant swap reads cheap. Falls back to the
+    // plain swap where the View Transitions API is missing or motion is reduced.
+    var wasActive=document.querySelector(".view.active");
+    var changing=!wasActive || wasActive.id!=="view-"+view;
+    try{
+      if(changing && document.startViewTransition && !ffReduced()) document.startViewTransition(apply);
+      else apply();
+    }catch(e){ apply(); }
     if(scroll!==false) window.scrollTo({ top: 0, behavior: "smooth" });
     try { persist(); } catch(e){}
   }
