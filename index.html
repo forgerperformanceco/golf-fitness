@@ -1388,6 +1388,84 @@
   .qlog-hint{ font-size:13px; color:var(--muted); margin-top:8px; line-height:1.45; }
   .qlog-hint b{ color:var(--green-700); }
 
+  /* ===== Workout Player — full-screen guided session. Always dark: it's a focus
+     mode (gym lighting, one thing at a time), identical in both themes. ===== */
+  .pl-start{ display:block; width:100%; margin:0 0 12px; border:0; border-radius:16px; cursor:pointer;
+    background:linear-gradient(135deg,#134b2b,#0b2f1b); color:#eafbef; text-align:left;
+    padding:15px 17px; box-shadow:0 8px 22px rgba(8,40,22,.28); border:1px solid #1d5c38; }
+  .pl-start b{ font-size:16.5px; font-weight:900; letter-spacing:-.01em; }
+  .pl-start .pls-sub{ display:block; margin-top:3px; font-size:12.8px; color:#9fd4b3; font-weight:600; }
+  .pl-start .pls-go{ float:right; font-size:22px; color:#8be9ac; line-height:1.4; }
+  .pl-root{ position:fixed; inset:0; z-index:300; display:flex; flex-direction:column;
+    background:radial-gradient(120% 90% at 80% -10%, #123a24 0%, #0a1f14 55%, #060f0a 100%);
+    color:#e9f5ec; }
+  .pl-top{ padding:calc(10px + env(safe-area-inset-top)) 16px 10px; flex:0 0 auto; }
+  .pl-toprow{ display:flex; align-items:center; gap:10px; }
+  .pl-x{ width:38px; height:38px; border-radius:50%; border:0; background:rgba(255,255,255,.12); color:#fff;
+    font-size:18px; cursor:pointer; flex:0 0 auto; }
+  .pl-headtx{ flex:1; min-width:0; }
+  .pl-title{ font-weight:900; font-size:16px; letter-spacing:-.01em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .pl-kick{ font-size:12px; font-weight:800; letter-spacing:.08em; color:#79d49b; text-transform:uppercase; }
+  .pl-dots{ display:flex; gap:5px; margin-top:12px; }
+  .pl-dot{ flex:1; height:4px; border-radius:99px; background:rgba(255,255,255,.14); }
+  .pl-dot.done{ background:#3fbf77; }
+  .pl-dot.cur{ background:#8be9ac; box-shadow:0 0 8px rgba(139,233,172,.5); }
+  .pl-body{ flex:1 1 auto; overflow-y:auto; padding:14px 16px 22px; -webkit-overflow-scrolling:touch; }
+  .pl-skick{ font-size:12px; font-weight:800; letter-spacing:.09em; text-transform:uppercase; color:#79d49b; }
+  .pl-exname{ font-size:26px; font-weight:900; letter-spacing:-.02em; line-height:1.12; margin:4px 0 2px; }
+  .pl-target{ display:inline-block; margin:6px 8px 2px 0; background:rgba(255,255,255,.1); padding:5px 12px;
+    border-radius:999px; font-weight:800; font-size:13.5px; }
+  .pl-presc{ margin:10px 0 2px; font-size:14px; color:#bfe9cd; }
+  .pl-presc b{ color:#8be9ac; font-size:18px; }
+  .pl-cue{ margin:8px 0 0; font-size:13px; color:#9fc4ac; line-height:1.55; }
+  .pl-sets{ margin-top:14px; display:flex; flex-direction:column; gap:10px; }
+  .pl-set{ background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.09); border-radius:16px; padding:10px 12px; }
+  .pl-set.done{ border-color:#2f9e5d; background:rgba(47,158,93,.14); }
+  .pl-set-head{ display:flex; justify-content:space-between; font-size:12px; color:#9fc4ac; margin-bottom:7px; font-weight:700; }
+  .pl-set-row{ display:flex; align-items:center; gap:8px; }
+  .pl-stp{ flex:1.25; display:flex; align-items:center; gap:5px; background:rgba(0,0,0,.22); border-radius:12px; padding:2px; }
+  .pl-stp.reps{ flex:1; }
+  .pl-stp button{ width:40px; height:44px; border-radius:10px; border:0; background:rgba(255,255,255,.1); color:#fff;
+    font-size:19px; font-weight:800; cursor:pointer; flex:0 0 auto; }
+  .pl-stp button:active{ background:rgba(255,255,255,.22); }
+  .pl-stp input{ flex:1; min-width:0; width:100%; text-align:center; font-size:20px; font-weight:900; background:transparent;
+    border:0; color:#fff; padding:6px 0; outline:none; }
+  .pl-check{ width:52px; height:48px; border-radius:12px; border:0; background:rgba(255,255,255,.12); color:#fff;
+    font-size:19px; cursor:pointer; flex:0 0 auto; }
+  .pl-check.on{ background:#2f9e5d; }
+  .pl-plates{ margin-top:7px; font-size:12.8px; color:#9fc4ac; }
+  .pl-list{ display:flex; flex-direction:column; gap:9px; margin-top:12px; }
+  .pl-item{ display:flex; justify-content:space-between; align-items:center; gap:10px; width:100%; text-align:left;
+    background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.1); border-radius:14px; padding:14px;
+    font-weight:700; font-size:15px; color:#e9f5ec; cursor:pointer; }
+  .pl-item.done{ background:rgba(47,158,93,.16); border-color:#2f9e5d; }
+  .pl-item .dose{ color:#9fc4ac; font-weight:800; font-size:13px; flex:0 0 auto; }
+  .pl-note{ margin-top:12px; font-size:12.8px; color:#9fc4ac; line-height:1.55; }
+  .pl-restbar{ flex:0 0 auto; padding:0 16px 8px; }
+  .pl-rest-in{ background:rgba(255,255,255,.08); border-radius:14px; padding:10px 14px; display:flex; align-items:center; gap:12px; }
+  .pl-rest-time{ font-size:22px; font-weight:900; min-width:64px; }
+  .pl-rest-track{ flex:1; height:6px; border-radius:99px; background:rgba(255,255,255,.13); overflow:hidden; }
+  .pl-rest-fill{ height:100%; background:#8be9ac; transition:width .25s linear; }
+  .pl-rest-skip{ border:0; background:rgba(255,255,255,.14); color:#fff; border-radius:10px; padding:9px 13px; font-weight:800; cursor:pointer; }
+  .pl-nav{ flex:0 0 auto; display:flex; gap:10px; padding:10px 16px calc(12px + env(safe-area-inset-bottom)); }
+  .pl-nav button{ min-height:52px; border-radius:14px; border:0; font-weight:900; font-size:15.5px; cursor:pointer; }
+  .pl-prev{ background:rgba(255,255,255,.1); color:#dff1e4; flex:0 0 30%; }
+  .pl-next{ background:#8be9ac; color:#0b2f1b; flex:1; }
+  .pl-recap{ text-align:center; padding:12px 0; }
+  .pl-recap-kick{ font-size:12px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:#79d49b; }
+  .pl-recap-big{ font-size:40px; font-weight:900; letter-spacing:-.02em; margin:4px 0 2px; }
+  .pl-statrow{ display:flex; gap:10px; margin:18px 0 6px; }
+  .pl-stat{ flex:1; background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.09); border-radius:14px; padding:13px 8px; }
+  .pl-stat .v{ font-size:20px; font-weight:900; }
+  .pl-stat .k{ font-size:12px; color:#9fc4ac; margin-top:2px; }
+  .pl-pr{ margin:10px 4px 0; display:inline-block; padding:8px 16px; border-radius:999px;
+    background:linear-gradient(90deg,#f59e0b,#ef4444); color:#fff; font-weight:900; font-size:14px;
+    box-shadow:0 4px 16px rgba(239,68,68,.35); }
+  .pl-first{ margin:10px 4px 0; display:inline-block; padding:8px 16px; border-radius:999px;
+    background:rgba(255,255,255,.1); color:#cfe9d8; font-weight:800; font-size:13px; }
+  .pl-share{ display:block; width:100%; margin-top:16px; border:1.5px solid #8be9ac; border-radius:13px;
+    background:transparent; color:#8be9ac; font-weight:800; font-size:14.5px; padding:13px; cursor:pointer; }
+
   /* ===== Speed Test Day — the biweekly testing ritual ===== */
   .stest-card{ margin:0 0 14px; padding:13px 15px; border-radius:14px;
     background:#f2f8f4; border:1px solid #d5e8db; color:#33564a; font-size:13px; line-height:1.5; }
@@ -4105,7 +4183,10 @@
         '<div class="speed101-wrap">'+speed101Html()+'</div>'+
         '<table class="ex"><tr><th>Drill</th><th style="text-align:right">Sets × Reps</th></tr>'+srows+'</table>'+
         '<div class="speed-why">'+p.speed.note+'</div>'+
-        '<div class="equip-note" style="padding:10px 15px 8px;">'+noGear+'</div>'+logFoot(d.name)+'</div>';
+        '<div class="equip-note" style="padding:10px 15px 8px;">'+noGear+'</div>'+
+        '<div style="padding:0 15px 4px;"><button class="pl-start" data-startplayer="'+escAttr(d.name)+'" type="button"><span class="pls-go">›</span>'+
+          '<b>▶ Start speed session</b><span class="pls-sub">Guided player — warm-up, max-intent drills, full rest</span></button></div>'+
+        logFoot(d.name)+'</div>';
     }
     var rows = d.ex.map(function(row){
       var base = applySwapName(row[0]);
@@ -4124,7 +4205,11 @@
       // mid-workout reopen lands straight on the lifts (it stays one tap away).
       ilog = { week: curWeek(), day: d.name, sess: buildSession(d, curWeek()) }; openWhy={};
       var hasWork = ilog.sess.ex.some(function(x){ return (x.sets||[]).some(function(st){ return st.w||st.r||st.done; }); });
+      var plDone = !!getSession(curWeek(), d.name) && !!(getSession(curWeek(), d.name)||{}).finishedAt;
       return '<div class="day-focus">'+
+        '<button class="pl-start" data-startplayer="'+escAttr(d.name)+'" type="button"><span class="pls-go">›</span>'+
+          '<b>'+(plDone?'✓ Session finished — replay it':(hasWork?'▶ Resume workout':'▶ Start workout'))+'</b>'+
+          '<span class="pls-sub">Guided player — warm-up, prescribed loads, rest timer, recap</span></button>'+
         '<details class="prelift"'+(hasWork?'':' open')+'><summary>🔥 Warm-up &amp; power primer — do these first</summary><div class="prelift-body">'+warmPrimer+'</div></details>'+
         '<div class="ilogwrap" id="ilogBox">'+ilogBodyHtml()+'</div></div>';
     }
@@ -5115,6 +5200,279 @@
     mobState.saved=entry;
     renderMobility();
   }
+
+  /* ===================== WORKOUT PLAYER — full-screen guided session =====================
+     One station at a time: warm-up checklist → power primer → each lift (prescribed
+     load front and center, steppers, auto rest countdown) → recap with volume, PRs
+     and a share moment. Reads/writes the SAME ff_log session as the inline logger,
+     saving on every change — exit any time, nothing is lost. Always dark (focus mode). */
+  var player=null, plRestTimer=null, plRestEnd=0, plRestTotal=0;
+  function plLiftBase(day){ return (day.type==="speed") ? 1 : 2; }   // stations before the first lift
+  function startPlayer(dayName){
+    var day=findDay(dayName); if(!day || day.type==="rest") return;
+    var week=curWeek();
+    var sess=buildSession(day, week);
+    var prevBest={}; bigLiftStats().forEach(function(L){ prevBest[L.name]=L.best; });
+    var stations=[{type:"warmup"}];
+    if(day.type!=="speed") stations.push({type:"primer"});
+    sess.ex.forEach(function(x, xi){ stations.push({type:"lift", xi:xi}); });
+    stations.push({type:"recap"});
+    player={ day:day, dayName:day.name, week:week, sess:sess, stations:stations, st:0,
+             wuDone:{}, prDone:false, prevBest:prevBest, startedAt:Date.now(),
+             octBefore:(ffScore().score||0) };
+    // Mid-workout resume: if any set already has data, land on the first unfinished lift.
+    var hasAny=sess.ex.some(function(x){ return x.sets.some(function(s){ return s.w||s.r||s.done; }); });
+    if(hasAny){
+      for(var i=0;i<sess.ex.length;i++){
+        if(!sess.ex[i].sets.every(function(s){ return s.done; })){ player.st=plLiftBase(day)+i; break; }
+      }
+    }
+    plEnsure();
+    plRender();
+    $("playerRoot").hidden=false;
+    document.body.style.overflow="hidden";
+  }
+  function plClose(){
+    plStopRest();
+    var r=$("playerRoot"); if(r) r.hidden=true;
+    document.body.style.overflow="";
+    if(player) focusDay=player.dayName;   // stay on the session you were in (Resume, not next day)
+    player=null;
+    try{ renderPhase(); }catch(e){}
+    try{ renderDash(); }catch(e){}
+  }
+  function plSave(){
+    if(!player) return;
+    if(!player.sess.date) player.sess.date=todayStr();
+    saveSession(player.week, player.dayName, player.sess);
+  }
+  function plStopRest(){ if(plRestTimer){ clearInterval(plRestTimer); plRestTimer=null; } var b=$("plRestBar"); if(b) b.hidden=true; }
+  function plStartRest(secs, label){
+    plRestEnd=Date.now()+secs*1000; plRestTotal=secs*1000;
+    var b=$("plRestBar"); if(!b) return;
+    b.hidden=false;
+    var lb=b.querySelector(".pl-rest-lb"); if(lb) lb.textContent=label||"Rest";
+    if(!plRestTimer) plRestTimer=setInterval(plTickRest, 250);
+    plTickRest();
+  }
+  function plTickRest(){
+    var b=$("plRestBar"); if(!b || !player){ plStopRest(); return; }
+    var left=plRestEnd-Date.now();
+    if(left<=0){
+      var t=b.querySelector(".pl-rest-time"); if(t) t.textContent="GO 💥";
+      var f=b.querySelector(".pl-rest-fill"); if(f) f.style.width="100%";
+      try{ navigator.vibrate && navigator.vibrate(180); }catch(e){}
+      clearInterval(plRestTimer); plRestTimer=null;
+      setTimeout(function(){ var b2=$("plRestBar"); if(b2) b2.hidden=true; }, 1500);
+      return;
+    }
+    var s=Math.ceil(left/1000), m=Math.floor(s/60), sc=s%60;
+    var t2=b.querySelector(".pl-rest-time"); if(t2) t2.textContent=(m>0?m+":":"")+(m>0&&sc<10?"0":"")+sc;
+    var f2=b.querySelector(".pl-rest-fill"); if(f2) f2.style.width=Math.round((1-left/plRestTotal)*100)+"%";
+  }
+  function plStationDone(i){
+    var st=player.stations[i];
+    if(st.type==="warmup"){ var list=warmupList(player.day.type==="speed"?"speed":player.dayName); return Object.keys(player.wuDone).length>=list.length; }
+    if(st.type==="primer") return player.prDone;
+    if(st.type==="lift"){ var x=player.sess.ex[st.xi]; return x && x.sets.length>0 && x.sets.every(function(s){ return s.done; }); }
+    return false;
+  }
+  function plLastFor(name){
+    var last=lastSessionFor(player.dayName, player.week), lx=null;
+    if(last) last.ex.forEach(function(e){ if(e.name===name) lx=e; });
+    return lx;
+  }
+  function plStationHtml(){
+    var st=player.stations[player.st], day=player.day;
+    if(st.type==="warmup"){
+      var items=warmupList(day.type==="speed"?"speed":player.dayName);
+      return '<div class="pl-skick">Station 1 · Warm-up — never lift cold</div>'+
+        '<div class="pl-exname">Get the engine warm</div>'+
+        '<div class="pl-cue">~5 minutes. Tap each move as you finish it.</div>'+
+        '<div class="pl-list">'+items.map(function(m,i){
+          return '<button type="button" class="pl-item'+(player.wuDone[i]?" done":"")+'" data-plwu="'+i+'">'+
+            '<span>'+(player.wuDone[i]?"✓ ":"")+m[0]+(m[2]?' <small style="color:#d4b06a">· from your mobility screen</small>':'')+'</span><span class="dose">'+m[1]+'</span></button>';
+        }).join("")+'</div>';
+    }
+    if(st.type==="primer"){
+      var p=primerFor(player.dayName);
+      return '<div class="pl-skick">Station 2 · Power primer — fresh, max intent</div>'+
+        '<div class="pl-exname">'+p.move+'</div>'+
+        '<div class="pl-target">'+p.dose+'</div>'+
+        '<div class="pl-cue">'+(p.note||"")+' Every rep explosive — the second a rep slows, the set is over. Full rest between sets.</div>'+
+        '<div class="pl-list"><button type="button" class="pl-item'+(player.prDone?" done":"")+'" data-plprimer="1">'+
+          '<span>'+(player.prDone?"✓ Primer done":"Mark primer done")+'</span><span class="dose">'+p.dose+'</span></button></div>'+
+        '<div class="pl-note">⚠️ '+PRIMER_NOTE+'</div>';
+    }
+    if(st.type==="lift"){
+      var x=player.sess.ex[st.xi], lx=plLastFor(x.name), wv=waveFor(player.week);
+      var ready=progressReady(lx, x.target);
+      var topLast=0; if(lx) lx.sets.forEach(function(s){ var w=parseFloat(s.w); if(w>topLast) topLast=w; });
+      var presc=prescribeW(topLast||null, x.name, ready, wv);
+      var cue=liftWhy(x.name).cue;
+      var setsHtml=x.sets.map(function(s2, si){
+        var pw=(lx&&lx.sets[si]&&lx.sets[si].w)?lx.sets[si].w:null, pr=(lx&&lx.sets[si]&&lx.sets[si].r)?lx.sets[si].r:null;
+        var wVal=s2.w||"", rVal=s2.r||"";
+        var pm=(isBarbell(x.name)&&s2.w)?platesFor(s2.w):"";
+        return '<div class="pl-set'+(s2.done?" done":"")+'">'+
+          '<div class="pl-set-head"><span>SET '+(si+1)+'</span><span>last: '+(pw?(pw+' × '+(pr||'–')):'–')+'</span></div>'+
+          '<div class="pl-set-row">'+
+            '<div class="pl-stp"><button type="button" data-plstep="w" data-dir="-1" data-si="'+si+'">−</button>'+
+              '<input class="pl-in" type="number" inputmode="decimal" placeholder="'+escAttr(presc!=null?presc:(pw||"lbs"))+'" value="'+escAttr(wVal)+'" data-plf="w" data-si="'+si+'"/>'+
+              '<button type="button" data-plstep="w" data-dir="1" data-si="'+si+'">＋</button></div>'+
+            '<div class="pl-stp reps"><button type="button" data-plstep="r" data-dir="-1" data-si="'+si+'">−</button>'+
+              '<input class="pl-in" type="number" inputmode="numeric" placeholder="'+escAttr(pr||"reps")+'" value="'+escAttr(rVal)+'" data-plf="r" data-si="'+si+'"/>'+
+              '<button type="button" data-plstep="r" data-dir="1" data-si="'+si+'">＋</button></div>'+
+            '<button type="button" class="pl-check'+(s2.done?" on":"")+'" data-plcheck="'+si+'" aria-label="set done">✓</button>'+
+          '</div>'+(pm?'<div class="pl-plates">🏋️ '+pm+'</div>':'')+'</div>';
+      }).join("");
+      var prescLine = presc!=null
+        ? (wv==="deload" ? '🪫 Deload — today: <b>'+presc+' lb</b> (~60% of last week)' : '📈 Progression earned — today: <b>'+presc+' lb</b>')
+        : (topLast ? 'Last time’s top: <b>'+topLast+' lb</b> — beat the reps, then the load follows.' : 'First time — find a weight you can own with 2 reps in reserve.');
+      return '<div class="pl-skick">Lift '+(st.xi+1)+' of '+player.sess.ex.length+'</div>'+
+        '<div class="pl-exname">'+purposeFor(x.name)+' '+x.name+'</div>'+
+        '<span class="pl-target">'+x.target+'</span>'+
+        '<div class="pl-presc">'+prescLine+'</div>'+
+        '<div class="pl-cue">⚡ '+cue+'</div>'+
+        '<div class="pl-sets">'+setsHtml+'</div>';
+    }
+    // recap
+    var done=0, vol=0, prs=[], firsts=[];
+    player.sess.ex.forEach(function(x){
+      var top=0;
+      (x.sets||[]).forEach(function(s){ if(s.w||s.r||s.done) done++;
+        var w=parseFloat(s.w), r=parseFloat(s.r); if(w>0&&r>0){ vol+=w*r; top=Math.max(top, e1RM(w,r)); } });
+      if(top>0){
+        var pb=player.prevBest[x.name];
+        if(pb!=null && top>pb+0.5) prs.push({ name:x.name, e1:Math.round(top) });
+        else if(pb==null && /Squat|Deadlift|Bench|Press|Row|Romanian|Hinge|Hip Thrust|Pull-?up|Chin/i.test(x.name)) firsts.push(x.name);
+      }
+    });
+    var mins=Math.max(1, Math.round((Date.now()-player.startedAt)/60000));
+    var octNow=ffScore().score||0, dOct=octNow-player.octBefore;
+    return '<div class="pl-recap">'+
+      '<div class="pl-recap-kick">Session complete</div>'+
+      '<div class="pl-recap-big">'+(vol>0?(vol.toLocaleString()+'<span style="font-size:18px;color:#9fc4ac"> lb moved</span>'):'Work banked 💪')+'</div>'+
+      prs.map(function(p){ return '<div class="pl-pr">🚀 PR — '+p.name+' e1RM '+p.e1+' lb</div>'; }).join(" ")+
+      (firsts.length?'<div class="pl-first">📌 Benchmarks set: '+firsts.join(", ")+'</div>':'')+
+      '<div class="pl-statrow">'+
+        '<div class="pl-stat"><div class="v">'+done+'</div><div class="k">sets logged</div></div>'+
+        '<div class="pl-stat"><div class="v">'+mins+'m</div><div class="k">session time</div></div>'+
+        '<div class="pl-stat"><div class="v">'+octNow+(dOct>0?' <small style="color:#8be9ac">▲'+dOct+'</small>':'')+'</div><div class="k">Octane</div></div>'+
+      '</div>'+
+      '<div class="pl-cue" style="text-align:center">'+(prs.length?'Force is the raw material for clubhead speed — that PR is yards in the bank.':'Consistency is the biggest lever on your Octane. Session banked.')+'</div>'+
+      '<button class="pl-share" data-plshare="1">📤 Share this session</button>'+
+      '</div>';
+  }
+  function plRender(){
+    if(!player) return;
+    var head='<div class="pl-toprow"><button class="pl-x" data-plx="1" aria-label="Exit player">×</button>'+
+      '<div class="pl-headtx"><div class="pl-kick">WEEK '+player.week+' · '+WAVES[waveFor(player.week)].label.toUpperCase()+'</div>'+
+      '<div class="pl-title">'+player.dayName.replace(/^Day \d+ — /,'')+'</div></div></div>'+
+      '<div class="pl-dots">'+player.stations.map(function(s,i){
+        return '<span class="pl-dot'+(i===player.st?' cur':(i<player.st||plStationDone(i)?' done':''))+'"></span>'; }).join("")+'</div>';
+    $("plTop").innerHTML=head;
+    $("plBody").innerHTML=plStationHtml();
+    $("plBody").scrollTop=0;
+    $("plPrev").disabled=player.st===0;
+    $("plNext").textContent = (player.stations[player.st].type==="recap") ? "✓ Finish workout" : "Next ›";
+  }
+  function plFinish(){
+    if(!player) return;
+    plSave();
+    player.sess.finishedAt=todayStr();
+    saveSession(player.week, player.dayName, player.sess);
+    pushHistory(player.week, player.dayName, player.sess);
+    focusDay=player.dayName;
+    ffToast("Workout saved to history 💪 Nice work.");
+    plClose();
+  }
+  function plShare(){
+    if(!player) return;
+    var vol=0, prs=[];
+    player.sess.ex.forEach(function(x){ var top=0;
+      (x.sets||[]).forEach(function(s){ var w=parseFloat(s.w), r=parseFloat(s.r); if(w>0&&r>0){ vol+=w*r; top=Math.max(top, e1RM(w,r)); } });
+      var pb=player.prevBest[x.name];
+      if(top>0 && pb!=null && top>pb+0.5) prs.push(x.name+" e1RM "+Math.round(top)+" lb");
+    });
+    var txt=player.dayName.replace(/^Day \d+ — /,'')+" done 💪 "+(vol>0?vol.toLocaleString()+" lb moved":"session banked")+
+      (prs.length?(" · PR: "+prs.join(", ")):"")+" — training with FairwayFuel ⛳ https://fairwayfuel.app";
+    if(navigator.share){ try{ navigator.share({ text:txt }); return; }catch(e){} }
+    try{ navigator.clipboard.writeText(txt).then(function(){ ffToast("Copied — paste it anywhere 📋"); }); }
+    catch(e){ ffToast("Couldn’t share on this device."); }
+  }
+  function plEnsure(){
+    if($("playerRoot")) return;
+    var r=document.createElement("div");
+    r.id="playerRoot"; r.className="pl-root"; r.hidden=true;
+    r.innerHTML='<div class="pl-top" id="plTop"></div>'+
+      '<div class="pl-body" id="plBody"></div>'+
+      '<div class="pl-restbar" id="plRestBar" hidden><div class="pl-rest-in">'+
+        '<span class="pl-rest-time">0:00</span><span class="pl-rest-lb" style="font-size:12.5px;color:#9fc4ac;">Rest</span>'+
+        '<span class="pl-rest-track"><span class="pl-rest-fill" style="width:0%"></span></span>'+
+        '<button class="pl-rest-skip" data-plskiprest="1" type="button">Skip</button></div></div>'+
+      '<div class="pl-nav"><button class="pl-prev" id="plPrev" data-plprev="1" type="button">‹ Back</button>'+
+      '<button class="pl-next" id="plNext" data-plnextbtn="1" type="button">Next ›</button></div>';
+    document.body.appendChild(r);
+    r.addEventListener("click", function(e){
+      if(!player) return;
+      if(e.target.closest("[data-plx]")){ plSave(); plClose(); return; }
+      if(e.target.closest("[data-plskiprest]")){ plStopRest(); return; }
+      if(e.target.closest("[data-plprev]")){ if(player.st>0){ player.st--; plRender(); } return; }
+      if(e.target.closest("[data-plnextbtn]")){
+        if(player.stations[player.st].type==="recap"){ plFinish(); return; }
+        plSave(); player.st++; plRender(); return;
+      }
+      var wu=e.target.closest("[data-plwu]");
+      if(wu){ var wi=+wu.getAttribute("data-plwu");
+        if(player.wuDone[wi]) delete player.wuDone[wi]; else player.wuDone[wi]=true;
+        plRender(); return; }
+      if(e.target.closest("[data-plprimer]")){ player.prDone=!player.prDone; plRender(); return; }
+      if(e.target.closest("[data-plshare]")){ plShare(); return; }
+      var stp=e.target.closest("[data-plstep]");
+      if(stp){
+        var st=player.stations[player.st]; if(st.type!=="lift") return;
+        var x=player.sess.ex[st.xi], si=+stp.getAttribute("data-si"), f=stp.getAttribute("data-plstep"), dir=+stp.getAttribute("data-dir");
+        var s2=x.sets[si]; if(!s2) return;
+        var cur=parseFloat(s2[f]);
+        if(isNaN(cur)){
+          // Seed from the prescription / last time so the first tap lands on a real number.
+          if(f==="w"){ var lx=plLastFor(x.name), top=0; if(lx) lx.sets.forEach(function(ls){ var w=parseFloat(ls.w); if(w>top) top=w; });
+            var presc=prescribeW(top||null, x.name, progressReady(lx, x.target), waveFor(player.week));
+            cur=(presc!=null?presc:(top||45));
+            if(dir<0) cur+= (f==="w"? incNum(x.name):1);   // first minus lands on the seed itself
+          } else { var m=String(x.target).match(/[×x]\s*(\d+)/); cur=m?parseInt(m[1],10):8; if(dir<0) cur+=1; }
+        }
+        var step=(f==="w")?incNum(x.name):1;
+        var nv=Math.max(0, Math.round((cur+dir*step)*100)/100);
+        s2[f]=String(nv);
+        plSave(); plRender(); return;
+      }
+      var ck=e.target.closest("[data-plcheck]");
+      if(ck){
+        var st2=player.stations[player.st]; if(st2.type!=="lift") return;
+        var x2=player.sess.ex[st2.xi], si2=+ck.getAttribute("data-plcheck"), s3=x2.sets[si2]; if(!s3) return;
+        s3.done=!s3.done;
+        plSave();
+        if(s3.done){
+          var lastSet = si2>=x2.sets.length-1;
+          plStartRest(lastSet?REST_BETWEEN_LIFTS:REST_BETWEEN_SETS, lastSet?"Next lift":"Between sets");
+        }
+        plRender(); return;
+      }
+    });
+    r.addEventListener("input", function(e){
+      if(!player || !e.target.classList.contains("pl-in")) return;
+      var st=player.stations[player.st]; if(st.type!=="lift") return;
+      var x=player.sess.ex[st.xi], si=+e.target.getAttribute("data-si");
+      if(x && x.sets[si]){ x.sets[si][e.target.getAttribute("data-plf")]=e.target.value; plSave(); }
+    });
+  }
+  // Every "start workout" entry point (featured day card, speed day, Today spine).
+  document.addEventListener("click", function(e){
+    var sp=e.target.closest("[data-startplayer]");
+    if(sp) startPlayer(sp.getAttribute("data-startplayer"));
+  });
 
   /* ----- Octane score — one number for build-to-speed progress -----
      A composite of the data the app already records: showing up (consistency),
