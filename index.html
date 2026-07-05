@@ -1459,6 +1459,30 @@
   .pl-notes{ display:block; width:100%; margin-top:16px; background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.12);
     border-radius:13px; color:#e9f5ec; font:600 14px/1.5 inherit; font-family:inherit; padding:12px 13px; resize:none; outline:none; }
   .pl-notes::placeholder{ color:#87a893; }
+  /* fuel check-off */
+  .fuel-sum{ margin:12px 14px 4px; padding:13px 14px; border-radius:14px; background:#f2f8f4; border:1px solid #d5e8db; }
+  .fuel-sum.rated-on{ background:#e9f8ee; border-color:#bfe0c8; }
+  .fuel-sum.rated-close{ background:#fff6e3; border-color:#edd9a8; }
+  .fuel-sum.rated-off{ background:#fdf0ee; border-color:#eccfc9; }
+  .fuel-sum-top{ display:flex; justify-content:space-between; align-items:baseline; gap:10px; }
+  .fuel-sum-t{ font-weight:900; font-size:14.5px; color:#123f28; }
+  .fuel-streak{ font-size:12.5px; font-weight:800; color:#8a5a08; }
+  .fuel-sum-line{ margin-top:5px; font-size:13.5px; line-height:1.5; color:#33564a; }
+  .fuel-nums{ margin-top:7px; font-size:13.5px; color:#123f28; }
+  .fuel-numbtn{ margin-top:8px; border:0; background:none; color:#16a34a; font-weight:800; font-size:12.5px;
+    cursor:pointer; padding:6px 4px; margin-left:-4px; text-decoration:underline; text-underline-offset:2px; }
+  .frate{ display:flex; align-items:center; gap:7px; flex-wrap:wrap; margin-top:10px; padding-top:10px; border-top:1px dashed #d5e8db; }
+  .frate-lbl{ font-size:12.5px; font-weight:700; color:#5b7a68; }
+  .frate-chip{ border:1px solid #cfe0d5; background:#fff; border-radius:999px; padding:7px 12px;
+    font-weight:800; font-size:12.5px; color:#33564a; cursor:pointer; min-height:34px; }
+  .frate-chip.on{ border-color:#16a34a; background:#e9f8ee; color:#0f5a2e; }
+  .fchk{ flex:0 0 auto; display:flex; flex-direction:column; gap:5px; }
+  .fchk-b{ width:42px; height:34px; border-radius:10px; border:1.5px solid #cfe0d5; background:#fff;
+    font-size:15px; font-weight:900; color:#5b7a68; cursor:pointer; }
+  .fchk-b.on{ background:#16a34a; border-color:#16a34a; color:#fff; }
+  .fchk-b.close.on{ background:#e8a33a; border-color:#e8a33a; }
+  .sched-row.fdone .sched-name, .sched-row.fdone .sched-macros{ opacity:.62; }
+  .sched-row.fdone .sched-name{ text-decoration:line-through; text-decoration-color:#9db8a5; text-decoration-thickness:1.5px; }
 
   /* ===== Today spine (Home) — one primary action + the day as a timeline ===== */
   .nu-card{ display:block; width:100%; text-align:left; position:relative; margin:0 0 14px; border:0; cursor:pointer;
@@ -1883,6 +1907,20 @@
   html:not([data-theme="light"]) .xh-pr .k{ color:#c4d3ca; }
   html:not([data-theme="light"]) .xh-row.live{ border-color:#2f543c; }
   html:not([data-theme="light"]) .xh-top em{ color:#bcdfc9; }
+  html:not([data-theme="light"]) .fuel-sum{ background:#132318; border:1px solid #26442f; }
+  html:not([data-theme="light"]) .fuel-sum.rated-on{ background:#14261a; border-color:#2a4a33; }
+  html:not([data-theme="light"]) .fuel-sum.rated-close{ background:#252014; border-color:#4d432b; }
+  html:not([data-theme="light"]) .fuel-sum.rated-off{ background:#221512; border-color:#452c27; }
+  html:not([data-theme="light"]) .fuel-sum-t{ color:#c7e4d5; }
+  html:not([data-theme="light"]) .fuel-streak{ color:#e1d5c0; }
+  html:not([data-theme="light"]) .fuel-sum-line{ color:#c5ddd5; }
+  html:not([data-theme="light"]) .fuel-nums{ color:#c7e4d5; }
+  html:not([data-theme="light"]) .fuel-numbtn{ color:#bcdfc9; }
+  html:not([data-theme="light"]) .frate{ border-top:1px dashed #26442f; }
+  html:not([data-theme="light"]) .frate-lbl{ color:#c4d3ca; }
+  html:not([data-theme="light"]) .frate-chip{ border:1px solid #2b4334; background:#1a1a1a; color:#c5ddd5; }
+  html:not([data-theme="light"]) .frate-chip.on{ background:#14261a; color:#c4e3d1; }
+  html:not([data-theme="light"]) .fchk-b{ border:1.5px solid #2b4334; background:#1a1a1a; color:#c4d3ca; }
   html:not([data-theme="light"]) .tl-dot{ border:2.5px solid #34493a; }
   html:not([data-theme="light"]) .pl-dot.cur{ background:#274933; }
   html:not([data-theme="light"]) .pl-whybox .pl-howto{ background:#274933; color:#c9e5d5; }
@@ -2137,6 +2175,20 @@
   html[data-theme="dark"] .xh-pr .k{ color:#c4d3ca; }
   html[data-theme="dark"] .xh-row.live{ border-color:#2f543c; }
   html[data-theme="dark"] .xh-top em{ color:#bcdfc9; }
+  html[data-theme="dark"] .fuel-sum{ background:#132318; border:1px solid #26442f; }
+  html[data-theme="dark"] .fuel-sum.rated-on{ background:#14261a; border-color:#2a4a33; }
+  html[data-theme="dark"] .fuel-sum.rated-close{ background:#252014; border-color:#4d432b; }
+  html[data-theme="dark"] .fuel-sum.rated-off{ background:#221512; border-color:#452c27; }
+  html[data-theme="dark"] .fuel-sum-t{ color:#c7e4d5; }
+  html[data-theme="dark"] .fuel-streak{ color:#e1d5c0; }
+  html[data-theme="dark"] .fuel-sum-line{ color:#c5ddd5; }
+  html[data-theme="dark"] .fuel-nums{ color:#c7e4d5; }
+  html[data-theme="dark"] .fuel-numbtn{ color:#bcdfc9; }
+  html[data-theme="dark"] .frate{ border-top:1px dashed #26442f; }
+  html[data-theme="dark"] .frate-lbl{ color:#c4d3ca; }
+  html[data-theme="dark"] .frate-chip{ border:1px solid #2b4334; background:#1a1a1a; color:#c5ddd5; }
+  html[data-theme="dark"] .frate-chip.on{ background:#14261a; color:#c4e3d1; }
+  html[data-theme="dark"] .fchk-b{ border:1.5px solid #2b4334; background:#1a1a1a; color:#c4d3ca; }
   html[data-theme="dark"] .tl-dot{ border:2.5px solid #34493a; }
   html[data-theme="dark"] .pl-dot.cur{ background:#274933; }
   html[data-theme="dark"] .pl-whybox .pl-howto{ background:#274933; color:#c9e5d5; }
@@ -2962,6 +3014,7 @@
       trainTime: formatTime(slot.anchor), fasted: state.workout==="morning", note: g.timing
     };
     var meal = { n: mealN, recommended: MEALS_REC[state.goal], slot: slot.label, schedule: schedule };
+    ffSchedule = schedule;   // today's meal slots — the fuel check-off logs against these
     lastMealPlan = { meal: meal, timing: timing };   // stash for the unified Meals card
 
     render({ bmr:bmr,tdee:tdee,target:target,activity:activity,
@@ -3876,6 +3929,110 @@
   }
   function tr(a,b){ return '<tr><td>'+a+'</td><td>'+b+'</td></tr>'; }
 
+  /* ===================== FUEL CHECK-OFF — adherence, not accounting =====================
+     The app wrote today's meals; the user just says whether they happened. Each slot
+     is ✓ ate it / ≈ close; a one-tap day rating covers fully off-plan days (travel,
+     cookouts) so the record never dies for honest reasons. Scores land on the Today
+     timeline, the Sunday Scorecard, a fuel streak, and Octane's 6th pillar. The
+     metabolism check-in stays the quantitative truth — the scale audits everything. */
+  var ffSchedule=null, fuelNumsOpen=false;
+  function ffISO(d){ d=d||new Date(); var m=d.getMonth()+1, dd=d.getDate();
+    return d.getFullYear()+"-"+(m<10?"0":"")+m+"-"+(dd<10?"0":"")+dd; }
+  function fuelLog(){ var f=lsGet("ff_fuel",{}); return (f && typeof f==="object")?f:{}; }
+  function fuelDay(iso){ return fuelLog()[iso]||null; }
+  function fuelPrune(f){
+    var keys=Object.keys(f); if(keys.length<=95) return f;
+    keys.sort(); keys.slice(0, keys.length-95).forEach(function(k){ delete f[k]; });
+    return f;
+  }
+  function fuelSetMeal(idx, val){
+    var f=fuelLog(), iso=ffISO(), d=f[iso]||{ m:{} };
+    d.m=d.m||{};
+    if(d.m[idx]===val) delete d.m[idx]; else d.m[idx]=val;   // tap again to clear
+    d.rating=null;                                            // meal detail beats a day rating
+    d.n=(ffSchedule?ffSchedule.length:4)||4;
+    d.ts=Date.now(); f[iso]=d;
+    lsSet("ff_fuel", fuelPrune(f));
+  }
+  function fuelRate(r){
+    var f=fuelLog(), iso=ffISO(), cur=f[iso];
+    if(cur && cur.rating===r){ delete f[iso]; }               // tap again to clear
+    else f[iso]={ m:{}, rating:r, n:(ffSchedule?ffSchedule.length:4)||4, ts:Date.now() };
+    lsSet("ff_fuel", fuelPrune(f));
+  }
+  function fuelScoreFor(iso){
+    var d=fuelDay(iso); if(!d) return null;
+    if(d.rating) return d.rating==="on"?1:(d.rating==="close"?0.6:0.15);
+    var keys=Object.keys(d.m||{}); if(!keys.length) return null;
+    var sum=0; keys.forEach(function(k){ sum += d.m[k]==="a"?1:0.75; });
+    return Math.min(1, sum/(d.n||4));
+  }
+  function fuelStateFor(iso){
+    var sc=fuelScoreFor(iso); if(sc==null) return null;
+    return sc>=0.85?"on":(sc>=0.5?"close":"off");
+  }
+  function fuelStreak(){
+    var st=0, d=new Date();
+    if(fuelStateFor(ffISO(d))==null) d.setDate(d.getDate()-1);
+    for(var i=0;i<365;i++){
+      var t=fuelStateFor(ffISO(d));
+      if(t==="on"||t==="close"){ st++; d.setDate(d.getDate()-1); } else break;
+    }
+    return st;
+  }
+  function fuelRefresh(){
+    try{ calc(); }catch(e){}
+    try{ renderDash(); }catch(e){}
+    try{ if($("view-progress") && $("view-progress").classList.contains("active")) renderProgress(); }catch(e){}
+  }
+  // Every check-off surface routes through one listener.
+  document.addEventListener("click", function(e){
+    var fm=e.target.closest("[data-fuelmeal]");
+    if(fm){ fuelSetMeal(+fm.getAttribute("data-fuelmeal"), fm.getAttribute("data-fuelval")); fuelRefresh(); return; }
+    var fr=e.target.closest("[data-fuelrate]");
+    if(fr){ fuelRate(fr.getAttribute("data-fuelrate")); fuelRefresh(); return; }
+    if(e.target.closest("[data-fuelnums]")){ fuelNumsOpen=!fuelNumsOpen; try{ calc(); }catch(e2){} return; }
+  });
+  function fuelSummaryHtml(m){
+    var d=fuelDay(ffISO())||{ m:{} }, n=m.schedule.length;
+    var done=Object.keys(d.m||{}).length, streak=fuelStreak();
+    var line;
+    if(d.rating){
+      line = d.rating==="on" ? "Day logged: <b>on target</b> ✓ — rated, not itemized. The scale keeps score."
+           : d.rating==="close" ? "Day logged: <b>close</b> — good enough to keep the streak alive."
+           : "Day logged: <b>off the rails</b> — happens. Tomorrow’s plan is already written.";
+    } else if(done===0){
+      line = "Tap ✓ on each meal as it happens — <b>adherence, not accounting</b>. Ten seconds a day.";
+    } else if(done>=n){
+      line = "<b>All "+n+" feedings banked ✓</b> — that’s a fueled engine. See you at the scale.";
+    } else {
+      // the biggest remaining meal is the coaching hint
+      var big=null, bigI=-1;
+      m.schedule.forEach(function(sl,i){ if(d.m[i]) return;
+        var k=(sl.p||0)*4+(sl.c||0)*4+(sl.f||0)*9;
+        if(!big || k>big._k){ big=sl; big._k=k; bigI=i; } });
+      line = "<b>"+done+" of "+n+"</b> down"+(big?(" — <b>"+big.label+"</b> is your biggest block left."):".");
+    }
+    var nums='';
+    if(fuelNumsOpen && !d.rating){
+      var kc=0,pg=0;
+      m.schedule.forEach(function(sl,i){ var v=d.m[i]; if(!v) return;
+        var f=(v==="a")?1:0.75;
+        kc+=((sl.p||0)*4+(sl.c||0)*4+(sl.f||0)*9)*f; pg+=(sl.p||0)*f; });
+      var t=lsGet("ff_targets",null);
+      nums='<div class="fuel-nums">≈ <b>'+Math.round(kc).toLocaleString()+'</b>'+(t?' / '+t.kcal.toLocaleString():'')+' kcal · <b>'+Math.round(pg)+'</b>'+(t?' / '+t.proteinG:'')+'g protein banked</div>';
+    }
+    return '<div class="fuel-sum'+(d.rating?' rated-'+d.rating:'')+'">'+
+      '<div class="fuel-sum-top"><span class="fuel-sum-t">🍽️ Today’s fuel</span>'+
+      (streak>0?'<span class="fuel-streak">🔥 '+streak+'-day fuel streak</span>':'')+'</div>'+
+      '<div class="fuel-sum-line">'+line+'</div>'+nums+
+      (!d.rating?'<button type="button" class="fuel-numbtn" data-fuelnums="1">'+(fuelNumsOpen?'Hide numbers':'Show the numbers')+'</button>':'')+
+      '<div class="frate"><span class="frate-lbl">Ate off-plan?</span>'+
+        [["on","✓ On target"],["close","≈ Close"],["off","✗ Off the rails"]].map(function(o){
+          return '<button type="button" class="frate-chip'+(d.rating===o[0]?' on':'')+'" data-fuelrate="'+o[0]+'">'+o[1]+'</button>'; }).join("")+
+      '</div></div>';
+  }
+
   function mealBlock(m){
     var opts="";
     [3,4,5,6].forEach(function(n){
@@ -3883,22 +4040,31 @@
     });
     var recTxt = m.n===m.recommended ? "recommended for this plan" : "recommended: "+m.recommended;
 
-    var rows = m.schedule.map(function(s){
+    var fd=fuelDay(ffISO())||{ m:{} };
+    function fchk(i){
+      var v=fd.m?fd.m[i]:null;
+      return '<div class="fchk">'+
+        '<button type="button" class="fchk-b'+(v==="a"?" on":"")+'" data-fuelmeal="'+i+'" data-fuelval="a" aria-label="Ate it">✓</button>'+
+        '<button type="button" class="fchk-b close'+(v==="c"?" on":"")+'" data-fuelmeal="'+i+'" data-fuelval="c" aria-label="Ate something close">≈</button>'+
+        '</div>';
+    }
+    var rows = m.schedule.map(function(s, i){
+      var v=fd.m?fd.m[i]:null, done=v?' fdone':'';
       if(s.kind==="pre"){
-        return '<div class="sched-row pre tappable">'+
+        return '<div class="sched-row pre tappable'+done+'">'+
           '<div class="sched-time">'+s.time+'</div>'+
           '<div class="sched-body"><div class="sched-name">⚡ '+s.label+' <span class="sched-tag pre">snack</span></div>'+
           '<div class="sched-macros">'+s.c+'g carbs</div>'+
-          '<div class="meal-eg">🍽️ Example: '+exampleMeal(s)+'</div></div></div>';
+          '<div class="meal-eg">🍽️ Example: '+exampleMeal(s)+'</div></div>'+fchk(i)+'</div>';
       }
       var tag = s.isPost ? ' <span class="sched-tag post">post-workout</span>'
               : (s.isPre ? ' <span class="sched-tag pre">pre-workout</span>' : '');
-      return '<div class="sched-row meal tappable">'+
+      return '<div class="sched-row meal tappable'+done+'">'+
         '<div class="sched-time">'+s.time+'</div>'+
         '<div class="sched-body"><div class="sched-name">🍽️ '+s.label+tag+'</div>'+
         '<div class="sched-macros"><b>'+s.p+'</b>P · <b>'+s.c+'</b>C · <b>'+s.f+'</b>F'+
         (s.isPost? ' <span class="sched-plus">— biggest carb meal</span>':'')+'</div>'+
-        '<div class="meal-eg">🍽️ Example: '+exampleMeal(s)+'</div></div></div>';
+        '<div class="meal-eg">🍽️ Example: '+exampleMeal(s)+'</div></div>'+fchk(i)+'</div>';
     }).join("");
 
     var h="";
@@ -3906,6 +4072,7 @@
     h+='<div class="meals-head"><span>🍽️ Meal Plan</span>'+
        '<span class="meal-pick"><span class="meal-pick-lbl">meals/day</span><span class="seg meal-seg">'+opts+'</span></span></div>';
     h+='<div class="meals-body">';
+    h+=fuelSummaryHtml(m);
     h+='<div class="sched-title">📅 Your day &mdash; <b>'+m.n+' meals</b> <span class="rec">('+recTxt+')</span>, portioned for a <b>'+m.slot+'</b> workout</div>';
     h+='<div class="sched">'+rows+'</div>';
     h+='<div class="meal-foot">Tap any meal for a food example · times are guides — shift the day to fit your schedule.</div>';
@@ -6055,6 +6222,23 @@
         detail:"Take the 3-move screen" });
     }
 
+    // 6) Fuel (10) — adherence to the plan the app wrote (last 7 logged days, 14-day window).
+    var fsArr=[], fdD=new Date();
+    for(var fi=0; fi<14 && fsArr.length<7; fi++){
+      var fsc=(typeof fuelScoreFor==="function")?fuelScoreFor(ffISO(fdD)):null;
+      if(fsc!=null) fsArr.push(fsc);
+      fdD.setDate(fdD.getDate()-1);
+    }
+    if(fsArr.length){
+      var fAvg=fsArr.reduce(function(a,b){ return a+b; },0)/fsArr.length;
+      parts.push({ key:"fuel", label:"Fuel", have:true, max:10,
+        pts: Math.round(fAvg*10),
+        detail: fAvg>=0.85 ? "Eating the plan" : "On the board — tighten it up" });
+    } else {
+      parts.push({ key:"fuel", label:"Fuel", have:false, max:10, pts:0,
+        detail:"Check off today’s meals" });
+    }
+
     var have = parts.filter(function(p){ return p.have; });
     var gotPts = have.reduce(function(a,p){ return a+p.pts; }, 0);
     var gotMax = have.reduce(function(a,p){ return a+p.max; }, 0);
@@ -6066,7 +6250,8 @@
     speed: "test your 7-iron speed every 2 weeks so the trend can climb",
     strength: "push the big lifts with double progression and log the weights",
     p2w: "keep the surplus lean so speed outpaces bodyweight",
-    mobility: "run the 3-move mobility screen and hit the warm-up moves it adds"
+    mobility: "run the 3-move mobility screen and hit the warm-up moves it adds",
+    fuel: "check off your meals on the Fuel tab — ten seconds a day closes the loop"
   };
   function ffScoreSummary(r){
     if(r.score==null) return "Log a workout and add your bodyweight + 7-iron speed to fill the tank — one number for showing up, getting faster &amp; stronger.";
@@ -6193,6 +6378,11 @@
       var wg=wt.length>=2?((wt[wt.length-1]-wt[0])/wt[0]*100).toFixed(1):null;
       return '<div class="fd-tx"><b>'+p.detail+'</b>'+((sg!=null&&wg!=null)?(' — speed '+(sg>=0?'+':'')+sg+'% vs bodyweight '+(wg>=0?'+':'')+wg+'%. Faster per pound = a leaner, harder engine.'):' — track weight AND 7-iron speed to unlock this pillar.')+'</div>'+
         '<button type="button" class="fd-act" data-qopen="1">＋ Log today ›</button>';
+    }
+    if(p.key==="fuel"){
+      var fstk=fuelStreak();
+      return '<div class="fd-tx"><b>'+p.detail+'</b> — adherence to the meals the app wrote for you, over your last logged week.'+(fstk>0?(' Current streak: <b>🔥 '+fstk+' days</b>.'):'')+' The scale (metabolism check-in) audits the honesty.</div>'+
+        '<button type="button" class="fd-act" data-goview="calc">🍽️ Open today’s meals ›</button>';
     }
     var lm=(typeof lastMob==="function")?lastMob():null;
     return '<div class="fd-tx"><b>'+p.detail+'</b>'+(lm?(' — last screen <b>'+lm.score+'/100</b> on '+lm.date+'. Mass should never cost you turn.'):' — 3 moves, ~3 minutes, no gear.')+'</div>'+
@@ -6480,14 +6670,24 @@
     var h='<div class="tl"><div class="tl-h">📅 Your day</div>';
     h+=item("AM","⚖️","Morning weigh-in", weighed?("Logged — "+row.w+" lb ✓"):"Same scale, same time — feeds your trend & Octane",
       { done:weighed, now:!weighed && nowH<11, attr:' data-qopen="1"' });
+    var preIdx=-1, postIdx=-1;
+    if(ffSchedule) ffSchedule.forEach(function(sl,i){
+      if((sl.kind==="pre"||sl.isPre) && preIdx<0) preIdx=i;
+      if(sl.isPost) postIdx=i;
+    });
+    var fdT=fuelDay(ffISO())||{ m:{} };
     if(train){
-      h+=item(fmtMin((hour-1)*60),"🍚","Pre-workout fuel","Carbs + lean protein ~60–90 min out — see your meals",
-        { attr:' data-goview="calc"', done:trained || nowH>hour });
+      h+=item(fmtMin((hour-1)*60),"🍚","Pre-workout fuel",
+        (fdT.m && fdT.m[preIdx])?"Banked ✓ — tap to undo":"Carbs + lean protein ~60–90 min out — tap when eaten",
+        preIdx>=0 ? { attr:' data-fuelmeal="'+preIdx+'" data-fuelval="a"', done:!!(fdT.m && fdT.m[preIdx]) }
+                  : { attr:' data-goview="calc"', done:trained || nowH>hour });
       h+=item(fmtMin(hour*60),"🏋️",d.name.replace(/^Day \d+ — /,""),
         trained?"Done — banked to history":(WAVES[waveFor(curWeek())].label+" week · guided player"),
         { attr:' data-startplayer="'+escAttr(d.name)+'"', done:trained, now:!trained && Math.abs(nowH-hour)<=2 });
-      h+=item(fmtMin((hour+1)*60),"🥤","Post-workout meal","Protein + fast carbs within ~45 min",
-        { attr:' data-goview="calc"', done:trained && nowH>hour+1 });
+      h+=item(fmtMin((hour+1)*60),"🥤","Post-workout meal",
+        (fdT.m && fdT.m[postIdx])?"Banked ✓ — tap to undo":"Protein + fast carbs within ~45 min — tap when eaten",
+        postIdx>=0 ? { attr:' data-fuelmeal="'+postIdx+'" data-fuelval="a"', done:!!(fdT.m && fdT.m[postIdx]) }
+                   : { attr:' data-goview="calc"', done:trained && nowH>hour+1 });
     } else if(d){
       h+=item(fmtMin(12*60),"🌱","Active recovery", restDoneToday?"Recovery logged":"Walk 9, mobility flow, foam roll — growth day",
         { attr:' data-nurest="'+escAttr(dayKey(d))+'"', done:restDoneToday, now:!restDoneToday });
@@ -6967,9 +7167,17 @@
     var weighs=lsGet("ff_body",[]).filter(function(e){ if(!e || !e.w) return false;
       var t=new Date(e.date).getTime(); return !isNaN(t) && t>=ws; }).length;
     var stw=speedTests().filter(function(t){ return (t.ts||0)>=ws; });
+    var fOn=0, fLog=0, dws=weekStartDateCal(), today=new Date();
+    for(var i=0;i<7;i++){
+      var dd2=new Date(dws); dd2.setDate(dws.getDate()+i);
+      if(dd2>today) break;
+      var st2=fuelStateFor(ffISO(dd2));
+      if(st2){ fLog++; if(st2!=="off") fOn++; }
+    }
     return { sessions:hist.length, freq:freq, vol:vol, weighs:weighs,
       bestT:(stw.length?Math.max.apply(null, stw.map(function(t){ return t.best; })):null),
-      mob:mobTests().some(function(t){ return (t.ts||0)>=ws; }) };
+      mob:mobTests().some(function(t){ return (t.ts||0)>=ws; }),
+      fuelOn:fOn, fuelLogged:fLog };
   }
   function scChip(kind, label){ return '<span class="sc-chip '+kind+'">'+label+'</span>'; }
   function scorecardHtml(){
@@ -6980,7 +7188,8 @@
       { h:2, n:"Iron moved", v:(c.vol>0?c.vol.toLocaleString()+' lb':'—'), chip: c.vol>0?scChip("good","BANKED"):scChip("miss","—") },
       { h:3, n:"Speed test", v:(c.bestT!=null?c.bestT+' mph':'—'), chip: c.bestT!=null?scChip("good","TESTED"):(speedTestDue()?scChip("mid","DUE"):scChip("miss","NEXT WK")) },
       { h:4, n:"Weigh-ins", v:String(c.weighs), chip: c.weighs>=3?scChip("good","TRENDING"):(c.weighs>0?scChip("mid","MORE"):scChip("miss","0 YET")) },
-      { h:5, n:"Mobility", v:(c.mob?'screened':'—'), chip: c.mob?scChip("good","DONE"):(mobDue()?scChip("mid","DUE"):scChip("good","CURRENT")) }
+      { h:5, n:"Mobility", v:(c.mob?'screened':'—'), chip: c.mob?scChip("good","DONE"):(mobDue()?scChip("mid","DUE"):scChip("good","CURRENT")) },
+      { h:6, n:"Fuel days", v:c.fuelOn+' / 7', chip: c.fuelOn>=5?scChip("good","ON PLAN"):(c.fuelLogged>0?scChip("mid","BUILDING"):scChip("miss","LOG FUEL")) }
     ];
     return '<div class="scorecard"><div class="sc-head"><span class="sc-t">🗒️ Sunday Scorecard</span><span class="sc-sub">Week '+curWeek()+' · Mon–Sun</span></div>'+
       '<div class="sc-grid">'+rows.map(function(r){
@@ -7829,7 +8038,7 @@ if ('serviceWorker' in navigator && !window.Capacitor) {
 <script>window.FF_ACCOUNT_TAB = true;</script>
 <!-- Optional cloud login + progress sync. Inactive until you add Supabase keys in cloud-sync.js. -->
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script defer src="cloud-sync.js?v=104"></script>
+<script defer src="cloud-sync.js?v=105"></script>
 <!-- AI coach chat. Degrades gracefully until the Edge Function is deployed. -->
 <script defer src="coach.js?v=88"></script>
 </body>

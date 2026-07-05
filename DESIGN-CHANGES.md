@@ -257,6 +257,28 @@ access to gear they didn't list.
   log, so e1RM math is already clean without per-set typing. Revisit only if
   users start logging ramp-up sets.
 
+## 10 · Fuel check-off — adherence, not accounting (user-approved design)
+
+The nutrition loop closed WITHOUT becoming a food diary (the docs' anti-MFP
+stance holds): the app wrote today's meals, so the user just says whether
+they happened. Each meal-plan slot gets ✓ ate it / ≈ close (~75% credit);
+a **one-tap day rating** (On target / Close / Off the rails) covers fully
+off-plan days so streaks never die for honest reasons — all three design
+decisions user-approved (day-rating fallback · Octane pillar now · 
+qualitative-first with numbers on tap).
+
+- Data: `ff_fuel` (synced), ISO-date keyed, slot count stored at log time so
+  past days score correctly if meal count changes; pruned at ~95 days.
+- Fuel tab: "Today's fuel" summary card — qualitative line ("2 of 5 down —
+  Dinner is your biggest block left"), 🔥 fuel streak, "Show the numbers"
+  toggle (banked kcal/protein vs targets), off-plan rating chips.
+- Today timeline: pre/post-workout rows are now one-tap fuel toggles.
+- Sunday Scorecard: hole 6 "Fuel days N/7" (ON PLAN / BUILDING / LOG FUEL).
+- Octane: **Fuel is the 6th pillar** (weight 10, avg of last 7 logged days
+  in a 14-day window; gauge rescales so nobody's score moves until they log).
+- The metabolism check-in remains the quantitative auditor — lazy "on
+  target" taps get corrected by the scale within ~3 weeks.
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob
