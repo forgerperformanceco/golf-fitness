@@ -16,6 +16,7 @@ on:
       - 'ios/**'
       - 'assets/**'
       - 'scripts/**'
+      - 'src/**'
       - 'package.json'
       - 'package-lock.json'
       - 'capacitor.config.json'
@@ -65,7 +66,8 @@ jobs:
             --exclude '.git' --exclude '.github' --exclude '_site' \
             --exclude 'node_modules' --exclude 'www' \
             --exclude 'supabase' --exclude 'android' --exclude 'ios' \
-            --exclude 'assets' --exclude 'scripts' --exclude 'social' \
+            --exclude 'assets' --exclude 'scripts' --exclude 'src' \
+            --exclude 'social' \
             --exclude '*.md' --exclude '.env*' --exclude '.gitignore' \
             --exclude 'package.json' --exclude 'package-lock.json' \
             --exclude 'capacitor.config.json' --exclude 'codemagic.yaml' \

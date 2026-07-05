@@ -17,6 +17,8 @@ const OUT = join(ROOT, "www");
 // Explicit allow-list of served files (everything index.html / the manifest reference).
 const FILES = [
   "index.html",
+  "app.js",
+  "styles.css",
   "privacy.html",
   "sw.js",
   "cloud-sync.js",
