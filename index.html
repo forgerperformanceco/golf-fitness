@@ -1130,7 +1130,9 @@
   .ed-video { display:block; text-align:center; background:#11643a; color:#fff; text-decoration:none; border-radius:10px; padding:13px; font:800 14px system-ui; }
   .ed-video:active { transform:translateY(1px); }
   .il-sub { font-size:11.5px; color:var(--muted); margin:2px 0 11px; }
-  .il-up { color:var(--green-700); font-weight:800; }
+  .il-up { color:var(--green-700); font-weight:800; background:none; border:0; padding:0; font-size:inherit; font-family:inherit; cursor:pointer; text-decoration:underline; text-underline-offset:2px; }
+  .il-up:active { transform:translateY(1px); }
+  .add-custom { border:1px dashed var(--green-700) !important; color:var(--green-700) !important; font-weight:800; }
   .il-cols, .il-set { display:grid; grid-template-columns:26px minmax(54px,1fr) 60px 60px 40px; gap:8px; align-items:center; }
   .il-cols { font-size:9.5px; font-weight:800; letter-spacing:.6px; color:#9bb0a3; padding:0 2px 7px; }
   .il-cols span:nth-child(3),.il-cols span:nth-child(4){ text-align:center; }
@@ -3748,6 +3750,9 @@
   }
   function topReps(t){ var m=String(t).match(/[×x]\s*(\d+)/); return m?parseInt(m[1],10):null; }
   function incFor(name){ return /Squat|Deadlift|Hinge|Lunge|Hip Thrust|Leg Press|Romanian|Swing|Carry/i.test(name) ? "5–10 lb" : "2.5–5 lb"; }
+  // Single smallest sensible jump for the one-tap "add weight" nudge (progress by LOAD,
+  // holding reps/sets) — big lower-body compounds jump 5 lb, everything else 2.5 lb.
+  function incNum(name){ return /Squat|Deadlift|Hinge|Lunge|Hip Thrust|Leg Press|Romanian|Swing|Carry/i.test(name) ? 5 : 2.5; }
   // Ready to add weight = last session hit the top of the rep range on every working set.
   function progressReady(lx, target){
     var top=topReps(target); if(!top||!lx) return false;
@@ -3769,36 +3774,36 @@
   // ---- Exercise database — grouped by movement pattern. Powers swap options AND
   // the "Add a lift" picker. Names match the plan/EX entries so swaps resolve gear. ----
   var EXERCISE_DB = {
-    "Quads — squat pattern": ["Back Squat","Front Squat","Leg Press","Hack Squat","Goblet Squat","Smith Machine Squat","Belt Squat","Box Squat","Safety-Bar Squat","Pendulum Squat","Leg Extension","Sissy Squat","Zercher Squat"],
-    "Single-leg / lunge": ["Walking Lunge","Reverse Lunge","Bulgarian Split Squat","Step-up","Forward Lunge","Lateral Lunge","Curtsy Lunge","Split Squat","Pistol Squat","Cossack Squat"],
-    "Hinge / posterior chain": ["Conventional Deadlift","Romanian Deadlift","Trap-Bar Deadlift","Sumo Deadlift","Rack Pull","Good Morning","Single-Leg RDL","Hip Thrust","Single-Leg Hip Thrust","Glute-Ham Raise","Lying Leg Curl","Seated Leg Curl","Nordic Curl","Back Extension","45° Hyperextension","Cable Pull-Through"],
-    "Push — chest (horizontal)": ["Barbell Bench Press","Incline Barbell Press","Decline Bench Press","Flat DB Press","Incline DB Press","Machine Chest Press","Weighted Dip","Push-up","Deficit Push-up","Cable Fly","High-to-Low Cable Fly","Low-to-High Cable Fly","Cable Crossover","Single-Arm Cable Fly","Single-Arm Cable Chest Press","Cable Chest Press","Pec Deck","Floor Press","Landmine Press"],
-    "Push — shoulders (vertical)": ["Standing Overhead Press","Seated DB Shoulder Press","Push Press","Arnold Press","Machine Shoulder Press","Z-Press","Lateral Raise","Cable Lateral Raise","Single-Arm Cable Lateral Raise","Rear-Delt Fly","Cable Rear-Delt Fly","Single-Arm Cable Rear-Delt Fly","Cable Y-Raise","Face Pull","Front Raise","Cable Front Raise","Upright Row"],
-    "Pull — lats (vertical)": ["Weighted Pull-up","Chin-up","Neutral-Grip Pull-up","Lat Pulldown","Single-Arm Lat Pulldown","Half-Kneeling Cable Pulldown","Neutral-Grip Pulldown","Wide-Grip Pulldown","Assisted Pull-up","Straight-Arm Pulldown","Single-Arm Straight-Arm Pulldown","Cable Pullover"],
-    "Pull — back (horizontal)": ["Chest-Supported Row","Barbell Row","Pendlay Row","Seated Cable Row","Single-Arm Cable Row","Single-Arm Low Cable Row","Wide Cable Row","T-Bar Row","Single-Arm DB Row","Machine Row","Inverted Row","Meadows Row","Kroc Row"],
-    "Biceps": ["DB Curl","Barbell Curl","Hammer Curl","Cable Curl","Single-Arm Cable Curl","Bayesian Cable Curl","Cable Rope Hammer Curl","High Cable Curl","Preacher Curl","Incline DB Curl","Concentration Curl","EZ-Bar Curl","Spider Curl"],
-    "Triceps": ["Cable Triceps Pushdown","Rope Pushdown","Single-Arm Cable Pushdown","Cable Overhead Triceps Extension","Single-Arm Cable Triceps Extension","Overhead Triceps Extension","Close-Grip Bench Press","Weighted Dip","Skull Crusher","DB Kickback","Diamond Push-up"],
-    "Calves": ["Standing Calf Raise","Seated Calf Raise","Leg-Press Calf Raise","Single-Leg Calf Raise","Smith Calf Raise","Tibialis Raise","Donkey Calf Raise"],
-    "Core / anti-rotation": ["Pallof Press","Single-Arm Pallof Press","Cable Wood-chop","High-to-Low Cable Chop","Low-to-High Cable Chop","Cable Rotation","Landmine Rotation","Hanging Leg Raise","Cable Crunch","Single-Arm Cable Crunch","Ab Wheel Rollout","Plank","Side Plank","Russian Twist","Dead Bug","Bird Dog","Hollow Hold","Copenhagen Plank"],
-    "Grip / carries": ["Farmer Carry","Suitcase Carry","Trap-Bar Carry","Wrist Curl + Reverse","Reverse Wrist Curl","Plate Pinch","Dead Hang","Wrist Roller","Towel Pull-up"],
-    "Power / speed (golf)": ["Box Jump","Broad Jump","Lateral Bound","Vertical Jump","Depth Jump","Overhead Med-Ball Slam","Rotational Med-Ball Throw","Med-Ball Chest Pass","Med-Ball Scoop Toss","Kettlebell Swing","Hang Power Clean","Jump Squat","Trap-Bar Jump","Overspeed Swings","Ground-Force Footwork"]
+    "Quads — squat pattern": ["Back Squat","Front Squat","Leg Press","Hack Squat","Machine Hack Squat","Goblet Squat","Smith Machine Squat","Belt Squat","Box Squat","Safety-Bar Squat","Pendulum Squat","Landmine Squat","Cyclist Squat","Single-Leg Leg Press","Leg Extension","Sissy Squat","Zercher Squat"],
+    "Single-leg / lunge": ["Walking Lunge","Reverse Lunge","Deficit Reverse Lunge","Bulgarian Split Squat","Rear-Foot-Elevated Split Squat","Front-Foot-Elevated Split Squat","Step-up","Forward Lunge","Lateral Lunge","Curtsy Lunge","Split Squat","Pistol Squat","Skater Squat","Cossack Squat"],
+    "Hinge / posterior chain": ["Conventional Deadlift","Romanian Deadlift","DB Romanian Deadlift","Stiff-Leg Deadlift","Snatch-Grip Deadlift","Deficit Deadlift","Trap-Bar Deadlift","Sumo Deadlift","Rack Pull","Good Morning","Single-Leg RDL","Kettlebell RDL","Hip Thrust","Single-Leg Hip Thrust","Glute-Ham Raise","Lying Leg Curl","Seated Leg Curl","Nordic Curl","Back Extension","45° Hyperextension","Reverse Hyper","Cable Pull-Through"],
+    "Push — chest (horizontal)": ["Barbell Bench Press","Incline Barbell Press","Decline Bench Press","Flat DB Press","Incline DB Press","Smith Bench Press","Smith Incline Press","Machine Chest Press","Weighted Dip","Push-up","Deficit Push-up","Cable Fly","Incline DB Fly","Machine Fly","High-to-Low Cable Fly","Low-to-High Cable Fly","Cable Crossover","Single-Arm Cable Fly","Single-Arm Cable Chest Press","Cable Chest Press","Pec Deck","Svend Press","Floor Press","Landmine Press"],
+    "Push — shoulders (vertical)": ["Standing Overhead Press","Seated DB Shoulder Press","Push Press","Arnold Press","Machine Shoulder Press","Z-Press","Lateral Raise","Seated DB Lateral Raise","Cable Lateral Raise","Leaning Cable Lateral Raise","Single-Arm Cable Lateral Raise","Machine Lateral Raise","Rear-Delt Fly","Reverse Pec Deck","Machine Rear-Delt Fly","Cable Rear-Delt Fly","Single-Arm Cable Rear-Delt Fly","Cable Y-Raise","Face Pull","Front Raise","Cable Front Raise","Upright Row","Cable Upright Row"],
+    "Pull — lats (vertical)": ["Weighted Pull-up","Chin-up","Neutral-Grip Pull-up","Lat Pulldown","Machine Pulldown","Chest-Supported Machine Pulldown","Single-Arm Lat Pulldown","Half-Kneeling Cable Pulldown","Kneeling Cable Pulldown","Neutral-Grip Pulldown","Wide-Grip Pulldown","Rope Lat Pulldown","Assisted Pull-up","Straight-Arm Pulldown","Single-Arm Straight-Arm Pulldown","Cable Pullover"],
+    "Pull — back (horizontal)": ["Chest-Supported Row","Chest-Supported DB Row","Barbell Row","Pendlay Row","Seal Row","Helms Row","Seated Cable Row","Single-Arm Cable Row","Single-Arm Low Cable Row","Wide Cable Row","Cable Face-Away Row","T-Bar Row","Single-Arm DB Row","Machine Row","Machine High Row","Inverted Row","Meadows Row","Kroc Row"],
+    "Biceps": ["DB Curl","Barbell Curl","Hammer Curl","Cable Curl","Single-Arm Cable Curl","Bayesian Cable Curl","Cable Rope Hammer Curl","High Cable Curl","Preacher Curl","Machine Preacher Curl","Incline DB Curl","Concentration Curl","EZ-Bar Curl","Cable EZ-Bar Curl","Reverse Curl","Drag Curl","Zottman Curl","Spider Curl"],
+    "Triceps": ["Cable Triceps Pushdown","Rope Pushdown","Single-Arm Cable Pushdown","Cable Overhead Triceps Extension","Single-Arm Cable Triceps Extension","Overhead Triceps Extension","Close-Grip Bench Press","Weighted Dip","Machine Dip","Bench Dip","Skull Crusher","JM Press","Tate Press","DB Kickback","Cable Kickback","Diamond Push-up"],
+    "Calves": ["Standing Calf Raise","Standing Machine Calf Raise","Seated Calf Raise","Leg-Press Calf Raise","Hack-Squat Calf Raise","Single-Leg Calf Raise","Smith Calf Raise","Tibialis Raise","Donkey Calf Raise"],
+    "Core / anti-rotation": ["Pallof Press","Single-Arm Pallof Press","Cable Pallof Iso Hold","Cable Wood-chop","High-to-Low Cable Chop","Low-to-High Cable Chop","Cable Rotation","Landmine Rotation","Hanging Leg Raise","Hanging Knee Raise","Cable Crunch","Single-Arm Cable Crunch","Weighted Decline Sit-up","Ab Wheel Rollout","Plank","Weighted Plank","Side Plank","Russian Twist","Dead Bug","Bird Dog","Hollow Hold","Copenhagen Plank"],
+    "Grip / carries": ["Farmer Carry","Fat-Grip Farmer Carry","Suitcase Carry","Trap-Bar Carry","Wrist Curl + Reverse","Reverse Wrist Curl","Plate Pinch","Dead Hang","Wrist Roller","Plate Wrist Roller","Towel Pull-up"],
+    "Power / speed (golf)": ["Box Jump","Broad Jump","Lateral Bound","Vertical Jump","Depth Jump","Overhead Med-Ball Slam","Rotational Med-Ball Throw","Split-Stance Rotational Throw","Step-Behind Rotational Throw","Med-Ball Shotput Throw","Med-Ball Chest Pass","Med-Ball Scoop Toss","Kettlebell Swing","Kettlebell Clean","Hang Power Clean","Jump Squat","Trap-Bar Jump","Banded Rotational Pull","Overspeed Swings","Ground-Force Footwork"]
   };
   var EX_GROUP_ORDER = Object.keys(EXERCISE_DB);
   // Classify an exercise name → its group (specific patterns first, so e.g. "Leg Curl"
   // lands in Hinge not Biceps, and "Close-Grip Bench" in Triceps not Chest).
   function exGroupFor(n){
     n=n||"";
-    if(/Jump|Bound|Slam|Throw|Chest Pass|Scoop|Overspeed|Footwork|Clean|Snatch|Plyo|Pogo|Banded Rotation/i.test(n)) return "Power / speed (golf)";
+    if(/Jump|Bound|Slam|Throw|Chest Pass|Scoop|Overspeed|Footwork|Clean|Snatch(?!-?Grip)|Plyo|Pogo|Banded Rotation/i.test(n)) return "Power / speed (golf)";
     if(/Calf|Tibialis/i.test(n)) return "Calves";
     if(/Carry|Farmer|Suitcase|Wrist|Forearm|Plate Pinch|Dead Hang|Wrist Roller|Towel Pull/i.test(n)) return "Grip / carries";
-    if(/Triceps|Pushdown|Skull|Close.?Grip|Kickback|Diamond Push|JM Press/i.test(n)) return "Triceps";
-    if(/Pallof|Wood.?chop|\bChop\b|Landmine Rotation|Rotation|Russian Twist|\bPlank\b|Dead ?Bug|Bird ?Dog|Hollow|Ab Wheel|Crunch|Leg Raise|Copenhagen|Anti.?Rotation/i.test(n)) return "Core / anti-rotation";
+    if(/Triceps|Pushdown|Skull|Close.?Grip|Kickback|Diamond Push|JM Press|Tate Press/i.test(n)) return "Triceps";
+    if(/Pallof|Wood.?chop|\bChop\b|Landmine Rotation|Rotation|Russian Twist|\bPlank\b|Dead ?Bug|Bird ?Dog|Hollow|Ab Wheel|Crunch|Leg Raise|Knee Raise|Sit.?up|Copenhagen|Anti.?Rotation/i.test(n)) return "Core / anti-rotation";
     if(/Curl/i.test(n) && !/Leg Curl|Ham|Nordic|Wrist/i.test(n)) return "Biceps";
-    if(/Lunge|Split Squat|Step.?up|Bulgarian|Pistol|Cossack/i.test(n)) return "Single-leg / lunge";
-    if(/Deadlift|Romanian|\bRDL\b|Trap.?Bar|Sumo|Rack Pull|Good ?Morning|Hip Thrust|Glute|Leg Curl|Nordic|Back Extension|Hyperext|Kettlebell Swing|\bSwing\b|Pull.?Through|Hinge/i.test(n)) return "Hinge / posterior chain";
+    if(/Lunge|Split Squat|Step.?up|Bulgarian|Pistol|Skater|Cossack/i.test(n)) return "Single-leg / lunge";
+    if(/Deadlift|Romanian|\bRDL\b|Trap.?Bar|Sumo|Rack Pull|Good ?Morning|Hip Thrust|Glute|Leg Curl|Nordic|Back Extension|Hyperext|Reverse Hyper|Kettlebell Swing|\bSwing\b|Pull.?Through|Hinge/i.test(n)) return "Hinge / posterior chain";
     if(/Squat|Leg Press|Hack|Leg Extension|Sissy|Belt Squat|Pendulum/i.test(n)) return "Quads — squat pattern";
-    if(/Overhead Press|Shoulder Press|Military|OHP|Arnold|Push Press|Z.?Press|Lateral Raise|Rear.?Delt|Face Pull|Front Raise|Y.?Raise|Upright Row/i.test(n)) return "Push — shoulders (vertical)";
-    if(/Bench|Incline.*Press|Decline|Chest Press|\bDip\b|Push.?up|\bFly\b|Crossover|Pec Deck|Floor Press|Landmine Press/i.test(n)) return "Push — chest (horizontal)";
+    if(/Overhead Press|Shoulder Press|Military|OHP|Arnold|Push Press|Z.?Press|Lateral Raise|Rear.?Delt|Reverse Pec Deck|Face Pull|Front Raise|Y.?Raise|Upright Row/i.test(n)) return "Push — shoulders (vertical)";
+    if(/Bench|Incline.*Press|Decline|Chest Press|\bDip\b|Push.?up|\bFly\b|Crossover|Pec Deck|Svend|Floor Press|Landmine Press/i.test(n)) return "Push — chest (horizontal)";
     if(/Pull.?up|Chin.?up|Pulldown|Pullover|\bLat\b/i.test(n)) return "Pull — lats (vertical)";
     if(/Row|Meadows|Kroc|Pendlay/i.test(n)) return "Pull — back (horizontal)";
     return null;
@@ -3927,7 +3932,7 @@
             '<button class="il-why'+(openWhy[xi]?" on":"")+'" data-why="'+xi+'" aria-label="Why this lift builds speed">🛈 Why</button>'+
             '<button class="il-swap" data-swapx="'+escAttr(x.orig||x.name)+'" data-swapcur="'+escAttr(x.name)+'" data-swapix="'+xi+'" title="Swap this lift">⇄ Swap</button>'+
           '</div></div>'+
-        '<div class="il-sub">'+x.target+(ready?' · <span class="il-up">↑ go up '+incFor(x.name)+'</span>':'')+'</div>'+
+        '<div class="il-sub">'+x.target+(ready?' · <button class="il-up" data-bumpfill="'+xi+'" title="Fill last time’s weight + '+incNum(x.name)+' lb">↑ add '+incNum(x.name)+' lb — tap to fill</button>':'')+'</div>'+
         '<div class="il-why-box"'+(openWhy[xi]?"":" hidden")+'>'+whyHtml(x.name)+'</div>'+
         '<div class="il-cols"><span>SET</span><span>PREVIOUS</span><span>LBS</span><span>REPS</span><span></span></div>'+
         setsHtml+
@@ -4080,20 +4085,29 @@
   function closeSwap(){ var m=$("swapModal"); if(m) m.hidden=true; document.body.style.overflow=""; swapCtx=null; }
   // Add a whole new lift to today's session — browse the full database, searchable.
   function addLiftGroupsHtml(filter){
-    filter=(filter||"").trim().toLowerCase();
+    var raw=(filter||"").trim(), f=raw.toLowerCase();
     var html="";
+    // Offer the typed name as a custom lift when it isn't already an exact library match.
+    if(raw){
+      var exact=false;
+      EX_GROUP_ORDER.forEach(function(g){ EXERCISE_DB[g].forEach(function(o){ if(o.toLowerCase()===f) exact=true; }); });
+      if(!exact){
+        var disp=raw.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+        html+='<button class="swap-opt add-custom" data-addcustom="'+escAttr(raw)+'">➕ Add “'+disp+'” as a custom lift</button>';
+      }
+    }
     EX_GROUP_ORDER.forEach(function(g){
-      var items=EXERCISE_DB[g].filter(function(o){ return !filter || o.toLowerCase().indexOf(filter)>=0; });
+      var items=EXERCISE_DB[g].filter(function(o){ return !f || o.toLowerCase().indexOf(f)>=0; });
       if(!items.length) return;
       html+='<div class="add-group">'+g+'</div>';
       items.forEach(function(o){ html+='<button class="swap-opt" data-addchoose="'+escAttr(o)+'">'+purposeFor(o)+' '+o+'</button>'; });
     });
-    return html || '<div class="swap-sub">No match — try another search.</div>';
+    return html || '<div class="swap-sub">Type a name above, then tap “Add as a custom lift”.</div>';
   }
   function openAddLift(){
     swapCtx=null;
     $("swapTitle").textContent="Add a lift";
-    $("swapBody").innerHTML='<input class="add-search" id="addSearch" type="text" placeholder="Search 170+ lifts…" autocomplete="off" />'+
+    $("swapBody").innerHTML='<input class="add-search" id="addSearch" type="text" placeholder="Search 200+ lifts — or type your own…" autocomplete="off" />'+
       '<div id="addList">'+addLiftGroupsHtml("")+'</div>';
     var m=$("swapModal"); m.hidden=false; document.body.style.overflow="hidden";
   }
@@ -5258,6 +5272,15 @@
       var pls=lastSessionFor(ilog.day, ilog.week), plx=null;
       if(pls) pls.ex.forEach(function(e2){ if(e2.name===pex.name) plx=e2; });
       if(plx && plx.sets[ps]){ if(plx.sets[ps].w) pex.sets[ps].w=plx.sets[ps].w; if(plx.sets[ps].r) pex.sets[ps].r=plx.sets[ps].r; saveILog(); renderILog(); } return; }
+    // One-tap load nudge: fill every set to last time's top weight + one small jump.
+    // Reps stay blank (you log what you hit) so progression is by WEIGHT, not reps/volume.
+    var bmp=e.target.closest("[data-bumpfill]");
+    if(bmp && ilog){ var bx=+bmp.getAttribute("data-bumpfill"), bex=ilog.sess.ex[bx];
+      var bls=lastSessionFor(ilog.day, ilog.week), blx=null;
+      if(bls) bls.ex.forEach(function(e2){ if(e2.name===bex.name) blx=e2; });
+      if(blx){ var top=0; blx.sets.forEach(function(st){ var w=parseFloat(st.w); if(w>top) top=w; });
+        if(top>0){ var nw=String(top+incNum(bex.name)); bex.sets.forEach(function(s2){ s2.w=nw; }); saveILog(); renderILog(); } }
+      return; }
     var isw=e.target.closest("[data-swapx]");
     if(isw){ openSwap(parseInt(isw.getAttribute("data-swapix"),10), isw.getAttribute("data-swapx"), isw.getAttribute("data-swapcur")); return; }
     var why=e.target.closest("[data-why]");
@@ -5342,6 +5365,7 @@
       var ht=e.target.closest("[data-histtoggle]");
       if(ht){ var d=ht.querySelector(".hist-detail"); if(d){ d.hidden=!d.hidden; ht.classList.toggle("open"); } return; }
       var add=e.target.closest("[data-addchoose]"); if(add){ addLiftChoice(add.getAttribute("data-addchoose")); return; }
+      var addc=e.target.closest("[data-addcustom]"); if(addc){ addLiftChoice(addc.getAttribute("data-addcustom")); return; }
       var ch=e.target.closest("[data-swapchoose]"); if(ch){ applySwapChoice(ch.getAttribute("data-swapchoose")); return; }
       if(e.target.closest("[data-swapcoach]")){ var c=swapCtx; closeSwap();
         if(window.FFCoach && window.FFCoach.ready()) window.FFCoach.ask("Suggest a hard, same-muscle replacement for "+(c?c.orig:"this lift")+" using my equipment — no weakling subs, with sets×reps.", "Swap idea"); }
