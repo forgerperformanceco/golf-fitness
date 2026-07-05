@@ -1,5 +1,6 @@
 /* FairwayFuel service worker — offline-first for the single-page app.
-   Bump CACHE when you ship a new version so clients pull fresh files. */
+   CACHE is stamped with the build's content hash by scripts/build.mjs, so a new
+   build invalidates old caches automatically — no manual version bumps. */
 var CACHE = 'fairwayfuel-{{V}}';
 var ASSETS = [
   './',

@@ -1637,6 +1637,25 @@
   .mob-flag{ margin:10px 0 0; padding:10px 12px; border-radius:11px; background:#fff7e8; border:1px solid #f0dcb2;
     color:#6b4a10; font-size:13px; line-height:1.5; text-align:left; }
   .wu-row.from-screen .wu-move::after{ content:" · from your mobility screen"; font-size:12px; color:#b8860b; font-weight:700; }
+
+  /* ===== Motion system — entrances, physics, celebration (see src/js/app/007-motion.js) ===== */
+  /* Tab switches cross-fade via the View Transitions API; keep it quick and quiet. */
+  ::view-transition-old(root){ animation-duration:.16s; }
+  ::view-transition-new(root){ animation-duration:.16s; }
+  /* Every overlay arrives the same way: scrim fades in, sheet springs up.
+     These replay automatically because the elements go display:none → visible. */
+  @keyframes ffScrimIn{ from{ opacity:0; } }
+  @keyframes ffSheetIn{ from{ opacity:.4; transform:translateY(30px); } }
+  @keyframes ffRiseIn{ from{ opacity:0; transform:translateY(16px) scale(.985); } }
+  .swap-modal, .qsheet{ animation:ffScrimIn .18s ease-out; }
+  .swap-card, .qsheet-card{ animation:ffSheetIn .3s cubic-bezier(.3,1.25,.45,1); }
+  .pl-root{ animation:ffRiseIn .26s cubic-bezier(.3,1.1,.45,1); }
+  .pl-recap{ animation:ffRiseIn .32s cubic-bezier(.3,1.15,.45,1); }
+  /* The user asked for calm: one switch kills every animation and transition. */
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{ animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
+  }
+
   /* ===== GENERATED-DARK: auto dark theme — edit scripts/gen-dark-theme.py, not this block ===== */
   @media (prefers-color-scheme: dark){
   html:not([data-theme="light"]){ --paper:#0d1712; --card:#141f18; --ink:#e4efe6; --muted:#96ab9d; --line:#28402f; --green-800:#a5dcb8; --green-700:#7ccd9c; --sand:#332c18; --sand-dark:#584c28; --shadow:0 12px 34px rgba(0,0,0,.45); --shadow-sm:0 2px 8px rgba(0,0,0,.35); color-scheme:dark; }

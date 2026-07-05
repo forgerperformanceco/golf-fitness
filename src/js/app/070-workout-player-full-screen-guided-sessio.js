@@ -161,11 +161,11 @@
     var octNow=ffScore().score||0, dOct=octNow-player.octBefore;
     return '<div class="pl-recap">'+
       '<div class="pl-recap-kick">Session complete</div>'+
-      '<div class="pl-recap-big">'+(vol>0?(vol.toLocaleString()+'<span style="font-size:18px;color:#9fc4ac"> lb moved</span>'):'Work banked 💪')+'</div>'+
+      '<div class="pl-recap-big">'+(vol>0?('<span data-countup="'+vol+'" data-cu-fmt="locale">'+vol.toLocaleString()+'</span><span style="font-size:18px;color:#9fc4ac"> lb moved</span>'):'Work banked 💪')+'</div>'+
       prs.map(function(p){ return '<div class="pl-pr">🚀 PR — '+p.name+' e1RM '+p.e1+' lb</div>'; }).join(" ")+
       (firsts.length?'<div class="pl-first">📌 Benchmarks set: '+firsts.join(", ")+'</div>':'')+
       '<div class="pl-statrow">'+
-        '<div class="pl-stat"><div class="v">'+done+'</div><div class="k">sets logged</div></div>'+
+        '<div class="pl-stat"><div class="v" data-countup="'+done+'">'+done+'</div><div class="k">sets logged</div></div>'+
         '<div class="pl-stat"><div class="v">'+mins+'m</div><div class="k">session time</div></div>'+
         '<div class="pl-stat"><div class="v">'+octNow+(dOct>0?' <small style="color:#8be9ac">▲'+dOct+'</small>':'')+'</div><div class="k">Octane</div></div>'+
       '</div>'+
@@ -187,6 +187,11 @@
     $("plBody").scrollTop=0;
     $("plPrev").disabled=player.st===0;
     $("plNext").textContent = (player.stations[player.st].type==="recap") ? "✓ Finish workout" : "Next ›";
+    // PR moment: the first time this session's recap shows a PR, make it feel like one.
+    if(player.stations[player.st].type==="recap" && !player.celebrated && $("plBody").querySelector(".pl-pr")){
+      player.celebrated=true;
+      try{ ffCelebrate(); ffTick([25,45,25]); }catch(e){}
+    }
   }
   function plFinish(){
     if(!player) return;
@@ -283,6 +288,7 @@
         s3.done=!s3.done;
         plSave();
         if(s3.done){
+          ffTick(12);
           var lastSet = si2>=x2.sets.length-1;
           plStartRest(lastSet?REST_BETWEEN_LIFTS:REST_BETWEEN_SETS, lastSet?"Next lift":"Between sets");
         }
@@ -456,7 +462,7 @@
         'stroke-dasharray="'+ARC.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/>'+
       '<text x="11" y="86" fill="#9ccfb0" font-size="12" font-weight="800">E</text>'+
       '<text x="107" y="86" fill="#9ccfb0" font-size="12" font-weight="800">F</text></svg>'+
-      '<div class="num">'+(score==null?"–":score)+'</div></div>';
+      '<div class="num"'+(score==null?'':' data-countup="'+score+'"')+'>'+(score==null?"–":score)+'</div></div>';
   }
   // Driver-carry distance (yards) — the hero outcome. Stored on ff_body entries as `d` so it
   // rides the same sync/merge: works for a launch-monitor carry OR an eyeballed "how far I hit it".

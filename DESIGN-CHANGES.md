@@ -309,6 +309,38 @@ even when nothing changed.
   equipswap, theme matrix, contrast audit) re-run against the BUILT output —
   all green, zero console errors.
 
+## 12 · Motion system — the physics layer (premium-feel pass 1 of 3)
+
+Diagnosis: the app behaved premium but didn't feel it — every interaction was
+instant, and instant reads as cheap. This pass adds ~200ms of physics to the
+moments that matter, all in a new `src/js/app/007-motion.js` + one CSS block.
+
+- **Tab switches cross-fade** via the View Transitions API (160ms, quick and
+  quiet), with a plain-swap fallback for browsers without it.
+- **Numbers count up.** Any element rendered with `data-countup` animates
+  0 → value with an ease-out curve; the final value is in the markup, so if
+  motion is off the number is simply there. Applied to the Octane gauge digit
+  and the recap's "lb moved" / sets stats. A single debounced MutationObserver
+  animates whatever a render produces — no per-render wiring.
+- **The Octane arc sweeps** E → score (0.9s) instead of appearing pre-filled.
+- **Every overlay arrives the same way**: scrim fades (180ms), sheet springs
+  up with a slight overshoot (300ms) — swap picker, quick-log sheet, exercise
+  history; the Workout Player and its recap rise in.
+- **PR celebration**: the first time a session's recap shows a PR, a 1.4s
+  confetti burst (brand greens + gold, self-removing canvas) + a haptic
+  triple-tick. A moment, not a light show.
+- **Haptic ticks** (`navigator.vibrate`, Android; silently ignored on iOS
+  web): set checked off (12ms), PR (25-45-25). Rest-timer end already buzzed.
+- **`prefers-reduced-motion` kills all of it** — one global media query zeroes
+  every animation/transition, count-ups render final values immediately, and
+  confetti/haptics are gated off.
+- Press states were already a consistent per-button idiom (47 `:active`
+  rules) — left as-is.
+- Testing note: all Playwright suites now set `reducedMotion: 'reduce'` so
+  number assertions can't race count-ups; a dedicated test-motion.mjs verifies
+  the animated path (mid-flight state, settle-at-target, sweep, confetti
+  lifecycle, sheet keyframes) and the reduced-motion off-switch.
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob
