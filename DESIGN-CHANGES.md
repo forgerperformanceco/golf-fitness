@@ -200,6 +200,21 @@ strings against an ISO week-start (always true) — fixed with timestamp
 comparison. Note: the older `thisWeekStats()` has the same latent comparison
 for its speed/weight deltas; queued as tech debt.
 
+## 6 · Share cards + event-anchored Peak (Jul 2026)
+
+- **Branded PNG share cards**, drawn on-device with canvas (no servers, no
+  loaded assets): dark-green brand gradient, hero number, PR badge, detail
+  lines, footer. Used by the session recap, the Sunday Scorecard and the
+  speed test. Shares the image file via `navigator.share` where supported;
+  falls back to downloading the PNG; last resort copies the text version.
+- **🏆 Big event date** (`ff_event`, synced): set on the You tab (date +
+  optional name). If it lands inside the 20-week block, the taper re-anchors —
+  the event week and the week before become **Peak** (volume cut, intensity
+  held, per the playbook's 7–10 day taper) and the week after deloads to
+  absorb it; the base cadence continues elsewhere. The Season map flies a 🏆
+  at the event week and explains the re-anchor in its footer; without an
+  event it invites you to set one.
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob
