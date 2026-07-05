@@ -35,7 +35,7 @@ Android can be built locally on Windows (§4); only iOS needs macOS or a cloud M
 ## 1. First-time setup (once)
 
 ```bash
-cd fairwayfuel
+cd golf-fitness
 npm install                    # installs Capacitor + plugins (writes package-lock.json)
 
 npm run add:ios                # builds www/ then generates the ios/ project

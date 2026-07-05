@@ -26,8 +26,8 @@ Rough time: **~2–3 focused hours**, plus Google's account verification (can ta
 Open a terminal (Command Prompt / PowerShell) in a folder where you keep code:
 
 ```bat
-git clone https://github.com/forgerperformanceco/fairwayfuel.git
-cd fairwayfuel
+git clone https://github.com/forgerperformanceco/golf-fitness.git
+cd golf-fitness
 npm install
 npm run sync
 ```
