@@ -102,6 +102,50 @@ along the way, and the follow-ups they open up.
 
 ---
 
+## 4 · Design optimization pass (Jul 2026, follow-up to the feature drop)
+
+**What changed**
+- **Dark mode.** Generated from the light stylesheet by `scripts/gen-dark-theme.py`,
+  which parses every rule, classifies colors by lightness, and emits a
+  `@media (prefers-color-scheme: dark)` block (~230 overrides, ~11KB) between
+  `GENERATED-DARK` markers in `index.html`. Light backgrounds darken with hue
+  kept and saturation capped; dark text lightens; rules already on dark/mid
+  surfaces (the hero cards) are left untouched. **Re-run the script after any
+  CSS change.** Token audit: `--green-800`/`--green-700` are text-only in light
+  mode, so dark mode lightens them; the two rules using `--green-700` as a
+  button background are pinned. `color-scheme` meta + root declared so form
+  controls follow.
+- **Type scale.** Every font-size ≤12.5px bumped one notch (143 declarations;
+  new floor 12px) — the 50+ demographic reads hint text, chip labels and the
+  logger without squinting. Octane gauge E/F labels bumped and recolored
+  `#7fb295 → #9ccfb0` for contrast.
+- **Tap targets.** Insight dismiss ×, tip ×, modal ×, history delete grown to
+  36–38px; the inline progression buttons ("add 5 lb", "fill deload loads")
+  became padded pills instead of bare underlined text.
+- **Train tab.** The warm-up/power-primer box now auto-collapses when the
+  session already has logged work — a mid-workout reopen lands on the lifts —
+  and stays expanded on a fresh day (the "do these first" intent is preserved).
+- **One quick-log.** Home and Stats now share a single `quickLogHtml()` block
+  (`.qlog`) with identical fields/labels/hint styling. The third copy in the
+  old Train "Progress & history" fold was dead code (defined, never called) —
+  deleted along with its orphaned click handler.
+- **Asset diet.** `logo-dark-mark.png` (rendered at ≤84 CSS px) resized
+  1254→256px: 350KB → **7.8KB**. `icon-512` 132→10.5KB, `icon-192` 26→4KB,
+  `apple-touch-icon` 24→3.7KB, `og-image` 331→110KB (and dropped from the SW
+  precache — only social scrapers fetch it). ~800KB off first load/install.
+- **Onboarding step 0** trimmed to brand + one-line promise — the feature
+  pitch was re-selling the app to someone who already opened it.
+
+**Deliberate deviations / not done**
+- No full px→rem conversion: the type bump addresses legibility directly;
+  a rem sweep across ~600 declarations is high-churn for marginal gain. If
+  system-font-size support becomes a priority, do it as its own pass.
+- Radius normalization skipped: the 10–14px spread reads fine in practice and
+  a mechanical change would touch 200+ rules for a subtle win. Revisit if a
+  component library is ever extracted.
+- Dark mode is system-driven only (no in-app toggle) — matching platform
+  convention and keeping settings surface small.
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob

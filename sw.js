@@ -1,6 +1,6 @@
 /* FairwayFuel service worker — offline-first for the single-page app.
    Bump CACHE when you ship a new version so clients pull fresh files. */
-var CACHE = 'fairwayfuel-v122';
+var CACHE = 'fairwayfuel-v123';
 var ASSETS = [
   './',
   './index.html',
@@ -9,7 +9,7 @@ var ASSETS = [
   './coach.js?v=88',
   './manifest.webmanifest',
   './logo-dark-mark.png',
-  './og-image.png',
+  // og-image.png intentionally NOT precached — it's only ever fetched by social scrapers.
   './icon-192.png',
   './icon-512.png',
   './apple-touch-icon.png'
