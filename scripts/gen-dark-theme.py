@@ -120,6 +120,31 @@ def transform_rule(decls):
             changed.append(f'{k}:{nv}')
     return changed
 
+# Hand-maintained dark pins the mechanical transform can't derive:
+#  - token overrides (--green-800/--green-700 are text-only in light mode;
+#    --sand/--sand-dark back the amber nutrient-timing surfaces)
+#  - rgba()/var()-backed surfaces the parser skips (mobile tab bar)
+#  - the two rules that use --green-700 as a button BACKGROUND keep light-mode green
+CORE = [
+    (':root',
+     '--paper:#0d1712; --card:#141f18; --ink:#e4efe6; --muted:#96ab9d; --line:#28402f; '
+     '--green-800:#a5dcb8; --green-700:#7ccd9c; --sand:#332c18; --sand-dark:#584c28; '
+     '--shadow:0 12px 34px rgba(0,0,0,.45); --shadow-sm:0 2px 8px rgba(0,0,0,.35); color-scheme:dark;'),
+    ('input, select, textarea', 'background:#101b14; color:var(--ink);'),
+    ('.logbtn:hover', 'background:#15803d;'),
+    ('.modal-foot button', 'background:#15803d;'),
+    ('.mobile-tabbar', 'background:rgba(16,24,19,.94); border-top:1px solid #28402f; box-shadow:0 -4px 20px rgba(0,0,0,.45);'),
+]
+
+def prefix_sel(sel, wrapper):
+    """Prefix each comma-part of a selector; :root itself becomes the wrapper."""
+    parts = [p.strip() for p in sel.split(',')]
+    out = []
+    for p in parts:
+        if p == ':root': out.append(wrapper)
+        else: out.append(wrapper + ' ' + p)
+    return ', '.join(out)
+
 def main():
     src = open(PATH).read()
     m = re.search(r'<style>(.*?)</style>', src, re.S)
@@ -133,26 +158,33 @@ def main():
         if sel.startswith(':root'): continue
         ch = transform_rule(decls)
         if not ch: continue
-        line = f'  {sel}{{ {"; ".join(ch)}; }}'
-        if media: medias.setdefault(media, []).append(line)
-        else: top.append(line)
-    core = ('  :root{ --paper:#0d1712; --card:#141f18; --ink:#e4efe6; --muted:#96ab9d; --line:#28402f;\n'
-            '    --green-800:#a5dcb8; --green-700:#7ccd9c;\n'  # both are text-only tokens in light mode (see audit in DESIGN-CHANGES.md)
-            '    --shadow:0 12px 34px rgba(0,0,0,.45); --shadow-sm:0 2px 8px rgba(0,0,0,.35); color-scheme:dark; }\n'
-            '  input, select, textarea{ background:#101b14; color:var(--ink); }\n'
-            # the two rules that use --green-700 as a button background keep the light-mode green
-            '  .logbtn:hover{ background:#15803d; }\n'
-            '  .modal-foot button{ background:#15803d; }\n')
-    block = MARK_A + '\n  @media (prefers-color-scheme: dark){\n' + core + '\n'.join(top) + '\n  }\n'
-    for media, lines in medias.items():
-        block += f'  @media (prefers-color-scheme: dark) and {media.strip()}{{\n' + '\n'.join(lines) + '\n  }\n'
+        if media: medias.setdefault(media, []).append((sel, '; '.join(ch) + ';'))
+        else: top.append((sel, '; '.join(ch) + ';'))
+    all_top = CORE + top
+
+    def emit(wrapper):
+        return '\n'.join(f'  {prefix_sel(sel, wrapper)}{{ {decls} }}' for sel, decls in all_top)
+
+    # Two variants of the same rules:
+    #  1. system dark, unless the user forced light:  @media + html:not([data-theme="light"])
+    #  2. user forced dark:                            html[data-theme="dark"]
+    block = MARK_A + '\n'
+    block += '  @media (prefers-color-scheme: dark){\n' + emit('html:not([data-theme="light"])') + '\n  }\n'
+    block += emit('html[data-theme="dark"]') + '\n'
+    W_AUTO = 'html:not([data-theme="light"])'
+    W_FORCED = 'html[data-theme="dark"]'
+    for media, pairs in medias.items():
+        inner_auto = '\n'.join(f'  {prefix_sel(sel, W_AUTO)}{{ {d} }}' for sel, d in pairs)
+        inner_forced = '\n'.join(f'  {prefix_sel(sel, W_FORCED)}{{ {d} }}' for sel, d in pairs)
+        block += f'  @media (prefers-color-scheme: dark) and {media.strip()}{{\n' + inner_auto + '\n  }\n'
+        block += f'  @media {media.strip()}{{\n' + inner_forced + '\n  }\n'
     block += MARK_B + '\n'
     if MARK_A in src:
         src = re.sub(re.escape(MARK_A) + r'.*?' + re.escape(MARK_B) + r'\n?', block, src, flags=re.S)
     else:
         src = src.replace('</style>', block + '</style>')
     open(PATH, 'w').write(src)
-    print(f'dark theme: {len(top)} top-level overrides, {sum(len(v) for v in medias.values())} media-scoped')
+    print(f'dark theme: {len(all_top)} rules x2 variants, {sum(len(v) for v in medias.values())} media-scoped')
 
 if __name__ == '__main__':
     main()
