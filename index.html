@@ -1370,6 +1370,63 @@
   /* install hint — green to read as "this is the app itself" */
   .tip.tip-install{ background:linear-gradient(165deg,#eaf7ee,#dcf0e2); border-color:#bfe0c8; box-shadow:0 4px 14px rgba(20,120,60,.09); }
   .tip.tip-install .tip-t{ color:#0f5a2e; } .tip.tip-install .tip-b{ color:#244a32; }
+
+  /* ===== Speed Test Day — the biweekly testing ritual ===== */
+  .stest-card{ margin:0 0 14px; padding:13px 15px; border-radius:14px;
+    background:#f2f8f4; border:1px solid #d5e8db; color:#33564a; font-size:13px; line-height:1.5; }
+  .stest-card.due{ background:linear-gradient(160deg,#0d3320,#15502f); border-color:#1d5c38;
+    color:#eafbef; box-shadow:0 6px 18px rgba(10,60,30,.22); }
+  .stest-t{ font-weight:900; font-size:15.5px; letter-spacing:-.01em; margin-bottom:4px; }
+  .stest-b b{ color:inherit; }
+  .stest-go{ display:block; width:100%; margin-top:11px; border:0; border-radius:11px;
+    background:#8be9ac; color:#0b2f1b; font-weight:900; font-size:14.5px; padding:12px 14px;
+    cursor:pointer; min-height:44px; }
+  .stest-go:active{ transform:translateY(1px); }
+  .stest-go.sm{ width:auto; display:inline-block; margin-top:10px; padding:10px 16px; background:#16a34a; color:#fff; font-size:13.5px; }
+  .stest-link{ border:0; background:none; color:#16a34a; font-weight:800; cursor:pointer; padding:0; font-size:13px; text-decoration:underline; }
+  .st-sec{ font-weight:800; font-size:14px; margin:14px 0 8px; color:#123f28; }
+  .st-sec small{ font-weight:600; color:#5b7a68; }
+  .st-swings{ display:flex; gap:8px; }
+  .st-swings input{ flex:1; min-width:0; padding:13px 10px; border:1.5px solid #cfe0d5; border-radius:11px;
+    font-size:16px; font-weight:700; text-align:center; }
+  .st-best{ margin:12px 0 4px; padding:12px 14px; border-radius:12px; background:#eef7f1; border:1px solid #d5e8db;
+    font-size:14px; color:#254d38; }
+  .st-best b{ font-size:18px; }
+  .st-save{ display:block; width:100%; margin-top:14px; border:0; border-radius:12px; background:#16a34a; color:#fff;
+    font-weight:900; font-size:15px; padding:14px; cursor:pointer; min-height:48px; }
+  .st-save:disabled{ opacity:.45; cursor:default; }
+  .st-note{ font-size:12.5px; color:#5b7a68; margin-top:10px; line-height:1.5; }
+  .st-result{ text-align:center; padding:6px 0 2px; }
+  .st-res-kick{ font-size:12px; font-weight:800; letter-spacing:.08em; color:#4d7a5f; text-transform:uppercase; }
+  .st-res-num{ font-size:52px; font-weight:900; letter-spacing:-.03em; color:#0d3320; line-height:1.05; }
+  .st-res-num span{ font-size:20px; font-weight:700; color:#4d7a5f; margin-left:4px; }
+  .st-pr{ margin:10px auto 0; display:inline-block; padding:7px 14px; border-radius:999px;
+    background:linear-gradient(90deg,#f59e0b,#ef4444); color:#fff; font-weight:900; font-size:14px;
+    box-shadow:0 4px 14px rgba(239,68,68,.3); }
+  .st-gain{ margin-top:10px; font-size:14px; color:#254d38; line-height:1.55; }
+  .st-gain b{ color:#0d3320; }
+  .st-share{ display:block; width:100%; margin-top:14px; border:1.5px solid #16a34a; border-radius:12px;
+    background:#fff; color:#0f5a2e; font-weight:800; font-size:14px; padding:12px; cursor:pointer; }
+  .pc-test{ margin-top:10px; }
+
+  /* ===== Mobility screen — 3-move self-test ===== */
+  .mob-test{ margin:0 0 14px; padding:13px 14px; border-radius:13px; background:#f7fafc; border:1px solid #dde7ee; }
+  .mob-t{ font-weight:800; font-size:14.5px; color:#123f5a; }
+  .mob-d{ font-size:13px; color:#3d5a6e; line-height:1.55; margin:5px 0 10px; }
+  .mob-d b{ color:#123f5a; }
+  .mob-opts{ display:flex; gap:7px; }
+  .mob-opts button{ flex:1; border:1.5px solid #cfdde8; border-radius:11px; background:#fff; padding:10px 6px;
+    font-weight:800; font-size:13px; color:#38566b; cursor:pointer; min-height:42px; }
+  .mob-opts button.on{ border-color:#16a34a; background:#e9f8ee; color:#0f5a2e; }
+  .mob-save{ display:block; width:100%; margin-top:6px; border:0; border-radius:12px; background:#16a34a; color:#fff;
+    font-weight:900; font-size:15px; padding:14px; cursor:pointer; min-height:48px; }
+  .mob-save:disabled{ opacity:.45; cursor:default; }
+  .mob-res{ text-align:center; padding:8px 0; }
+  .mob-res-num{ font-size:46px; font-weight:900; color:#0d3320; }
+  .mob-res-num span{ font-size:18px; color:#4d7a5f; font-weight:700; }
+  .mob-flag{ margin:10px 0 0; padding:10px 12px; border-radius:11px; background:#fff7e8; border:1px solid #f0dcb2;
+    color:#6b4a10; font-size:13px; line-height:1.5; text-align:left; }
+  .wu-row.from-screen .wu-move::after{ content:" · from your mobility screen"; font-size:11px; color:#b8860b; font-weight:700; }
 </style>
 </head>
 <body>
@@ -3152,7 +3209,7 @@
             ["Lateral bound", "3 \u00d7 4 / side", "Explosive side-to-side \u2014 the downswing weight shift."],
             ["Overhead med-ball slam", "3 \u00d7 4", "Full overhead reach, slam hard \u2014 total-body vertical power."],
             ["Ground-force footwork", "3 \u00d7 5 / side", "Lead-foot push \u2014 drive into the ground from the top of the swing."],
-            ["Overspeed swings (optional)", "3 \u00d7 5", "Light stick at max intent, both sides, full rest. A cheap nudge to your top gear \u2014 modest evidence, ramp in."]
+            ["Overspeed swings", "3 \u00d7 5", "Light stick (or your driver flipped) at MAX intent, both sides, full rest. Structured ramp: 2\u00d75 your first two weeks \u2192 3\u00d75 \u2192 4\u00d75 as you adapt; deload weeks drop back to 2\u00d75. Modest evidence \u2014 the add-on, not the main event."]
           ]
         },
         gym: {
@@ -3163,7 +3220,7 @@
             ["Speed bench press", "4 \u00d7 4", "Light bar (~half your usual) \u2014 every rep max velocity up. Upper-body ballistic power. (Or an explosive DB push press.)"],
             ["Kettlebell swing", "3 \u00d7 6", "Explosive hip snap \u2014 the ground force that starts the downswing. Hips, not arms."],
             ["Cable lateral chop", "3 \u00d7 4 / side", "Explosive rotation across the body \u2014 the weight shift. (A band works too.)"],
-            ["Overspeed swings (optional)", "3 \u00d7 5", "Light stick at max intent, both sides, full rest. A cheap nudge to your top gear \u2014 modest evidence, ramp in."]
+            ["Overspeed swings", "3 \u00d7 5", "Light stick (or your driver flipped) at MAX intent, both sides, full rest. Structured ramp: 2\u00d75 your first two weeks \u2192 3\u00d75 \u2192 4\u00d75 as you adapt; deload weeks drop back to 2\u00d75. Modest evidence \u2014 the add-on, not the main event."]
           ]
         }
       },
@@ -3480,6 +3537,18 @@
   }
   // The one target pipeline: retain-mode trim (goal) + wave shift (week).
   function effTarget(sr, name, week){ return waveAdjust(adjSets(sr, name), name, week); }
+  // Overspeed swings follow their own structured ramp (a skill/neural dose, not a
+  // hypertrophy target): ease in over weeks 1-2, build to 4×5, back off on deload/peak.
+  function overspeedDose(week){
+    var wv=waveFor(week);
+    if(wv==="deload" || wv==="peak" || week<=2) return "2 × 5";
+    if(week<=8) return "3 × 5";
+    return "4 × 5";
+  }
+  function speedDrillTarget(name, sr, week){
+    if(/Overspeed/i.test(name)) return overspeedDose(week);
+    return effTarget(sr, name, week);
+  }
   // Prescribed load for a set, from last logged weight: deload → ~60% (rounded to 5),
   // progression-ready → last + one small jump. null = no prescription (show last as-is).
   function prescribeW(lastW, name, ready, wave){
@@ -3505,7 +3574,7 @@
         var id="why"+(whyId++);
         return '<tr><td><button class="exwhy-btn" type="button" data-whyrow="'+id+'" aria-expanded="false"><span class="exname-main">'+purposeFor(e[0])+' '+e[0]+'</span> <span class="exwhy-i">ⓘ</span></button>'+
                '<div class="exnote">'+e[2]+'</div></td>'+
-               '<td class="sets">'+effTarget(e[1], e[0], curWeek())+'</td></tr>'+
+               '<td class="sets">'+speedDrillTarget(e[0], e[1], curWeek())+'</td></tr>'+
                '<tr class="exwhy-row" id="'+id+'" hidden><td colspan="2"><div class="exwhy-panel">'+whyHtml(e[0],false)+'</div></td></tr>';
       }).join("");
       var noGear = smode==="gym"
@@ -3517,6 +3586,7 @@
           '<button type="button" data-speedmode="gym"'+(smode==="gym"?' class="active"':'')+'>🏋️ Gym</button>'+
         '</span></div>';
       return '<div class="day speedday"><div class="day-head">'+d.name+' <span class="tag '+(d.tag)+'">'+labelFor(d.tag)+'</span></div>'+
+        speedTestCardHtml()+
         toggle+
         warmupHtml("speed", false)+
         '<div class="speed-intro">'+s.intro+'</div>'+
@@ -3875,7 +3945,7 @@
     if(existing) return JSON.parse(JSON.stringify(existing));
     var ex;
     if(day.type==="speed"){
-      ex = PHASES[0].speed[speedMode()].ex.map(function(e){ var tgt=effTarget(e[1], e[0], week);
+      ex = PHASES[0].speed[speedMode()].ex.map(function(e){ var tgt=speedDrillTarget(e[0], e[1], week);
         var n=parseSets(tgt), sets=[]; for(var i=0;i<n;i++) sets.push({w:"",r:"",done:false});
         return { name:e[0], target:tgt, sets:sets }; });
     } else {
@@ -4300,6 +4370,133 @@
     if(t){ var m=Math.floor(left/60), sc=left%60; t.textContent=(m>0?m+":":"")+(m>0&&sc<10?"0":"")+sc; }
   }
 
+  /* ===================== SPEED TEST DAY — the biweekly testing ritual =====================
+     Testing IS the engagement mechanic: every 2 weeks, warm up, take 3 max-intent
+     7-iron swings, keep the best. The result writes into ff_body (so trends, Octane
+     and the leaderboard all feed automatically) plus a detailed ff_speedtest log.
+     A launch monitor is ideal; a consistent phone app or net session works too —
+     same tool every test is what makes the trend honest. */
+  function speedTests(){ var t=lsGet("ff_speedtest",[]); return Array.isArray(t)?t:[]; }
+  function lastSpeedTest(){ var t=speedTests(); return t.length?t[t.length-1]:null; }
+  function daysSinceTest(){ var lt=lastSpeedTest(); return lt?Math.max(0,Math.floor((Date.now()-lt.ts)/864e5)):null; }
+  var SPEEDTEST_EVERY = 14;   // days — the biweekly cadence
+  function speedTestDue(){ var d=daysSinceTest(); return d==null || d>=(SPEEDTEST_EVERY-1); }
+  function speedTestCardHtml(){
+    var lt=lastSpeedTest(), d=daysSinceTest();
+    if(speedTestDue()){
+      return '<div class="stest-card due"><div class="stest-t">🎯 Speed Test Day — it’s due</div>'+
+        '<div class="stest-b">Every 2 weeks: warm up, then <b>3 max-intent 7-iron swings</b> — best one counts. '+
+        (lt?('Last best: <b>'+lt.best+' mph</b>. Beat it.'):'This one sets your tested baseline.')+
+        ' The retest is the scoreboard that proves the plan.</div>'+
+        '<button class="stest-go" data-speedtest="1">▶ Run today’s test</button></div>';
+    }
+    var left=Math.max(1, SPEEDTEST_EVERY-d);
+    return '<div class="stest-card"><div class="stest-b">🎯 Next speed test in <b>'+left+'</b> day'+(left===1?'':'s')+
+      (lt?(' · last best <b>'+lt.best+' mph</b>'):'')+' — <button class="stest-link" data-speedtest="1">test early</button></div></div>';
+  }
+  var stState=null;
+  function stEnsureModal(){
+    if($("stModal")) return;
+    var m=document.createElement("div"); m.id="stModal"; m.className="swap-modal"; m.hidden=true;
+    m.innerHTML='<div class="swap-card"><div class="swap-head"><span id="stTitle">🎯 Speed Test</span>'+
+      '<button class="swap-x" id="stX" type="button">×</button></div><div class="swap-body" id="stBody"></div></div>';
+    document.body.appendChild(m);
+    m.addEventListener("click", function(e){
+      if(e.target===m || e.target.closest("#stX")){ closeSpeedTest(); return; }
+      if(e.target.closest("[data-stwu]")){ e.target.closest("[data-stwu]").classList.toggle("done"); return; }
+      if(e.target.closest("[data-stsave]")){ saveSpeedTest(); return; }
+      if(e.target.closest("[data-stshare]")){ shareSpeedTest(); return; }
+      if(e.target.closest("[data-stdone]")){ closeSpeedTest(); return; }
+    });
+    m.addEventListener("input", function(e){
+      var t=e.target; if(!t.classList.contains("st-swing")) return;
+      stState.swings[+t.getAttribute("data-sts")]=t.value;
+      var best=stBest(), bb=$("stBestBox"), sv=$("stSaveBtn");
+      if(bb) bb.innerHTML=stBestHtml();
+      if(sv) sv.disabled=!best;
+    });
+  }
+  function openSpeedTest(){
+    stEnsureModal();
+    stState={ swings:["","",""], saved:null };
+    renderSpeedTest();
+    $("stModal").hidden=false; document.body.style.overflow="hidden";
+  }
+  function closeSpeedTest(){
+    var m=$("stModal"); if(m) m.hidden=true; document.body.style.overflow=""; stState=null;
+    try{ renderPhase(); }catch(e){} try{ renderDash(); }catch(e){}
+    try{ if($("view-progress") && $("view-progress").classList.contains("active")) renderProgress(); }catch(e){}
+  }
+  function stBest(){
+    if(!stState) return null;
+    var v=stState.swings.map(parseFloat).filter(function(n){ return n>0; });
+    return v.length?Math.max.apply(null,v):null;
+  }
+  function stBestHtml(){
+    var best=stBest();
+    return best ? ('Best of the day: <b>'+best+' mph</b>') : 'Enter at least one swing.';
+  }
+  function stSpeedHistory(){
+    return lsGet("ff_body",[]).map(function(e){ return parseFloat(e.s); }).filter(function(v){ return !isNaN(v); });
+  }
+  function renderSpeedTest(){
+    var body=$("stBody"); if(!body || !stState) return;
+    if(stState.saved){
+      var r=stState.saved, gainB=(r.baseline!=null)?Math.round((r.best-r.baseline)*10)/10:null;
+      body.innerHTML='<div class="st-result">'+
+        '<div class="st-res-kick">Today’s best · 7-iron</div>'+
+        '<div class="st-res-num">'+r.best+'<span>mph</span></div>'+
+        (r.pr?'<div class="st-pr">🚀 NEW ALL-TIME PR</div>':'')+
+        '<div class="st-gain">'+
+          (gainB!=null && gainB!==0 ? ((gainB>0?'▲ <b>+':'▼ <b>')+gainB+' mph</b> vs your baseline ≈ <b>'+(gainB>0?'+':'')+Math.round(gainB*2)+' yards</b> of carry.<br>') : '')+
+          (r.prevBest!=null && !r.pr ? ('All-time best: <b>'+r.prevBest+' mph</b> — that’s the number to hunt next test.') : 'Logged to your trend, Octane and the board.')+
+        '</div>'+
+        '<button class="st-share" data-stshare="1">📤 Share it</button>'+
+        '<button class="st-save" data-stdone="1">Done — next test in 2 weeks</button>'+
+        '</div>';
+      return;
+    }
+    var wu=[["Leg swings","×10/side"],["90/90 hip switches","×6/side"],["Open-book T-spine","×8/side"],["Build-up swings","10 · ramp 50→90%"]];
+    body.innerHTML=
+      '<div class="st-sec">1 · Warm up <small>— never test cold (~5 min, tap to check off)</small></div>'+
+      '<div class="wu">'+wu.map(function(x){ return '<button type="button" class="wu-row" data-stwu="1"><span class="wu-move">'+x[0]+'</span><span class="wu-dose">'+x[1]+'</span></button>'; }).join("")+'</div>'+
+      '<div class="st-sec">2 · Three max swings <small>— 7-iron, full rest between, same tool every test</small></div>'+
+      '<div class="st-swings">'+[0,1,2].map(function(i){
+        return '<input class="st-swing" type="number" inputmode="decimal" placeholder="Swing '+(i+1)+'" data-sts="'+i+'" value="'+escAttr(stState.swings[i]||"")+'" />';
+      }).join("")+'</div>'+
+      '<div class="st-best" id="stBestBox">'+stBestHtml()+'</div>'+
+      '<button class="st-save" id="stSaveBtn" data-stsave="1"'+(stBest()?'':' disabled')+'>✓ Lock in today’s best</button>'+
+      '<div class="st-note">Launch monitor, radar app or sim — anything works as long as it’s the <b>same tool each test</b>. Your trend vs your own baseline is the number that matters.</div>';
+  }
+  function saveSpeedTest(){
+    var best=stBest(); if(!best) return;
+    var hist=stSpeedHistory();
+    var prevBest=hist.length?Math.max.apply(null,hist):null;
+    var baseline=hist.length?hist[0]:null;
+    logBodyEntry("", String(best), "");
+    var t=speedTests();
+    t.push({ ts:Date.now(), date:todayStr(), week:curWeek(), swings:stState.swings.slice(), best:best });
+    if(t.length>60) t=t.slice(-60);
+    lsSet("ff_speedtest", t);
+    try{ sessionStorage.removeItem("ff_lb_pub"); }catch(e){}   // republish to the board
+    stState.saved={ best:best, pr:(prevBest!=null && best>prevBest), prevBest:prevBest, baseline:(baseline!=null?baseline:best) };
+    renderSpeedTest();
+  }
+  function shareSpeedTest(){
+    if(!stState || !stState.saved) return;
+    var r=stState.saved, gain=(r.baseline!=null)?Math.round((r.best-r.baseline)*10)/10:0;
+    var txt=(r.pr?"New 7-iron speed PR: ":"7-iron speed test: ")+r.best+" mph"+
+      (gain>0?(" (+"+gain+" mph ≈ +"+Math.round(gain*2)+" yds since baseline)"):"")+
+      " — training with FairwayFuel ⛳ https://fairwayfuel.app";
+    if(navigator.share){ try{ navigator.share({ text:txt }); return; }catch(e){} }
+    try{ navigator.clipboard.writeText(txt).then(function(){ ffToast("Copied — paste it anywhere 📋"); }); }
+    catch(e){ ffToast("Couldn’t share on this device."); }
+  }
+  // One listener for every "run the test" button (Train card, dashboard focus, Stats).
+  document.addEventListener("click", function(e){
+    if(e.target.closest("[data-speedtest]")) openSpeedTest();
+  });
+
   /* ----- Octane score — one number for build-to-speed progress -----
      A composite of the data the app already records: showing up (consistency),
      getting faster (7-iron speed), getting stronger (logged e1RM), and turning
@@ -4613,8 +4810,16 @@
 
     if(spd.length===0 && hasData)
       out.push({prio:55, sig:"coldspeed", ic:"⚡", title:"Start your speed trend",
-        body:"You're putting in the work — now capture the payoff. Log a <b>7-iron clubhead speed</b> (a launch monitor is the most repeatable), and every session starts proving itself.",
+        body:"You're putting in the work — now capture the payoff. Run the guided <b>speed test</b> — warm-up, 3 max swings, best one counts — and every session starts proving itself.",
+        act:"speedtest", actLabel:"🎯 Run the test",
         ask:"I haven't logged a clubhead speed yet — how do I measure my 7-iron speed and what's a realistic number for my level?"});
+
+    // The biweekly retest ritual — testing is the scoreboard, so it gets its own nudge.
+    if(spd.length>0 && speedTestDue() && planStart())
+      out.push({prio:82, sig:"stest:"+Math.floor(Date.now()/(7*864e5)), ic:"🎯", title:"Speed Test Day",
+        body:(daysSinceTest()!=null?("It's been <b>"+daysSinceTest()+" days</b> since your last test. "):"")+
+          "Warm up, take <b>3 max-intent 7-iron swings</b>, keep the best. Two weeks of training since the last one — time to see what it bought you.",
+        act:"speedtest", actLabel:"🎯 Run today's test"});
 
     if(daysIdle!=null && daysIdle>=6 && hasData)
       out.push({prio:95, sig:"reengage:"+Math.floor(Date.now()/(3*864e5)), ic:"👋", title:"Pick the streak back up",
@@ -4682,6 +4887,7 @@
       '<div class="insight-top"><span class="insight-ic">'+i.ic+'</span><span class="insight-kick">Your focus</span></div>'+
       '<div class="insight-title">'+i.title+'</div>'+
       '<div class="insight-body">'+i.body+'</div>'+
+      (i.act?'<button class="insight-cta" data-'+i.act+'="1">'+(i.actLabel||'Open')+'</button>':'')+
       (i.ask?'<button class="insight-cta" data-insask="'+escAttr(i.ask)+'">💬 Go deeper with the coach</button>':'')+
       '</div>';
   }
@@ -4824,6 +5030,46 @@
   // Keep the 7-day window fresh on every launch of the installed app.
   if(ffNotifPlugin()){ setTimeout(function(){ try{ ffNotifReschedule(); }catch(e){} }, 2500); }
 
+  /* ----- Web reminders (browser / installed PWA) -----
+     The web can't schedule notifications while fully closed without a push server,
+     so this is best-effort local: whenever the app is open (foreground OR a
+     background tab / installed window), fire today's training-slot reminder once
+     the hour passes — checked on load, on show, and on a 15-min tick. True server
+     push (VAPID + a scheduled Edge Function) is the Phase-3 upgrade; the sw.js
+     push handler is already in place for it. */
+  function ffWebNotifSupported(){ return !ffNotifPlugin() && !window.Capacitor && ("Notification" in window) && ("serviceWorker" in navigator); }
+  function ffWebNotifToggle(){
+    if(!ffWebNotifSupported()) return Promise.resolve(false);
+    if(ffNotifOn()){ lsSet("ff_notif", false); return Promise.resolve(false); }
+    return Promise.resolve().then(function(){ return Notification.requestPermission(); }).then(function(p){
+      if(p!=="granted"){ alert("Notifications are blocked — allow them for this site in your browser settings."); return false; }
+      lsSet("ff_notif", true); ffWebNotifCheck(); return true;
+    }).catch(function(){ return false; });
+  }
+  function ffWebNotifCheck(){
+    try{
+      if(!ffWebNotifSupported() || !ffNotifOn() || Notification.permission!=="granted") return;
+      if(planStart()==null) return;
+      var hour=FF_SLOT_HOUR[state.workout]||17;
+      if(new Date().getHours()<hour) return;                 // slot not reached yet today
+      if(lsGet("ff_notif_lastday","")===todayStr()) return;  // already nudged today
+      lsSet("ff_notif_lastday", todayStr());
+      var dop=dayOfPlan(), day=(stripDays()[(dop||1)-1])||{}, rest=day.type==="rest";
+      var title = rest ? "Recovery day 🌱" : "Time to train ⛳";
+      var bodyTxt = rest ? "Walk, mobility, foam roll — growth happens today."
+        : ((day.name||"Your session").replace(/^Day \d+ — /,"")+" · Week "+curWeek()+" — your yards are waiting.");
+      navigator.serviceWorker.getRegistration().then(function(reg){
+        if(reg && reg.showNotification) reg.showNotification(title, { body:bodyTxt, icon:"icon-192.png", badge:"icon-192.png", tag:"ff-daily" });
+        else new Notification(title, { body:bodyTxt, icon:"icon-192.png" });
+      });
+    }catch(e){}
+  }
+  if(ffWebNotifSupported()){
+    setTimeout(function(){ try{ ffWebNotifCheck(); }catch(e){} }, 4000);
+    setInterval(function(){ try{ ffWebNotifCheck(); }catch(e){} }, 15*60*1000);
+    document.addEventListener("visibilitychange", function(){ if(!document.hidden){ try{ ffWebNotifCheck(); }catch(e){} } });
+  }
+
   function acctRow(k,v){ return '<div class="acct-li"><span>'+k+'</span><b>'+v+'</b></div>'; }
   // Reflect an Account-tab change onto the matching segmented control elsewhere
   // (the calculator / Train fold) so the two stay in sync without a reload.
@@ -4872,6 +5118,11 @@
       html+='<div class="acct-card"><div class="acct-head">🔔 Workout reminders</div>'+
         '<p class="acct-p">A daily nudge at your training time — the session on training days, recovery on rest days. No account needed; it all happens on your phone.</p>'+
         '<button class="acct-btn'+(non?' ghost':'')+'" id="acctNotif">'+(non?"Reminders on — tap to turn off":"Turn on reminders")+'</button></div>';
+    } else if(ffWebNotifSupported()){
+      var nonW=ffNotifOn() && Notification.permission==="granted";
+      html+='<div class="acct-card"><div class="acct-head">🔔 Workout reminders</div>'+
+        '<p class="acct-p">A daily nudge at your training time — the session on training days, recovery on rest days. On the web it fires while FairwayFuel is open in a tab or installed; for bulletproof daily reminders, install the app.</p>'+
+        '<button class="acct-btn'+(nonW?' ghost':'')+'" id="acctNotifWeb">'+(nonW?"Reminders on — tap to turn off":"Turn on reminders")+'</button></div>';
     }
     var t=lsGet("ff_targets",null), prof=lsGet("fairwayfuel",null);
     if(prof || t){
@@ -4969,6 +5220,7 @@
     var af=$("acctFoods"); if(af) af.onclick=function(){ openFoodPrefs(); };
     var ai=$("acctInstall"); if(ai) ai.onclick=function(){ if(!ffPromptInstall()) alert("Use your browser menu → “Install app” / “Add to Home Screen.”"); };
     var nb=$("acctNotif"); if(nb) nb.onclick=function(){ nb.disabled=true; ffNotifToggle().then(function(){ renderAccount(); }); };
+    var nbw=$("acctNotifWeb"); if(nbw) nbw.onclick=function(){ nbw.disabled=true; ffWebNotifToggle().then(function(){ renderAccount(); }); };
   }
 
   /* ----- Progress (bodyweight + clubhead speed) ----- */
@@ -5096,6 +5348,9 @@
           : (spF.length>=2 ? '<div class="pc-payoff muted">Every <b>+1 mph</b> here is about <b>+2 yards</b> of carry. Keep the trend climbing.</div>' : ""))+
         (spF.length>=2?'<div class="pc-foot"><span>baseline <b>'+spBase+'</b></span><span>best <b>'+spBest+'</b> mph</span></div>':"")+
         (spNow!=null?'<div class="pc-bench">Context: '+ffBench().label+' is '+ffBench().range+' — but your trend vs your own baseline is the number that matters.</div>':"")+
+        '<div class="pc-test">'+(speedTestDue()
+          ? '<button class="stest-go sm" data-speedtest="1">🎯 Speed test due — run it now</button>'
+          : '<span class="st-note">🎯 Next speed test in <b>'+Math.max(1, SPEEDTEST_EVERY-daysSinceTest())+'</b> days — <button class="stest-link" data-speedtest="1">test early</button></span>')+'</div>'+
         '</div>';
 
       // ---- Strength: estimated 1RM on the big lifts ----
