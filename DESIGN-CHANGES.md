@@ -230,6 +230,17 @@ for its speed/weight deltas; queued as tech debt.
   DATE / NAME fields on a grid, a status note ("Lands in week 4 — weeks 3–4
   become your peak"), and a proper clear button. Verified light + dark.
 
+## 8 · Equipment-aware pickers
+
+`equipNeedsFor(name)` infers required gear for all ~250 library lifts (the
+authored `EX` map is authoritative for programmed lifts; everything else by
+name pattern, with `machine-any` counting any selected machine). The swap
+picker now sorts what-you-own first and groups the rest under a "needs gear
+you haven't added — still selectable" divider with per-option needs chips;
+the Add-a-lift picker dims and chips unowned options in place. Deliberately
+badge-and-sort, never hide: the inference is heuristic and users may have
+access to gear they didn't list.
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob
