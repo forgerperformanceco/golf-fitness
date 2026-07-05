@@ -1388,6 +1388,43 @@
   .qlog-hint{ font-size:13px; color:var(--muted); margin-top:8px; line-height:1.45; }
   .qlog-hint b{ color:var(--green-700); }
 
+  /* ===== Progress narrative: Octane hub drill-ins, Season map, Sunday Scorecard ===== */
+  button.ffp{ width:100%; border:0; background:none; padding:0; font:inherit; color:inherit; cursor:pointer; text-align:left; }
+  .ffp-detail{ margin:4px 0 10px; padding:12px 13px; border-radius:12px; background:rgba(255,255,255,.07);
+    border:1px solid rgba(255,255,255,.1); }
+  .ffp-detail .fd-tx{ font-size:13px; line-height:1.5; color:#cfe3d6; }
+  .ffp-detail .fd-tx b{ color:#fff; }
+  .ffp-detail .fd-act{ display:inline-block; margin-top:10px; border:0; border-radius:999px; background:#8be9ac; color:#0b2f1b;
+    font-weight:800; font-size:13px; padding:8px 15px; cursor:pointer; }
+  .ffp-detail .wkbars{ margin:8px 0 2px; }
+  .fd-sparkrow{ display:flex; align-items:center; gap:10px; margin:8px 0 2px; }
+  .fd-sparkrow .n{ font-size:12.5px; color:#cfe3d6; flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .pcard.season{ background:radial-gradient(130% 110% at 80% -10%, #14512f 0%, #0a2317 55%, #071710 100%);
+    border-color:#1d5c38; color:#eafbef; }
+  .pcard.season .pc-t{ color:#eafbef; }
+  .season-scroll{ overflow-x:auto; -webkit-overflow-scrolling:touch; margin:6px -4px 0; padding:0 4px; }
+  .season-leg{ display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+  .season-leg span{ font-size:11.5px; font-weight:700; color:#bfe9cd; display:inline-flex; align-items:center; gap:5px; }
+  .season-leg i{ width:10px; height:10px; border-radius:3px; display:inline-block; }
+  .season-foot{ margin-top:10px; font-size:12.8px; color:#9fd4b3; line-height:1.5; }
+  .season-foot b{ color:#eafbef; }
+  .scorecard{ border:1.5px dashed #b9cdbf; border-radius:16px; padding:14px 15px; background:var(--card); margin-bottom:13px; }
+  .sc-head{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
+  .sc-t{ font-weight:900; font-size:16px; letter-spacing:-.01em; color:var(--ink); }
+  .sc-sub{ font-size:12.5px; color:var(--muted); }
+  .sc-grid{ margin-top:10px; border-top:1px solid var(--line); }
+  .sc-row{ display:flex; align-items:center; gap:10px; padding:9px 2px; border-bottom:1px solid var(--line); }
+  .sc-hole{ flex:0 0 26px; font-weight:900; font-size:13px; color:var(--muted); }
+  .sc-name{ flex:1; font-weight:700; font-size:13.5px; color:var(--ink); }
+  .sc-val{ font-weight:900; font-size:14px; color:var(--ink); }
+  .sc-chip{ flex:0 0 auto; min-width:52px; text-align:center; font-size:11.5px; font-weight:900; letter-spacing:.03em;
+    border-radius:999px; padding:4px 9px; }
+  .sc-chip.good{ background:#e9f8ee; color:#0f5a2e; border:1px solid #bfe0c8; }
+  .sc-chip.mid{ background:#fff6e3; color:#8a5a08; border:1px solid #edd9a8; }
+  .sc-chip.miss{ background:#f4f5f4; color:#7d8a80; border:1px solid #dde3de; }
+  .sc-share{ display:block; width:100%; margin-top:12px; border:1.5px solid #16a34a; border-radius:12px; background:none;
+    color:#0f5a2e; font-weight:800; font-size:13.5px; padding:11px; cursor:pointer; }
+
   /* ===== Today spine (Home) — one primary action + the day as a timeline ===== */
   .nu-card{ display:block; width:100%; text-align:left; position:relative; margin:0 0 14px; border:0; cursor:pointer;
     border-radius:18px; padding:17px 44px 17px 18px; color:#eafbef;
@@ -1788,6 +1825,12 @@
   html:not([data-theme="light"]) .tip.tip-install{ background:linear-gradient(165deg,#14261a,#182c1e); border-color:#2a4a33; }
   html:not([data-theme="light"]) .tip.tip-install .tip-t{ color:#c4e3d1; }
   html:not([data-theme="light"]) .tip.tip-install .tip-b{ color:#c4e2cf; }
+  html:not([data-theme="light"]) .ffp-detail .fd-act{ background:#274933; color:#c9e5d5; }
+  html:not([data-theme="light"]) .scorecard{ border:1.5px dashed #34493a; }
+  html:not([data-theme="light"]) .sc-chip.good{ background:#14261a; color:#c4e3d1; border:1px solid #2a4a33; }
+  html:not([data-theme="light"]) .sc-chip.mid{ background:#252014; color:#e1d5c0; border:1px solid #4d432b; }
+  html:not([data-theme="light"]) .sc-chip.miss{ background:#1a1c1a; border:1px solid #2f3931; }
+  html:not([data-theme="light"]) .sc-share{ color:#c4e3d1; }
   html:not([data-theme="light"]) .tl-dot{ border:2.5px solid #34493a; }
   html:not([data-theme="light"]) .pl-dot.cur{ background:#274933; }
   html:not([data-theme="light"]) .pl-rest-fill{ background:#274933; }
@@ -2028,6 +2071,12 @@
   html[data-theme="dark"] .tip.tip-install{ background:linear-gradient(165deg,#14261a,#182c1e); border-color:#2a4a33; }
   html[data-theme="dark"] .tip.tip-install .tip-t{ color:#c4e3d1; }
   html[data-theme="dark"] .tip.tip-install .tip-b{ color:#c4e2cf; }
+  html[data-theme="dark"] .ffp-detail .fd-act{ background:#274933; color:#c9e5d5; }
+  html[data-theme="dark"] .scorecard{ border:1.5px dashed #34493a; }
+  html[data-theme="dark"] .sc-chip.good{ background:#14261a; color:#c4e3d1; border:1px solid #2a4a33; }
+  html[data-theme="dark"] .sc-chip.mid{ background:#252014; color:#e1d5c0; border:1px solid #4d432b; }
+  html[data-theme="dark"] .sc-chip.miss{ background:#1a1c1a; border:1px solid #2f3931; }
+  html[data-theme="dark"] .sc-share{ color:#c4e3d1; }
   html[data-theme="dark"] .tl-dot{ border:2.5px solid #34493a; }
   html[data-theme="dark"] .pl-dot.cur{ background:#274933; }
   html[data-theme="dark"] .pl-rest-fill{ background:#274933; }
@@ -5748,6 +5797,40 @@
       '<div class="hero-esub">Your engine — <b>lifting, fuel &amp; speed work.</b> Keep it high and the yards follow.</div></div></div>';
     return '<button class="ffscore hero-card" data-goview="progress">'+top+engine+'</button>';
   }
+  // The Octane hub: each pillar opens a drill-in — its trend, what it means, and
+  // the one action that moves it. The gauge stops being a number and becomes a map.
+  var openPillar=null;
+  function pillarDetailHtml(p){
+    if(p.key==="consistency"){
+      return '<div class="fd-tx"><b>'+p.detail+'</b> — sessions logged vs your '+((typeof planState!=="undefined"&&planState.freq)||4)+'/week plan. Showing up is the heaviest pillar.</div>'+
+        '<div class="wkbars">'+weekBars()+'</div>'+
+        '<button type="button" class="fd-act" data-goview="plan">Open this week ›</button>';
+    }
+    if(p.key==="speed"){
+      var sp=stSpeedHistory();
+      return '<div class="fd-tx"><b>'+p.detail+'</b> — 7-iron trend vs your first entry. Every <b>+1 mph ≈ +2 yards</b> of carry.</div>'+
+        (sp.length>=2?('<div class="fd-sparkrow">'+pcMiniSpark(sp,"#8be9ac")+'<span class="n">baseline '+sp[0]+' → now '+sp[sp.length-1]+' mph</span></div>'):'')+
+        '<button type="button" class="fd-act" data-speedtest="1">🎯 '+(speedTestDue()?'Test due — run it now':'Run a test early')+'</button>';
+    }
+    if(p.key==="strength"){
+      var lifts=bigLiftStats().slice(0,3);
+      return '<div class="fd-tx"><b>'+p.detail+'</b> — estimated 1RM on the big lifts, first session vs best. Force is the raw material for speed.</div>'+
+        lifts.map(function(L){ return '<div class="fd-sparkrow">'+(L.n>=2?pcMiniSpark(L.series,"#8be9ac"):'')+'<span class="n">'+L.name+' · '+Math.round(L.last)+' lb</span></div>'; }).join("")+
+        '<button type="button" class="fd-act" data-goview="plan">Go lift ›</button>';
+    }
+    if(p.key==="p2w"){
+      var body=lsGet("ff_body",[]);
+      var sp2=body.map(function(e){ return parseFloat(e.s); }).filter(function(v){ return !isNaN(v); });
+      var wt=body.map(function(e){ return parseFloat(e.w); }).filter(function(v){ return !isNaN(v); });
+      var sg=sp2.length>=2?((sp2[sp2.length-1]-sp2[0])/sp2[0]*100).toFixed(1):null;
+      var wg=wt.length>=2?((wt[wt.length-1]-wt[0])/wt[0]*100).toFixed(1):null;
+      return '<div class="fd-tx"><b>'+p.detail+'</b>'+((sg!=null&&wg!=null)?(' — speed '+(sg>=0?'+':'')+sg+'% vs bodyweight '+(wg>=0?'+':'')+wg+'%. Faster per pound = a leaner, harder engine.'):' — track weight AND 7-iron speed to unlock this pillar.')+'</div>'+
+        '<button type="button" class="fd-act" data-qopen="1">＋ Log today ›</button>';
+    }
+    var lm=(typeof lastMob==="function")?lastMob():null;
+    return '<div class="fd-tx"><b>'+p.detail+'</b>'+(lm?(' — last screen <b>'+lm.score+'/100</b> on '+lm.date+'. Mass should never cost you turn.'):' — 3 moves, ~3 minutes, no gear.')+'</div>'+
+      '<button type="button" class="fd-act" data-mobscreen="1">🧭 '+(mobDue()?'Screen due — run it':'Re-run the screen')+'</button>';
+  }
   // Progress tab: the full Octane card with its four component pillars.
   function renderScoreCard(compact){
     var r = ffScore(); saveScoreSnapshot(r);
@@ -5760,12 +5843,15 @@
     }
     var bars = r.parts.map(function(p){
       var w = p.max>0 ? Math.round(p.pts/p.max*100) : 0;
-      return '<div class="ffp'+(p.have?"":" locked")+'">'+
+      var row='<button type="button" class="ffp'+(p.have?"":" locked")+'" data-pillar="'+p.key+'" aria-expanded="'+(openPillar===p.key?'true':'false')+'">'+
         '<span class="ffp-label">'+p.label.replace(" (e1RM)","")+'</span>'+
         '<span class="ffp-track"><span class="ffp-fill" style="width:'+(p.have?Math.max(7,w):100)+'%"></span></span>'+
-        '<span class="ffp-val">'+(p.have? p.pts : "+")+'</span></div>';
+        '<span class="ffp-val">'+(p.have? p.pts : "+")+'</span></button>';
+      if(openPillar===p.key) row+='<div class="ffp-detail">'+pillarDetailHtml(p)+'</div>';
+      return row;
     }).join("");
-    return '<div class="ffscore">'+top+'<div class="ffscore-bars">'+bars+'</div></div>';
+    return '<div class="ffscore">'+top+'<div class="ffscore-bars">'+bars+'</div>'+
+      '<div style="margin-top:8px;font-size:12px;color:#9fc4ac;">Tap a pillar to see what drives it — and the fastest way to move it.</div></div>';
   }
 
   /* ----- Dashboard (home overview) ----- */
@@ -6446,6 +6532,70 @@
     }
     return bars;
   }
+  /* ----- The Season map: the 20-week campaign as a course, tee to pin.
+     Wave phases are the terrain, speed tests fly flags where they happened,
+     deloads are marked, and YOU is pinned to the current week. ----- */
+  function seasonMapHtml(){
+    if(!planStart()) return '';
+    var wk=curWeek(), gy=goalYds();
+    var tests={}; speedTests().forEach(function(t){ if(t.week && (tests[t.week]==null || t.best>tests[t.week])) tests[t.week]=t.best; });
+    var segW=46, pad=26, NW=20, width=pad*2+NW*segW, H=118;
+    var colors={ accumulate:"#2f9e5d", intensify:"#e0a33a", deload:"#4d685a", peak:"#f4c542" };
+    var svg='';
+    for(var w=1; w<=NW; w++){
+      var x=pad+(w-1)*segW, wave=waveFor(w), cx=x+segW/2-3;
+      svg+='<rect x="'+(x+2)+'" y="64" width="'+(segW-7)+'" height="16" rx="8" fill="'+colors[wave]+'" opacity="'+(w<wk?'0.95':(w===wk?'1':'0.35'))+'"/>';
+      svg+='<text x="'+cx+'" y="98" text-anchor="middle" font-size="10" fill="#9fc4ac" font-weight="700">'+w+'</text>';
+      if(wave==="deload") svg+='<text x="'+cx+'" y="60" text-anchor="middle" font-size="10">🪫</text>';
+      if(tests[w]!=null) svg+='<text x="'+cx+'" y="36" text-anchor="middle" font-size="13">⛳</text><text x="'+cx+'" y="50" text-anchor="middle" font-size="10" fill="#8be9ac" font-weight="800">'+tests[w]+'</text>';
+      if(w===wk) svg+='<text x="'+cx+'" y="18" text-anchor="middle" font-size="11" font-weight="900" fill="#ffffff">▼ YOU</text>';
+    }
+    svg+='<text x="6" y="80" font-size="13">🏌️</text>';
+    svg+='<text x="'+(pad+NW*segW+2)+'" y="80" font-size="14">🚩</text>';
+    var wave2=WAVES[waveFor(wk)];
+    return '<div class="pcard season"><div class="pc-head"><span class="pc-t">🗺️ Your 20-week season'+(gy?(' · mission +'+gy+' yds'):'')+'</span></div>'+
+      '<div class="season-scroll"><svg width="'+width+'" height="'+H+'" viewBox="0 0 '+width+' '+H+'">'+svg+'</svg></div>'+
+      '<div class="season-leg"><span><i style="background:#2f9e5d"></i>Build</span><span><i style="background:#e0a33a"></i>Heavy</span>'+
+      '<span><i style="background:#4d685a"></i>Deload</span><span><i style="background:#f4c542"></i>Peak</span><span>⛳ speed test (mph)</span></div>'+
+      '<div class="season-foot"><b>Week '+wk+' · '+wave2.label+'.</b> '+wave2.strap+'</div></div>';
+  }
+  /* ----- Sunday Scorecard: the week as a golf card — one ritual close per week ----- */
+  function weekCard(){
+    var ws=weekStartDateCal().getTime(), freq=(typeof planState!=="undefined"&&planState.freq)||4;
+    var hist=lsGet("ff_history",[]).filter(function(h){ return h && (h.ts||0)>=ws; });
+    var vol=hist.reduce(function(a,h){ return a+(h.volume||0); },0);
+    var weighs=lsGet("ff_body",[]).filter(function(e){ if(!e || !e.w) return false;
+      var t=new Date(e.date).getTime(); return !isNaN(t) && t>=ws; }).length;
+    var stw=speedTests().filter(function(t){ return (t.ts||0)>=ws; });
+    return { sessions:hist.length, freq:freq, vol:vol, weighs:weighs,
+      bestT:(stw.length?Math.max.apply(null, stw.map(function(t){ return t.best; })):null),
+      mob:mobTests().some(function(t){ return (t.ts||0)>=ws; }) };
+  }
+  function scChip(kind, label){ return '<span class="sc-chip '+kind+'">'+label+'</span>'; }
+  function scorecardHtml(){
+    if(!planStart()) return '';
+    var c=weekCard();
+    var rows=[
+      { h:1, n:"Sessions", v:c.sessions+' / '+c.freq, chip: c.sessions>=c.freq?scChip("good","ON PLAN"):(c.sessions>0?scChip("mid",(c.freq-c.sessions)+" TO GO"):scChip("miss","0 YET")) },
+      { h:2, n:"Iron moved", v:(c.vol>0?c.vol.toLocaleString()+' lb':'—'), chip: c.vol>0?scChip("good","BANKED"):scChip("miss","—") },
+      { h:3, n:"Speed test", v:(c.bestT!=null?c.bestT+' mph':'—'), chip: c.bestT!=null?scChip("good","TESTED"):(speedTestDue()?scChip("mid","DUE"):scChip("miss","NEXT WK")) },
+      { h:4, n:"Weigh-ins", v:String(c.weighs), chip: c.weighs>=3?scChip("good","TRENDING"):(c.weighs>0?scChip("mid","MORE"):scChip("miss","0 YET")) },
+      { h:5, n:"Mobility", v:(c.mob?'screened':'—'), chip: c.mob?scChip("good","DONE"):(mobDue()?scChip("mid","DUE"):scChip("good","CURRENT")) }
+    ];
+    return '<div class="scorecard"><div class="sc-head"><span class="sc-t">🗒️ Sunday Scorecard</span><span class="sc-sub">Week '+curWeek()+' · Mon–Sun</span></div>'+
+      '<div class="sc-grid">'+rows.map(function(r){
+        return '<div class="sc-row"><span class="sc-hole">'+r.h+'</span><span class="sc-name">'+r.n+'</span><span class="sc-val">'+r.v+'</span>'+r.chip+'</div>'; }).join("")+'</div>'+
+      '<button type="button" class="sc-share" data-scshare="1">📤 Share this week’s card</button></div>';
+  }
+  function shareScorecard(){
+    var c=weekCard();
+    var txt="My FairwayFuel week "+curWeek()+" scorecard: "+c.sessions+"/"+c.freq+" sessions"+
+      (c.vol>0?(" · "+c.vol.toLocaleString()+" lb moved"):"")+
+      (c.bestT!=null?(" · 7-iron "+c.bestT+" mph"):"")+" ⛳ https://fairwayfuel.app";
+    if(navigator.share){ try{ navigator.share({ text:txt }); return; }catch(e){} }
+    try{ navigator.clipboard.writeText(txt).then(function(){ ffToast("Copied — paste it anywhere 📋"); }); }
+    catch(e){ ffToast("Couldn’t share on this device."); }
+  }
   function renderProgress(){
     var el=$("progressBody"); if(!el) return;
     var body=lsGet("ff_body",[]);
@@ -6458,6 +6608,8 @@
     var html='<div class="prog-hd"><div class="prog-kick">⛳ The proof it’s working</div><h2>Your Progress</h2>'+
       '<p>Speed, strength and consistency — tracked over time.</p></div>';
     html += renderScoreCard();
+    html += seasonMapHtml();
+    html += scorecardHtml();
 
     if(!hasAny){
       html += '<div class="pcard pc-empty-card"><div class="pc-emoji">📈</div>'+
@@ -6529,6 +6681,8 @@
       '<span class="dai-go">›</span></button>';
 
     el.innerHTML=html;
+    var ss=el.querySelector(".season-scroll");
+    if(ss) ss.scrollLeft=Math.max(0, (curWeek()-3)*46);
     loadLeaderboard();   // async fill once the card shell is in the DOM
   }
 
@@ -6921,6 +7075,10 @@
       renderProgress();
       return;
     }
+    var pil=e.target.closest("[data-pillar]");
+    if(pil){ var pk=pil.getAttribute("data-pillar"); openPillar=(openPillar===pk)?null:pk; renderProgress(); return; }
+    if(e.target.closest("[data-scshare]")){ shareScorecard(); return; }
+    if(e.target.closest("[data-qopen]")){ var fb2=$("ffFab"); if(fb2) fb2.click(); return; }
     var lbb=e.target.closest("[data-lb]");
     if(lbb){ lbBoard=lbb.getAttribute("data-lb");
       Array.prototype.forEach.call(document.querySelectorAll("#lbSeg [data-lb]"), function(b){

@@ -163,6 +163,43 @@ variant (~36KB total). The contrast audit script pattern is worth keeping in CI.
 - Dark mode is system-driven only (no in-app toggle) — matching platform
   convention and keeping settings surface small.
 
+## 5 · Flow redesign (Jul 2026): Player · Today spine · Progress narrative
+
+Three structural features reorganizing the app around *moments in the user's
+day* instead of feature categories. Shipped one at a time, each E2E-tested.
+
+**A · Workout Player.** "Start workout" enters a full-screen guided session:
+warm-up checklist → power primer → one lift per screen (prescribed load huge
+and wave-aware, ± steppers seeded from the prescription, per-set history,
+plate math) → auto rest countdown on set completion → recap (volume, e1RM
+PRs / first benchmarks, session time, Octane, share). Writes to the same
+`ff_log` session as the inline logger, saving continuously; mid-session exit
+resumes on the first unfinished lift. *Deliberately always dark* — a focus
+mode, identical in both themes, which also keeps it out of the dark-theme
+generator's blast radius. The inline logger remains the browse/edit surface.
+
+**B · Today spine (Home).** One dominant **Next-up card** picks the single
+most important action (today's session → resume → speed test → mobility
+screen → recovery day → banked), then the day renders as a **timeline** in
+time order anchored to the user's training slot (weigh-in with live done
+state → pre-workout fuel → session → post-workout meal → Game Day jump-off).
+A **floating ＋** on every tab opens a bottom sheet: quick log + jump-offs.
+Removed: the tile grid, the on-Home log form, the standalone Game Day banner.
+
+**C · Progress narrative (Stats).** The Octane gauge became a **hub** — each
+pillar taps open to a drill-in (trend spark, what it means, the one action
+that moves it, wired straight into the player/test/screen). The **Season
+map** renders the 20-week campaign tee-to-pin: wave phases as colored
+terrain, deloads marked, speed tests flying flags with their mph, YOU pinned
+to the current week (auto-scrolled into view). The **Sunday Scorecard**
+closes each week as a 5-hole golf card (sessions, iron moved, speed test,
+weigh-ins, mobility) with status chips and a share action.
+
+Bug found by testing: the scorecard's weigh-in count compared locale date
+strings against an ISO week-start (always true) — fixed with timestamp
+comparison. Note: the older `thisWeekStats()` has the same latent comparison
+for its speed/weight deltas; queued as tech debt.
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob
