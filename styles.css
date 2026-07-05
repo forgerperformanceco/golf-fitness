@@ -1639,6 +1639,12 @@
     color:#6b4a10; font-size:13px; line-height:1.5; text-align:left; }
   .wu-row.from-screen .wu-move::after{ content:" · from your mobility screen"; font-size:12px; color:#b8860b; font-weight:700; }
 
+  /* ===== Icons — inline SVG chrome iconography (see src/js/app/006-icons.js) ===== */
+  .ffi{ display:inline-block; vertical-align:-2.5px; flex:0 0 auto; }
+  .ffi-purpose{ vertical-align:-3px; opacity:.85; }
+  .mobile-tabbar button .ic svg{ display:block; margin:0 auto; }
+  .ffscore-head h3 .ffi{ vertical-align:-2px; }
+
   /* ===== Motion system — entrances, physics, celebration (see src/js/app/007-motion.js) ===== */
   /* Tab switches cross-fade via the View Transitions API; keep it quick and quiet. */
   ::view-transition-old(root){ animation-duration:.16s; }

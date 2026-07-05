@@ -20,21 +20,21 @@
   function speedTestCardHtml(){
     var lt=lastSpeedTest(), d=daysSinceTest();
     if(speedTestDue()){
-      return '<div class="stest-card due"><div class="stest-t">🎯 Speed Test Day — it’s due</div>'+
+      return '<div class="stest-card due"><div class="stest-t">'+ffIcon("target",15)+' Speed Test Day — it’s due</div>'+
         '<div class="stest-b">Every 2 weeks: warm up, then <b>3 max-intent 7-iron swings</b> — best one counts. '+
         (lt?('Last best: <b>'+lt.best+' mph</b>. Beat it.'):'This one sets your tested baseline.')+
         ' The retest is the scoreboard that proves the plan.</div>'+
-        '<button class="stest-go" data-speedtest="1">▶ Run today’s test</button></div>';
+        '<button class="stest-go" data-speedtest="1">'+ffIcon("play",13)+' Run today’s test</button></div>';
     }
     var left=Math.max(1, SPEEDTEST_EVERY-d);
-    return '<div class="stest-card"><div class="stest-b">🎯 Next speed test in <b>'+left+'</b> day'+(left===1?'':'s')+
+    return '<div class="stest-card"><div class="stest-b">'+ffIcon("target",14)+' Next speed test in <b>'+left+'</b> day'+(left===1?'':'s')+
       (lt?(' · last best <b>'+lt.best+' mph</b>'):'')+' — <button class="stest-link" data-speedtest="1">test early</button></div></div>';
   }
   var stState=null;
   function stEnsureModal(){
     if($("stModal")) return;
     var m=document.createElement("div"); m.id="stModal"; m.className="swap-modal"; m.hidden=true;
-    m.innerHTML='<div class="swap-card"><div class="swap-head"><span id="stTitle">🎯 Speed Test</span>'+
+    m.innerHTML='<div class="swap-card"><div class="swap-head"><span id="stTitle">'+ffIcon("target",16)+' Speed Test</span>'+
       '<button class="swap-x" id="stX" type="button" aria-label="Close">×</button></div><div class="swap-body" id="stBody"></div></div>';
     document.body.appendChild(m);
     m.addEventListener("click", function(e){
@@ -87,7 +87,7 @@
           (gainB!=null && gainB!==0 ? ((gainB>0?'▲ <b>+':'▼ <b>')+gainB+' mph</b> vs your baseline ≈ <b>'+(gainB>0?'+':'')+Math.round(gainB*2)+' yards</b> of carry.<br>') : '')+
           (r.prevBest!=null && !r.pr ? ('All-time best: <b>'+r.prevBest+' mph</b> — that’s the number to hunt next test.') : 'Logged to your trend, Octane and the board.')+
         '</div>'+
-        '<button class="st-share" data-stshare="1">📤 Share it</button>'+
+        '<button class="st-share" data-stshare="1">'+ffIcon("share",14)+' Share it</button>'+
         '<button class="st-save" data-stdone="1">Done — next test in 2 weeks</button>'+
         '</div>';
       return;

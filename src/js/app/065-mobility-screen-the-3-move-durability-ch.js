@@ -29,7 +29,7 @@
   function mobEnsureModal(){
     if($("mobModal")) return;
     var m=document.createElement("div"); m.id="mobModal"; m.className="swap-modal"; m.hidden=true;
-    m.innerHTML='<div class="swap-card"><div class="swap-head"><span>🧭 Mobility screen</span>'+
+    m.innerHTML='<div class="swap-card"><div class="swap-head"><span>'+ffIcon("compass",16)+' Mobility screen</span>'+
       '<button class="swap-x" id="mobX" type="button" aria-label="Close">×</button></div><div class="swap-body" id="mobBody"></div></div>';
     document.body.appendChild(m);
     m.addEventListener("click", function(e){

@@ -128,7 +128,7 @@
   function logFoot(name){
     var done=!!getSession(curWeek(), name);
     return '<div class="day-foot"><button class="logbtn'+(done?" logged":"")+'" data-logday="'+escAttr(name)+'">'+
-      (done?"✓ Logged — tap to edit":"▶ Log workout")+'</button></div>';
+      (done?"✓ Logged — tap to edit":ffIcon("play",13)+" Log workout")+'</button></div>';
   }
 
   // ---- User lift swaps: pick a valid same-muscle replacement; it sticks in the plan ----

@@ -128,16 +128,16 @@
         : (topLast ? 'Last time’s top: <b>'+topLast+' lb</b> — beat the reps, then the load follows.' : 'First time — find a weight you can own with 2 reps in reserve.');
       var whyOpen=!!(player.whyOpen && player.whyOpen[st.xi]);
       var acts='<div class="pl-acts">'+
-        '<button type="button" class="'+(whyOpen?'on':'')+'" data-plwhy="'+st.xi+'">🛈 Why</button>'+
-        '<button type="button" data-exhist="'+escAttr(x.name)+'">📊 History</button>'+
-        '<button type="button" data-plswap="'+st.xi+'">⇄ Swap</button>'+
+        '<button type="button" class="'+(whyOpen?'on':'')+'" data-plwhy="'+st.xi+'">'+ffIcon("info",13)+' Why</button>'+
+        '<button type="button" data-exhist="'+escAttr(x.name)+'">'+ffIcon("history",13)+' History</button>'+
+        '<button type="button" data-plswap="'+st.xi+'">'+ffIcon("swap",13)+' Swap</button>'+
         '</div>';
       var whyBox=whyOpen
         ? '<div class="pl-whybox">'+liftWhy(x.name).why+
-          '<br><button type="button" class="pl-howto" data-plhowto="'+escAttr(x.name)+'">▶ How to do it · muscles &amp; form</button></div>'
+          '<br><button type="button" class="pl-howto" data-plhowto="'+escAttr(x.name)+'">'+ffIcon("play",12)+' How to do it · muscles &amp; form</button></div>'
         : '';
       return '<div class="pl-skick">Lift '+(st.xi+1)+' of '+player.sess.ex.length+'</div>'+
-        '<div class="pl-exname">'+purposeFor(x.name)+' '+x.name+'</div>'+
+        '<div class="pl-exname">'+ffPurposeIc(x.name,17)+' '+x.name+'</div>'+
         '<span class="pl-target">'+x.target+'</span>'+
         '<span class="pl-target dim">'+(purposeFor(x.name)==="⚡"?"max intent · full rest":effortNote(x.target))+'</span>'+
         '<div class="pl-presc">'+prescLine+'</div>'+
@@ -172,7 +172,7 @@
       '<div class="pl-cue" style="text-align:center">'+(prs.length?'Force is the raw material for clubhead speed — that PR is yards in the bank.':'Consistency is the biggest lever on your Octane. Session banked.')+'</div>'+
       '<textarea class="pl-notes" id="plNote" rows="2" maxlength="240" placeholder="Session notes — sleep, energy, aches… (saved with the workout)">'+lbEsc(player.sess.note||"")+'</textarea>'+
       '<button class="pl-share" data-pladdlift="1" style="border-color:rgba(255,255,255,.25);color:#dff1e4;">＋ Add one more lift</button>'+
-      '<button class="pl-share" data-plshare="1">📤 Share this session</button>'+
+      '<button class="pl-share" data-plshare="1">'+ffIcon("share",15)+' Share this session</button>'+
       '</div>';
   }
   function plRender(){
@@ -580,7 +580,7 @@
   function renderScoreCard(compact){
     var r = ffScore(); saveScoreSnapshot(r);
     var top = '<div class="ffscore-top">'+octaneGaugeHtml(r.score)+
-      '<div class="ffscore-head"><h3>⛽ OCTANE</h3>'+
+      '<div class="ffscore-head"><h3>'+ffIcon("gauge",15)+' OCTANE</h3>'+
       '<p class="ff-sum">'+ffScoreSummary(r)+'</p></div></div>';
     if(compact){
       return '<button class="ffscore ffscore-compact" data-goview="progress">'+top+

@@ -967,7 +967,7 @@
         '<span class="meal-pick"><span class="meal-pick-lbl">meals/day</span><span class="seg meal-seg">'+
           [3,4,5,6].map(function(n){ return '<button type="button" data-meals="'+n+'"'+((t.m||4)===n?' class="active"':'')+'>'+n+'</button>'; }).join("")+
         '</span></span></div><div class="meals-body">';
-      html+='<div class="sched-title">📅 Your day — <b>'+(t.m||4)+' meals</b>, built around <b>foods you love</b></div>';
+      html+='<div class="sched-title">'+ffIcon("calendar",14)+' Your day — <b>'+(t.m||4)+' meals</b>, built around <b>foods you love</b></div>';
       plan.slots.forEach(function(s){
         html+='<div class="ffm-meal"><div class="ffm-meal-h">'+s.name+ffMealTag(s)+' <span>≈ '+s.P+'P · '+s.C+'C · '+s.F+'F</span></div>'+
           '<div class="ffm-items">'+ffItemsHtml(s.items)+'</div></div>';
