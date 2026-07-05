@@ -1440,6 +1440,25 @@
   .swap-opt.nogear{ opacity:.62; }
   .swap-need{ display:inline-block; margin-left:6px; font-size:11.5px; font-weight:700; color:#8a5a08;
     background:#fff6e3; border:1px solid #edd9a8; border-radius:999px; padding:2px 8px; }
+  /* exercise history sheet */
+  .xh-prs{ display:flex; gap:8px; margin:2px 0 12px; }
+  .xh-pr{ flex:1; background:#f2f8f4; border:1px solid #d5e8db; border-radius:12px; padding:10px 8px; text-align:center; }
+  .xh-pr .v{ font-size:18px; font-weight:900; color:#0f3d24; }
+  .xh-pr .v small{ font-size:11px; color:#5b7a68; font-weight:700; margin-left:2px; }
+  .xh-pr .k{ font-size:11px; color:#5b7a68; font-weight:700; margin-top:3px; line-height:1.35; }
+  .xh-chart-h{ font-size:12px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin:2px 2px 4px; }
+  .xh-list{ margin-top:12px; display:flex; flex-direction:column; gap:8px; }
+  .xh-row{ background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:10px 12px; }
+  .xh-row.live{ border-color:#8be9ac; }
+  .xh-top{ display:flex; justify-content:space-between; gap:10px; font-size:12.5px; color:var(--muted); font-weight:700; }
+  .xh-top em{ font-style:normal; color:#16a34a; font-weight:800; }
+  .xh-e1 b{ color:var(--ink); }
+  .xh-sets{ margin-top:5px; font-size:14px; font-weight:700; color:var(--ink); letter-spacing:.01em; }
+  .xh-note{ margin-top:6px; font-size:12.5px; color:var(--muted); line-height:1.45; }
+  button.lr{ width:100%; border:0; background:none; padding:0; font:inherit; color:inherit; cursor:pointer; text-align:left; }
+  .pl-notes{ display:block; width:100%; margin-top:16px; background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.12);
+    border-radius:13px; color:#e9f5ec; font:600 14px/1.5 inherit; font-family:inherit; padding:12px 13px; resize:none; outline:none; }
+  .pl-notes::placeholder{ color:#87a893; }
 
   /* ===== Today spine (Home) — one primary action + the day as a timeline ===== */
   .nu-card{ display:block; width:100%; text-align:left; position:relative; margin:0 0 14px; border:0; cursor:pointer;
@@ -1858,6 +1877,12 @@
   html:not([data-theme="light"]) .sc-chip.miss{ background:#1a1c1a; border:1px solid #2f3931; }
   html:not([data-theme="light"]) .sc-share{ color:#c4e3d1; }
   html:not([data-theme="light"]) .swap-need{ color:#e1d5c0; background:#252014; border:1px solid #4d432b; }
+  html:not([data-theme="light"]) .xh-pr{ background:#132318; border:1px solid #26442f; }
+  html:not([data-theme="light"]) .xh-pr .v{ color:#c7e4d4; }
+  html:not([data-theme="light"]) .xh-pr .v small{ color:#c4d3ca; }
+  html:not([data-theme="light"]) .xh-pr .k{ color:#c4d3ca; }
+  html:not([data-theme="light"]) .xh-row.live{ border-color:#2f543c; }
+  html:not([data-theme="light"]) .xh-top em{ color:#bcdfc9; }
   html:not([data-theme="light"]) .tl-dot{ border:2.5px solid #34493a; }
   html:not([data-theme="light"]) .pl-dot.cur{ background:#274933; }
   html:not([data-theme="light"]) .pl-whybox .pl-howto{ background:#274933; color:#c9e5d5; }
@@ -2106,6 +2131,12 @@
   html[data-theme="dark"] .sc-chip.miss{ background:#1a1c1a; border:1px solid #2f3931; }
   html[data-theme="dark"] .sc-share{ color:#c4e3d1; }
   html[data-theme="dark"] .swap-need{ color:#e1d5c0; background:#252014; border:1px solid #4d432b; }
+  html[data-theme="dark"] .xh-pr{ background:#132318; border:1px solid #26442f; }
+  html[data-theme="dark"] .xh-pr .v{ color:#c7e4d4; }
+  html[data-theme="dark"] .xh-pr .v small{ color:#c4d3ca; }
+  html[data-theme="dark"] .xh-pr .k{ color:#c4d3ca; }
+  html[data-theme="dark"] .xh-row.live{ border-color:#2f543c; }
+  html[data-theme="dark"] .xh-top em{ color:#bcdfc9; }
   html[data-theme="dark"] .tl-dot{ border:2.5px solid #34493a; }
   html[data-theme="dark"] .pl-dot.cur{ background:#274933; }
   html[data-theme="dark"] .pl-whybox .pl-howto{ background:#274933; color:#c9e5d5; }
@@ -4877,6 +4908,7 @@
         '<div class="il-exhead"><span class="il-name">'+purposeFor(x.name)+' '+x.name+'</span>'+
           '<div class="il-acts">'+
             '<button class="il-why'+(openWhy[xi]?" on":"")+'" data-why="'+xi+'" aria-label="Why this lift builds speed">🛈 Why</button>'+
+            '<button class="il-why" data-exhist="'+escAttr(x.name)+'" aria-label="Lift history">📊</button>'+
             '<button class="il-swap" data-swapx="'+escAttr(x.orig||x.name)+'" data-swapcur="'+escAttr(x.name)+'" data-swapix="'+xi+'" title="Swap this lift">⇄ Swap</button>'+
           '</div></div>'+
         '<div class="il-sub">'+x.target+rx+'</div>'+
@@ -5001,6 +5033,97 @@
   }
   function closeExDemo(){ var mo=$("exDemoModal"); if(mo) mo.hidden=true;
     document.body.style.overflow=(typeof player!=="undefined" && player)?"hidden":""; }
+
+  /* ===================== EXERCISE HISTORY — every lift's full story =====================
+     Tap a lift name anywhere (player, inline logger, Stats) and get the Hevy-grade
+     view: PR badges (best e1RM, heaviest set, best session volume), the e1RM trend,
+     and every past session's sets. Sourced from permanent ff_history plus any
+     in-progress ff_log sessions not yet finished into history. */
+  function exHistData(name){
+    var out=[], seen={};
+    (lsGet("ff_history",[])||[]).forEach(function(h){
+      if(!h || !h.ex) return;
+      var hit=null;
+      h.ex.forEach(function(x){ if(x.name===name && x.sets && x.sets.length) hit=x; });
+      if(!hit) return;
+      seen[(h.week||"")+"|"+(h.day||"")]=true;
+      out.push({ ts:h.ts||0, date:h.date||"", week:h.week, sets:hit.sets, note:h.note||"" });
+    });
+    var L=getLog();
+    Object.keys(L).forEach(function(k){
+      var i=k.indexOf("|"), w=parseInt(k.slice(0,i),10), dn=k.slice(i+1), sess=L[k];
+      if(seen[w+"|"+dn] || !sess || !sess.ex) return;
+      sess.ex.forEach(function(x){
+        if(x.name!==name) return;
+        var sets=(x.sets||[]).filter(function(st){ return st.w||st.r; });
+        if(!sets.length) return;
+        out.push({ ts:new Date(sess.date||0).getTime()||0, date:sess.date||("Week "+w), week:w,
+          sets:sets, note:sess.note||"", live:!sess.finishedAt });
+      });
+    });
+    out.forEach(function(en){
+      var top=0, topW=0, vol=0;
+      en.sets.forEach(function(st){ var wv=parseFloat(st.w), r=parseFloat(st.r);
+        if(wv>0 && r>0){ vol+=wv*r; var e=e1RM(wv,r); if(e>top) top=e; }
+        if(wv>topW) topW=wv; });
+      en.e1=top; en.topW=topW; en.vol=vol;
+    });
+    out.sort(function(a,b){ return (b.ts||0)-(a.ts||0); });
+    return out;
+  }
+  function xhEnsure(){
+    if($("xhModal")) return;
+    var m=document.createElement("div"); m.id="xhModal"; m.className="swap-modal"; m.hidden=true;
+    m.innerHTML='<div class="swap-card"><div class="swap-head"><span id="xhTitle">History</span>'+
+      '<button class="swap-x" id="xhX" type="button" aria-label="Close">×</button></div><div class="swap-body" id="xhBody"></div></div>';
+    document.body.appendChild(m);
+    m.addEventListener("click", function(e){
+      if(e.target===m || e.target.closest("#xhX")){
+        m.hidden=true;
+        document.body.style.overflow=(typeof player!=="undefined" && player)?"hidden":"";
+      }
+    });
+  }
+  function openExHist(name){
+    xhEnsure();
+    var data=exHistData(name);
+    var bestE=0,bestEd="",bestW=0,bestWd="",bestV=0,bestVd="";
+    data.forEach(function(en){
+      if(en.e1>bestE){ bestE=en.e1; bestEd=en.date; }
+      if(en.topW>bestW){ bestW=en.topW; bestWd=en.date; }
+      if(en.vol>bestV){ bestV=en.vol; bestVd=en.date; }
+    });
+    var series=data.slice().reverse().map(function(en){ return en.e1; }).filter(function(v){ return v>0; });
+    var html='';
+    if(!data.length){
+      html='<div class="swap-sub">No logged sets for <b>'+lbEsc(name)+'</b> yet — log a session and its story starts here.</div>';
+    } else {
+      html+='<div class="xh-prs">'+
+        (bestE>0?'<div class="xh-pr"><div class="v">'+Math.round(bestE)+'<small>lb</small></div><div class="k">best e1RM<br>'+lbEsc(bestEd)+'</div></div>':'')+
+        (bestW>0?'<div class="xh-pr"><div class="v">'+bestW+'<small>lb</small></div><div class="k">heaviest set<br>'+lbEsc(bestWd)+'</div></div>':'')+
+        (bestV>0?'<div class="xh-pr"><div class="v">'+Math.round(bestV).toLocaleString()+'<small>lb</small></div><div class="k">best volume<br>'+lbEsc(bestVd)+'</div></div>':'')+
+        '</div>';
+      if(series.length>=2) html+='<div class="xh-chart-h">Estimated 1RM trend</div>'+pcLine(series,"#16a34a","xhE1");
+      html+='<div class="xh-list">'+data.map(function(en){
+        var setsStr=en.sets.map(function(st){ return (st.w||"–")+"×"+(st.r||"–"); }).join("  ·  ");
+        return '<div class="xh-row'+(en.live?" live":"")+'">'+
+          '<div class="xh-top"><span class="xh-date">'+lbEsc(en.date)+(en.live?' <em>in progress</em>':'')+(en.week?' <small>· wk '+en.week+'</small>':'')+'</span>'+
+          '<span class="xh-e1">'+(en.e1>0?('e1RM <b>'+Math.round(en.e1)+'</b>'):'')+'</span></div>'+
+          '<div class="xh-sets">'+lbEsc(setsStr)+'</div>'+
+          (en.note?'<div class="xh-note">📝 '+lbEsc(en.note)+'</div>':'')+
+          '</div>';
+      }).join("")+'</div>';
+    }
+    $("xhTitle").textContent="📊 "+name;
+    $("xhBody").innerHTML=html;
+    $("xhModal").hidden=false;
+    document.body.style.overflow="hidden";
+  }
+  // One listener for every history entry point (player, inline logger, Stats).
+  document.addEventListener("click", function(e){
+    var xh=e.target.closest("[data-exhist]");
+    if(xh) openExHist(xh.getAttribute("data-exhist"));
+  });
   // Stable-enough unique ids for read-only "why" rows (DOM is replaced each render).
   var whyId=0;
   function exNameCell(pe, name, extra){
@@ -5139,6 +5262,7 @@
       if(s.w||s.r||s.done) setCount++;
       var w=parseFloat(s.w), r=parseFloat(s.r); if(w>0&&r>0) vol+=w*r; }); });
     var entry={ id:id, ts:Date.now(), date:date, day:day, week:week, sets:setCount, volume:Math.round(vol),
+      note:(sess.note||"").slice(0,240),
       ex:(sess.ex||[]).map(function(x){ return { name:x.name, target:x.target,
         sets:(x.sets||[]).filter(function(s){ return s.w||s.r||s.done; }).map(function(s){ return {w:s.w,r:s.r}; }) }; }) };
     var idx=-1; for(var k=0;k<hist.length;k++){ if(hist[k].id===id){ idx=k; break; } }
@@ -5176,6 +5300,7 @@
           '<span class="hist-right"><span class="hist-date">'+escAttr(h.date||"")+'</span>'+
           '<button class="hist-del" data-histdel="'+escAttr(h.id)+'" aria-label="Delete this workout" title="Delete">🗑</button></span></div>'+
         '<div class="hist-meta">'+(h.sets||0)+' set'+((h.sets===1)?'':'s')+(h.volume?' · '+h.volume.toLocaleString()+' lb total':'')+(h.week?' · Week '+h.week:'')+'</div>'+
+        (h.note?'<div class="hist-meta">📝 '+lbEsc(h.note)+'</div>':'')+
         '<div class="hist-detail" hidden>'+detail+'</div></div>';
     }).join("");
   }
@@ -5654,7 +5779,8 @@
         : (topLast ? 'Last time’s top: <b>'+topLast+' lb</b> — beat the reps, then the load follows.' : 'First time — find a weight you can own with 2 reps in reserve.');
       var whyOpen=!!(player.whyOpen && player.whyOpen[st.xi]);
       var acts='<div class="pl-acts">'+
-        '<button type="button" class="'+(whyOpen?'on':'')+'" data-plwhy="'+st.xi+'">🛈 Why this lift</button>'+
+        '<button type="button" class="'+(whyOpen?'on':'')+'" data-plwhy="'+st.xi+'">🛈 Why</button>'+
+        '<button type="button" data-exhist="'+escAttr(x.name)+'">📊 History</button>'+
         '<button type="button" data-plswap="'+st.xi+'">⇄ Swap</button>'+
         '</div>';
       var whyBox=whyOpen
@@ -5695,6 +5821,7 @@
         '<div class="pl-stat"><div class="v">'+octNow+(dOct>0?' <small style="color:#8be9ac">▲'+dOct+'</small>':'')+'</div><div class="k">Octane</div></div>'+
       '</div>'+
       '<div class="pl-cue" style="text-align:center">'+(prs.length?'Force is the raw material for clubhead speed — that PR is yards in the bank.':'Consistency is the biggest lever on your Octane. Session banked.')+'</div>'+
+      '<textarea class="pl-notes" id="plNote" rows="2" maxlength="240" placeholder="Session notes — sleep, energy, aches… (saved with the workout)">'+lbEsc(player.sess.note||"")+'</textarea>'+
       '<button class="pl-share" data-pladdlift="1" style="border-color:rgba(255,255,255,.25);color:#dff1e4;">＋ Add one more lift</button>'+
       '<button class="pl-share" data-plshare="1">📤 Share this session</button>'+
       '</div>';
@@ -5814,6 +5941,7 @@
       }
     });
     r.addEventListener("input", function(e){
+      if(player && e.target.id==="plNote"){ player.sess.note=e.target.value; plSave(); return; }
       if(!player || !e.target.classList.contains("pl-in")) return;
       var st=player.stations[player.st]; if(st.type!=="lift") return;
       var x=player.sess.ex[st.xi], si=+e.target.getAttribute("data-si");
@@ -6919,9 +7047,9 @@
       if(lifts.length){
         html += lifts.slice(0,6).map(function(L){
           var d = L.first>0 ? (L.last-L.first)/L.first*100 : null;
-          return '<div class="lr"><div class="lr-name">'+L.name+'</div>'+
+          return '<button type="button" class="lr" data-exhist="'+escAttr(L.name)+'"><div class="lr-name">'+L.name+'</div>'+
             '<div class="lr-spark">'+(L.n>=2?pcMiniSpark(L.series,"#16a34a"):'<span class="lr-one">'+L.n+' set'+(L.n===1?"":"s")+'</span>')+'</div>'+
-            '<div class="lr-val">'+Math.round(L.last)+'<small>lb</small>'+(L.n>=2&&d!=null?pcDelta(d,"%"):"")+'</div></div>';
+            '<div class="lr-val">'+Math.round(L.last)+'<small>lb</small>'+(L.n>=2&&d!=null?pcDelta(d,"%"):"")+'</div></button>';
         }).join("");
       } else {
         html += '<div class="pc-need">Log weights on the big lifts (squat, bench, hinge, press, row) and your estimated 1RM trend builds here.</div>';
