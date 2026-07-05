@@ -241,6 +241,22 @@ the Add-a-lift picker dims and chips unowned options in place. Deliberately
 badge-and-sort, never hide: the inference is heuristic and users may have
 access to gear they didn't list.
 
+## 9 · Per-exercise history + session notes (the Hevy-parity pass)
+
+- **Exercise history sheet**: tap 📊 on any lift (player station, inline
+  logger, or a Stats strength row) → PR badges (best e1RM / heaviest set /
+  best session volume, each dated), the e1RM trend chart, and every past
+  session's sets — from permanent `ff_history` plus any in-progress `ff_log`
+  session (marked "in progress"). All from existing data; presentation only.
+- **Session notes**: a notes field on the player recap, saved live with the
+  session and carried into `ff_history`; notes surface in the workout-history
+  list and on the matching rows of the exercise sheet. Free coaching context
+  for the AI coach later.
+- **Deliberately skipped from the Hevy checklist**: warm-up/failure set
+  types — FairwayFuel's warm-ups live in the checklist and never enter the
+  log, so e1RM math is already clean without per-set typing. Revisit only if
+  users start logging ramp-up sets.
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob
