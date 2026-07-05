@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the dark-theme override block for index.html.
+"""Generate the dark-theme override block for src/css/styles.css.
 
 Parses the app stylesheet, classifies each rule's colors by lightness, and
 emits a `@media (prefers-color-scheme: dark)` block containing ONLY the
@@ -11,13 +11,14 @@ declarations that need to change:
   - rules that already sit on dark/mid surfaces: left untouched, so the
     dark-green hero cards and their light text survive as-is
 
-Run after any CSS change:  python3 scripts/gen-dark-theme.py
+Run after any CSS change, then rebuild:
+    python3 scripts/gen-dark-theme.py && node scripts/build.mjs
 The output replaces everything between the GENERATED-DARK markers in
-index.html (appended before </style> if the markers don't exist yet).
+src/css/styles.css (appended at the end if the markers don't exist yet).
 """
 import re, colorsys, sys, os
 
-PATH = os.path.join(os.path.dirname(__file__), '..', 'index.html')
+PATH = os.path.join(os.path.dirname(__file__), '..', 'src', 'css', 'styles.css')
 MARK_A = '  /* ===== GENERATED-DARK: auto dark theme — edit scripts/gen-dark-theme.py, not this block ===== */'
 MARK_B = '  /* ===== /GENERATED-DARK ===== */'
 
@@ -147,8 +148,7 @@ def prefix_sel(sel, wrapper):
 
 def main():
     src = open(PATH).read()
-    m = re.search(r'<style>(.*?)</style>', src, re.S)
-    css = m.group(1)
+    css = src
     # never re-process our own generated block
     if MARK_A in css:
         css = css.split(MARK_A)[0]
@@ -182,7 +182,7 @@ def main():
     if MARK_A in src:
         src = re.sub(re.escape(MARK_A) + r'.*?' + re.escape(MARK_B) + r'\n?', block, src, flags=re.S)
     else:
-        src = src.replace('</style>', block + '</style>')
+        src = src.rstrip() + '\n' + block
     open(PATH, 'w').write(src)
     print(f'dark theme: {len(all_top)} rules x2 variants, {sum(len(v) for v in medias.values())} media-scoped')
 

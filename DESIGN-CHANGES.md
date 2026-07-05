@@ -279,6 +279,36 @@ qualitative-first with numbers on tap).
 - The metabolism check-in remains the quantitative auditor — lazy "on
   target" taps get corrected by the scale within ~3 weeks.
 
+## 11 · Modularization — src/ tree + committed build outputs
+
+Why: the single-file index.html had grown past 7,000 lines / ~560 KB. Every
+feature edit meant amending one giant file, and because HTML is fetched
+network-first by the service worker, every visit re-downloaded the whole app
+even when nothing changed.
+
+- **Source of truth moved to `src/`**: 18 numbered JS modules in `src/js/app/`
+  (split on the section banners the monolith already had), SW registration in
+  `src/js/global/`, `src/css/styles.css`, `src/index.template.html`,
+  `src/sw.template.js`. See CLAUDE.md for the edit → build workflow.
+- **`scripts/build.mjs`** concatenates the app modules into ONE IIFE (shared
+  scope preserved — zero refactor risk, no import/export rewrite) and stamps a
+  sha256 content hash into every `{{V}}` placeholder.
+- **Committed outputs, zero-build deploy unchanged**: index.html (23 KB,
+  markup only), app.js (386 KB), styles.css (169 KB), sw.js. GitHub Pages and
+  Capacitor keep serving plain files.
+- **Performance shape change**: the network-first document dropped
+  ~560 KB → 23 KB; app.js/styles.css are cache-first with hash-busted URLs, so
+  a repeat visit re-downloads code only when the code actually changed.
+- **Manual version bumps eliminated**: the SW cache name and app asset `?v=`
+  pins now derive from the content hash (previously hand-bumped v121→v133 —
+  an error-prone ritual). cloud-sync.js / coach.js keep manual pins.
+- `scripts/gen-dark-theme.py` retargeted to `src/css/styles.css` (plain CSS
+  now, no `<style>` extraction); deploy.yml excludes `src/`; build-www.mjs
+  allow-list gained app.js + styles.css.
+- Full Playwright regression (e2e, player, today, fuel, narrative, exhist,
+  equipswap, theme matrix, contrast audit) re-run against the BUILT output —
+  all green, zero console errors.
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob
