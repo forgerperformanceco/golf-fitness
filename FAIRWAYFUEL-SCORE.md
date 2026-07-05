@@ -21,6 +21,7 @@ already writes.
 | `ff_body` (`[{date,w,s}]`, w=lb, s=7-iron mph) | speed trend + power-to-weight |
 | `ff_week` | weeks elapsed (for "expected sessions") |
 | `planState.freq` (4/5) | expected sessions per week |
+| `ff_mobility` (`[{ts,date,tests:{trunk,hip,squat},score}]`) | mobility pillar (3-move self-screen, each test 0/1/2) |
 
 ## Pillars & weights (0–100, rescaled to the pillars that have data)
 | Pillar | Max | How it's scored |
@@ -29,6 +30,7 @@ already writes.
 | **Clubhead speed** | 30 | 7-iron gain from first entry: `15 + gain% × 220`, clamped 0–30. (Neutral start ≈15.) |
 | **Strength (e1RM)** | 25 | Avg gain in estimated 1RM (Epley `w·(1+r/30)`) on the big lifts (squat/DL/bench/press/row/RDL/hinge/hip-thrust/pull-up), first→best: `10 + gain% × 150`, clamped 0–25. |
 | **Power-to-weight** | 10 | Is speed outpacing bodyweight? `5 + (speedGain% − weightGain%) × 250`, clamped 0–10. Leaner-and-faster scores highest. |
+| **Mobility** | 10 | Latest 3-move screen (seated trunk rotation, 90/90 hips, overhead deep squat — each 0/1/2) → `score/100 × 10`. Flags "Re-screen due" past ~5 weeks. Durability framing, not a speed claim. |
 
 **Rescaling:** pillars with no data yet are shown locked ("Add a 7-iron speed", etc.)
 and excluded from the denominator, so the gauge is fair on day one and grows more
@@ -48,5 +50,6 @@ Headless (Chromium) with seeded data: gauge **63**, needle rotation correct
 - **Server-side score** once `ff_log` is normalized into tables (`COMPETITIVE-LANDSCAPE.md`
   → FairwayFuel Score, `ROADMAP.md` Phase 3) so the trend survives device loss and
   feeds analytics.
-- **Optional mobility pillar:** a short rotational-mobility self-check could add a 5th
-  input (golf-specific) without copying anyone's assessment.
+- ~~Optional mobility pillar~~ — **shipped** as the 5th pillar (see table above): an
+  original 3-move self-screen (no borrowed assessment IP) that also routes targeted
+  moves into the day warm-ups. See `DESIGN-CHANGES.md`.

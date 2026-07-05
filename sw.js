@@ -1,11 +1,11 @@
 /* FairwayFuel service worker — offline-first for the single-page app.
    Bump CACHE when you ship a new version so clients pull fresh files. */
-var CACHE = 'fairwayfuel-v121';
+var CACHE = 'fairwayfuel-v122';
 var ASSETS = [
   './',
   './index.html',
   './privacy.html',
-  './cloud-sync.js?v=102',
+  './cloud-sync.js?v=103',
   './coach.js?v=88',
   './manifest.webmanifest',
   './logo-dark-mark.png',
@@ -27,6 +27,29 @@ self.addEventListener('activate', function (e) {
         .map(function (k) { return caches.delete(k); }));
     }).then(function () { return self.clients.claim(); })
   );
+});
+
+/* Notifications: clicking one focuses (or opens) the app. The push handler is in
+   place for when server push (VAPID + a scheduled Edge Function) ships — until
+   then only the app's own local reminders use showNotification. */
+self.addEventListener('notificationclick', function (e) {
+  e.notification.close();
+  e.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (list) {
+      for (var i = 0; i < list.length; i++) {
+        if ('focus' in list[i]) return list[i].focus();
+      }
+      return self.clients.openWindow('./');
+    })
+  );
+});
+self.addEventListener('push', function (e) {
+  var data = {};
+  try { data = e.data ? e.data.json() : {}; } catch (err) {}
+  e.waitUntil(self.registration.showNotification(data.title || 'FairwayFuel ⛳', {
+    body: data.body || 'Time to train — your yards are waiting.',
+    icon: 'icon-192.png', badge: 'icon-192.png', tag: data.tag || 'ff-push'
+  }));
 });
 
 /* Network-first for the HTML (so updates land), cache-first for everything else. */
