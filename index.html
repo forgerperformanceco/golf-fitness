@@ -1229,7 +1229,7 @@
   .day-focus { margin-top:2px; }
 
   /* Swap picker modal */
-  .swap-modal { position:fixed; inset:0; z-index:90; background:rgba(8,24,15,.55); display:flex; align-items:flex-end; justify-content:center; }
+  .swap-modal { position:fixed; inset:0; z-index:340; background:rgba(8,24,15,.55); display:flex; align-items:flex-end; justify-content:center; }
   .swap-card { background:#f7faf7; width:100%; max-width:520px; border-radius:20px 20px 0 0; max-height:82vh; overflow-y:auto; }
   .swap-head { position:sticky; top:0; background:linear-gradient(160deg,#0f2417,#14532d); color:#fff; padding:15px 18px;
     display:flex; align-items:center; justify-content:space-between; font-size:16px; font-weight:700; }
@@ -1509,6 +1509,15 @@
   .pl-presc{ margin:10px 0 2px; font-size:14px; color:#bfe9cd; }
   .pl-presc b{ color:#8be9ac; font-size:18px; }
   .pl-cue{ margin:8px 0 0; font-size:13px; color:#9fc4ac; line-height:1.55; }
+  .pl-acts{ display:flex; gap:8px; margin:12px 0 0; }
+  .pl-acts button{ border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.08); color:#dff1e4;
+    border-radius:999px; padding:9px 15px; font-weight:800; font-size:13px; cursor:pointer; min-height:38px; }
+  .pl-acts button.on{ background:rgba(139,233,172,.18); border-color:#3fbf77; color:#bff2d2; }
+  .pl-whybox{ margin:12px 0 0; padding:13px 14px; border-radius:14px; background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.1); font-size:13.5px; line-height:1.6; color:#cfe3d6; }
+  .pl-whybox b{ color:#fff; }
+  .pl-whybox .pl-howto{ display:inline-block; margin-top:10px; border:0; border-radius:999px; background:#8be9ac;
+    color:#0b2f1b; font-weight:800; font-size:13px; padding:8px 15px; cursor:pointer; }
   .pl-sets{ margin-top:14px; display:flex; flex-direction:column; gap:10px; }
   .pl-set{ background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.09); border-radius:16px; padding:10px 12px; }
   .pl-set.done{ border-color:#2f9e5d; background:rgba(47,158,93,.14); }
@@ -4922,7 +4931,8 @@
     var t=$("exDemoTitle"); if(t) t.textContent=name;
     var mo=$("exDemoModal"); if(mo){ mo.hidden=false; document.body.style.overflow="hidden"; }
   }
-  function closeExDemo(){ var mo=$("exDemoModal"); if(mo) mo.hidden=true; document.body.style.overflow=""; }
+  function closeExDemo(){ var mo=$("exDemoModal"); if(mo) mo.hidden=true;
+    document.body.style.overflow=(typeof player!=="undefined" && player)?"hidden":""; }
   // Stable-enough unique ids for read-only "why" rows (DOM is replaced each render).
   var whyId=0;
   function exNameCell(pe, name, extra){
@@ -4955,7 +4965,10 @@
     $("swapBody").innerHTML=html; $("swapTitle").textContent="Swap "+cur;
     var m=$("swapModal"); m.hidden=false; document.body.style.overflow="hidden";
   }
-  function closeSwap(){ var m=$("swapModal"); if(m) m.hidden=true; document.body.style.overflow=""; swapCtx=null; }
+  function closeSwap(){ var m=$("swapModal"); if(m) m.hidden=true;
+    // Keep the page locked if the player (or another sheet) is still underneath.
+    document.body.style.overflow=(typeof player!=="undefined" && player)?"hidden":"";
+    swapCtx=null; swapFromPlayer=false; }
   // Add a whole new lift to today's session — browse the full database, searchable.
   function addLiftGroupsHtml(filter){
     var raw=(filter||"").trim(), f=raw.toLowerCase();
@@ -5082,10 +5095,18 @@
     $("swapBody").innerHTML='<div class="swap-sub">Every finished workout, kept for good — backed up when you’re signed in.</div>'+historyRowsHtml();
     var m=$("swapModal"); m.hidden=false; document.body.style.overflow="hidden";
   }
+  var swapFromPlayer=false;
   function applySwapChoice(chosen){
     if(!swapCtx) return;
     setSwap(swapCtx.orig, chosen);
-    if(ilog && ilog.sess.ex[swapCtx.xi]){
+    if(swapFromPlayer && player && player.sess.ex[swapCtx.xi]){
+      // Swapping mid-player: same-muscle replacement takes over this station,
+      // sets reset (different lift, different loads), and it sticks in the plan.
+      var px=player.sess.ex[swapCtx.xi]; px.name=chosen; px.orig=swapCtx.orig;
+      px.sets=px.sets.map(function(){ return {w:"",r:"",done:false}; });
+      if(player.whyOpen) player.whyOpen[swapCtx.xi]=false;
+      plSave(); plRender();
+    } else if(ilog && ilog.sess.ex[swapCtx.xi]){
       var ex=ilog.sess.ex[swapCtx.xi]; ex.name=chosen; ex.orig=swapCtx.orig;
       ex.sets=ex.sets.map(function(){ return {w:"",r:"",done:false}; });
       saveILog(); renderILog();
@@ -5542,11 +5563,21 @@
       var prescLine = presc!=null
         ? (wv==="deload" ? '🪫 Deload — today: <b>'+presc+' lb</b> (~60% of last week)' : '📈 Progression earned — today: <b>'+presc+' lb</b>')
         : (topLast ? 'Last time’s top: <b>'+topLast+' lb</b> — beat the reps, then the load follows.' : 'First time — find a weight you can own with 2 reps in reserve.');
+      var whyOpen=!!(player.whyOpen && player.whyOpen[st.xi]);
+      var acts='<div class="pl-acts">'+
+        '<button type="button" class="'+(whyOpen?'on':'')+'" data-plwhy="'+st.xi+'">🛈 Why this lift</button>'+
+        (player.day.type!=="speed"?'<button type="button" data-plswap="'+st.xi+'">⇄ Swap</button>':'')+
+        '</div>';
+      var whyBox=whyOpen
+        ? '<div class="pl-whybox">'+liftWhy(x.name).why+
+          '<br><button type="button" class="pl-howto" data-plhowto="'+escAttr(x.name)+'">▶ How to do it · muscles &amp; form</button></div>'
+        : '';
       return '<div class="pl-skick">Lift '+(st.xi+1)+' of '+player.sess.ex.length+'</div>'+
         '<div class="pl-exname">'+purposeFor(x.name)+' '+x.name+'</div>'+
         '<span class="pl-target">'+x.target+'</span>'+
         '<div class="pl-presc">'+prescLine+'</div>'+
         '<div class="pl-cue">⚡ '+cue+'</div>'+
+        acts+whyBox+
         '<div class="pl-sets">'+setsHtml+'</div>';
     }
     // recap
@@ -5666,6 +5697,17 @@
         s2[f]=String(nv);
         plSave(); plRender(); return;
       }
+      var pw=e.target.closest("[data-plwhy]");
+      if(pw){ var wxi=+pw.getAttribute("data-plwhy");
+        player.whyOpen=player.whyOpen||{};
+        player.whyOpen[wxi]=!player.whyOpen[wxi];
+        plRender(); return; }
+      var ph=e.target.closest("[data-plhowto]");
+      if(ph){ openExDemo(ph.getAttribute("data-plhowto")); return; }
+      var psw=e.target.closest("[data-plswap]");
+      if(psw){ var sxi=+psw.getAttribute("data-plswap"), sx=player.sess.ex[sxi];
+        if(sx){ swapFromPlayer=true; openSwap(sxi, sx.orig||sx.name, sx.name); }
+        return; }
       var ck=e.target.closest("[data-plcheck]");
       if(ck){
         var st2=player.stations[player.st]; if(st2.type!=="lift") return;
