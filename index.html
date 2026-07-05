@@ -4212,7 +4212,28 @@
     deload:     { label:"Deload",     ic:"🪫", strap:"Planned recovery — one set less and ~60% of your usual loads (the logger pre-suggests them). Keep speed work crisp but submaximal. This is when the adaptation lands." },
     peak:       { label:"Peak",       ic:"🏁", strap:"The final stretch — volume cut nearly in half, intensity stays heavy, speed work light and crisp. Shed the fatigue and go take your yards." }
   };
+  /* A "big event" date (club champs, member-guest, buddies trip) re-anchors the
+     taper: the event week and the week before become Peak (volume cut, intensity
+     held — exactly the playbook's 7-10 day taper), and the week after is a
+     deload to absorb it. Everything else keeps the base cadence. */
+  function eventInfo(){
+    var ev=lsGet("ff_event", null); if(!ev || !ev.date) return null;
+    var t=new Date(ev.date+"T12:00:00").getTime(); if(isNaN(t)) return null;
+    var out={ ts:t, date:ev.date, name:(ev.name||"").slice(0,40), week:null, past:t < (Date.now()-864e5) };
+    var st=planStart();
+    if(st){
+      var start=new Date(st); start.setHours(0,0,0,0);
+      var days=Math.floor((t-start.getTime())/864e5);
+      if(days>=0 && days<140) out.week=Math.floor(days/7)+1;
+    }
+    return out;
+  }
   function waveFor(week){
+    var ev=eventInfo();
+    if(ev && ev.week && !ev.past){
+      if(week===ev.week || week===ev.week-1) return "peak";
+      if(week===ev.week+1) return "deload";
+    }
     if(week>=19) return "peak";
     var pos=((week-1)%6)+1;
     if(pos===6) return "deload";
@@ -5083,6 +5104,82 @@
     if(t){ var m=Math.floor(left/60), sc=left%60; t.textContent=(m>0?m+":":"")+(m>0&&sc<10?"0":"")+sc; }
   }
 
+  /* ===================== SHARE CARDS — branded PNGs, generated on-device =====================
+     One canvas engine for every share moment (session recap, Sunday Scorecard,
+     speed test). navigator.share with the image file where supported; falls back
+     to downloading the PNG; last resort copies the text version. No servers,
+     no external assets — the brand is drawn, not loaded. */
+  function ffRoundRect(g,x,y,w,h,r){ g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+w,y,x+w,y+h,r); g.arcTo(x+w,y+h,x,y+h,r); g.arcTo(x,y+h,x,y,r); g.arcTo(x,y,x+w,y,r); g.closePath(); }
+  function ffMakeCard(o, cb){
+    var W=1080, H=1350, c=document.createElement("canvas"); c.width=W; c.height=H;
+    var g=c.getContext("2d");
+    var rg=g.createRadialGradient(W*0.82,-H*0.08,80, W*0.82,-H*0.08,H*1.25);
+    rg.addColorStop(0,"#15582f"); rg.addColorStop(0.5,"#0a2317"); rg.addColorStop(1,"#06140d");
+    g.fillStyle=rg; g.fillRect(0,0,W,H);
+    g.strokeStyle="rgba(139,233,172,.07)"; g.lineWidth=110;
+    g.beginPath(); g.arc(W*0.88,H*0.16,340,0,6.3); g.stroke();
+    g.beginPath(); g.arc(W*0.05,H*0.92,260,0,6.3); g.stroke();
+    // brand
+    g.textBaseline="alphabetic";
+    g.font="900 66px system-ui, -apple-system, sans-serif";
+    g.fillStyle="#ffffff"; g.fillText("Fairway",72,132);
+    var bw=g.measureText("Fairway").width;
+    g.fillStyle="#7ef0a8"; g.fillText("Fuel",72+bw,132);
+    // kicker
+    g.font="800 38px system-ui, sans-serif"; g.fillStyle="#8fd6a8";
+    g.fillText((o.kick||"").toUpperCase(),72,262);
+    // hero number + unit
+    g.font="900 190px system-ui, sans-serif"; g.fillStyle="#ffffff";
+    var big=String(o.big||""); g.fillText(big,66,478);
+    if(o.unit){ var bw2=g.measureText(big).width; g.font="700 54px system-ui, sans-serif"; g.fillStyle="#9fc4ac"; g.fillText(o.unit, 78+bw2, 478); }
+    var y=560;
+    if(o.badge){
+      g.font="900 46px system-ui, sans-serif";
+      var tw=g.measureText(o.badge).width;
+      var lg=g.createLinearGradient(72,0,72+tw+76,0); lg.addColorStop(0,"#f59e0b"); lg.addColorStop(1,"#ef4444");
+      g.fillStyle=lg; ffRoundRect(g,72,y-58,tw+76,88,44); g.fill();
+      g.fillStyle="#ffffff"; g.fillText(o.badge,110,y+4);
+      y+=136;
+    } else y+=24;
+    g.font="600 40px system-ui, sans-serif"; g.fillStyle="#cfe3d6";
+    (o.lines||[]).forEach(function(ln){
+      if(!ln) return;
+      while(g.measureText(ln).width > W-144 && ln.length>4) ln=ln.slice(0,-2);
+      g.fillText(ln,72,y); y+=76;
+    });
+    // footer — one line, left-aligned, no collisions
+    g.fillStyle="rgba(255,255,255,.08)"; g.fillRect(0,H-150,W,150);
+    g.font="800 42px system-ui, sans-serif"; g.fillStyle="#8be9ac";
+    g.fillText("fairwayfuel.app",72,H-58);
+    var fw=g.measureText("fairwayfuel.app").width;
+    g.font="600 36px system-ui, sans-serif"; g.fillStyle="#9fc4ac";
+    g.fillText("· Turn muscle into distance ⛳", 72+fw+18, H-58);
+    try{ c.toBlob(function(b){ cb(b); },"image/png"); }catch(e){ cb(null); }
+  }
+  function ffShareImage(o, textFallback){
+    ffMakeCard(o, function(blob){
+      if(blob){
+        try{
+          var file=new File([blob],"fairwayfuel-card.png",{type:"image/png"});
+          if(navigator.canShare && navigator.canShare({files:[file]}) && navigator.share){
+            navigator.share({ files:[file], text:textFallback }).catch(function(){});
+            return;
+          }
+        }catch(e){}
+        try{
+          var url=URL.createObjectURL(blob), a=document.createElement("a");
+          a.href=url; a.download="fairwayfuel-card.png";
+          document.body.appendChild(a); a.click();
+          setTimeout(function(){ try{ URL.revokeObjectURL(url); a.remove(); }catch(e2){} },1500);
+          ffToast("Card saved as an image — post it anywhere 📤");
+          return;
+        }catch(e){}
+      }
+      try{ navigator.clipboard.writeText(textFallback).then(function(){ ffToast("Copied — paste it anywhere 📋"); }); }
+      catch(e){ ffToast("Couldn’t share on this device."); }
+    });
+  }
+
   /* ===================== SPEED TEST DAY — the biweekly testing ritual =====================
      Testing IS the engagement mechanic: every 2 weeks, warm up, take 3 max-intent
      7-iron swings, keep the best. The result writes into ff_body (so trends, Octane
@@ -5209,9 +5306,12 @@
     var txt=(r.pr?"New 7-iron speed PR: ":"7-iron speed test: ")+r.best+" mph"+
       (gain>0?(" (+"+gain+" mph ≈ +"+Math.round(gain*2)+" yds since baseline)"):"")+
       " — training with FairwayFuel ⛳ https://fairwayfuel.app";
-    if(navigator.share){ try{ navigator.share({ text:txt }); return; }catch(e){} }
-    try{ navigator.clipboard.writeText(txt).then(function(){ ffToast("Copied — paste it anywhere 📋"); }); }
-    catch(e){ ffToast("Couldn’t share on this device."); }
+    ffShareImage({
+      kick:"Speed test · 7-iron", big:String(r.best), unit:"mph",
+      badge:(r.pr?"🚀 NEW ALL-TIME PR":null),
+      lines:[ gain>0?("▲ +"+gain+" mph since baseline ≈ +"+Math.round(gain*2)+" yards"):null,
+              "3 max-intent swings — best one counts" ]
+    }, txt);
   }
   // One listener for every "run the test" button (Train card, dashboard focus, Stats).
   document.addEventListener("click", function(e){
@@ -5510,9 +5610,14 @@
     });
     var txt=player.dayName.replace(/^Day \d+ — /,'')+" done 💪 "+(vol>0?vol.toLocaleString()+" lb moved":"session banked")+
       (prs.length?(" · PR: "+prs.join(", ")):"")+" — training with FairwayFuel ⛳ https://fairwayfuel.app";
-    if(navigator.share){ try{ navigator.share({ text:txt }); return; }catch(e){} }
-    try{ navigator.clipboard.writeText(txt).then(function(){ ffToast("Copied — paste it anywhere 📋"); }); }
-    catch(e){ ffToast("Couldn’t share on this device."); }
+    var mins=Math.max(1, Math.round((Date.now()-player.startedAt)/60000));
+    ffShareImage({
+      kick:"Session complete · Week "+player.week,
+      big:(vol>0?vol.toLocaleString():"✓"), unit:(vol>0?"lb moved":""),
+      badge:(prs.length?("🚀 PR — "+prs[0]):null),
+      lines:[ player.dayName.replace(/^Day \d+ — /,""), mins+" min · "+WAVES[waveFor(player.week)].label+" week",
+              (prs.length>1?("+ "+(prs.length-1)+" more PR"+(prs.length>2?"s":"")):null) ]
+    }, txt);
   }
   function plEnsure(){
     if($("playerRoot")) return;
@@ -6373,6 +6478,18 @@
       '<div class="acct-set"><div class="acct-set-lbl">Training time <small>sets meal timing + reminders</small></div>'+
         '<div class="seg" id="acctWk">'+[["morning","Morning"],["midday","Midday"],["afternoon","Afternoon"],["evening","Evening"]].map(function(o){
           return '<button type="button" data-aw="'+o[0]+'" class="'+(curWk===o[0]?'active':'')+'">'+o[1]+'</button>'; }).join("")+'</div></div>'+
+      (function(){
+        var ev=eventInfo();
+        return '<div class="acct-set"><div class="acct-set-lbl">🏆 Big event <small>the taper re-anchors to peak for it</small></div>'+
+          '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">'+
+          '<input type="date" id="acctEvDate" value="'+escAttr(ev?ev.date:"")+'" style="flex:1;min-width:150px;" />'+
+          '<input type="text" id="acctEvName" placeholder="Club champs, member-guest…" maxlength="40" value="'+escAttr(ev?ev.name:"")+'" style="flex:1.4;min-width:170px;" />'+
+          (ev?'<button type="button" class="acct-btn ghost" id="acctEvClear" style="flex:0 0 auto;width:auto;padding:10px 14px;margin:0;">Clear</button>':'')+
+          '</div>'+
+          (ev && ev.week && !ev.past ? '<div class="acct-p" style="margin:8px 0 0;">Lands in <b>week '+ev.week+'</b> — weeks '+(ev.week-1)+'–'+ev.week+' become your peak.</div>'
+           : (ev && !ev.week && !ev.past ? '<div class="acct-p" style="margin:8px 0 0;">Outside the current 20-week block — the base plan cadence applies.</div>' : ''))+
+          '</div>';
+      })()+
       '</div>';
     var lmA=(typeof lastMob==="function")?lastMob():null;
     html+='<div class="acct-card"><div class="acct-head">🧭 Mobility screen</div>'+
@@ -6452,6 +6569,18 @@
     var ai=$("acctInstall"); if(ai) ai.onclick=function(){ if(!ffPromptInstall()) alert("Use your browser menu → “Install app” / “Add to Home Screen.”"); };
     var nb=$("acctNotif"); if(nb) nb.onclick=function(){ nb.disabled=true; ffNotifToggle().then(function(){ renderAccount(); }); };
     var nbw=$("acctNotifWeb"); if(nbw) nbw.onclick=function(){ nbw.disabled=true; ffWebNotifToggle().then(function(){ renderAccount(); }); };
+    function evSave(){
+      var d=($("acctEvDate")||{}).value||"", n=($("acctEvName")||{}).value||"";
+      if(!d){ try{ localStorage.removeItem("ff_event"); }catch(_){} }
+      else lsSet("ff_event", { date:d, name:n.trim() });
+      try{ window.dispatchEvent(new Event("ff-data-changed")); }catch(_){}
+      renderAccount(); try{ renderPhase(); }catch(_){} try{ renderDash(); }catch(_){}
+    }
+    var evd=$("acctEvDate"); if(evd) evd.onchange=evSave;
+    var evn=$("acctEvName"); if(evn) evn.onchange=evSave;
+    var evc=$("acctEvClear"); if(evc) evc.onclick=function(){ try{ localStorage.removeItem("ff_event"); }catch(_){}
+      try{ window.dispatchEvent(new Event("ff-data-changed")); }catch(_){}
+      renderAccount(); try{ renderPhase(); }catch(_){} try{ renderDash(); }catch(_){} };
     var th=$("acctTheme"); if(th) th.onclick=function(ev){
       var b=ev.target.closest("[data-th]"); if(!b) return;
       ffApplyTheme(b.getAttribute("data-th"));
@@ -6539,6 +6668,7 @@
     if(!planStart()) return '';
     var wk=curWeek(), gy=goalYds();
     var tests={}; speedTests().forEach(function(t){ if(t.week && (tests[t.week]==null || t.best>tests[t.week])) tests[t.week]=t.best; });
+    var ev=eventInfo();
     var segW=46, pad=26, NW=20, width=pad*2+NW*segW, H=118;
     var colors={ accumulate:"#2f9e5d", intensify:"#e0a33a", deload:"#4d685a", peak:"#f4c542" };
     var svg='';
@@ -6548,6 +6678,7 @@
       svg+='<text x="'+cx+'" y="98" text-anchor="middle" font-size="10" fill="#9fc4ac" font-weight="700">'+w+'</text>';
       if(wave==="deload") svg+='<text x="'+cx+'" y="60" text-anchor="middle" font-size="10">🪫</text>';
       if(tests[w]!=null) svg+='<text x="'+cx+'" y="36" text-anchor="middle" font-size="13">⛳</text><text x="'+cx+'" y="50" text-anchor="middle" font-size="10" fill="#8be9ac" font-weight="800">'+tests[w]+'</text>';
+      if(ev && ev.week===w) svg+='<text x="'+cx+'" y="'+(tests[w]!=null?22:36)+'" text-anchor="middle" font-size="14">🏆</text>';
       if(w===wk) svg+='<text x="'+cx+'" y="18" text-anchor="middle" font-size="11" font-weight="900" fill="#ffffff">▼ YOU</text>';
     }
     svg+='<text x="6" y="80" font-size="13">🏌️</text>';
@@ -6556,8 +6687,13 @@
     return '<div class="pcard season"><div class="pc-head"><span class="pc-t">🗺️ Your 20-week season'+(gy?(' · mission +'+gy+' yds'):'')+'</span></div>'+
       '<div class="season-scroll"><svg width="'+width+'" height="'+H+'" viewBox="0 0 '+width+' '+H+'">'+svg+'</svg></div>'+
       '<div class="season-leg"><span><i style="background:#2f9e5d"></i>Build</span><span><i style="background:#e0a33a"></i>Heavy</span>'+
-      '<span><i style="background:#4d685a"></i>Deload</span><span><i style="background:#f4c542"></i>Peak</span><span>⛳ speed test (mph)</span></div>'+
-      '<div class="season-foot"><b>Week '+wk+' · '+wave2.label+'.</b> '+wave2.strap+'</div></div>';
+      '<span><i style="background:#4d685a"></i>Deload</span><span><i style="background:#f4c542"></i>Peak</span><span>⛳ speed test (mph)</span>'+(ev&&ev.week?'<span>🏆 your event</span>':'')+'</div>'+
+      '<div class="season-foot"><b>Week '+wk+' · '+wave2.label+'.</b> '+wave2.strap+
+        (ev ? (ev.week && !ev.past
+                ? ' <br><b>🏆 '+(ev.name||"Your event")+' — week '+ev.week+'.</b> The taper re-anchors to it: weeks '+(ev.week-1)+'–'+ev.week+' peak (volume down, intensity heavy), week '+(ev.week+1)+' recovers.'
+                : (ev.past ? '' : ' <br>🏆 '+(ev.name||"Your event")+' falls outside this 20-week block.'))
+             : ' <br>🏆 Peaking for something? <button type="button" class="stest-link" data-goview="account" style="color:#8be9ac">Set your event date</button> and the taper re-anchors to it.')+
+      '</div></div>';
   }
   /* ----- Sunday Scorecard: the week as a golf card — one ritual close per week ----- */
   function weekCard(){
@@ -6592,9 +6728,14 @@
     var txt="My FairwayFuel week "+curWeek()+" scorecard: "+c.sessions+"/"+c.freq+" sessions"+
       (c.vol>0?(" · "+c.vol.toLocaleString()+" lb moved"):"")+
       (c.bestT!=null?(" · 7-iron "+c.bestT+" mph"):"")+" ⛳ https://fairwayfuel.app";
-    if(navigator.share){ try{ navigator.share({ text:txt }); return; }catch(e){} }
-    try{ navigator.clipboard.writeText(txt).then(function(){ ffToast("Copied — paste it anywhere 📋"); }); }
-    catch(e){ ffToast("Couldn’t share on this device."); }
+    ffShareImage({
+      kick:"Sunday Scorecard · Week "+curWeek(),
+      big:c.sessions+"/"+c.freq, unit:"sessions",
+      badge:(c.sessions>=c.freq?"✅ ON PLAN":null),
+      lines:[ (c.vol>0?("🏋️ "+c.vol.toLocaleString()+" lb of iron moved"):null),
+              (c.bestT!=null?("🎯 7-iron "+c.bestT+" mph tested"):null),
+              ("⚖️ "+c.weighs+" weigh-in"+(c.weighs===1?"":"s")+(c.mob?" · 🧭 mobility screened":"")) ]
+    }, txt);
   }
   function renderProgress(){
     var el=$("progressBody"); if(!el) return;
@@ -7424,7 +7565,7 @@ if ('serviceWorker' in navigator && !window.Capacitor) {
 <script>window.FF_ACCOUNT_TAB = true;</script>
 <!-- Optional cloud login + progress sync. Inactive until you add Supabase keys in cloud-sync.js. -->
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script defer src="cloud-sync.js?v=103"></script>
+<script defer src="cloud-sync.js?v=104"></script>
 <!-- AI coach chat. Degrades gracefully until the Edge Function is deployed. -->
 <script defer src="coach.js?v=88"></script>
 </body>
