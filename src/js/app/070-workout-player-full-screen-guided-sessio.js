@@ -107,18 +107,27 @@
       var topLast=0; if(lx) lx.sets.forEach(function(s){ var w=parseFloat(s.w); if(w>topLast) topLast=w; });
       var presc=prescribeW(topLast||null, x.name, ready, wv);
       var cue=liftWhy(x.name).cue;
+      // This session's values carry forward: the nearest EARLIER set with data
+      // ghosts into later empty sets, and tapping ✓ on an empty set commits it.
+      function plCarry(sets, si, f){
+        for(var k=si-1;k>=0;k--){ if(sets[k] && sets[k][f]) return sets[k][f]; }
+        return null;
+      }
       var setsHtml=x.sets.map(function(s2, si){
         var pw=(lx&&lx.sets[si]&&lx.sets[si].w)?lx.sets[si].w:null, pr=(lx&&lx.sets[si]&&lx.sets[si].r)?lx.sets[si].r:null;
         var wVal=s2.w||"", rVal=s2.r||"";
+        var cw=plCarry(x.sets, si, "w"), cr=plCarry(x.sets, si, "r");
+        var wPh=cw!=null?cw:(presc!=null?presc:(pw||"lbs"));
+        var rPh=cr!=null?cr:(pr||"reps");
         var pm=(isBarbell(x.name)&&s2.w)?platesFor(s2.w):"";
         return '<div class="pl-set'+(s2.done?" done":"")+'">'+
           '<div class="pl-set-head"><span>SET '+(si+1)+'</span><span>last: '+(pw?(pw+' × '+(pr||'–')):'–')+'</span></div>'+
           '<div class="pl-set-row">'+
             '<div class="pl-stp"><button type="button" data-plstep="w" data-dir="-1" data-si="'+si+'">−</button>'+
-              '<input class="pl-in" type="number" inputmode="decimal" placeholder="'+escAttr(presc!=null?presc:(pw||"lbs"))+'" value="'+escAttr(wVal)+'" data-plf="w" data-si="'+si+'"/>'+
+              '<input class="pl-in" type="number" inputmode="decimal" placeholder="'+escAttr(wPh)+'" value="'+escAttr(wVal)+'" data-plf="w" data-si="'+si+'"/>'+
               '<button type="button" data-plstep="w" data-dir="1" data-si="'+si+'">＋</button></div>'+
             '<div class="pl-stp reps"><button type="button" data-plstep="r" data-dir="-1" data-si="'+si+'">−</button>'+
-              '<input class="pl-in" type="number" inputmode="numeric" placeholder="'+escAttr(pr||"reps")+'" value="'+escAttr(rVal)+'" data-plf="r" data-si="'+si+'"/>'+
+              '<input class="pl-in" type="number" inputmode="numeric" placeholder="'+escAttr(rPh)+'" value="'+escAttr(rVal)+'" data-plf="r" data-si="'+si+'"/>'+
               '<button type="button" data-plstep="r" data-dir="1" data-si="'+si+'">＋</button></div>'+
             '<button type="button" class="pl-check'+(s2.done?" on":"")+'" data-plcheck="'+si+'" aria-label="set done">✓</button>'+
           '</div>'+(pm?'<div class="pl-plates">🏋️ '+pm+'</div>':'')+'</div>';
@@ -258,7 +267,10 @@
         var cur=parseFloat(s2[f]);
         if(isNaN(cur)){
           // Seed from the prescription / last time so the first tap lands on a real number.
-          if(f==="w"){ var lx=plLastFor(x.name), top=0; if(lx) lx.sets.forEach(function(ls){ var w=parseFloat(ls.w); if(w>top) top=w; });
+          var carry=null;
+          for(var ci=si-1;ci>=0;ci--){ if(x.sets[ci]&&x.sets[ci][f]){ carry=parseFloat(x.sets[ci][f]); break; } }
+          if(carry!=null && !isNaN(carry)){ cur=carry; if(dir<0) cur+=(f==="w"?incNum(x.name):1); }
+          else if(f==="w"){ var lx=plLastFor(x.name), top=0; if(lx) lx.sets.forEach(function(ls){ var w=parseFloat(ls.w); if(w>top) top=w; });
             var presc=prescribeW(top||null, x.name, progressReady(lx, x.target), waveFor(player.week));
             cur=(presc!=null?presc:(top||45));
             if(dir<0) cur+= (f==="w"? incNum(x.name):1);   // first minus lands on the seed itself
@@ -286,6 +298,11 @@
         var st2=player.stations[player.st]; if(st2.type!=="lift") return;
         var x2=player.sess.ex[st2.xi], si2=+ck.getAttribute("data-plcheck"), s3=x2.sets[si2]; if(!s3) return;
         s3.done=!s3.done;
+        if(s3.done){
+          // Empty fields inherit the nearest earlier set — one tap repeats the work.
+          if(!s3.w){ for(var cw2=si2-1;cw2>=0;cw2--){ if(x2.sets[cw2]&&x2.sets[cw2].w){ s3.w=x2.sets[cw2].w; break; } } }
+          if(!s3.r){ for(var cr2=si2-1;cr2>=0;cr2--){ if(x2.sets[cr2]&&x2.sets[cr2].r){ s3.r=x2.sets[cr2].r; break; } } }
+        }
         plSave();
         if(s3.done){
           ffTick(12);
