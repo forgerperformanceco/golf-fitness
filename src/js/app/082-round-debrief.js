@@ -154,13 +154,14 @@
   }
 
   // The Stats proof card: rounds, best drive, and the stamina story.
+  // Returns '' before the first round — the Stats "unlocks" strip advertises
+  // it instead of an empty card taking up a slot.
   function courseCardHtml(){
     var rounds=ffRounds().slice().reverse();
+    if(!rounds.length) return '';
     var bd=0; rounds.forEach(function(r){ if(r.drive&&r.drive>bd) bd=r.drive; });
     var h='';
-    if(!rounds.length){
-      h+='<div class="pc-need">After your next round, log it here — score, longest drive, and how the body held up. This is where the gym work proves out in actual golf.</div>';
-    } else {
+    {
       var strong=rounds.filter(function(r){ return r.energy==="strong"; }).length;
       var rated=rounds.filter(function(r){ return r.energy; }).length;
       if(bd>0) h+='<div class="pc-now">'+Math.round(bd)+'<span>yds best on-course drive</span></div>';

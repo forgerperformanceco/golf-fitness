@@ -224,6 +224,18 @@
     if(!open) return '<div class="pcard pf-closed">'+pfHead(key,title,stat,false)+'</div>';
     return '<div class="'+(openCls||'pcard')+' pf-open">'+pfHead(key,title,'',true)+inner+'</div>';
   }
+  // The "unlocks as you log" strip: one quiet dashed card listing what appears
+  // with data, each row deep-linking to the action that earns it. Replaces the
+  // stack of empty placeholder cards a new user used to scroll past.
+  function lockedStrip(items){
+    if(!items.length) return '';
+    return '<div class="pcard unlk"><div class="pc-head"><span class="pc-t">🔓 Unlocks as you log</span></div>'+
+      items.map(function(i){
+        return '<button type="button" class="unlk-r"'+(i.attr||' disabled')+'>'+
+          '<span class="unlk-ic">'+i.ic+'</span><span class="unlk-tx"><b>'+i.t+'</b><span>'+i.s+'</span></span>'+
+          (i.attr?'<span class="tl-go">›</span>':'')+'</button>';
+      }).join("")+'</div>';
+  }
   document.addEventListener("click", function(e){
     var b=e.target.closest("[data-pftoggle]"); if(!b) return;
     var k=b.getAttribute("data-pftoggle");
@@ -250,13 +262,21 @@
     html += seasonMapHtml();
     html += scorecardHtml();
 
+    // Calm pass C: cards with no data don't render as placeholder cards — they
+    // collect here and render as ONE quiet "unlocks as you log" strip, each row
+    // deep-linking to the action that earns the card. The view grows with you.
+    var locked=[];
     if(!hasAny){
-      html += '<div class="pcard pc-empty-card"><div class="pc-emoji">📈</div>'+
-        '<h3>No trends yet</h3><p>Log a workout on the Train tab, and add today’s bodyweight + 7-iron speed below. '+
-        'Two data points and your lines start climbing.</p></div>';
+      locked.push(
+        { ic:'⚡', t:'Speed trend', s:'run the guided 7-iron test — your north star number', attr:' data-speedtest="1"' },
+        { ic:'🏋️', t:'Strength + PR Wall', s:'log your first workout on the Train tab', attr:' data-goview="plan"' },
+        { ic:'⛳', t:'Course receipts', s:'bank rounds — the gym-to-course proof builds here', attr:' data-roundlog="1"' },
+        { ic:'⚖️', t:'Bodyweight trend', s:'add today’s weight below — five seconds' });
     } else {
       // ---- PR Wall: the trophy case ----
-      try{ html+=prWallHtml(); }catch(e){}
+      var prw=''; try{ prw=prWallHtml(); }catch(e){}
+      if(prw) html+=prw;
+      else locked.push({ ic:'🏆', t:'PR Wall', s:'your first PR hangs here — heaviest lift, fastest swing, longest drive', attr:' data-goview="plan"' });
 
       // ---- Clubhead speed (north star) ----
       // The payoff of speed is DISTANCE. A 7-iron carries ~2 yards farther per +1 mph of
@@ -264,7 +284,8 @@
       // not an absolute carry claim — the trend is the honest, motivating signal.
       var spNow=spF.length?spF[spF.length-1]:null, spBase=spF.length?spF[0]:null, spBest=spF.length?Math.max.apply(null,spF):null;
       var YDS_PER_MPH=2, spGain=(spNow!=null&&spBase!=null)?(spNow-spBase):0;
-      html += pfCard('speed','⚡ Clubhead speed <small>7-iron</small>',
+      if(!spF.length) locked.push({ ic:'⚡', t:'Speed trend', s:'run the guided 7-iron test — your north star number', attr:' data-speedtest="1"' });
+      else html += pfCard('speed','⚡ Clubhead speed <small>7-iron</small>',
         (spNow!=null?'<span class="pf-num">'+spNow+' mph</span>':'')+(spF.length>=2?pcDelta(spNow-spBase," mph"):""),
         (spNow!=null?'<div class="pc-now">'+spNow+'<span>mph</span></div>':'<div class="pc-now muted">—</div>')+
         (spF.length>=2 ? pcLine(spF,"#16a34a","pcSpeed", spD, " mph")
@@ -279,35 +300,39 @@
           : '<span class="st-note">🎯 Next speed test in <b>'+Math.max(1, SPEEDTEST_EVERY-daysSinceTest())+'</b> days — <button class="stest-link" data-speedtest="1">test early</button></span>')+'</div>');
 
       // ---- On the course: the gym-to-course proof ----
-      try{ html+=courseCardHtml(); }catch(e){}
+      var cc=''; try{ cc=courseCardHtml(); }catch(e){}
+      if(cc) html+=cc;
+      else locked.push({ ic:'⛳', t:'On the course', s:'log a round — score, longest drive, how the body held up', attr:' data-roundlog="1"' });
 
       // ---- Strength: estimated 1RM on the big lifts ----
-      html += pfCard('strength','🏋️ Strength <small>est. 1RM</small>',
-        (lifts.length?'<span class="pf-num">'+Math.round(lifts[0].best)+' lb</span><span class="pf-sub">best e1RM</span>':''),
-        (lifts.length
-          ? lifts.slice(0,6).map(function(L){
-              var d = L.first>0 ? (L.last-L.first)/L.first*100 : null;
-              return '<button type="button" class="lr" data-exhist="'+escAttr(L.name)+'"><div class="lr-name">'+L.name+'</div>'+
-                '<div class="lr-spark">'+(L.n>=2?pcMiniSpark(L.series,"#16a34a"):'<span class="lr-one">'+L.n+' set'+(L.n===1?"":"s")+'</span>')+'</div>'+
-                '<div class="lr-val">'+Math.round(L.last)+'<small>lb</small>'+(L.n>=2&&d!=null?pcDelta(d,"%"):"")+'</div></button>';
-            }).join("")
-          : '<div class="pc-need">Log weights on the big lifts (squat, bench, hinge, press, row) and your estimated 1RM trend builds here.</div>'));
+      if(!lifts.length) locked.push({ ic:'🏋️', t:'Strength <small>est. 1RM</small>', s:'log weights on the big lifts — squat, bench, hinge, press, row', attr:' data-goview="plan"' });
+      else html += pfCard('strength','🏋️ Strength <small>est. 1RM</small>',
+        '<span class="pf-num">'+Math.round(lifts[0].best)+' lb</span><span class="pf-sub">best e1RM</span>',
+        lifts.slice(0,6).map(function(L){
+          var d = L.first>0 ? (L.last-L.first)/L.first*100 : null;
+          return '<button type="button" class="lr" data-exhist="'+escAttr(L.name)+'"><div class="lr-name">'+L.name+'</div>'+
+            '<div class="lr-spark">'+(L.n>=2?pcMiniSpark(L.series,"#16a34a"):'<span class="lr-one">'+L.n+' set'+(L.n===1?"":"s")+'</span>')+'</div>'+
+            '<div class="lr-val">'+Math.round(L.last)+'<small>lb</small>'+(L.n>=2&&d!=null?pcDelta(d,"%"):"")+'</div></button>';
+        }).join(""));
 
       // ---- Bodyweight ----
       var wtNow=wtF.length?wtF[wtF.length-1]:null, wtBase=wtF.length?wtF[0]:null;
-      html += pfCard('weight','⚖️ Bodyweight',
-        (wtNow!=null?'<span class="pf-num">'+wtNow+' lb</span>':'')+(wtF.length>=2?pcDelta(wtNow-wtBase," lb",true):""),
-        (wtNow!=null?'<div class="pc-now">'+wtNow+'<span>lb</span></div>':'<div class="pc-now muted">—</div>')+
+      if(wtNow==null) locked.push({ ic:'⚖️', t:'Bodyweight trend', s:'add today’s weight below — five seconds' });
+      else html += pfCard('weight','⚖️ Bodyweight',
+        '<span class="pf-num">'+wtNow+' lb</span>'+(wtF.length>=2?pcDelta(wtNow-wtBase," lb",true):""),
+        '<div class="pc-now">'+wtNow+'<span>lb</span></div>'+
         (wtF.length>=2 ? pcLine(wtF,"#0e7490","pcWt", wtD, " lb")
-          : '<div class="pc-need">Add your bodyweight below to track the trend against your speed.</div>')+
+          : '<div class="pc-need">One more weigh-in and the trend line appears.</div>')+
         (wtF.length>=2?'<div class="pc-foot"><span>start <b>'+wtBase+'</b></span><span>now <b>'+wtNow+'</b> lb</span></div>':""));
 
       // ---- Consistency ----
-      html += pfCard('consist','📅 Consistency',
+      if(!sess) locked.push({ ic:'📅', t:'Consistency', s:'appears with your first logged session', attr:' data-goview="plan"' });
+      else html += pfCard('consist','📅 Consistency',
         '<span class="pc-delta neu">'+sess+' total</span>',
         '<div class="wkbars">'+weekBars()+'</div>'+
         '<div class="pc-foot"><span>'+sess+' total · sessions per week (last 8)</span><span>goal <b>'+((typeof planState!=="undefined"&&planState.freq)||4)+'</b>/wk</span></div>');
     }
+    html += lockedStrip(locked);
 
     // ---- Quick add (always available) ----
     html += quickLogHtml('pr', 'Driver carry is your headline number; weight &amp; 7-iron speed feed your trends and <b>Octane</b>.');
@@ -347,6 +372,8 @@
       wt:(wtIn.length && wtPrev!=null) ? Math.round((wtIn[wtIn.length-1]-wtPrev)*10)/10 : null };
   }
   function renderWeekRecap(){
+    // No data at all yet → nothing to recap; Home's next-up card is the guide.
+    if(!Object.keys(getLog()).length && !lsGet("ff_body",[]).length) return '';
     var s=thisWeekStats(), freq=(typeof planState!=="undefined" && planState.freq)||4;
     var bits=['<b>'+s.sessions+'</b> of '+freq+' workouts'];
     if(s.spd!=null) bits.push('7-iron <b>'+(s.spd>=0?'+':'')+s.spd+' mph</b>');

@@ -880,6 +880,34 @@ opens the course fold first). Follow-up noted: Home "Week so far →
 Leaderboard" button lands on Stats with the lb fold closed — consider
 auto-opening it from that entry point.
 
+## 44 · Calm pass C — empty states earn their place
+
+**Why.** A user without data saw a stack of "log X and this appears"
+placeholder cards — six promises shouting at once. Cards should *appear as
+you earn them*.
+
+**What.**
+- New `lockedStrip()` in 085: everything without data collects into ONE
+  dashed "🔓 Unlocks as you log" card — icon, name, and the action that
+  earns it, each row deep-linking (`data-speedtest`, `data-roundlog`,
+  `data-goview="plan"`).
+- `prWallHtml` and `courseCardHtml` now return `''` with no data (their
+  pc-need placeholders deleted); renderProgress detects the empty string
+  and adds the strip row instead. Inline cards (speed / strength / weight /
+  consistency) branch to the strip on empty. The `hasAny=false` "No trends
+  yet" card is gone — the strip IS the empty state.
+- Home: "Week so far" recap hides until any session or body entry exists
+  (next-up card is the fresh-user guide).
+- Bodyweight single-entry copy tightened ("One more weigh-in and the trend
+  line appears").
+
+**Verified** (test-calm-unlock.mjs): fresh user → zero pc-need placeholders,
+zero empty-cards, one 4-row strip; the speed row opens #stModal; partial
+data (speed+weight only) → speed card open + weight row + PR Wall row
+(legitimately earned via speed best) + 3-row strip for course/strength/
+consistency; Home recap hidden fresh. e2e suite green; light screenshots
+reviewed.
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob
