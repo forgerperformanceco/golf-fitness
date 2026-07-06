@@ -185,7 +185,8 @@
     if(m(/Leg Extension/i)) return ["legext"];
     if(m(/Leg Curl|Glute-?Ham Raise/i)) return ["legcurl"];
     if(m(/Pec Deck/i)) return ["pecdeck"];
-    if(m(/Machine (Chest|Shoulder) Press/i)) return [m(/Chest/i)?"chestpress":"shoulderpress"];
+    if(m(/(Machine|Plate-?Loaded).*Shoulder Press/i)) return ["shoulderpress"];
+    if(m(/(Machine|Plate-?Loaded).*(Chest|Incline) Press/i)) return ["chestpress"];
     if(m(/Pulldown|Cable Pullover/i)) return ["latpulldown"];
     if(m(/Seated Cable Row/i)) return ["seatedrow"];
     if(m(/T-?Bar Row/i)) return ["tbarrow"];
