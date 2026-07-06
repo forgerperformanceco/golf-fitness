@@ -657,6 +657,23 @@ tracks `visualViewport`: while the keyboard is up the pinned bars hide
 one-frame transform nudge forces the compositor to re-anchor them. Also
 fires on focusout as a belt-and-braces.
 
+## 34 · HOTFIX: keyboard detector hid the bars without a keyboard (user-reported, urgent)
+
+§33's keyboard heuristic — `innerHeight - vv.height > 60` — misread pinch-zoom
+(which shrinks vv.height with no keyboard) and low-threshold viewport shifts
+as "keyboard open", sticking `body.ff-kb` and hiding the tab bar, FAB and
+pause bar with no way back. Mid-workout, that read as "the bar is gone."
+
+Detector rebuilt on three conditions, all required: (1) an editable element is
+actually FOCUSED, (2) `vv.scale < 1.15` and gap computed as
+`innerHeight − vv.height × vv.scale` so zoom mathematically cancels out,
+(3) gap > 150px (real keyboards are 250+; 60 was in URL-bar-collapse range).
+Plus a failsafe: any tap while ff-kb is set with no field focused re-syncs
+immediately — the hide class can never outlive its cause.
+
+Lesson recorded: a heuristic that HIDES navigation needs a positive signal
+(focused field), not just a geometric one.
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob

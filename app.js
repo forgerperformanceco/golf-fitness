@@ -163,8 +163,16 @@
   (function(){
     var vv=window.visualViewport; if(!vv) return;
     var t=null;
+    function editing(){
+      var a=document.activeElement;
+      return !!(a && (a.tagName==="INPUT"||a.tagName==="TEXTAREA"||a.tagName==="SELECT"||a.isContentEditable));
+    }
     function sync(){
-      var kb=(window.innerHeight - vv.height) > 60;
+      // Keyboard = a field is focused AND the visual viewport lost real height.
+      // vv.height is in visual CSS px — multiply by scale so pinch-zoom (which
+      // shrinks vv.height without any keyboard) can never read as a keyboard.
+      var gap=window.innerHeight - vv.height*vv.scale;
+      var kb=editing() && vv.scale<1.15 && gap>150;
       document.body.classList.toggle("ff-kb", kb);
       if(!kb){
         ["mobileTabs","ffFab","plPauseBar"].forEach(function(id){
@@ -178,6 +186,11 @@
       vv.addEventListener(ev, function(){ clearTimeout(t); t=setTimeout(sync, 90); });
     });
     document.addEventListener("focusout", function(){ setTimeout(sync, 250); }, true);
+    // Failsafe: the hide class can never outlive its cause — any tap with no
+    // field focused re-syncs immediately.
+    document.addEventListener("pointerdown", function(){
+      if(document.body.classList.contains("ff-kb") && !editing()) sync();
+    }, true);
   })();
 
 /* ────────── js/app/008-sheets.js ────────── */
