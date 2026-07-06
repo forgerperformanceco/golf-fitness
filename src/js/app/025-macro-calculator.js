@@ -996,8 +996,8 @@
       var nChk=0; plan.slots.forEach(function(_,k){ var si=schedIdx[k]; if(si>=0&&fdNow.m&&fdNow.m[si]) nChk++; });
       // The sample menu is reference, not a daily read — it folds; the header
       // carries live progress so it still reads as a checklist when closed.
-      html+='<details class="fold exday-fold"><summary>'+ffIcon("calendar",13)+' An example day'+
-        '<span class="fold-sub">'+(t.m||4)+' meals · from your foods'+(nChk?' · '+nChk+' ✓':'')+'</span></summary><div class="exday-body">'+
+      html+='<details class="fold exday-fold"><summary>'+ffIcon("calendar",14)+'<span class="fold-t">An example day</span>'+
+        '<span class="fold-sub">'+(t.m||4)+' meals'+(nChk?' · <b>'+nChk+' ✓</b>':'')+'</span></summary><div class="exday-body">'+
         '<div class="sched-sample">This is a <b>sample</b> that hits your numbers — eat it as written or anything close, and still check it off. The macros are the assignment, not the menu. <b>Shuffle</b> deals another day.</div>';
       // Render in SCHEDULE order — the day as you'll live it (pre-workout before
       // breakfast on a morning-training day), not the generator's build order.

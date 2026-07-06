@@ -284,6 +284,12 @@
   }
   .meal-pick { display:flex; align-items:center; gap:8px; }
   .meal-pick-lbl { font-size:12px; font-weight:600; opacity:.85; }
+  @media (max-width:480px){
+    .meal-pick-lbl{ display:none; }
+    .seg.meal-seg button{ padding:5px 9px; }
+    .meals-head{ flex-wrap:nowrap; }
+    .meals-head > span:first-child{ white-space:nowrap; }
+  }
   .seg.meal-seg { width:auto; background:rgba(255,255,255,.15); padding:3px; }
   .seg.meal-seg button { padding:5px 11px; color:#d6f3e0; font-size:13px; }
   .seg.meal-seg button.active { background:#fff; color:#14532d; }
@@ -701,7 +707,10 @@
   .ffm-meal-h span { color:var(--muted); font-weight:700; }
   .ffm-meal-t{ flex:0 0 auto; font:700 11.5px system-ui; color:var(--muted); min-width:56px; }
   details.exday-fold{ margin-top:12px; }
-  details.exday-fold > summary{ padding:13px 15px; }
+  details.exday-fold > summary{ padding:14px 15px; font-size:13.5px; gap:8px; justify-content:flex-start; }
+  details.exday-fold > summary .fold-t{ white-space:nowrap; font-weight:800; }
+  details.exday-fold > summary .fold-sub{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  details.exday-fold > summary .fold-sub b{ color:var(--green-700); }
   .exday-body{ padding:2px 13px 13px; }
   .exday-body .sched-sample{ margin-top:2px; }
   details.fold .fold-sub{ margin-left:auto; color:var(--muted); font-weight:600; font-size:12px; }
