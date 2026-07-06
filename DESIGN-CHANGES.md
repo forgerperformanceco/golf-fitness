@@ -405,6 +405,23 @@ springs back. The drag handle pill appears on every sheet head.
   snaps back, drag close runs feature close paths, × and scrim-tap unchanged,
   handle pill rendered, `.modal` shell drags too.
 
+## 16 · Scrubbable trend charts (premium pass 3b)
+
+The trend curves went from a report to an instrument: touch any chart and a
+crosshair + readout follow your finger — `83 mph · Jun 29` — across the whole
+series. Release and it fades. The value renders in the numeral face.
+
+- `pcLine()` upgraded in place (all three callers inherit): Catmull-Rom → cubic
+  bezier smoothing (clamped so overshoot can't poke outside the plot), the
+  existing gradient fill kept, and a scrub layer (`.pcwrap` wrapper carrying
+  values/labels/unit in data attributes + one delegated pointer controller).
+- Wired with real dates: Stats speed chart (mph) and bodyweight chart (lb) from
+  ff_body entries; the exercise-history sheet's e1RM chart (lb) from session
+  dates. Tiny sparklines (lift rows) stay static — too small to scrub.
+- touch-action:none on charts so a scrub never fights page scroll; readout
+  clamps inside the plot; nearest-point snapping, not interpolation — you read
+  entries you actually logged.
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob

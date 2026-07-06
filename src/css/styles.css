@@ -1671,6 +1671,18 @@
   .mobile-tabbar button .ic svg{ display:block; margin:0 auto; }
   .ffscore-head h3 .ffi{ vertical-align:-2px; }
 
+  /* ===== Scrubbable charts — crosshair + readout on the trend curves ===== */
+  .pcwrap{ position:relative; touch-action:none; cursor:crosshair; }
+  .pcwrap svg{ display:block; }
+  .pc-cross{ position:absolute; top:2px; bottom:2px; width:1.5px; opacity:.45; pointer-events:none; }
+  .pc-sdot{ position:absolute; width:11px; height:11px; margin:-5.5px 0 0 -5.5px; border-radius:50%;
+    border:2px solid #fff; box-sizing:border-box; pointer-events:none; box-shadow:0 1px 4px rgba(0,0,0,.3); }
+  .pc-tip{ position:absolute; top:0; transform:translate(-50%,-30%); background:#0f2417; color:#fff;
+    font:600 11.5px system-ui; padding:4px 9px 5px; border-radius:8px; white-space:nowrap;
+    pointer-events:none; box-shadow:0 3px 10px rgba(0,0,0,.25); z-index:3; }
+  .pc-tip b{ font-family:'FF Numeral', system-ui, sans-serif; font-weight:600; font-size:14.5px; }
+  .pc-tip span{ opacity:.75; margin-left:4px; }
+
   /* ===== Sheets — one drag physics for every overlay (see src/js/app/008-sheets.js) ===== */
   /* Grab affordance: the pill every native bottom sheet carries. Lives on the
      sticky heads so it never scrolls away. touch-action:none lets the drag
@@ -1971,6 +1983,7 @@
   html:not([data-theme="light"]) .mob-flag.ok{ background:#142419; border-color:#26442f; color:#c3e2d2; }
   html:not([data-theme="light"]) .mob-flag{ background:#241e13; border:1px solid #4a3f29; color:#e2d6c2; }
   html:not([data-theme="light"]) .wu-row.from-screen .wu-move::after{ color:#ded4bb; }
+  html:not([data-theme="light"]) .pc-sdot{ border:2px solid #292929; }
   }
   html[data-theme="dark"]{ --paper:#0d1712; --card:#141f18; --ink:#e4efe6; --muted:#96ab9d; --line:#28402f; --green-800:#a5dcb8; --green-700:#7ccd9c; --sand:#332c18; --sand-dark:#584c28; --shadow:0 12px 34px rgba(0,0,0,.45); --shadow-sm:0 2px 8px rgba(0,0,0,.35); color-scheme:dark; }
   html[data-theme="dark"] input, html[data-theme="dark"] select, html[data-theme="dark"] textarea{ background:#101b14; color:var(--ink); }
@@ -2239,6 +2252,7 @@
   html[data-theme="dark"] .mob-flag.ok{ background:#142419; border-color:#26442f; color:#c3e2d2; }
   html[data-theme="dark"] .mob-flag{ background:#241e13; border:1px solid #4a3f29; color:#e2d6c2; }
   html[data-theme="dark"] .wu-row.from-screen .wu-move::after{ color:#ded4bb; }
+  html[data-theme="dark"] .pc-sdot{ border:2px solid #292929; }
   @media (prefers-color-scheme: dark) and (max-width: 760px){
   html:not([data-theme="light"]) .mobile-tabbar button.active{ background:#142417; }
   }
