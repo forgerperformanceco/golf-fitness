@@ -479,6 +479,15 @@ uses food prefs; the earlier verification seeded a prefs-less user.
 - Testing lesson recorded: seed BOTH user shapes (with and without food prefs)
   — the Fuel tab renders a different tree for each.
 
+## 21 · "Your Meals" is labeled as a sample (user request)
+
+The foods-you-love day read like a prescription. It now says what it is:
+header "An example day — N meals from foods you love" plus a one-line note —
+"This is a sample that hits your numbers — eat it as written or anything
+close, and still check it off. The macros are the assignment, not the menu.
+Shuffle deals another day." Keeps the adherence model honest: ✓ means "I ate
+this or its equivalent," which is exactly how the scoring treats it.
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob
