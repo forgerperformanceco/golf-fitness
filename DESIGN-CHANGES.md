@@ -607,6 +607,16 @@ Set 1's weight and reps now flow through the exercise the way Hevy does it:
   215×5. First set with no session data still seeds from the prescribed
   load, unchanged.
 
+## 30 · Catalog: machine + plate-loaded presses (user request)
+
+Added to the exercise catalog (swap picker + add-lift picker, both driven by
+EXERCISE_DB): **Machine Incline Press**, **Plate-Loaded Incline Press**,
+**Plate-Loaded Chest Press** (chest group) and **Plate-Loaded Shoulder Press**
+(shoulders group). Equipment inference extended so machine/plate-loaded
+incline+chest presses gate on the chest-press machine toggle and the shoulder
+variant on the shoulder-press toggle — own-gear-first ordering and the "not
+in your gym" flag apply automatically.
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob
