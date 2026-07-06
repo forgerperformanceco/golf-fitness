@@ -90,6 +90,69 @@
     if(e.target.closest("[data-roundlog]")) openRoundLog();
   });
 
+  /* ----- Receipts: training ↔ round correlations -----
+     The thesis is "train like a bodybuilder → hit it further." Once enough
+     rounds are banked, prove it back with the user's OWN data: scoring trend,
+     drives near vs far from gym days, deload-week freshness. Every insight is
+     gated (enough rounds on both sides of the split, non-trivial gap) so the
+     card never dresses noise up as a finding. */
+  function rdDayTs(r){
+    var t=(r && r.ts) ? r.ts : Date.parse((r && r.date) || "");
+    if(!t || isNaN(t)) return null;
+    var d=new Date(t); d.setHours(0,0,0,0); return d.getTime();
+  }
+  function rdPlanWeek(ts){
+    var s=planStart(); if(!s || ts==null) return null;
+    var st=new Date(s); st.setHours(0,0,0,0);
+    var days=Math.round((ts-st.getTime())/864e5);
+    return (days>=0 && days<140) ? Math.floor(days/7)+1 : null;
+  }
+  function rdAvg(a){ return a.length ? a.reduce(function(x,y){return x+y;},0)/a.length : null; }
+  function rdInsights(rounds){
+    var out=[];
+    // 1 · Scoring trend — first 3 vs last 3 scored rounds (needs 5+ so they don't overlap much).
+    var scored=rounds.filter(function(r){ return r.score!=null; });
+    if(scored.length>=5){
+      var early=rdAvg(scored.slice(0,3).map(function(r){return r.score;}));
+      var late=rdAvg(scored.slice(-3).map(function(r){return r.score;}));
+      var d=Math.round(early-late);
+      if(d>=2) out.push('📉 <b>Scoring '+d+' strokes better</b> — last 3 rounds avg '+Math.round(late)+' vs '+Math.round(early)+' when you started logging.');
+      else if(d<=-2) out.push('🧊 Scores are up '+(-d)+' vs your first logged rounds ('+Math.round(late)+' vs '+Math.round(early)+') — worth a look at what changed: sleep, fuel, range time.');
+    }
+    // 2 · Fresh legs — drives within 2 days of a logged session vs 3+ days out.
+    var lifts=[]; try{ lsGet("ff_history",[]).forEach(function(e){
+      if(e && e.ts){ var d2=new Date(e.ts); d2.setHours(0,0,0,0); lifts.push(d2.getTime()); } }); }catch(e){}
+    lifts.sort(function(a,b){return a-b;});
+    if(lifts.length){
+      var near=[], far=[];
+      rounds.forEach(function(r){
+        if(!r.drive) return;
+        var ts=rdDayTs(r); if(ts==null) return;
+        var last=null; lifts.forEach(function(lt){ if(lt<=ts) last=lt; });
+        if(last==null) return;
+        ((ts-last)/864e5<=2 ? near : far).push(r.drive);
+      });
+      if(near.length>=2 && far.length>=2){
+        var nA=Math.round(rdAvg(near)), fA=Math.round(rdAvg(far));
+        if(nA-fA>=5) out.push('🏋️ <b>Drives avg '+nA+' yds within 2 days of a lift</b> vs '+fA+' further out — keep rounds close to gym days.');
+        else if(fA-nA>=5) out.push('🛌 Drives avg <b>'+fA+' yds with 3+ days after lifting</b> vs '+nA+' closer in — your legs like a little more space before tee time.');
+      }
+    }
+    // 3 · Deload freshness — drives in deload/peak (recovery) weeks vs loading weeks.
+    var fresh=[], loaded=[];
+    rounds.forEach(function(r){
+      if(!r.drive) return;
+      var wk=rdPlanWeek(rdDayTs(r)); if(wk==null) return;
+      var wv="accumulate"; try{ wv=waveFor(wk); }catch(e){}
+      ((wv==="deload"||wv==="peak") ? fresh : loaded).push(r.drive);
+    });
+    if(fresh.length>=2 && loaded.length>=2){
+      var frA=Math.round(rdAvg(fresh)), loA=Math.round(rdAvg(loaded));
+      if(frA-loA>=5) out.push('🪫 <b>Recovery-week drives avg '+frA+' yds</b> vs '+loA+' in loading weeks — that’s the deload doing its job. Plan big rounds for fresh weeks.');
+    }
+    return out.slice(0,3);
+  }
+
   // The Stats proof card: rounds, best drive, and the stamina story.
   function courseCardHtml(){
     var rounds=ffRounds().slice().reverse();
@@ -111,6 +174,14 @@
           '<span class="rd-v">'+(r.drive?('<b>'+Math.round(r.drive)+'</b> yds'):'—')+'</span>'+
           '<span class="rd-e">'+(r.energy?RD_ENERGY[r.energy]:'')+'</span></div>';
       }).join("")+'</div>';
+      // Receipts: what the training is doing for actual golf, from the user's own data.
+      var ins=[]; try{ ins=rdInsights(ffRounds()); }catch(e){}
+      if(ins.length){
+        h+='<div class="rd-ins-h">Receipts</div>'+ins.map(function(t){
+          return '<div class="rd-ins">'+t+'</div>'; }).join("");
+      } else if(rounds.length<5){
+        h+='<div class="rd-ins dim">🧾 Keep logging — at ~5 rounds this card starts showing receipts: scoring trend, drives near vs far from gym days, deload-week distance.</div>';
+      }
     }
     h+='<button type="button" class="fd-act" data-roundlog="1">⛳ Log a round ›</button></div>';
     return h;

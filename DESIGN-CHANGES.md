@@ -796,6 +796,35 @@ passes a 65-byte applicationServerKey and saves endpoint/keys/tz/hour + a
 re-saves with the new hour; local fallback skipped while push on; toggle-off
 removes row + unsubscribes. Edge Function TS syntax-checked with esbuild.
 
+## 41 · Receipts — training ↔ round correlations (make-it-great #3 of 3)
+
+**Why.** The thesis is "train like a bodybuilder → hit it further," and the
+app now logs both sides (sessions + rounds) but never proved the connection
+back to the user. This was the queued §27 follow-up ("deload-week vs energy
+correlation once data accumulates").
+
+**What.** `rdInsights()` in 082 computes up to three findings from the user's
+own data, rendered as a "Receipts" block in the Stats "On the course" card:
+1. **Scoring trend** — first-3 vs last-3 scored rounds (needs 5+ scored;
+   ±2 strokes to speak). Improvement AND regression copy.
+2. **Fresh legs** — avg drive within ≤2 days of a logged session (ff_history
+   ts) vs 3+ days out (needs 2+ rounds per bucket, ≥5 yds gap; copy flips
+   direction if more rest wins).
+3. **Deload freshness** — avg drive in deload/peak weeks (`waveFor` on the
+   round's plan week) vs loading weeks (same gates).
+
+Every insight is gated on sample size AND effect size so the card never
+dresses noise up as a finding; under 5 rounds a dashed "keep logging — at ~5
+rounds this card starts showing receipts" hint sets the expectation instead.
+Rounds resolve to days via `ts` (fallback: parsed `date`), weeks via
+`planStart()`.
+
+**Verified** (test-receipts.mjs): engineered 6-round seed fires all three
+with correct arithmetic (checked by hand); 1-round seed shows the hint and
+zero findings; light + dark screenshots reviewed; zero page errors.
+Gotcha re-learned: Stats trend cards (course card included) sit behind the
+`hasAny` gate — seeds need a body/log entry.
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob
