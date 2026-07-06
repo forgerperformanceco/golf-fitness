@@ -118,33 +118,35 @@
   // re-anchor them with a one-frame transform nudge.
   (function(){
     var vv=window.visualViewport; if(!vv) return;
-    var t=null;
+    var raf=null, narrow=null;
+    try{ narrow=window.matchMedia("(max-width: 760px)"); }catch(e){}
     function editing(){
       var a=document.activeElement;
       return !!(a && (a.tagName==="INPUT"||a.tagName==="TEXTAREA"||a.tagName==="SELECT"||a.isContentEditable));
     }
-    function sync(){
-      // Keyboard = a field is focused AND the visual viewport lost real height.
-      // vv.height is in visual CSS px — multiply by scale so pinch-zoom (which
-      // shrinks vv.height without any keyboard) can never read as a keyboard.
+    function pin(){
+      raf=null;
       var gap=window.innerHeight - vv.height*vv.scale;
       var kb=editing() && vv.scale<1.15 && gap>150;
       document.body.classList.toggle("ff-kb", kb);
-      if(!kb){
-        ["mobileTabs","ffFab","plPauseBar"].forEach(function(id){
-          var el=document.getElementById(id); if(!el) return;
-          el.style.transform="translateZ(0)";
-          requestAnimationFrame(function(){ el.style.transform=""; });
-        });
-      }
+      // THE fix for iOS floating bars: whatever state the viewport is in —
+      // zoomed, mid-pan, post-keyboard — glue the pinned bars to the VISIBLE
+      // bottom. dy is how far the visible bottom sits from the layout bottom;
+      // 0 in a normal viewport, so this is a no-op unless iOS misbehaves.
+      var dy=(vv.offsetTop + vv.height) - window.innerHeight;
+      var mobile=!narrow || narrow.matches;
+      ["mobileTabs","ffFab","plPauseBar"].forEach(function(id){
+        var el=document.getElementById(id); if(!el) return;
+        el.style.transform=(mobile && !kb && Math.abs(dy)>1) ? "translateY("+dy+"px)" : "";
+      });
     }
-    ["resize","scroll"].forEach(function(ev){
-      vv.addEventListener(ev, function(){ clearTimeout(t); t=setTimeout(sync, 90); });
-    });
-    document.addEventListener("focusout", function(){ setTimeout(sync, 250); }, true);
-    // Failsafe: the hide class can never outlive its cause — any tap with no
-    // field focused re-syncs immediately.
+    function req(){ if(!raf) raf=requestAnimationFrame(pin); }
+    vv.addEventListener("resize", req);
+    vv.addEventListener("scroll", req);
+    window.addEventListener("scroll", req, { passive:true });
+    document.addEventListener("focusout", function(){ setTimeout(req, 250); }, true);
     document.addEventListener("pointerdown", function(){
-      if(document.body.classList.contains("ff-kb") && !editing()) sync();
+      if(document.body.classList.contains("ff-kb") && !editing()) req();
     }, true);
+    req();
   })();

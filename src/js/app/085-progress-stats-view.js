@@ -220,6 +220,9 @@
         '<h3>No trends yet</h3><p>Log a workout on the Train tab, and add today’s bodyweight + 7-iron speed below. '+
         'Two data points and your lines start climbing.</p></div>';
     } else {
+      // ---- PR Wall: the trophy case ----
+      try{ html+=prWallHtml(); }catch(e){}
+
       // ---- Clubhead speed (north star) ----
       // The payoff of speed is DISTANCE. A 7-iron carries ~2 yards farther per +1 mph of
       // clubhead speed (public TrackMan/FlightScope data; smash ~1.33). We show the GAIN,
