@@ -363,6 +363,13 @@
       setView(btn.getAttribute("data-view"));
     });
   });
+  // Any [data-goview] button anywhere navigates — one delegated handler so
+  // drill-in actions (Octane "Go lift ›" etc.) work on every view, not just
+  // wherever a local listener happened to cover.
+  document.addEventListener("click", function(e){
+    var t=e.target.closest("[data-goview]");
+    if(t) setView(t.getAttribute("data-goview"));
+  });
   // The brand wordmark is a home button.
   var wordmark=$("wordmark");
   if(wordmark) wordmark.addEventListener("click", function(){ setView("dash"); });
@@ -5387,7 +5394,7 @@
       try{ window.dispatchEvent(new Event("ff-data-changed")); }catch(_){}
       renderDash(); return; }
     if(e.target.closest("[data-qopen]")){ var fb=$("ffFab"); if(fb) fb.click(); return; }
-    var t=e.target.closest("[data-goview]"); if(t) setView(t.getAttribute("data-goview"));
+    // [data-goview] is handled by the global delegated navigator (015-coach-tips).
   });
   /* ---- Global quick-log: the floating ＋ and its bottom sheet. One entry point
      for the daily inputs (weight / 7-iron / driver) plus jump-offs to the player,

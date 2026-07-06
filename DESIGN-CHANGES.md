@@ -422,6 +422,19 @@ series. Release and it fades. The value renders in the numeral face.
   clamps inside the plot; nearest-point snapping, not interpolation — you read
   entries you actually logged.
 
+## 17 · Fix: Octane drill-in actions were dead on the Progress view
+
+User-reported: "Go lift ›" (and "Open this week ›" / "Open today's meals ›")
+did nothing. Root cause: `[data-goview]` navigation was only handled by the
+DASHBOARD's local click listener — the Progress view's listener never handled
+it, so drill-in action buttons fell through silently. (The speed/mobility
+actions "worked" only because their modals listen at document level.)
+
+Fix: one document-level delegated navigator next to `setView()` — any
+`[data-goview]` button now works on every view, current and future; the
+dashboard-local duplicate removed. Lesson recorded: feature-local click
+listeners quietly don't compose — cross-view actions belong on `document`.
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob
