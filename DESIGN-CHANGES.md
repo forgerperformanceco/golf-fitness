@@ -908,6 +908,46 @@ data (speed+weight only) → speed card open + weight row + PR Wall row
 consistency; Home recap hidden fresh. e2e suite green; light screenshots
 reviewed.
 
+## 45 · The intuitive pass — glossary, one log door, gesture hints, the loop
+
+**Why.** The calm pass fixed density; this fixes predictability — the other
+half of the friend's feedback. Three gaps: invented vocabulary nobody
+explains, the core "log something" verb scattered across doors, and
+invisible gestures.
+
+**What.**
+- **Glossary (new `009-glossary.js`).** 12 terms (Octane, banked, iron
+  moved, e1RM, season, waves, deload, Sunday Scorecard, receipts, carry,
+  speed test, power-to-weight) in `FF_TERMS`; `ffTerm(key,label)` renders a
+  dotted-underline span; tap → one-sentence bottom sheet → "See all terms"
+  full dictionary. The 009 document listener registers before every other
+  and uses `stopImmediatePropagation`, so a term tap inside an interactive
+  parent (Home hero goview button, Stats fold header, scorecard row) opens
+  the sheet WITHOUT triggering the parent — verified both ways. Wired:
+  hero Octane, Octane hub header, scorecard "Iron moved"/"Speed test",
+  receipts header, strength-card e1RM foot, Train wave banner.
+- **One log door.** The FAB is now a labeled "＋ Log" pill; its sheet
+  ("＋ Log anything") gains the missing verb — "Check off a meal" showing
+  the next unchecked meal — so workout/meal/weight/speed/round all live
+  behind one predictable button. (Sheet's element listener fires before
+  030's document check-off handler; it just closes + toasts.)
+- **Self-retiring gesture hint.** The player's "hold to reorder / remove"
+  hint now renders only until the first successful long-press
+  (`ff_hint_press`, set inside the 550ms timer callback).
+- **The loop.** `ffLoopHtml()` — weigh in → train → eat → play & log →
+  Octane climbs → repeat — added to onboarding's final screen and to a
+  "🔁 How FairwayFuel works" sheet from the You tab (next to the new
+  "📖 What the terms mean" button). Styled for light sheets AND the dark
+  onboarding shell.
+
+**Verified** (test-intuitive.mjs): hero term opens sheet w/o navigating;
+glossary lists 12; scorecard term doesn't collapse the fold; FAB label +
+meal row checks meal 0 and closes; hint visible on lift stations, gone
+after a real long-press (flag set, reorder opened); loop renders 5 steps in
+both the Account sheet and onboarding step 7 (wizard walked end-to-end).
+e2e suite green, zero page errors. Gotcha: player sets/hint only exist on
+LIFT stations — advance past the warm-up before asserting.
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob

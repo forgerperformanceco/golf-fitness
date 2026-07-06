@@ -1624,10 +1624,13 @@
   @media (min-width:761px){ .pl-pausebar{ bottom:14px; max-width:560px; left:calc(50% - 280px); right:auto; width:560px; } }
   body.ff-plpaused .ff-fab{ bottom:calc(126px + env(safe-area-inset-bottom)); }
   @media (min-width:761px){ body.ff-plpaused .ff-fab{ bottom:74px; } }
+  /* Labeled, not a mystery circle: the one log door. */
   .ff-fab{ position:fixed; right:16px; bottom:calc(76px + env(safe-area-inset-bottom)); z-index:45;
-    width:58px; height:58px; border-radius:50%; border:0; cursor:pointer;
-    background:linear-gradient(150deg,#22b45e,#11643a); color:#fff; font-size:30px; line-height:1; font-weight:600;
+    display:inline-flex; align-items:center; gap:6px; height:54px; padding:0 20px 0 16px; border-radius:999px;
+    border:0; cursor:pointer;
+    background:linear-gradient(150deg,#22b45e,#11643a); color:#fff; font-size:26px; line-height:1; font-weight:600;
     box-shadow:0 8px 22px rgba(10,80,40,.42); }
+  .ff-fab-lbl{ font:800 15px system-ui; letter-spacing:.01em; }
   .ff-fab:active{ transform:scale(.94); }
   @media (min-width:761px){ .ff-fab{ bottom:24px; } }
   .qsheet{ position:fixed; inset:0; z-index:210; background:rgba(8,20,13,.55); display:flex; align-items:flex-end; }
@@ -1636,6 +1639,38 @@
   .qsheet-grab{ width:44px; height:5px; border-radius:99px; background:var(--line); margin:4px auto 10px; }
   .qsheet-h{ font-weight:900; font-size:16px; color:var(--ink); margin:0 0 2px; }
   .qsheet-acts{ display:flex; flex-direction:column; gap:8px; margin-top:12px; }
+  /* Glossary: any invented term is tappable — dotted underline is the tell. */
+  .ff-term{ text-decoration:underline dotted; text-decoration-color:#7cb08d; text-underline-offset:3px; cursor:pointer; }
+  .term-one{ display:flex; gap:12px; align-items:flex-start; padding:10px 2px 4px; }
+  .term-one.sm{ border-bottom:1px solid var(--line); padding:10px 2px; }
+  .term-one.sm:last-of-type{ border-bottom:0; }
+  .term-ic{ font-size:22px; flex:0 0 auto; }
+  .term-one.sm .term-ic{ font-size:17px; }
+  .term-tx{ min-width:0; }
+  .term-t{ font-weight:900; font-size:15.5px; color:var(--green-800); margin-bottom:3px; }
+  .term-one.sm .term-t{ font-size:13.5px; margin-bottom:1px; }
+  .term-d{ font-size:13.5px; color:var(--muted); line-height:1.55; }
+  .term-one.sm .term-d{ font-size:12.5px; line-height:1.45; }
+  .term-lead{ margin:2px 2px 10px; font-size:13px; color:var(--muted); line-height:1.5; }
+  .term-all{ display:block; width:100%; margin-top:12px; border:1.5px dashed var(--line); background:transparent;
+    color:var(--green-700); border-radius:12px; padding:11px; font:800 13px system-ui; cursor:pointer; }
+  #termSheet .qsheet-card{ max-height:78vh; overflow-y:auto; }
+  /* The loop — the whole system in one picture (light sheets + dark onboarding). */
+  .ff-loop{ margin:6px 0 10px; }
+  .ffl-step{ display:flex; align-items:center; gap:11px; background:var(--paper); border:1px solid var(--line);
+    border-radius:12px; padding:9px 13px; }
+  .ffl-ic{ font-size:18px; }
+  .ffl-tx b{ display:block; font-size:14px; color:var(--green-800); }
+  .ffl-tx span{ display:block; font-size:12px; color:var(--muted); }
+  .ffl-arr{ text-align:center; color:#9db8a5; font-size:13px; line-height:1.1; margin:1px 0; }
+  .ffl-back{ text-align:center; font:800 12px system-ui; color:var(--green-700); margin-top:7px;
+    text-transform:uppercase; letter-spacing:.07em; }
+  .ob .ffl-step{ background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.14); }
+  .ob .ffl-tx b{ color:#fff; }
+  .ob .ffl-tx span{ color:#9ccfb0; }
+  .ob .ffl-arr{ color:#7ea98c; }
+  .ob .ffl-back{ color:#8be9ac; }
+  .ob-loophead{ font:800 12px system-ui; letter-spacing:.07em; text-transform:uppercase; color:#8be9ac; margin:14px 0 7px; }
   .qsheet-act{ display:flex; align-items:center; gap:11px; width:100%; text-align:left; border:1px solid var(--line);
     background:var(--paper); border-radius:13px; padding:13px 14px; font-weight:800; font-size:14.5px; color:var(--ink); cursor:pointer; }
   .qsheet-act .qa-sub{ display:block; font-weight:600; font-size:12.5px; color:var(--muted); margin-top:1px; }

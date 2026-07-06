@@ -174,8 +174,8 @@
     var c=weekCard();
     var rows=[
       { h:1, n:"Sessions", v:c.sessions+' / '+c.freq, chip: c.sessions>=c.freq?scChip("good","ON PLAN"):(c.sessions>0?scChip("mid",(c.freq-c.sessions)+" TO GO"):scChip("miss","0 YET")) },
-      { h:2, n:"Iron moved", v:(c.vol>0?c.vol.toLocaleString()+' lb':'—'), chip: c.vol>0?scChip("good","BANKED"):scChip("miss","—") },
-      { h:3, n:"Speed test", v:(c.bestT!=null?c.bestT+' mph':'—'), chip: c.bestT!=null?scChip("good","TESTED"):(speedTestDue()?scChip("mid","DUE"):scChip("miss","NEXT WK")) },
+      { h:2, n:ffTerm('iron','Iron moved'), v:(c.vol>0?c.vol.toLocaleString()+' lb':'—'), chip: c.vol>0?scChip("good","BANKED"):scChip("miss","—") },
+      { h:3, n:ffTerm('speedtest','Speed test'), v:(c.bestT!=null?c.bestT+' mph':'—'), chip: c.bestT!=null?scChip("good","TESTED"):(speedTestDue()?scChip("mid","DUE"):scChip("miss","NEXT WK")) },
       { h:4, n:"Weigh-ins", v:String(c.weighs), chip: c.weighs>=3?scChip("good","TRENDING"):(c.weighs>0?scChip("mid","MORE"):scChip("miss","0 YET")) },
       { h:5, n:"Mobility", v:(c.mob?'screened':'—'), chip: c.mob?scChip("good","DONE"):(mobDue()?scChip("mid","DUE"):scChip("good","CURRENT")) },
       { h:6, n:"Fuel days", v:c.fuelOn+' / 7', chip: c.fuelOn>=5?scChip("good","ON PLAN"):(c.fuelLogged>0?scChip("mid","BUILDING"):scChip("miss","LOG FUEL")) }
@@ -313,7 +313,8 @@
           return '<button type="button" class="lr" data-exhist="'+escAttr(L.name)+'"><div class="lr-name">'+L.name+'</div>'+
             '<div class="lr-spark">'+(L.n>=2?pcMiniSpark(L.series,"#16a34a"):'<span class="lr-one">'+L.n+' set'+(L.n===1?"":"s")+'</span>')+'</div>'+
             '<div class="lr-val">'+Math.round(L.last)+'<small>lb</small>'+(L.n>=2&&d!=null?pcDelta(d,"%"):"")+'</div></button>';
-        }).join(""));
+        }).join("")+
+        '<div class="pc-foot"><span>'+ffTerm('e1rm','e1RM — what’s that?')+'</span><span>tap a lift for its full story</span></div>');
 
       // ---- Bodyweight ----
       var wtNow=wtF.length?wtF[wtF.length-1]:null, wtBase=wtF.length?wtF[0]:null;
@@ -684,8 +685,10 @@
      speed test and mobility screen — replaces the form that lived on Home. ---- */
   (function(){
     var fab=document.createElement("button");
-    fab.className="ff-fab"; fab.id="ffFab"; fab.type="button"; fab.setAttribute("aria-label","Quick log");
-    fab.textContent="＋";
+    fab.className="ff-fab"; fab.id="ffFab"; fab.type="button"; fab.setAttribute("aria-label","Log anything");
+    // Labeled, not a mystery circle: the one rule a user has to learn is
+    // "anything that happened, hit ＋ Log."
+    fab.innerHTML='＋<span class="ff-fab-lbl">Log</span>';
     document.body.appendChild(fab);
     var sheet=document.createElement("div");
     sheet.className="qsheet"; sheet.id="qSheet"; sheet.hidden=true;
@@ -693,14 +696,26 @@
     function openSheet(){
       var d=(typeof todaySlot==="function")?todaySlot():null;
       var train=d && d.type!=="rest" && planStart();
+      // The one missing log verb was meals — surface the NEXT unchecked one so
+      // the sheet covers everything: workout, meal, weight/speed/drive, test, round.
+      var mealRow='';
+      try{
+        if(ffSchedule && ffSchedule.length){
+          var fdQ=fuelDay(ffISO())||{ m:{} }, ni=-1;
+          for(var qi=0; qi<ffSchedule.length; qi++){ if(!(fdQ.m && fdQ.m[qi])){ ni=qi; break; } }
+          if(ni>=0) mealRow='<button type="button" class="qsheet-act" data-fuelmeal="'+ni+'" data-fuelval="a">🍽️'+
+            '<span>Check off a meal<span class="qa-sub">next up: '+ffSchedule[ni].label+' — tap when eaten</span></span><span class="qa-go">✓</span></button>';
+        }
+      }catch(e){}
       sheet.innerHTML='<div class="qsheet-card"><div class="qsheet-grab"></div>'+
-        '<div class="qsheet-h">Quick log</div>'+
+        '<div class="qsheet-h">＋ Log anything</div>'+
         quickLogHtml("q","Weight, 7-iron &amp; driver feed your trends, Octane and the board.")+
         '<div class="qsheet-acts">'+
         (train?('<button type="button" class="qsheet-act" data-startplayer="'+escAttr(d.name)+'">'+ffIcon("barbell",18)+'<span>Start today’s workout<span class="qa-sub">'+d.name.replace(/^Day \d+ — /,"")+' · guided player</span></span><span class="qa-go">›</span></button>'):'')+
+        mealRow+
+        '<button type="button" class="qsheet-act" data-roundlog="1">⛳<span>Log a round<span class="qa-sub">score, longest drive, how the body held up</span></span><span class="qa-go">›</span></button>'+
         '<button type="button" class="qsheet-act" data-speedtest="1">'+ffIcon("target",18)+'<span>Speed test<span class="qa-sub">3 max swings — best one counts</span></span><span class="qa-go">›</span></button>'+
         '<button type="button" class="qsheet-act" data-mobscreen="1">'+ffIcon("compass",18)+'<span>Mobility screen<span class="qa-sub">3 moves · ~3 minutes</span></span><span class="qa-go">›</span></button>'+
-        '<button type="button" class="qsheet-act" data-roundlog="1">⛳<span>Log a round<span class="qa-sub">score, longest drive, how the body held up</span></span><span class="qa-go">›</span></button>'+
         '</div></div>';
       sheet.hidden=false; document.body.style.overflow="hidden";
     }
@@ -716,7 +731,10 @@
         try{ if($("view-progress") && $("view-progress").classList.contains("active")) renderProgress(); }catch(e2){}
         return;
       }
-      // Action rows open their overlays via the document-level listeners — just get out of the way.
+      // Action rows open their overlays via the document-level listeners — just get
+      // out of the way. (This element listener fires FIRST; the meal check-off then
+      // runs in 030's document handler, which re-renders the dash itself.)
+      if(e.target.closest("[data-fuelmeal]")){ closeSheet(); ffToast("Meal banked ✓"); return; }
       if(e.target.closest("[data-startplayer],[data-speedtest],[data-mobscreen],[data-roundlog]")) closeSheet();
     });
   })();

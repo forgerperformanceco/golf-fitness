@@ -435,7 +435,9 @@
       '<p class="acct-p">Start over — clears your plan start date and logged workouts so the plan resets to week 1. Your bodyweight &amp; 7-iron history and your calculator stay put.</p>'+
       '<button class="acct-btn danger" id="acctResetPlan">↺ Reset plan</button></div>';
     html+='<div class="acct-card"><div class="acct-head">Show me around</div>'+
-      '<p class="acct-p">New to the app or want a refresher? Replay the one-tap tips that explain what each tab does.</p>'+
+      '<p class="acct-p">The system in one picture, every FairwayFuel term in plain English, and the tab-by-tab tips — whenever you want a refresher.</p>'+
+      '<button class="acct-btn ghost" data-ffloop="1">🔁 How FairwayFuel works</button>'+
+      '<button class="acct-btn ghost" data-termall="1">📖 What the terms mean</button>'+
       '<button class="acct-btn ghost" id="acctReplayTips">↻ Replay the tips</button></div>';
     if(user){
       html+='<div class="acct-card"><div class="acct-head">⚠️ Delete account</div>'+

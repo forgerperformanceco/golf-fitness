@@ -149,7 +149,7 @@
       setsHtml+='<div class="pl-setops">'+
         '<button type="button" data-plsetadd="1">＋ Add set</button>'+
         '<button type="button" data-plsetrem="1">− Remove set</button>'+
-        '<span class="pl-setops-hint">hold a set to remove it · hold the name to reorder</span></div>';
+        (lsGet("ff_hint_press",false)?'':'<span class="pl-setops-hint">✋ hold a set to remove it · hold the name to reorder</span>')+'</div>';
       var livePr=(player.prHit && player.prHit[x.name])
         ? '<div class="pl-livepr">🚀 e1RM PR — <b>'+Math.round(player.prHit[x.name])+'</b> lb</div>' : '';
       var prescLine = presc!=null
@@ -374,6 +374,7 @@
       lpTimer=setTimeout(function(){
         lpTimer=null;
         try{ ffTick(15); }catch(_){}
+        lsSet("ff_hint_press", true);   // gesture learned — the hint retires itself
         if(setRow){
           var xi0=st0.xi, si0=+setRow.getAttribute("data-plsetrow");
           var xL=player.sess.ex[xi0];
@@ -805,7 +806,7 @@
         '<div class="hero-empty"><b>Add your driver distance</b><span>From a launch monitor, or just how far you hit it — log it below and watch it climb.</span></div>';
     }
     var engine = '<div class="hero-engine">'+octaneGaugeHtml(r.score)+
-      '<div class="hero-etx"><div class="hero-ename">Octane</div>'+
+      '<div class="hero-etx"><div class="hero-ename">'+ffTerm('octane','Octane')+'</div>'+
       '<div class="hero-esub">Your engine — <b>lifting, fuel &amp; speed work.</b> Keep it high and the yards follow.</div></div></div>';
     return '<button class="ffscore hero-card" data-goview="progress">'+top+engine+'</button>';
   }
@@ -852,7 +853,7 @@
   function renderScoreCard(compact){
     var r = ffScore(); saveScoreSnapshot(r);
     var top = '<div class="ffscore-top">'+octaneGaugeHtml(r.score)+
-      '<div class="ffscore-head"><h3>'+ffIcon("gauge",15)+' OCTANE</h3>'+
+      '<div class="ffscore-head"><h3>'+ffIcon("gauge",15)+' '+ffTerm('octane','OCTANE')+'</h3>'+
       '<p class="ff-sum">'+ffScoreSummary(r)+'</p></div></div>';
     if(compact){
       return '<button class="ffscore ffscore-compact" data-goview="progress">'+top+
