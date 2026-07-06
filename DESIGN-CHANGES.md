@@ -524,6 +524,21 @@ to training time); the sample menu is reference material (long, read once).
 - Division of labor is now clean: HOME is where you live the day (timeline
   check-offs), FUEL is where you manage and review it.
 
+## 24 · Phone-width polish on the fuel folds (user screenshot)
+
+On a real 390pt phone the new layout wrapped ugly: the example-day fold row
+squeezed its title and sub onto cramped broken lines, and the "Your Meals"
+header wrapped the meals/day picker onto a second row inside the gradient.
+
+- Fold row: title nowraps, sub shortened to "N meals · n ✓" (the "from your
+  foods" detail lives inside), sub ellipsizes instead of wrapping, row padding
+  bumped — reads as one clean line.
+- Meals header: under 480px the "meals/day" text label hides (the 3/4/5/6
+  segment is self-explanatory), the segment tightens, and the header is pinned
+  to one row.
+- Testing note: layout verified at 390×844 dark — the owner's actual viewing
+  conditions — not just the 420px harness default.
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob
