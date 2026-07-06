@@ -463,7 +463,7 @@
         var id="why"+(whyId++);
         var base=applySwapName(e[0]), swapped=base!==e[0];
         var note=swapped ? ('⚡ '+liftWhy(base).cue) : e[2];
-        return '<tr'+(swapped?' class="swap"':'')+'><td><button class="exwhy-btn" type="button" data-whyrow="'+id+'" aria-expanded="false"><span class="exname-main">'+purposeFor(base)+' '+base+'</span>'+
+        return '<tr'+(swapped?' class="swap"':'')+'><td><button class="exwhy-btn" type="button" data-whyrow="'+id+'" aria-expanded="false"><span class="exname-main">'+ffPurposeIc(base)+' '+base+'</span>'+
                (swapped?' <span class="swap-badge">⇄ your swap</span>':'')+' <span class="exwhy-i">ⓘ</span></button>'+
                '<div class="exnote">'+note+'</div></td>'+
                '<td class="sets">'+speedDrillTarget(base, e[1], curWeek())+'</td></tr>'+
@@ -487,14 +487,14 @@
         '<div class="speed-why">'+p.speed.note+'</div>'+
         '<div class="equip-note" style="padding:10px 15px 8px;">'+noGear+'</div>'+
         '<div style="padding:0 15px 4px;"><button class="pl-start" data-startplayer="'+escAttr(d.name)+'" type="button"><span class="pls-go">›</span>'+
-          '<b>▶ Start speed session</b><span class="pls-sub">Guided player — warm-up, max-intent drills, full rest</span></button></div>'+
+          '<b>'+ffIcon("play",13)+' Start speed session</b><span class="pls-sub">Guided player — warm-up, max-intent drills, full rest</span></button></div>'+
         logFoot(d.name)+'</div>';
     }
     var rows = d.ex.map(function(row){
       var base = applySwapName(row[0]);
       var r = resolveEx(base, row[1]);
       var eff = '<div class="effort">'+effortNote(row[1])+'</div>';
-      var pe = purposeFor(base)+' ';
+      var pe = ffPurposeIc(base)+' ';
       var us = base!==row[0] ? ' <span class="swap-badge">⇄ your swap</span>' : '';
       if(r.status==="ok"){ var c=exNameCell(pe, base, us); return '<tr>'+c.cell+'<td class="sets">'+effTarget(row[1],base,curWeek())+eff+'</td></tr>'+c.row; }
       if(r.status==="swap"){ var cs=exNameCell(pe, r.name, ' <span class="swap-badge">⇄ subbed for '+escAttr(base)+' (your gear)</span>'); return '<tr class="swap">'+cs.cell+'<td class="sets">'+effTarget(r.sr,r.name,curWeek())+eff+'</td></tr>'+cs.row; }
@@ -510,7 +510,7 @@
       var plDone = !!getSession(curWeek(), d.name) && !!(getSession(curWeek(), d.name)||{}).finishedAt;
       return '<div class="day-focus">'+
         '<button class="pl-start" data-startplayer="'+escAttr(d.name)+'" type="button"><span class="pls-go">›</span>'+
-          '<b>'+(plDone?'✓ Session finished — replay it':(hasWork?'▶ Resume workout':'▶ Start workout'))+'</b>'+
+          '<b>'+(plDone?'✓ Session finished — replay it':((hasWork?ffIcon("play",13)+' Resume':ffIcon("play",13)+' Start')+' workout'))+'</b>'+
           '<span class="pls-sub">Guided player — warm-up, prescribed loads, rest timer, recap</span></button>'+
         '<details class="prelift"'+(hasWork?'':' open')+'><summary>🔥 Warm-up &amp; power primer — do these first</summary><div class="prelift-body">'+warmPrimer+'</div></details>'+
         '<div class="ilogwrap" id="ilogBox">'+ilogBodyHtml()+'</div></div>';
@@ -542,7 +542,7 @@
 
     if(!started){
       // Before the plan starts: the brochure (static) shows, plus this start card.
-      html+='<div class="startbar"><div class="sb-top"><b>▶ Start your 20-week plan</b>'+
+      html+='<div class="startbar"><div class="sb-top"><b>'+ffIcon("play",13)+' Start your 20-week plan</b>'+
         '<span>Most people start on a Monday — but jump in any day. It tracks your week from here, no fiddling.</span></div>'+
         '<button class="sb-go" data-startweek="1">Start the plan today</button>'+
         '<div class="sb-alt">Already mid-plan? <button class="sb-link" data-jump="1">Pick your current week ▾</button></div>'+

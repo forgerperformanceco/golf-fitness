@@ -117,7 +117,7 @@
     opts.forEach(function(o){ (equipOk(o)?owned:missing).push(o); });
     function opt(o, flagged){
       var active=(o===cur);
-      return '<button class="swap-opt'+(active?" cur":"")+(flagged?" nogear":"")+'" data-swapchoose="'+escAttr(o)+'">'+purposeFor(o)+' '+o+
+      return '<button class="swap-opt'+(active?" cur":"")+(flagged?" nogear":"")+'" data-swapchoose="'+escAttr(o)+'">'+ffPurposeIc(o)+' '+o+
         (active?' <span class="swap-now">current</span>':'')+
         (flagged?' <span class="swap-need">needs '+equipNeedsLabel(o)+'</span>':'')+'</button>';
     }
@@ -154,7 +154,7 @@
       if(!items.length) return;
       html+='<div class="add-group">'+g+'</div>';
       items.forEach(function(o){ var ok=equipOk(o);
-        html+='<button class="swap-opt'+(ok?"":" nogear")+'" data-addchoose="'+escAttr(o)+'">'+purposeFor(o)+' '+o+
+        html+='<button class="swap-opt'+(ok?"":" nogear")+'" data-addchoose="'+escAttr(o)+'">'+ffPurposeIc(o)+' '+o+
           (ok?'':' <span class="swap-need">needs '+equipNeedsLabel(o)+'</span>')+'</button>'; });
     });
     return html || '<div class="swap-sub">Type a name above, then tap “Add as a custom lift”.</div>';

@@ -5,6 +5,42 @@
 /* ────────── js/app/005-core-boot.js ────────── */
 
 
+/* ────────── js/app/006-icons.js ────────── */
+  /* ===================== ICONS — inline SVG chrome iconography ===================== */
+  // One consistent 2px-stroke set replaces OS emoji in the app CHROME (tab bar,
+  // headers, buttons, chips). Coach copy keeps its emoji — personality lives in
+  // the words, not the controls. Icons draw with currentColor, so they inherit
+  // text color and theme for free. 24-unit grid, round caps/joins.
+  var FF_ICONS = {
+    barbell: '<path d="M6.5 7v10M17.5 7v10M3.5 9.5v5M20.5 9.5v5M6.5 12h11M1.5 12h2M20.5 12h2"/>',
+    dumbbell: '<path d="M8 6.5v11M16 6.5v11M5 9v6M19 9v6M8 12h8"/>',
+    bolt: '<path d="M13 2 4.5 13.5H11L9.5 22 18 10.5h-6.5z"/>',
+    rotate: '<path d="M20.5 12a8.5 8.5 0 1 1-3-6.48"/><path d="M21 2.5V7h-4.5"/>',
+    target: '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/>',
+    compass: '<circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/>',
+    gauge: '<path d="M12 14.5 15.5 10"/><path d="M3.8 19.2a10 10 0 1 1 16.4 0"/>',
+    play: '<path d="M8 5.5v13l10.5-6.5z" fill="currentColor"/>',
+    share: '<path d="M12 14.5V3.5"/><path d="M8.5 6.5 12 3l3.5 3.5"/><path d="M7 10.5H5.5A1.5 1.5 0 0 0 4 12v7a1.5 1.5 0 0 0 1.5 1.5h13A1.5 1.5 0 0 0 20 19v-7a1.5 1.5 0 0 0-1.5-1.5H17"/>',
+    history: '<path d="M4.5 5.5V10H9"/><path d="M4.8 14a8 8 0 1 0 .7-6.5L4.5 10"/><path d="M12 8v4.5l3 2"/>',
+    swap: '<path d="M4 8h13.5"/><path d="m14.5 4.5 3.5 3.5-3.5 3.5"/><path d="M20 16H6.5"/><path d="M9.5 12.5 6 16l3.5 3.5"/>',
+    info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><circle cx="12" cy="7.75" r="1" fill="currentColor" stroke="none"/>',
+    calendar: '<rect x="4" y="5.5" width="16" height="15" rx="2"/><path d="M8 3.5v4M16 3.5v4M4 10.5h16"/>',
+    flame: '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3 1.072-2.143 2.224-3.095 4-4 0 4.5 6 5.5 6 10a6 6 0 0 1-12 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>',
+  };
+  function ffIcon(name, size, cls){
+    var d=FF_ICONS[name]; if(!d) return "";
+    var s=size||16;
+    return '<svg class="ffi'+(cls?' '+cls:'')+'" width="'+s+'" height="'+s+'" viewBox="0 0 24 24" fill="none" '+
+      'stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+d+'</svg>';
+  }
+  // The purpose tag per exercise (strength / mass / power / rotation) as an icon.
+  // purposeFor() still returns its emoji token — logic elsewhere compares on it —
+  // this is only the render mapping.
+  var FF_PURPOSE_ICON = { "🏋️":"barbell", "💪":"dumbbell", "⚡":"bolt", "🌀":"rotate" };
+  function ffPurposeIc(name, size){
+    return ffIcon(FF_PURPOSE_ICON[purposeFor(name)]||"dumbbell", size||15, "ffi-purpose");
+  }
+
 /* ────────── js/app/007-motion.js ────────── */
   /* ===================== MOTION — the app's physics layer ===================== */
   // Count-up numbers, gauge sweeps, PR celebration, haptic ticks. Everything in
@@ -1296,7 +1332,7 @@
         '<span class="meal-pick"><span class="meal-pick-lbl">meals/day</span><span class="seg meal-seg">'+
           [3,4,5,6].map(function(n){ return '<button type="button" data-meals="'+n+'"'+((t.m||4)===n?' class="active"':'')+'>'+n+'</button>'; }).join("")+
         '</span></span></div><div class="meals-body">';
-      html+='<div class="sched-title">📅 Your day — <b>'+(t.m||4)+' meals</b>, built around <b>foods you love</b></div>';
+      html+='<div class="sched-title">'+ffIcon("calendar",14)+' Your day — <b>'+(t.m||4)+' meals</b>, built around <b>foods you love</b></div>';
       plan.slots.forEach(function(s){
         html+='<div class="ffm-meal"><div class="ffm-meal-h">'+s.name+ffMealTag(s)+' <span>≈ '+s.P+'P · '+s.C+'C · '+s.F+'F</span></div>'+
           '<div class="ffm-items">'+ffItemsHtml(s.items)+'</div></div>';
@@ -1617,7 +1653,7 @@
     }
     return '<div class="fuel-sum'+(d.rating?' rated-'+d.rating:'')+'">'+
       '<div class="fuel-sum-top"><span class="fuel-sum-t">🍽️ Today’s fuel</span>'+
-      (streak>0?'<span class="fuel-streak">🔥 '+streak+'-day fuel streak</span>':'')+'</div>'+
+      (streak>0?'<span class="fuel-streak">'+ffIcon("flame",13)+' '+streak+'-day fuel streak</span>':'')+'</div>'+
       '<div class="fuel-sum-line">'+line+'</div>'+nums+
       (!d.rating?'<button type="button" class="fuel-numbtn" data-fuelnums="1">'+(fuelNumsOpen?'Hide numbers':'Show the numbers')+'</button>':'')+
       '<div class="frate"><span class="frate-lbl">Ate off-plan?</span>'+
@@ -1666,7 +1702,7 @@
        '<span class="meal-pick"><span class="meal-pick-lbl">meals/day</span><span class="seg meal-seg">'+opts+'</span></span></div>';
     h+='<div class="meals-body">';
     h+=fuelSummaryHtml(m);
-    h+='<div class="sched-title">📅 Your day &mdash; <b>'+m.n+' meals</b> <span class="rec">('+recTxt+')</span>, portioned for a <b>'+m.slot+'</b> workout</div>';
+    h+='<div class="sched-title">'+ffIcon("calendar",14)+' Your day &mdash; <b>'+m.n+' meals</b> <span class="rec">('+recTxt+')</span>, portioned for a <b>'+m.slot+'</b> workout</div>';
     h+='<div class="sched">'+rows+'</div>';
     h+='<div class="meal-foot">Tap any meal for a food example · times are guides — shift the day to fit your schedule.</div>';
     h+='</div></div>';
@@ -2163,7 +2199,7 @@
         var id="why"+(whyId++);
         var base=applySwapName(e[0]), swapped=base!==e[0];
         var note=swapped ? ('⚡ '+liftWhy(base).cue) : e[2];
-        return '<tr'+(swapped?' class="swap"':'')+'><td><button class="exwhy-btn" type="button" data-whyrow="'+id+'" aria-expanded="false"><span class="exname-main">'+purposeFor(base)+' '+base+'</span>'+
+        return '<tr'+(swapped?' class="swap"':'')+'><td><button class="exwhy-btn" type="button" data-whyrow="'+id+'" aria-expanded="false"><span class="exname-main">'+ffPurposeIc(base)+' '+base+'</span>'+
                (swapped?' <span class="swap-badge">⇄ your swap</span>':'')+' <span class="exwhy-i">ⓘ</span></button>'+
                '<div class="exnote">'+note+'</div></td>'+
                '<td class="sets">'+speedDrillTarget(base, e[1], curWeek())+'</td></tr>'+
@@ -2187,14 +2223,14 @@
         '<div class="speed-why">'+p.speed.note+'</div>'+
         '<div class="equip-note" style="padding:10px 15px 8px;">'+noGear+'</div>'+
         '<div style="padding:0 15px 4px;"><button class="pl-start" data-startplayer="'+escAttr(d.name)+'" type="button"><span class="pls-go">›</span>'+
-          '<b>▶ Start speed session</b><span class="pls-sub">Guided player — warm-up, max-intent drills, full rest</span></button></div>'+
+          '<b>'+ffIcon("play",13)+' Start speed session</b><span class="pls-sub">Guided player — warm-up, max-intent drills, full rest</span></button></div>'+
         logFoot(d.name)+'</div>';
     }
     var rows = d.ex.map(function(row){
       var base = applySwapName(row[0]);
       var r = resolveEx(base, row[1]);
       var eff = '<div class="effort">'+effortNote(row[1])+'</div>';
-      var pe = purposeFor(base)+' ';
+      var pe = ffPurposeIc(base)+' ';
       var us = base!==row[0] ? ' <span class="swap-badge">⇄ your swap</span>' : '';
       if(r.status==="ok"){ var c=exNameCell(pe, base, us); return '<tr>'+c.cell+'<td class="sets">'+effTarget(row[1],base,curWeek())+eff+'</td></tr>'+c.row; }
       if(r.status==="swap"){ var cs=exNameCell(pe, r.name, ' <span class="swap-badge">⇄ subbed for '+escAttr(base)+' (your gear)</span>'); return '<tr class="swap">'+cs.cell+'<td class="sets">'+effTarget(r.sr,r.name,curWeek())+eff+'</td></tr>'+cs.row; }
@@ -2210,7 +2246,7 @@
       var plDone = !!getSession(curWeek(), d.name) && !!(getSession(curWeek(), d.name)||{}).finishedAt;
       return '<div class="day-focus">'+
         '<button class="pl-start" data-startplayer="'+escAttr(d.name)+'" type="button"><span class="pls-go">›</span>'+
-          '<b>'+(plDone?'✓ Session finished — replay it':(hasWork?'▶ Resume workout':'▶ Start workout'))+'</b>'+
+          '<b>'+(plDone?'✓ Session finished — replay it':((hasWork?ffIcon("play",13)+' Resume':ffIcon("play",13)+' Start')+' workout'))+'</b>'+
           '<span class="pls-sub">Guided player — warm-up, prescribed loads, rest timer, recap</span></button>'+
         '<details class="prelift"'+(hasWork?'':' open')+'><summary>🔥 Warm-up &amp; power primer — do these first</summary><div class="prelift-body">'+warmPrimer+'</div></details>'+
         '<div class="ilogwrap" id="ilogBox">'+ilogBodyHtml()+'</div></div>';
@@ -2242,7 +2278,7 @@
 
     if(!started){
       // Before the plan starts: the brochure (static) shows, plus this start card.
-      html+='<div class="startbar"><div class="sb-top"><b>▶ Start your 20-week plan</b>'+
+      html+='<div class="startbar"><div class="sb-top"><b>'+ffIcon("play",13)+' Start your 20-week plan</b>'+
         '<span>Most people start on a Monday — but jump in any day. It tracks your week from here, no fiddling.</span></div>'+
         '<button class="sb-go" data-startweek="1">Start the plan today</button>'+
         '<div class="sb-alt">Already mid-plan? <button class="sb-link" data-jump="1">Pick your current week ▾</button></div>'+
@@ -2491,7 +2527,7 @@
   function logFoot(name){
     var done=!!getSession(curWeek(), name);
     return '<div class="day-foot"><button class="logbtn'+(done?" logged":"")+'" data-logday="'+escAttr(name)+'">'+
-      (done?"✓ Logged — tap to edit":"▶ Log workout")+'</button></div>';
+      (done?"✓ Logged — tap to edit":ffIcon("play",13)+" Log workout")+'</button></div>';
   }
 
   // ---- User lift swaps: pick a valid same-muscle replacement; it sticks in the plan ----
@@ -2668,7 +2704,7 @@
         ? ' · <button class="il-up" data-deloadfill="'+xi+'" title="Fill every set with ~60% of last time’s top weight">🪫 fill deload loads — tap</button>'
         : (ready ? ' · <button class="il-up" data-bumpfill="'+xi+'" title="Fill last time’s weight + '+incNum(x.name)+' lb">↑ add '+incNum(x.name)+' lb — tap to fill</button>' : '');
       html+='<div class="il-ex">'+
-        '<div class="il-exhead"><span class="il-name">'+purposeFor(x.name)+' '+x.name+'</span>'+
+        '<div class="il-exhead"><span class="il-name">'+ffPurposeIc(x.name)+' '+x.name+'</span>'+
           '<div class="il-acts">'+
             '<button class="il-why'+(openWhy[xi]?" on":"")+'" data-why="'+xi+'" aria-label="Why this lift builds speed">🛈 Why</button>'+
             '<button class="il-why" data-exhist="'+escAttr(x.name)+'" aria-label="Lift history">📊</button>'+
@@ -2779,7 +2815,7 @@
     var w=liftWhy(name);
     return '<div class="why-why">'+w.why+'</div>'+
       '<div class="why-cue">⚡ <b>Power cue:</b> '+w.cue+'</div>'+
-      '<button class="why-howto" data-howto="'+escAttr(name)+'">▶ How to do it · muscles &amp; form</button>'+
+      '<button class="why-howto" data-howto="'+escAttr(name)+'">'+ffIcon("play",12)+' How to do it · muscles &amp; form</button>'+
       (withCoach!==false ? '<button class="why-coach" data-whycoach="'+escAttr(name)+'">💬 Go deeper with the coach</button>' : '');
   }
   // ---- exercise demo sheet (how-to) ----
@@ -2789,7 +2825,7 @@
       '<div class="ed-sec"><h4>How to do it</h4><ol class="ed-cues">'+f.cues.map(function(c){return '<li>'+c+'</li>';}).join("")+'</ol></div>'+
       '<div class="ed-sec"><h4>Common mistakes</h4><ul class="ed-miss">'+f.miss.map(function(c){return '<li>'+c+'</li>';}).join("")+'</ul></div>'+
       '<div class="ed-why">⚡ <b>For your swing:</b> '+w.why+'</div>'+
-      '<a class="ed-video" href="'+formVideoUrl(name)+'" target="_blank" rel="noopener">▶ Watch a form video</a>';
+      '<a class="ed-video" href="'+formVideoUrl(name)+'" target="_blank" rel="noopener">'+ffIcon("play",12)+' Watch a form video</a>';
     var b=$("exDemoBody"); if(b) b.innerHTML=html;
     var t=$("exDemoTitle"); if(t) t.textContent=name;
     var mo=$("exDemoModal"); if(mo){ mo.hidden=false; document.body.style.overflow="hidden"; }
@@ -2917,7 +2953,7 @@
     opts.forEach(function(o){ (equipOk(o)?owned:missing).push(o); });
     function opt(o, flagged){
       var active=(o===cur);
-      return '<button class="swap-opt'+(active?" cur":"")+(flagged?" nogear":"")+'" data-swapchoose="'+escAttr(o)+'">'+purposeFor(o)+' '+o+
+      return '<button class="swap-opt'+(active?" cur":"")+(flagged?" nogear":"")+'" data-swapchoose="'+escAttr(o)+'">'+ffPurposeIc(o)+' '+o+
         (active?' <span class="swap-now">current</span>':'')+
         (flagged?' <span class="swap-need">needs '+equipNeedsLabel(o)+'</span>':'')+'</button>';
     }
@@ -2954,7 +2990,7 @@
       if(!items.length) return;
       html+='<div class="add-group">'+g+'</div>';
       items.forEach(function(o){ var ok=equipOk(o);
-        html+='<button class="swap-opt'+(ok?"":" nogear")+'" data-addchoose="'+escAttr(o)+'">'+purposeFor(o)+' '+o+
+        html+='<button class="swap-opt'+(ok?"":" nogear")+'" data-addchoose="'+escAttr(o)+'">'+ffPurposeIc(o)+' '+o+
           (ok?'':' <span class="swap-need">needs '+equipNeedsLabel(o)+'</span>')+'</button>'; });
     });
     return html || '<div class="swap-sub">Type a name above, then tap “Add as a custom lift”.</div>';
@@ -3203,21 +3239,21 @@
   function speedTestCardHtml(){
     var lt=lastSpeedTest(), d=daysSinceTest();
     if(speedTestDue()){
-      return '<div class="stest-card due"><div class="stest-t">🎯 Speed Test Day — it’s due</div>'+
+      return '<div class="stest-card due"><div class="stest-t">'+ffIcon("target",15)+' Speed Test Day — it’s due</div>'+
         '<div class="stest-b">Every 2 weeks: warm up, then <b>3 max-intent 7-iron swings</b> — best one counts. '+
         (lt?('Last best: <b>'+lt.best+' mph</b>. Beat it.'):'This one sets your tested baseline.')+
         ' The retest is the scoreboard that proves the plan.</div>'+
-        '<button class="stest-go" data-speedtest="1">▶ Run today’s test</button></div>';
+        '<button class="stest-go" data-speedtest="1">'+ffIcon("play",13)+' Run today’s test</button></div>';
     }
     var left=Math.max(1, SPEEDTEST_EVERY-d);
-    return '<div class="stest-card"><div class="stest-b">🎯 Next speed test in <b>'+left+'</b> day'+(left===1?'':'s')+
+    return '<div class="stest-card"><div class="stest-b">'+ffIcon("target",14)+' Next speed test in <b>'+left+'</b> day'+(left===1?'':'s')+
       (lt?(' · last best <b>'+lt.best+' mph</b>'):'')+' — <button class="stest-link" data-speedtest="1">test early</button></div></div>';
   }
   var stState=null;
   function stEnsureModal(){
     if($("stModal")) return;
     var m=document.createElement("div"); m.id="stModal"; m.className="swap-modal"; m.hidden=true;
-    m.innerHTML='<div class="swap-card"><div class="swap-head"><span id="stTitle">🎯 Speed Test</span>'+
+    m.innerHTML='<div class="swap-card"><div class="swap-head"><span id="stTitle">'+ffIcon("target",16)+' Speed Test</span>'+
       '<button class="swap-x" id="stX" type="button" aria-label="Close">×</button></div><div class="swap-body" id="stBody"></div></div>';
     document.body.appendChild(m);
     m.addEventListener("click", function(e){
@@ -3270,7 +3306,7 @@
           (gainB!=null && gainB!==0 ? ((gainB>0?'▲ <b>+':'▼ <b>')+gainB+' mph</b> vs your baseline ≈ <b>'+(gainB>0?'+':'')+Math.round(gainB*2)+' yards</b> of carry.<br>') : '')+
           (r.prevBest!=null && !r.pr ? ('All-time best: <b>'+r.prevBest+' mph</b> — that’s the number to hunt next test.') : 'Logged to your trend, Octane and the board.')+
         '</div>'+
-        '<button class="st-share" data-stshare="1">📤 Share it</button>'+
+        '<button class="st-share" data-stshare="1">'+ffIcon("share",14)+' Share it</button>'+
         '<button class="st-save" data-stdone="1">Done — next test in 2 weeks</button>'+
         '</div>';
       return;
@@ -3352,7 +3388,7 @@
   function mobEnsureModal(){
     if($("mobModal")) return;
     var m=document.createElement("div"); m.id="mobModal"; m.className="swap-modal"; m.hidden=true;
-    m.innerHTML='<div class="swap-card"><div class="swap-head"><span>🧭 Mobility screen</span>'+
+    m.innerHTML='<div class="swap-card"><div class="swap-head"><span>'+ffIcon("compass",16)+' Mobility screen</span>'+
       '<button class="swap-x" id="mobX" type="button" aria-label="Close">×</button></div><div class="swap-body" id="mobBody"></div></div>';
     document.body.appendChild(m);
     m.addEventListener("click", function(e){
@@ -3547,16 +3583,16 @@
         : (topLast ? 'Last time’s top: <b>'+topLast+' lb</b> — beat the reps, then the load follows.' : 'First time — find a weight you can own with 2 reps in reserve.');
       var whyOpen=!!(player.whyOpen && player.whyOpen[st.xi]);
       var acts='<div class="pl-acts">'+
-        '<button type="button" class="'+(whyOpen?'on':'')+'" data-plwhy="'+st.xi+'">🛈 Why</button>'+
-        '<button type="button" data-exhist="'+escAttr(x.name)+'">📊 History</button>'+
-        '<button type="button" data-plswap="'+st.xi+'">⇄ Swap</button>'+
+        '<button type="button" class="'+(whyOpen?'on':'')+'" data-plwhy="'+st.xi+'">'+ffIcon("info",13)+' Why</button>'+
+        '<button type="button" data-exhist="'+escAttr(x.name)+'">'+ffIcon("history",13)+' History</button>'+
+        '<button type="button" data-plswap="'+st.xi+'">'+ffIcon("swap",13)+' Swap</button>'+
         '</div>';
       var whyBox=whyOpen
         ? '<div class="pl-whybox">'+liftWhy(x.name).why+
-          '<br><button type="button" class="pl-howto" data-plhowto="'+escAttr(x.name)+'">▶ How to do it · muscles &amp; form</button></div>'
+          '<br><button type="button" class="pl-howto" data-plhowto="'+escAttr(x.name)+'">'+ffIcon("play",12)+' How to do it · muscles &amp; form</button></div>'
         : '';
       return '<div class="pl-skick">Lift '+(st.xi+1)+' of '+player.sess.ex.length+'</div>'+
-        '<div class="pl-exname">'+purposeFor(x.name)+' '+x.name+'</div>'+
+        '<div class="pl-exname">'+ffPurposeIc(x.name,17)+' '+x.name+'</div>'+
         '<span class="pl-target">'+x.target+'</span>'+
         '<span class="pl-target dim">'+(purposeFor(x.name)==="⚡"?"max intent · full rest":effortNote(x.target))+'</span>'+
         '<div class="pl-presc">'+prescLine+'</div>'+
@@ -3591,7 +3627,7 @@
       '<div class="pl-cue" style="text-align:center">'+(prs.length?'Force is the raw material for clubhead speed — that PR is yards in the bank.':'Consistency is the biggest lever on your Octane. Session banked.')+'</div>'+
       '<textarea class="pl-notes" id="plNote" rows="2" maxlength="240" placeholder="Session notes — sleep, energy, aches… (saved with the workout)">'+lbEsc(player.sess.note||"")+'</textarea>'+
       '<button class="pl-share" data-pladdlift="1" style="border-color:rgba(255,255,255,.25);color:#dff1e4;">＋ Add one more lift</button>'+
-      '<button class="pl-share" data-plshare="1">📤 Share this session</button>'+
+      '<button class="pl-share" data-plshare="1">'+ffIcon("share",15)+' Share this session</button>'+
       '</div>';
   }
   function plRender(){
@@ -3999,7 +4035,7 @@
   function renderScoreCard(compact){
     var r = ffScore(); saveScoreSnapshot(r);
     var top = '<div class="ffscore-top">'+octaneGaugeHtml(r.score)+
-      '<div class="ffscore-head"><h3>⛽ OCTANE</h3>'+
+      '<div class="ffscore-head"><h3>'+ffIcon("gauge",15)+' OCTANE</h3>'+
       '<p class="ff-sum">'+ffScoreSummary(r)+'</p></div></div>';
     if(compact){
       return '<button class="ffscore ffscore-compact" data-goview="progress">'+top+
@@ -4236,7 +4272,7 @@
         var started=!!(sess && (sess.ex||[]).some(function(x){ return (x.sets||[]).some(function(st){ return st.w||st.r||st.done; }); }));
         return '<button type="button" class="nu-card" data-startplayer="'+escAttr(d.name)+'"><span class="nu-go">›</span>'+
           '<div class="nu-kick">Next up · Week '+wk+' · '+WAVES[waveFor(wk)].label+'</div>'+
-          '<div class="nu-title">'+(started?'Resume: ':'▶ ')+d.name.replace(/^Day \d+ — /,"")+'</div>'+
+          '<div class="nu-title">'+(started?'Resume: ':ffIcon("play",13)+' ')+d.name.replace(/^Day \d+ — /,"")+'</div>'+
           '<div class="nu-sub">'+(started?'Picking up right where you left off — everything’s saved.':'Guided player — warm-up, prescribed loads, rest timer.')+'</div></button>';
       }
     }
@@ -4276,7 +4312,7 @@
         '<span class="tl-ic">'+ic+'</span><span class="tl-tx"><span class="tl-t">'+t+'</span><span class="tl-s">'+sub+'</span></span>'+
         (opts.attr?'<span class="tl-go">›</span>':'')+'</button></div>';
     }
-    var h='<div class="tl"><div class="tl-h">📅 Your day</div>';
+    var h='<div class="tl"><div class="tl-h">'+ffIcon("calendar",13)+' Your day</div>';
     h+=item("AM","⚖️","Morning weigh-in", weighed?("Logged — "+row.w+" lb ✓"):"Same scale, same time — feeds your trend & Octane",
       { done:weighed, now:!weighed && nowH<11, attr:' data-qopen="1"' });
     var preIdx=-1, postIdx=-1;
@@ -4805,7 +4841,7 @@
     return '<div class="scorecard"><div class="sc-head"><span class="sc-t">🗒️ Sunday Scorecard</span><span class="sc-sub">Week '+curWeek()+' · Mon–Sun</span></div>'+
       '<div class="sc-grid">'+rows.map(function(r){
         return '<div class="sc-row"><span class="sc-hole">'+r.h+'</span><span class="sc-name">'+r.n+'</span><span class="sc-val">'+r.v+'</span>'+r.chip+'</div>'; }).join("")+'</div>'+
-      '<button type="button" class="sc-share" data-scshare="1">📤 Share this week’s card</button></div>';
+      '<button type="button" class="sc-share" data-scshare="1">'+ffIcon("share",14)+' Share this week’s card</button></div>';
   }
   function shareScorecard(){
     var c=weekCard();
@@ -5255,9 +5291,9 @@
         '<div class="qsheet-h">Quick log</div>'+
         quickLogHtml("q","Weight, 7-iron &amp; driver feed your trends, Octane and the board.")+
         '<div class="qsheet-acts">'+
-        (train?('<button type="button" class="qsheet-act" data-startplayer="'+escAttr(d.name)+'">🏋️ <span>Start today’s workout<span class="qa-sub">'+d.name.replace(/^Day \d+ — /,"")+' · guided player</span></span><span class="qa-go">›</span></button>'):'')+
-        '<button type="button" class="qsheet-act" data-speedtest="1">🎯 <span>Speed test<span class="qa-sub">3 max swings — best one counts</span></span><span class="qa-go">›</span></button>'+
-        '<button type="button" class="qsheet-act" data-mobscreen="1">🧭 <span>Mobility screen<span class="qa-sub">3 moves · ~3 minutes</span></span><span class="qa-go">›</span></button>'+
+        (train?('<button type="button" class="qsheet-act" data-startplayer="'+escAttr(d.name)+'">'+ffIcon("barbell",18)+'<span>Start today’s workout<span class="qa-sub">'+d.name.replace(/^Day \d+ — /,"")+' · guided player</span></span><span class="qa-go">›</span></button>'):'')+
+        '<button type="button" class="qsheet-act" data-speedtest="1">'+ffIcon("target",18)+'<span>Speed test<span class="qa-sub">3 max swings — best one counts</span></span><span class="qa-go">›</span></button>'+
+        '<button type="button" class="qsheet-act" data-mobscreen="1">'+ffIcon("compass",18)+'<span>Mobility screen<span class="qa-sub">3 moves · ~3 minutes</span></span><span class="qa-go">›</span></button>'+
         '</div></div>';
       sheet.hidden=false; document.body.style.overflow="hidden";
     }

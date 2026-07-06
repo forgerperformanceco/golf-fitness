@@ -37,7 +37,7 @@
         ? ' · <button class="il-up" data-deloadfill="'+xi+'" title="Fill every set with ~60% of last time’s top weight">🪫 fill deload loads — tap</button>'
         : (ready ? ' · <button class="il-up" data-bumpfill="'+xi+'" title="Fill last time’s weight + '+incNum(x.name)+' lb">↑ add '+incNum(x.name)+' lb — tap to fill</button>' : '');
       html+='<div class="il-ex">'+
-        '<div class="il-exhead"><span class="il-name">'+purposeFor(x.name)+' '+x.name+'</span>'+
+        '<div class="il-exhead"><span class="il-name">'+ffPurposeIc(x.name)+' '+x.name+'</span>'+
           '<div class="il-acts">'+
             '<button class="il-why'+(openWhy[xi]?" on":"")+'" data-why="'+xi+'" aria-label="Why this lift builds speed">🛈 Why</button>'+
             '<button class="il-why" data-exhist="'+escAttr(x.name)+'" aria-label="Lift history">📊</button>'+
@@ -148,7 +148,7 @@
     var w=liftWhy(name);
     return '<div class="why-why">'+w.why+'</div>'+
       '<div class="why-cue">⚡ <b>Power cue:</b> '+w.cue+'</div>'+
-      '<button class="why-howto" data-howto="'+escAttr(name)+'">▶ How to do it · muscles &amp; form</button>'+
+      '<button class="why-howto" data-howto="'+escAttr(name)+'">'+ffIcon("play",12)+' How to do it · muscles &amp; form</button>'+
       (withCoach!==false ? '<button class="why-coach" data-whycoach="'+escAttr(name)+'">💬 Go deeper with the coach</button>' : '');
   }
   // ---- exercise demo sheet (how-to) ----
@@ -158,7 +158,7 @@
       '<div class="ed-sec"><h4>How to do it</h4><ol class="ed-cues">'+f.cues.map(function(c){return '<li>'+c+'</li>';}).join("")+'</ol></div>'+
       '<div class="ed-sec"><h4>Common mistakes</h4><ul class="ed-miss">'+f.miss.map(function(c){return '<li>'+c+'</li>';}).join("")+'</ul></div>'+
       '<div class="ed-why">⚡ <b>For your swing:</b> '+w.why+'</div>'+
-      '<a class="ed-video" href="'+formVideoUrl(name)+'" target="_blank" rel="noopener">▶ Watch a form video</a>';
+      '<a class="ed-video" href="'+formVideoUrl(name)+'" target="_blank" rel="noopener">'+ffIcon("play",12)+' Watch a form video</a>';
     var b=$("exDemoBody"); if(b) b.innerHTML=html;
     var t=$("exDemoTitle"); if(t) t.textContent=name;
     var mo=$("exDemoModal"); if(mo){ mo.hidden=false; document.body.style.overflow="hidden"; }

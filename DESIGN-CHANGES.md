@@ -341,6 +341,28 @@ moments that matter, all in a new `src/js/app/007-motion.js` + one CSS block.
   the animated path (mid-flight state, settle-at-target, sweep, confetti
   lifecycle, sheet keyframes) and the reduced-motion off-switch.
 
+## 13 · Icon chrome — SVG strokes replace emoji in the controls (premium pass 2a)
+
+The "middle path": emoji stay in coach COPY (personality lives in the words);
+the CHROME — tab bar, headers, buttons, chips — gets a consistent inline-SVG
+stroke set. Why: emoji are rendered by the OS, so the app looked different on
+every device, couldn't be tinted to brand green, and didn't dim in dark mode.
+
+- `src/js/app/006-icons.js`: 15 icons on a 24-unit grid, 2px round stroke,
+  `currentColor` → they inherit text color and theme for free. `ffIcon(name,
+  size, cls)` returns the inline SVG string.
+- Converted chrome: mobile tab bar (home/fuel-pump/barbell/chart/user, inlined
+  in the template), Octane header (gauge), exercise purpose chips everywhere
+  (barbell/dumbbell/bolt/rotate via `ffPurposeIc()` — `purposeFor()` still
+  returns its emoji token because logic compares on it; only the render maps
+  to an icon), every ▶ CTA (filled play triangle — outline read weak at 13px),
+  share buttons, quick-log sheet actions (barbell/target/compass), speed-test
+  and mobility headers, player Why/History/Swap buttons (info/history/swap),
+  fuel streak (flame), "Your day" headers (calendar).
+- Kept as emoji: coach tips, insight copy, wave labels (🔥 INTENSIFY), toasts,
+  recap PR banner (🚀), plate-math hint — anywhere the emoji is part of a
+  sentence rather than a control.
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob

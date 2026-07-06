@@ -93,7 +93,7 @@
     }
     return '<div class="fuel-sum'+(d.rating?' rated-'+d.rating:'')+'">'+
       '<div class="fuel-sum-top"><span class="fuel-sum-t">🍽️ Today’s fuel</span>'+
-      (streak>0?'<span class="fuel-streak">🔥 '+streak+'-day fuel streak</span>':'')+'</div>'+
+      (streak>0?'<span class="fuel-streak">'+ffIcon("flame",13)+' '+streak+'-day fuel streak</span>':'')+'</div>'+
       '<div class="fuel-sum-line">'+line+'</div>'+nums+
       (!d.rating?'<button type="button" class="fuel-numbtn" data-fuelnums="1">'+(fuelNumsOpen?'Hide numbers':'Show the numbers')+'</button>':'')+
       '<div class="frate"><span class="frate-lbl">Ate off-plan?</span>'+
@@ -142,7 +142,7 @@
        '<span class="meal-pick"><span class="meal-pick-lbl">meals/day</span><span class="seg meal-seg">'+opts+'</span></span></div>';
     h+='<div class="meals-body">';
     h+=fuelSummaryHtml(m);
-    h+='<div class="sched-title">📅 Your day &mdash; <b>'+m.n+' meals</b> <span class="rec">('+recTxt+')</span>, portioned for a <b>'+m.slot+'</b> workout</div>';
+    h+='<div class="sched-title">'+ffIcon("calendar",14)+' Your day &mdash; <b>'+m.n+' meals</b> <span class="rec">('+recTxt+')</span>, portioned for a <b>'+m.slot+'</b> workout</div>';
     h+='<div class="sched">'+rows+'</div>';
     h+='<div class="meal-foot">Tap any meal for a food example · times are guides — shift the day to fit your schedule.</div>';
     h+='</div></div>';

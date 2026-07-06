@@ -130,7 +130,7 @@
     return '<div class="scorecard"><div class="sc-head"><span class="sc-t">🗒️ Sunday Scorecard</span><span class="sc-sub">Week '+curWeek()+' · Mon–Sun</span></div>'+
       '<div class="sc-grid">'+rows.map(function(r){
         return '<div class="sc-row"><span class="sc-hole">'+r.h+'</span><span class="sc-name">'+r.n+'</span><span class="sc-val">'+r.v+'</span>'+r.chip+'</div>'; }).join("")+'</div>'+
-      '<button type="button" class="sc-share" data-scshare="1">📤 Share this week’s card</button></div>';
+      '<button type="button" class="sc-share" data-scshare="1">'+ffIcon("share",14)+' Share this week’s card</button></div>';
   }
   function shareScorecard(){
     var c=weekCard();
@@ -580,9 +580,9 @@
         '<div class="qsheet-h">Quick log</div>'+
         quickLogHtml("q","Weight, 7-iron &amp; driver feed your trends, Octane and the board.")+
         '<div class="qsheet-acts">'+
-        (train?('<button type="button" class="qsheet-act" data-startplayer="'+escAttr(d.name)+'">🏋️ <span>Start today’s workout<span class="qa-sub">'+d.name.replace(/^Day \d+ — /,"")+' · guided player</span></span><span class="qa-go">›</span></button>'):'')+
-        '<button type="button" class="qsheet-act" data-speedtest="1">🎯 <span>Speed test<span class="qa-sub">3 max swings — best one counts</span></span><span class="qa-go">›</span></button>'+
-        '<button type="button" class="qsheet-act" data-mobscreen="1">🧭 <span>Mobility screen<span class="qa-sub">3 moves · ~3 minutes</span></span><span class="qa-go">›</span></button>'+
+        (train?('<button type="button" class="qsheet-act" data-startplayer="'+escAttr(d.name)+'">'+ffIcon("barbell",18)+'<span>Start today’s workout<span class="qa-sub">'+d.name.replace(/^Day \d+ — /,"")+' · guided player</span></span><span class="qa-go">›</span></button>'):'')+
+        '<button type="button" class="qsheet-act" data-speedtest="1">'+ffIcon("target",18)+'<span>Speed test<span class="qa-sub">3 max swings — best one counts</span></span><span class="qa-go">›</span></button>'+
+        '<button type="button" class="qsheet-act" data-mobscreen="1">'+ffIcon("compass",18)+'<span>Mobility screen<span class="qa-sub">3 moves · ~3 minutes</span></span><span class="qa-go">›</span></button>'+
         '</div></div>';
       sheet.hidden=false; document.body.style.overflow="hidden";
     }

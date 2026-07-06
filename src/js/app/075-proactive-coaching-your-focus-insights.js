@@ -128,7 +128,7 @@
         var started=!!(sess && (sess.ex||[]).some(function(x){ return (x.sets||[]).some(function(st){ return st.w||st.r||st.done; }); }));
         return '<button type="button" class="nu-card" data-startplayer="'+escAttr(d.name)+'"><span class="nu-go">›</span>'+
           '<div class="nu-kick">Next up · Week '+wk+' · '+WAVES[waveFor(wk)].label+'</div>'+
-          '<div class="nu-title">'+(started?'Resume: ':'▶ ')+d.name.replace(/^Day \d+ — /,"")+'</div>'+
+          '<div class="nu-title">'+(started?'Resume: ':ffIcon("play",13)+' ')+d.name.replace(/^Day \d+ — /,"")+'</div>'+
           '<div class="nu-sub">'+(started?'Picking up right where you left off — everything’s saved.':'Guided player — warm-up, prescribed loads, rest timer.')+'</div></button>';
       }
     }
@@ -168,7 +168,7 @@
         '<span class="tl-ic">'+ic+'</span><span class="tl-tx"><span class="tl-t">'+t+'</span><span class="tl-s">'+sub+'</span></span>'+
         (opts.attr?'<span class="tl-go">›</span>':'')+'</button></div>';
     }
-    var h='<div class="tl"><div class="tl-h">📅 Your day</div>';
+    var h='<div class="tl"><div class="tl-h">'+ffIcon("calendar",13)+' Your day</div>';
     h+=item("AM","⚖️","Morning weigh-in", weighed?("Logged — "+row.w+" lb ✓"):"Same scale, same time — feeds your trend & Octane",
       { done:weighed, now:!weighed && nowH<11, attr:' data-qopen="1"' });
     var preIdx=-1, postIdx=-1;
