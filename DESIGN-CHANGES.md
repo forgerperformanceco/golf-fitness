@@ -382,6 +382,29 @@ Octane metaphor).
   sizes bumped (58→66px hero, 34→38 gauge, etc.) so the narrower face keeps
   its presence.
 
+## 15 · One-sheet interaction model — drag physics on every overlay (premium pass 3a)
+
+Every bottom sheet in the app now responds to touch the way a native app does:
+grab the header, the card follows your finger (scrim dims proportionally),
+flick or drag past ~30% and it dismisses with momentum, release early and it
+springs back. The drag handle pill appears on every sheet head.
+
+- `src/js/app/008-sheets.js` — one pointer-event controller covers all three
+  overlay shells: the `.swap-card` family (swaps, add-lift, exercise history,
+  demos, speed test, mobility, food prefs, week plan), the workout-logger
+  `.modal`, and the quick-log `.qsheet-card`.
+- Key design decision: dismissal ends with a synthetic click on the sheet's
+  scrim — every overlay already closes on `e.target === root` — so each
+  feature's own cleanup (body scroll locks, state resets, re-renders) runs
+  untouched. Zero rewrites of feature open/close code.
+- Drag starts only from the header/handle (never content), so scrolling sheet
+  bodies never fights the gesture; `touch-action:none` on heads hands the
+  vertical gesture to the controller. Buttons in heads (×) still tap.
+- The Workout Player is deliberately NOT draggable — it's a mode, not a panel.
+- test-sheets.mjs: flick dismisses + style/scroll-lock cleanup, small drag
+  snaps back, drag close runs feature close paths, × and scrim-tap unchanged,
+  handle pill rendered, `.modal` shell drags too.
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob
