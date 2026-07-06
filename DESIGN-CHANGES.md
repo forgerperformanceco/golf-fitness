@@ -488,6 +488,26 @@ close, and still check it off. The macros are the assignment, not the menu.
 Shuffle deals another day." Keeps the adherence model honest: ✓ means "I ate
 this or its equivalent," which is exactly how the scoring treats it.
 
+## 22 · Fuel-day cleanup — time order, one reference fold, one reward (user-reported)
+
+User: workout snacks out of order on the sample menu; the daily success
+experience needed tightening. Three fixes:
+
+- **The example day renders in schedule order** — the day as you'll live it
+  (pre-workout before breakfast on a morning-training day), each meal stamped
+  with its planned time. Was: the food generator's build order.
+- **The recovery meal anchors to the actual post-workout slot** from the
+  schedule (morning lifters recover at breakfast, evening lifters at dinner)
+  instead of a fixed position in the meal list — composition (fast carbs) and
+  the "post-workout recovery" tag now land on the right meal.
+- **The carb-timing block folds to one line** ("🕒 Carb timing · 60g pre ·
+  120g post") once the user has built the day from their foods — the same
+  info is embedded in the meal order and tags; stays expanded for new users.
+- **"✓ Day banked"**: when every meal is checked (or the day is rated
+  on/close), training or recovery is done, and the weigh-in is logged, the
+  Home timeline's meals chip becomes the day's completion marker and links to
+  Progress.
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob
