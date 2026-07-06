@@ -442,19 +442,15 @@
     var big=null, hist=lsGet("ff_history",[])||[], vol=0;
     hist.forEach(function(h){ vol+=(h.volume||0); if(h.volume && (!big || h.volume>big.v)) big={v:h.volume, d:h.date||""}; });
     if(big) rows.push({ ic:"🔥", lb:"Biggest session", v:big.v, u:"lb", d:big.d, loc:true });
-    var inner;
-    if(!rows.length){
-      inner='<div class="pc-need">Every PR you set — heaviest e1RM, fastest swing, longest drive, biggest session — gets a spot on this wall. Go set the first one.</div>';
-    } else {
-      inner='<div class="prw">'+rows.map(function(r){
+    if(!rows.length) return '';   // the Stats "unlocks" strip advertises the wall instead
+    var inner='<div class="prw">'+rows.map(function(r){
         return '<div class="prw-r"><span class="prw-ic">'+r.ic+'</span><span class="prw-lb">'+lbEsc(r.lb)+'</span>'+
           '<span class="prw-v"><b>'+(r.loc?r.v.toLocaleString():r.v)+'</b> '+r.u+'</span>'+
           '<span class="prw-d">'+lbEsc(String(r.d||"").replace(/, \d{4}$/,''))+'</span></div>';
       }).join("")+'</div>';
-      if(hist.length) inner+='<div class="prw-tot">Lifetime: <b>'+vol.toLocaleString()+'</b> lb moved · <b>'+hist.length+'</b> session'+(hist.length===1?'':'s')+' banked</div>';
-    }
+    if(hist.length) inner+='<div class="prw-tot">Lifetime: <b>'+vol.toLocaleString()+'</b> lb moved · <b>'+hist.length+'</b> session'+(hist.length===1?'':'s')+' banked</div>';
     return pfCard('prwall','🏆 PR Wall',
-      (rows.length?'<span class="pc-delta up">▲ '+rows.length+' bests</span>':''), inner);
+      '<span class="pc-delta up">▲ '+rows.length+' bests</span>', inner);
   }
 
   // Reorder the session: a sheet listing today's lifts — drag a row (or use the

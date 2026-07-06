@@ -903,6 +903,16 @@
   .pcard.pf-closed .pc-t{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
   .pcard.season .pf-num, .pcard.season .pf-sub{ color:#bfe3cd; }
   .lb-seg-top{ margin:2px 0 10px; }
+  /* "Unlocks as you log" — the one quiet home for everything not yet earned. */
+  .pcard.unlk{ border-style:dashed; background:transparent; box-shadow:none; }
+  .unlk-r{ display:flex; align-items:center; gap:11px; width:100%; text-align:left; background:none;
+    border:0; border-bottom:1px solid var(--line); padding:9px 2px; cursor:pointer; font:inherit; }
+  .unlk-r:last-child{ border-bottom:0; }
+  .unlk-r:disabled{ cursor:default; }
+  .unlk-ic{ font-size:16px; flex:0 0 auto; }
+  .unlk-tx{ flex:1; min-width:0; }
+  .unlk-tx b{ display:block; font-size:13.5px; color:var(--green-800); }
+  .unlk-tx span{ display:block; font-size:12px; color:var(--muted); line-height:1.35; }
   .pc-delta { font:800 12px system-ui; padding:3px 9px; border-radius:999px; white-space:nowrap; }
   .pc-delta.up { background:#e6f6ec; color:#15803d; }
   .pc-delta.down { background:#fdeaea; color:#c0392b; }
