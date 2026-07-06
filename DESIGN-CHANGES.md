@@ -825,6 +825,31 @@ zero findings; light + dark screenshots reviewed; zero page errors.
 Gotcha re-learned: Stats trend cards (course card included) sit behind the
 `hasAny` gate — seeds need a body/log entry.
 
+## 42 · Calm pass A — Home answers one question (user's friend: "a lot of info all at once")
+
+**Why.** Outside feedback: the app isn't unintuitive because features are
+wrong — every tab opens with everything it knows, so nothing reads as the
+priority. Fix is progressive disclosure, not removal. Pass A of three
+(Home → Stats → empty states).
+
+**What.** `timelineHtml()` rebuilt on an entries model:
+- **Done items fold** into one dashed "✓ N banked · show" pill (tap toggles;
+  session-only state, so the calm default returns each visit).
+- **Exactly one full card** — the first undone item in time order (the
+  "what do I do right now?" answer) — keeps its subtitle and the pulsing
+  `now` dot.
+- **Everything else goes slim**: time + icon + title + chevron, one line.
+  Same `data-` attributes on every row, so slim meals still check off with
+  one tap (verified: tap moves the row into the pill count and re-renders).
+
+CSS: `.tl-donepill`, `.tl-item.slim` compact variants; dark theme
+regenerated. No data or handler changes — pure ink reduction.
+
+**Verified** (test-calm-home.mjs): default = 1 full/`now` card + slim rest +
+pill; pill toggles done rows in/out; slim meal tap banks it; zero page
+errors; 390×844 light+dark screenshots reviewed. (Test-seed gotcha: profile
+`goal` must be a real GOALS key — 'leanbulk', not 'lean'.)
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob

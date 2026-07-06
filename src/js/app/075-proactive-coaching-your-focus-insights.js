@@ -150,6 +150,9 @@
       '<div class="nu-kick">Next up</div><div class="nu-title">Today is banked ✓</div>'+
       '<div class="nu-sub">Session done. Eat to your targets and let it build — tomorrow’s plan is ready.</div></button>';
   }
+  // Calm-pass state: whether the "✓ N banked" pill is expanded (session-only —
+  // the fold resets each visit, which is the calm default).
+  var tlShowDone=false;
   function timelineHtml(){
     if(!planStart()) return '';
     var hour=FF_SLOT_HOUR[(typeof state!=="undefined" && state.workout)||"morning"]||17;
@@ -160,14 +163,25 @@
     var d=todaySlot(), train=d && d.type!=="rest";
     var sess=train?getSession(curWeek(), d.name):null, trained=!!(sess && sess.finishedAt);
     var restDoneToday=(d && d.type==="rest")?restDone(curWeek(), dayKey(d)):false;
-    function item(when, ic, t, sub, opts){
-      opts=opts||{};
-      return '<div class="tl-item'+(opts.done?" done":"")+(opts.now?" now":"")+'">'+
-        '<div class="tl-when">'+when+'</div><div class="tl-rail"><span class="tl-dot"></span></div>'+
-        '<button type="button" class="tl-card"'+(opts.attr||' disabled')+'>'+
-        '<span class="tl-ic">'+ic+'</span><span class="tl-tx"><span class="tl-t">'+t+'</span><span class="tl-s">'+sub+'</span></span>'+
-        (opts.attr?'<span class="tl-go">›</span>':'')+'</button></div>';
+    // The full card (used for exactly ONE row — the next thing to do) and the
+    // slim row (everything else). Same tap targets and data- attributes either
+    // way; the calm pass only changes how much ink each row gets.
+    function full(e, now){
+      return '<div class="tl-item'+(e.done?" done":"")+(now?" now":"")+'">'+
+        '<div class="tl-when">'+e.when+'</div><div class="tl-rail"><span class="tl-dot"></span></div>'+
+        '<button type="button" class="tl-card"'+(e.attr||' disabled')+'>'+
+        '<span class="tl-ic">'+e.ic+'</span><span class="tl-tx"><span class="tl-t">'+e.t+'</span><span class="tl-s">'+e.sub+'</span></span>'+
+        (e.attr?'<span class="tl-go">›</span>':'')+'</button></div>';
     }
+    function slim(e){
+      return '<div class="tl-item slim'+(e.done?" done":"")+'">'+
+        '<div class="tl-when">'+e.when+'</div><div class="tl-rail"><span class="tl-dot"></span></div>'+
+        '<button type="button" class="tl-card"'+(e.attr||' disabled')+'>'+
+        '<span class="tl-ic">'+e.ic+'</span><span class="tl-tx"><span class="tl-t">'+e.t+'</span></span>'+
+        (e.attr?'<span class="tl-go">›</span>':'')+'</button></div>';
+    }
+    function entry(min, when, ic, t, sub, o){ o=o||{};
+      return { min:min, when:when, ic:ic, t:t, sub:sub, attr:o.attr, done:!!o.done }; }
     var fdT=fuelDay(ffISO())||{ m:{} };
     // The full daily checklist: EVERY meal from today's plan is a one-tap
     // check-off here, time-sorted around the training block — the fuel loop
@@ -185,17 +199,18 @@
           ffIcon("gauge",12)+' '+nDone+'/'+ffSchedule.length+' fueled</button>';
       }
     }
-    var h='<div class="tl"><div class="tl-h"><span>'+ffIcon("calendar",13)+' Your day</span>'+fuelChip+'</div>';
-    h+=item("AM","⚖️","Morning weigh-in", weighed?("Logged — "+row.w+" lb ✓"):"Same scale, same time — feeds your trend & Octane",
-      { done:weighed, now:!weighed && nowH<11, attr:' data-qopen="1"' });
-    var evts=[];
+    var entries=[];
+    entries.push(entry(7*60,"AM","⚖️","Morning weigh-in",
+      weighed?("Logged — "+row.w+" lb ✓"):"Same scale, same time — feeds your trend & Octane",
+      { done:weighed, attr:' data-qopen="1"' }));
     if(train){
-      evts.push({ min:hour*60, html:item(fmtMin(hour*60),"🏋️",d.name.replace(/^Day \d+ — /,""),
+      entries.push(entry(hour*60, fmtMin(hour*60),"🏋️",d.name.replace(/^Day \d+ — /,""),
         trained?"Done — banked to history":(WAVES[waveFor(curWeek())].label+" week · guided player"),
-        { attr:' data-startplayer="'+escAttr(d.name)+'"', done:trained, now:!trained && Math.abs(nowH-hour)<=2 }) });
+        { attr:' data-startplayer="'+escAttr(d.name)+'"', done:trained }));
     } else if(d){
-      evts.push({ min:12*60, html:item(fmtMin(12*60),"🌱","Active recovery", restDoneToday?"Recovery logged":"Walk 9, mobility flow, foam roll — growth day",
-        { attr:' data-nurest="'+escAttr(dayKey(d))+'"', done:restDoneToday, now:!restDoneToday }) });
+      entries.push(entry(12*60, fmtMin(12*60),"🌱","Active recovery",
+        restDoneToday?"Recovery logged":"Walk 9, mobility flow, foam roll — growth day",
+        { attr:' data-nurest="'+escAttr(dayKey(d))+'"', done:restDoneToday }));
     }
     if(ffSchedule && ffSchedule.length){
       ffSchedule.forEach(function(sl,i){
@@ -203,30 +218,46 @@
         var mins=(sl.t!=null)? Math.round(sl.t*60) : (9+i*3)*60;
         var ic=(sl.kind==="pre"||sl.isPre)?"🍚":(sl.isPost?"🥤":"🍽️");
         var macro=(sl.p?sl.p+"P":"")+(sl.c?((sl.p?" · ":"")+sl.c+"C"):"");
-        evts.push({ min:mins, html:item(fmtMin(mins), ic, sl.label,
+        entries.push(entry(mins, fmtMin(mins), ic, sl.label,
           done?"Banked ✓ — tap to undo":(macro?macro+" — tap when eaten":"Tap when eaten"),
-          { attr:' data-fuelmeal="'+i+'" data-fuelval="a"', done:done }) });
+          { attr:' data-fuelmeal="'+i+'" data-fuelval="a"', done:done }));
       });
     } else if(train){
       // No meal plan built yet — keep generic fuel guidance rows.
-      evts.push({ min:(hour-1)*60, html:item(fmtMin((hour-1)*60),"🍚","Pre-workout fuel",
-        "Carbs + lean protein ~60–90 min out", { attr:' data-goview="calc"', done:trained || nowH>hour }) });
-      evts.push({ min:(hour+1)*60, html:item(fmtMin((hour+1)*60),"🥤","Post-workout meal",
-        "Protein + fast carbs within ~45 min", { attr:' data-goview="calc"', done:trained && nowH>hour+1 }) });
+      entries.push(entry((hour-1)*60, fmtMin((hour-1)*60),"🍚","Pre-workout fuel",
+        "Carbs + lean protein ~60–90 min out", { attr:' data-goview="calc"', done:trained || nowH>hour }));
+      entries.push(entry((hour+1)*60, fmtMin((hour+1)*60),"🥤","Post-workout meal",
+        "Protein + fast carbs within ~45 min", { attr:' data-goview="calc"', done:trained && nowH>hour+1 }));
     }
-    evts.sort(function(a,b){ return a.min-b.min; });
-    h+=evts.map(function(e){ return e.html; }).join("");
     var rd=(typeof roundToday==="function")?roundToday():null;
     if(rd){
-      h+=item("Any","⛳","Round banked ✓",
+      entries.push(entry(24*60,"Any","⛳","Round banked ✓",
         [(rd.score!=null?("shot "+rd.score):null),(rd.drive?(Math.round(rd.drive)+" yd bomb"):null),(rd.energy==="strong"?"finished strong":null)].filter(Boolean).join(" · ")||"tap to edit",
-        { attr:' data-roundlog="1"', done:true });
+        { attr:' data-roundlog="1"', done:true }));
     } else {
-      h+=item("Any","⛳","Playing a round?","Plan it — and log how it went after",{ attr:' data-goview="gameday"' });
+      entries.push(entry(24*60+1,"Any","⛳","Playing a round?","Plan it — and log how it went after",{ attr:' data-goview="gameday"' }));
     }
+    entries.sort(function(a,b){ return a.min-b.min; });
+    // Calm layout: everything done folds into one pill; the FIRST undone item
+    // gets the full card ("what do I do right now?"); the rest of the day is
+    // slim one-line rows — same taps, a fraction of the ink.
+    var doneList=entries.filter(function(e){ return e.done; });
+    var pending=entries.filter(function(e){ return !e.done; });
+    var h='<div class="tl"><div class="tl-h"><span>'+ffIcon("calendar",13)+' Your day</span>'+fuelChip+'</div>';
+    if(doneList.length){
+      h+='<button type="button" class="tl-donepill" data-tldone="1">✓ '+doneList.length+' banked'+
+        '<span>'+(tlShowDone?'hide':'show')+'</span></button>';
+      if(tlShowDone) h+=doneList.map(slim).join("");
+    }
+    pending.forEach(function(e,i){ h+= i===0 ? full(e, true) : slim(e); });
     h+='</div>';
     return h;
   }
+  document.addEventListener("click", function(e){
+    if(!e.target.closest("[data-tldone]")) return;
+    tlShowDone=!tlShowDone;
+    try{ renderDash(); }catch(_){}
+  });
   function renderDash(){
     var el=$("dashBody"); if(!el) return;
     var html = renderHeroCard();     // where you stand: driver carry + Octane
