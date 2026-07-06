@@ -539,6 +539,15 @@ header wrapped the meals/day picker onto a second row inside the gradient.
 - Testing note: layout verified at 390×844 dark — the owner's actual viewing
   conditions — not just the 420px harness default.
 
+## 25 · "Today's fuel" gutter fix (user-reported)
+
+The card carried its own 14px side margins on top of the meals body's 16px
+padding — inset 30px while the example-day fold sat at 16px, so it read as a
+small box floating inside a box. Leftover spacing from the container it was
+originally designed in. Side margins zeroed to share the fold's gutter,
+padding evened, and the status line ("4 of 5 down…") bumped to 14.5px — it is
+the tab's primary readout.
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob

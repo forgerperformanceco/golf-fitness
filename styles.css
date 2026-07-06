@@ -1446,14 +1446,14 @@
     border-radius:13px; color:#e9f5ec; font:600 14px/1.5 inherit; font-family:inherit; padding:12px 13px; resize:none; outline:none; }
   .pl-notes::placeholder{ color:#87a893; }
   /* fuel check-off */
-  .fuel-sum{ margin:12px 14px 4px; padding:13px 14px; border-radius:14px; background:#f2f8f4; border:1px solid #d5e8db; }
+  .fuel-sum{ margin:12px 0 4px; padding:15px; border-radius:14px; background:#f2f8f4; border:1px solid #d5e8db; }
   .fuel-sum.rated-on{ background:#e9f8ee; border-color:#bfe0c8; }
   .fuel-sum.rated-close{ background:#fff6e3; border-color:#edd9a8; }
   .fuel-sum.rated-off{ background:#fdf0ee; border-color:#eccfc9; }
   .fuel-sum-top{ display:flex; justify-content:space-between; align-items:baseline; gap:10px; }
   .fuel-sum-t{ font-weight:900; font-size:14.5px; color:#123f28; }
   .fuel-streak{ font-size:12.5px; font-weight:800; color:#8a5a08; }
-  .fuel-sum-line{ margin-top:5px; font-size:13.5px; line-height:1.5; color:#33564a; }
+  .fuel-sum-line{ margin-top:6px; font-size:14.5px; line-height:1.5; color:#33564a; }
   .fuel-nums{ margin-top:7px; font-size:13.5px; color:#123f28; }
   .fuel-numbtn{ margin-top:8px; border:0; background:none; color:#16a34a; font-weight:800; font-size:12.5px;
     cursor:pointer; padding:6px 4px; margin-left:-4px; text-decoration:underline; text-underline-offset:2px; }
