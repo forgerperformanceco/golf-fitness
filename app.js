@@ -1413,7 +1413,8 @@
           [3,4,5,6].map(function(n){ return '<button type="button" data-meals="'+n+'"'+((t.m||4)===n?' class="active"':'')+'>'+n+'</button>'; }).join("")+
         '</span></span></div><div class="meals-body">';
       try{ if(lastMealPlan && lastMealPlan.meal) html+=fuelSummaryHtml(lastMealPlan.meal); }catch(e){}
-      html+='<div class="sched-title">'+ffIcon("calendar",14)+' Your day — <b>'+(t.m||4)+' meals</b>, built around <b>foods you love</b></div>';
+      html+='<div class="sched-title">'+ffIcon("calendar",14)+' An example day — <b>'+(t.m||4)+' meals</b> from <b>foods you love</b></div>'+
+        '<div class="sched-sample">This is a <b>sample</b> that hits your numbers — eat it as written or anything close, and still check it off. The macros are the assignment, not the menu. <b>Shuffle</b> deals another day.</div>';
       var fdNow=fuelDay(ffISO())||{ m:{} };
       plan.slots.forEach(function(s,k){
         var si=schedIdx[k], v=(si>=0&&fdNow.m)?fdNow.m[si]:null;
