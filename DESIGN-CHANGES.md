@@ -539,6 +539,25 @@ header wrapped the meals/day picker onto a second row inside the gradient.
 - Testing note: layout verified at 390×844 dark — the owner's actual viewing
   conditions — not just the 420px harness default.
 
+## 25 · "Today's fuel" gutter fix (user-reported)
+
+The card carried its own 14px side margins on top of the meals body's 16px
+padding — inset 30px while the example-day fold sat at 16px, so it read as a
+small box floating inside a box. Leftover spacing from the container it was
+originally designed in. Side margins zeroed to share the fold's gutter,
+padding evened, and the status line ("4 of 5 down…") bumped to 14.5px — it is
+the tab's primary readout.
+
+## 26 · Count labels: the pre-workout snack is not a "meal" (user-reported)
+
+With 4 meals/day the schedule has 5 check slots (the pre-workout snack is its
+own slot), and every count said "meals" — technically wrong, as the owner
+noted. The snack SHOULD count toward the day (it's fueling you check off);
+the labels now say what's being counted:
+- Home chip: "2/5 fueled" (was "2/5 meals")
+- Example-day fold: "4 meals + pre · 2 ✓"
+- The summary's "4 of 5 down" is unit-less and stays.
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob
