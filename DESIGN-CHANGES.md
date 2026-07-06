@@ -508,6 +508,22 @@ experience needed tightening. Three fixes:
   Home timeline's meals chip becomes the day's completion marker and links to
   Progress.
 
+## 23 · Fold swap — timing expanded, example day collapsed (owner's call, correct)
+
+§22 folded the carb-timing block and left the meal list expanded. The owner
+flipped it, and he's right: what earns permanent screen space is what changes
+behavior TODAY. The pre/post carb block is the daily actionable (short, tied
+to training time); the sample menu is reference material (long, read once).
+
+- Timing block: always expanded again.
+- "An example day" is now a collapsed fold containing the sample note, the
+  time-ordered meal cards (checks inside), day totals, the shopping fold and
+  the Shuffle/Coach/Week/Edit actions. Its header carries live progress —
+  "4 meals · from your foods · 2 ✓" — so it reads as a checklist even closed.
+- "Today's fuel" (status line + 3 rating chips) stays visible above the fold.
+- Division of labor is now clean: HOME is where you live the day (timeline
+  check-offs), FUEL is where you manage and review it.
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob
