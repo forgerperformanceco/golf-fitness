@@ -435,6 +435,26 @@ Fix: one document-level delegated navigator next to `setView()` — any
 dashboard-local duplicate removed. Lesson recorded: feature-local click
 listeners quietly don't compose — cross-view actions belong on `document`.
 
+## 18 · The whole day on Home — every meal is a checklist row (user request)
+
+User: "shouldn't the macro check-off be on the Home screen in the daily
+checklist?" Yes — the daily loop lives on Home; switching to the Fuel tab to
+check meals broke it.
+
+- The "Your day" timeline now renders EVERY meal from today's plan
+  (`ffSchedule`) as a one-tap check-off row at its planned time — label,
+  protein/carb line, "tap when eaten" → "Banked ✓ — tap to undo" — time-sorted
+  around the weigh-in and training block. Rest days get the meal rows too
+  (fuel matters most on growth days).
+- A "N/M meals" chip sits in the timeline header (gauge icon, fills green when
+  complete) and jumps to the Fuel tab — which remains the detail view:
+  numbers-on-tap, off-plan day rating, streak.
+- Same `data-fuelmeal` indices and `ff_fuel` writes as the Fuel tab — the two
+  surfaces are views over one store, verified in-sync both directions.
+- Schedule slots now carry raw time (`t`, hours) so the timeline can sort;
+  when no meal plan has been built yet, the old generic pre/post guidance rows
+  remain as the fallback.
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob
