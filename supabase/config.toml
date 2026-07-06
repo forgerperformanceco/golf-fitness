@@ -20,3 +20,9 @@ verify_jwt = false
 # OWN auth — reads the Bearer token, calls getUser, and 401s if it's missing or
 # invalid — so account deletion is still fully protected.
 verify_jwt = false
+
+[functions.push-daily]
+# Called server-to-server by pg_cron with the anon key + an x-cron-secret
+# header the function checks itself, so the gateway JWT check stays off —
+# same pattern as paddle-webhook.
+verify_jwt = false
