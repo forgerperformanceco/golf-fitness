@@ -576,7 +576,7 @@
       '<button data-planview="week"'+(mode==="week"?' class="active"':'')+'>Full week</button></div>';
 
     var wvKey=waveFor(wk), wave=WAVES[wvKey];
-    if(wvKey!=="accumulate") html+='<div class="deload-banner">'+wave.ic+' <b>'+wave.label+' week.</b> '+wave.strap+'</div>';
+    if(wvKey!=="accumulate") html+='<div class="deload-banner">'+wave.ic+' <b>'+wave.label+' week.</b> '+wave.strap+' '+ffTerm('wave','How waves work ›')+'</div>';
 
     if(mode==="today"){
       var todayDate = new Date();

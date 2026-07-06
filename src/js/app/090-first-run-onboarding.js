@@ -200,6 +200,7 @@
             '<div class="ob-sumv"><div class="v">'+(t?t.proteinG:"—")+'<small>g</small></div><div class="k">protein</div></div>'+
             '<div class="ob-sumv"><div class="v">'+(t?t.carbG:"—")+'<small>g</small></div><div class="k">carbs</div></div></div>'+
           '<p class="ob-p">That’s your daily fuel for <b>'+((GOALS[ob.goal]&&GOALS[ob.goal].label)||"your goal")+'</b>. Your 20-week plan is aimed at <b>+'+(parseInt(ob.goalyds,10)||15)+' yds</b> — tracked against your real drives.</p>'+
+          '<div class="ob-loophead">The whole system is one loop:</div>'+ffLoopHtml()+
           '<p class="ob-p" style="font-size:13px">🧭 First thing on your dashboard: a <b>3-minute mobility screen</b> — it tunes your warm-ups to what’s tight and completes your Octane score.</p>'+
           '<div class="ob-startcue">📅 Tapping below makes <b>today Day 1</b> — your Week 1 plan starts <b>right now</b> and counts forward from today. (Just looking? Use the link below — nothing starts until you say go.)</div>';
         nextLabel="Start — today is Day 1 →";

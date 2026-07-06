@@ -255,6 +255,98 @@
     document.addEventListener("pointercancel", endDrag, true);
   })();
 
+/* ────────── js/app/009-glossary.js ────────── */
+  /* ===================== GLOSSARY — the app speaks FairwayFuel, on demand =====================
+     Every invented term (Octane, banked, iron moved, receipts…) can render as a
+     tappable span with a dotted underline; tapping opens a one-sentence bottom
+     sheet. One shared vocabulary, one place to learn it — the charm stays, the
+     riddle goes. The full glossary is reachable from any term sheet and from
+     the You tab. ffLoopHtml() (the app's mental model, drawn) also lives here
+     so onboarding and the You tab share it. */
+  var FF_TERMS={
+    octane:   { ic:"⛽", t:"Octane", d:"Your engine score, 0–100. Six pillars — showing up, clubhead speed, strength, power-to-weight, mobility and fuel — blended into one number. E is empty, F is full. Tap any pillar on Stats to see exactly what moves it." },
+    banked:   { ic:"✅", t:"Banked", d:"Done and saved. A banked meal, session or round is in your history and already counting toward your trends — nothing else to do." },
+    iron:     { ic:"🏋️", t:"Iron moved", d:"Total weight lifted: every set’s weight × reps, added up. The simplest honest measure of how much work you actually did this week." },
+    e1rm:     { ic:"📈", t:"e1RM — estimated 1-rep max", d:"The heaviest single rep you could likely lift, estimated from a lighter set (Epley formula). It lets the app compare your strength across different set-and-rep days." },
+    season:   { ic:"🗺️", t:"20-week season", d:"Your training campaign, tee to pin: build waves, heavy waves, planned deloads, and a 2-week peak — all aimed at your yardage mission (and your event, if you set one)." },
+    wave:     { ic:"🌊", t:"Waves — Build · Heavy · Deload · Peak", d:"Training runs in phases: ~3 weeks building volume, 2 going heavy, then a deload where the gains land. Weeks 19–20 peak you — volume drops, speed stays." },
+    deload:   { ic:"🪫", t:"Deload week", d:"A planned easy week — one set less, ~60% loads. It isn’t lost time: recovery is when adaptation lands. Great week to schedule a big round." },
+    scorecard:{ ic:"🗒️", t:"Sunday Scorecard", d:"Your week as a golf card — six holes: sessions, iron moved, speed test, weigh-ins, mobility and fuel days. Close it out on Sundays; share it when it’s good." },
+    receipts: { ic:"🧾", t:"Receipts", d:"Proof from your own data that the training moves the ball — scoring trend, drives near vs far from gym days, deload-week distance. They appear once ~5 rounds are banked." },
+    carry:    { ic:"⛳", t:"Driver carry", d:"How far your drive flies in the air, roll not included — the app’s headline distance. Log it from real rounds or a launch monitor." },
+    speedtest:{ ic:"🎯", t:"Speed Test Day", d:"Every 2 weeks: warm up, take 3 max-intent 7-iron swings, keep the best. Same club, same rule every time, so the trend is honest. Roughly +1 mph ≈ +2 yards of carry." },
+    p2w:      { ic:"⚖️", t:"Power-to-weight", d:"Clubhead speed relative to bodyweight. Mass only helps when it swings faster — this pillar keeps a bulk honest." }
+  };
+  function ffTerm(key, label){
+    var T=FF_TERMS[key]; if(!T) return (label||key);
+    return '<span class="ff-term" data-term="'+key+'" role="button" tabindex="0">'+(label||T.t)+'</span>';
+  }
+  function ffTermSheet(){
+    var m=$("termSheet");
+    if(!m){
+      m=document.createElement("div"); m.id="termSheet"; m.className="qsheet"; m.hidden=true;
+      document.body.appendChild(m);
+      m.addEventListener("click", function(e){
+        if(e.target===m){ m.hidden=true; document.body.style.overflow=""; }
+      });
+    }
+    return m;
+  }
+  function openTerm(key){
+    var T=FF_TERMS[key]; if(!T) return;
+    var m=ffTermSheet();
+    m.innerHTML='<div class="qsheet-card"><div class="qsheet-grab"></div>'+
+      '<div class="term-one"><span class="term-ic">'+T.ic+'</span><div class="term-tx">'+
+      '<div class="term-t">'+T.t+'</div><div class="term-d">'+T.d+'</div></div></div>'+
+      '<button type="button" class="term-all" data-termall="1">📖 See all FairwayFuel terms</button></div>';
+    m.hidden=false; document.body.style.overflow="hidden";
+  }
+  function openGlossary(){
+    var m=ffTermSheet();
+    m.innerHTML='<div class="qsheet-card"><div class="qsheet-grab"></div>'+
+      '<div class="qsheet-h">📖 The FairwayFuel dictionary</div>'+
+      Object.keys(FF_TERMS).map(function(k){
+        var T=FF_TERMS[k];
+        return '<div class="term-one sm"><span class="term-ic">'+T.ic+'</span><div class="term-tx">'+
+          '<div class="term-t">'+T.t+'</div><div class="term-d">'+T.d+'</div></div></div>';
+      }).join("")+'</div>';
+    m.hidden=false; document.body.style.overflow="hidden";
+  }
+  // Registered in module 009 → runs before every later document listener, so
+  // stopImmediatePropagation keeps a term tap from also toggling whatever
+  // interactive parent (Stats fold header, scorecard row) it happens to sit in.
+  document.addEventListener("click", function(e){
+    var t=e.target.closest("[data-term]");
+    if(t){ e.preventDefault(); e.stopImmediatePropagation(); openTerm(t.getAttribute("data-term")); return; }
+    if(e.target.closest("[data-termall]")){ e.stopImmediatePropagation(); openGlossary(); return; }
+    if(e.target.closest("[data-ffloop]")){ e.stopImmediatePropagation(); openLoop(); return; }
+  });
+
+  /* ----- The loop: the app's whole mental model on one screen ----- */
+  function ffLoopHtml(){
+    var steps=[
+      ["⚖️","Weigh in","30 seconds, every morning"],
+      ["🏋️","Train","the guided session, 4–5× a week"],
+      ["🍽️","Eat to your targets","tap meals off as you go"],
+      ["⛳","Play & log rounds","where the proof shows up"],
+      ["📈","Octane climbs","and the yards follow"]
+    ];
+    return '<div class="ff-loop">'+steps.map(function(s,i){
+      return '<div class="ffl-step"><span class="ffl-ic">'+s[0]+'</span>'+
+        '<span class="ffl-tx"><b>'+s[1]+'</b><span>'+s[2]+'</span></span></div>'+
+        (i<steps.length-1?'<div class="ffl-arr">↓</div>':'');
+    }).join("")+'<div class="ffl-back">↻ repeat — that’s the whole system</div></div>';
+  }
+  function openLoop(){
+    var m=ffTermSheet();
+    m.innerHTML='<div class="qsheet-card"><div class="qsheet-grab"></div>'+
+      '<div class="qsheet-h">🔁 How FairwayFuel works</div>'+
+      '<p class="term-lead">One loop, repeated. Everything in the app either feeds it or proves it’s working.</p>'+
+      ffLoopHtml()+
+      '<button type="button" class="term-all" data-termall="1">📖 See what the terms mean</button></div>';
+    m.hidden=false; document.body.style.overflow="hidden";
+  }
+
 /* ────────── js/app/010-tab-nav-top-mobile-bottom-bar.js ────────── */
   /* ===================== TAB NAV (top + mobile bottom bar) ===================== */
   var tabs = document.getElementById("tabs");
@@ -2466,7 +2558,7 @@
       '<button data-planview="week"'+(mode==="week"?' class="active"':'')+'>Full week</button></div>';
 
     var wvKey=waveFor(wk), wave=WAVES[wvKey];
-    if(wvKey!=="accumulate") html+='<div class="deload-banner">'+wave.ic+' <b>'+wave.label+' week.</b> '+wave.strap+'</div>';
+    if(wvKey!=="accumulate") html+='<div class="deload-banner">'+wave.ic+' <b>'+wave.label+' week.</b> '+wave.strap+' '+ffTerm('wave','How waves work ›')+'</div>';
 
     if(mode==="today"){
       var todayDate = new Date();
@@ -3761,7 +3853,7 @@
       setsHtml+='<div class="pl-setops">'+
         '<button type="button" data-plsetadd="1">＋ Add set</button>'+
         '<button type="button" data-plsetrem="1">− Remove set</button>'+
-        '<span class="pl-setops-hint">hold a set to remove it · hold the name to reorder</span></div>';
+        (lsGet("ff_hint_press",false)?'':'<span class="pl-setops-hint">✋ hold a set to remove it · hold the name to reorder</span>')+'</div>';
       var livePr=(player.prHit && player.prHit[x.name])
         ? '<div class="pl-livepr">🚀 e1RM PR — <b>'+Math.round(player.prHit[x.name])+'</b> lb</div>' : '';
       var prescLine = presc!=null
@@ -3986,6 +4078,7 @@
       lpTimer=setTimeout(function(){
         lpTimer=null;
         try{ ffTick(15); }catch(_){}
+        lsSet("ff_hint_press", true);   // gesture learned — the hint retires itself
         if(setRow){
           var xi0=st0.xi, si0=+setRow.getAttribute("data-plsetrow");
           var xL=player.sess.ex[xi0];
@@ -4417,7 +4510,7 @@
         '<div class="hero-empty"><b>Add your driver distance</b><span>From a launch monitor, or just how far you hit it — log it below and watch it climb.</span></div>';
     }
     var engine = '<div class="hero-engine">'+octaneGaugeHtml(r.score)+
-      '<div class="hero-etx"><div class="hero-ename">Octane</div>'+
+      '<div class="hero-etx"><div class="hero-ename">'+ffTerm('octane','Octane')+'</div>'+
       '<div class="hero-esub">Your engine — <b>lifting, fuel &amp; speed work.</b> Keep it high and the yards follow.</div></div></div>';
     return '<button class="ffscore hero-card" data-goview="progress">'+top+engine+'</button>';
   }
@@ -4464,7 +4557,7 @@
   function renderScoreCard(compact){
     var r = ffScore(); saveScoreSnapshot(r);
     var top = '<div class="ffscore-top">'+octaneGaugeHtml(r.score)+
-      '<div class="ffscore-head"><h3>'+ffIcon("gauge",15)+' OCTANE</h3>'+
+      '<div class="ffscore-head"><h3>'+ffIcon("gauge",15)+' '+ffTerm('octane','OCTANE')+'</h3>'+
       '<p class="ff-sum">'+ffScoreSummary(r)+'</p></div></div>';
     if(compact){
       return '<button class="ffscore ffscore-compact" data-goview="progress">'+top+
@@ -5283,7 +5376,9 @@
       '<p class="acct-p">Start over — clears your plan start date and logged workouts so the plan resets to week 1. Your bodyweight &amp; 7-iron history and your calculator stay put.</p>'+
       '<button class="acct-btn danger" id="acctResetPlan">↺ Reset plan</button></div>';
     html+='<div class="acct-card"><div class="acct-head">Show me around</div>'+
-      '<p class="acct-p">New to the app or want a refresher? Replay the one-tap tips that explain what each tab does.</p>'+
+      '<p class="acct-p">The system in one picture, every FairwayFuel term in plain English, and the tab-by-tab tips — whenever you want a refresher.</p>'+
+      '<button class="acct-btn ghost" data-ffloop="1">🔁 How FairwayFuel works</button>'+
+      '<button class="acct-btn ghost" data-termall="1">📖 What the terms mean</button>'+
       '<button class="acct-btn ghost" id="acctReplayTips">↻ Replay the tips</button></div>';
     if(user){
       html+='<div class="acct-card"><div class="acct-head">⚠️ Delete account</div>'+
@@ -5561,7 +5656,7 @@
       // Receipts: what the training is doing for actual golf, from the user's own data.
       var ins=[]; try{ ins=rdInsights(ffRounds()); }catch(e){}
       if(ins.length){
-        h+='<div class="rd-ins-h">Receipts</div>'+ins.map(function(t){
+        h+='<div class="rd-ins-h">'+ffTerm('receipts','Receipts')+'</div>'+ins.map(function(t){
           return '<div class="rd-ins">'+t+'</div>'; }).join("");
       } else if(rounds.length<5){
         h+='<div class="rd-ins dim">🧾 Keep logging — at ~5 rounds this card starts showing receipts: scoring trend, drives near vs far from gym days, deload-week distance.</div>';
@@ -5750,8 +5845,8 @@
     var c=weekCard();
     var rows=[
       { h:1, n:"Sessions", v:c.sessions+' / '+c.freq, chip: c.sessions>=c.freq?scChip("good","ON PLAN"):(c.sessions>0?scChip("mid",(c.freq-c.sessions)+" TO GO"):scChip("miss","0 YET")) },
-      { h:2, n:"Iron moved", v:(c.vol>0?c.vol.toLocaleString()+' lb':'—'), chip: c.vol>0?scChip("good","BANKED"):scChip("miss","—") },
-      { h:3, n:"Speed test", v:(c.bestT!=null?c.bestT+' mph':'—'), chip: c.bestT!=null?scChip("good","TESTED"):(speedTestDue()?scChip("mid","DUE"):scChip("miss","NEXT WK")) },
+      { h:2, n:ffTerm('iron','Iron moved'), v:(c.vol>0?c.vol.toLocaleString()+' lb':'—'), chip: c.vol>0?scChip("good","BANKED"):scChip("miss","—") },
+      { h:3, n:ffTerm('speedtest','Speed test'), v:(c.bestT!=null?c.bestT+' mph':'—'), chip: c.bestT!=null?scChip("good","TESTED"):(speedTestDue()?scChip("mid","DUE"):scChip("miss","NEXT WK")) },
       { h:4, n:"Weigh-ins", v:String(c.weighs), chip: c.weighs>=3?scChip("good","TRENDING"):(c.weighs>0?scChip("mid","MORE"):scChip("miss","0 YET")) },
       { h:5, n:"Mobility", v:(c.mob?'screened':'—'), chip: c.mob?scChip("good","DONE"):(mobDue()?scChip("mid","DUE"):scChip("good","CURRENT")) },
       { h:6, n:"Fuel days", v:c.fuelOn+' / 7', chip: c.fuelOn>=5?scChip("good","ON PLAN"):(c.fuelLogged>0?scChip("mid","BUILDING"):scChip("miss","LOG FUEL")) }
@@ -5889,7 +5984,8 @@
           return '<button type="button" class="lr" data-exhist="'+escAttr(L.name)+'"><div class="lr-name">'+L.name+'</div>'+
             '<div class="lr-spark">'+(L.n>=2?pcMiniSpark(L.series,"#16a34a"):'<span class="lr-one">'+L.n+' set'+(L.n===1?"":"s")+'</span>')+'</div>'+
             '<div class="lr-val">'+Math.round(L.last)+'<small>lb</small>'+(L.n>=2&&d!=null?pcDelta(d,"%"):"")+'</div></button>';
-        }).join(""));
+        }).join("")+
+        '<div class="pc-foot"><span>'+ffTerm('e1rm','e1RM — what’s that?')+'</span><span>tap a lift for its full story</span></div>');
 
       // ---- Bodyweight ----
       var wtNow=wtF.length?wtF[wtF.length-1]:null, wtBase=wtF.length?wtF[0]:null;
@@ -6260,8 +6356,10 @@
      speed test and mobility screen — replaces the form that lived on Home. ---- */
   (function(){
     var fab=document.createElement("button");
-    fab.className="ff-fab"; fab.id="ffFab"; fab.type="button"; fab.setAttribute("aria-label","Quick log");
-    fab.textContent="＋";
+    fab.className="ff-fab"; fab.id="ffFab"; fab.type="button"; fab.setAttribute("aria-label","Log anything");
+    // Labeled, not a mystery circle: the one rule a user has to learn is
+    // "anything that happened, hit ＋ Log."
+    fab.innerHTML='＋<span class="ff-fab-lbl">Log</span>';
     document.body.appendChild(fab);
     var sheet=document.createElement("div");
     sheet.className="qsheet"; sheet.id="qSheet"; sheet.hidden=true;
@@ -6269,14 +6367,26 @@
     function openSheet(){
       var d=(typeof todaySlot==="function")?todaySlot():null;
       var train=d && d.type!=="rest" && planStart();
+      // The one missing log verb was meals — surface the NEXT unchecked one so
+      // the sheet covers everything: workout, meal, weight/speed/drive, test, round.
+      var mealRow='';
+      try{
+        if(ffSchedule && ffSchedule.length){
+          var fdQ=fuelDay(ffISO())||{ m:{} }, ni=-1;
+          for(var qi=0; qi<ffSchedule.length; qi++){ if(!(fdQ.m && fdQ.m[qi])){ ni=qi; break; } }
+          if(ni>=0) mealRow='<button type="button" class="qsheet-act" data-fuelmeal="'+ni+'" data-fuelval="a">🍽️'+
+            '<span>Check off a meal<span class="qa-sub">next up: '+ffSchedule[ni].label+' — tap when eaten</span></span><span class="qa-go">✓</span></button>';
+        }
+      }catch(e){}
       sheet.innerHTML='<div class="qsheet-card"><div class="qsheet-grab"></div>'+
-        '<div class="qsheet-h">Quick log</div>'+
+        '<div class="qsheet-h">＋ Log anything</div>'+
         quickLogHtml("q","Weight, 7-iron &amp; driver feed your trends, Octane and the board.")+
         '<div class="qsheet-acts">'+
         (train?('<button type="button" class="qsheet-act" data-startplayer="'+escAttr(d.name)+'">'+ffIcon("barbell",18)+'<span>Start today’s workout<span class="qa-sub">'+d.name.replace(/^Day \d+ — /,"")+' · guided player</span></span><span class="qa-go">›</span></button>'):'')+
+        mealRow+
+        '<button type="button" class="qsheet-act" data-roundlog="1">⛳<span>Log a round<span class="qa-sub">score, longest drive, how the body held up</span></span><span class="qa-go">›</span></button>'+
         '<button type="button" class="qsheet-act" data-speedtest="1">'+ffIcon("target",18)+'<span>Speed test<span class="qa-sub">3 max swings — best one counts</span></span><span class="qa-go">›</span></button>'+
         '<button type="button" class="qsheet-act" data-mobscreen="1">'+ffIcon("compass",18)+'<span>Mobility screen<span class="qa-sub">3 moves · ~3 minutes</span></span><span class="qa-go">›</span></button>'+
-        '<button type="button" class="qsheet-act" data-roundlog="1">⛳<span>Log a round<span class="qa-sub">score, longest drive, how the body held up</span></span><span class="qa-go">›</span></button>'+
         '</div></div>';
       sheet.hidden=false; document.body.style.overflow="hidden";
     }
@@ -6292,7 +6402,10 @@
         try{ if($("view-progress") && $("view-progress").classList.contains("active")) renderProgress(); }catch(e2){}
         return;
       }
-      // Action rows open their overlays via the document-level listeners — just get out of the way.
+      // Action rows open their overlays via the document-level listeners — just get
+      // out of the way. (This element listener fires FIRST; the meal check-off then
+      // runs in 030's document handler, which re-renders the dash itself.)
+      if(e.target.closest("[data-fuelmeal]")){ closeSheet(); ffToast("Meal banked ✓"); return; }
       if(e.target.closest("[data-startplayer],[data-speedtest],[data-mobscreen],[data-roundlog]")) closeSheet();
     });
   })();
@@ -6558,6 +6671,7 @@
             '<div class="ob-sumv"><div class="v">'+(t?t.proteinG:"—")+'<small>g</small></div><div class="k">protein</div></div>'+
             '<div class="ob-sumv"><div class="v">'+(t?t.carbG:"—")+'<small>g</small></div><div class="k">carbs</div></div></div>'+
           '<p class="ob-p">That’s your daily fuel for <b>'+((GOALS[ob.goal]&&GOALS[ob.goal].label)||"your goal")+'</b>. Your 20-week plan is aimed at <b>+'+(parseInt(ob.goalyds,10)||15)+' yds</b> — tracked against your real drives.</p>'+
+          '<div class="ob-loophead">The whole system is one loop:</div>'+ffLoopHtml()+
           '<p class="ob-p" style="font-size:13px">🧭 First thing on your dashboard: a <b>3-minute mobility screen</b> — it tunes your warm-ups to what’s tight and completes your Octane score.</p>'+
           '<div class="ob-startcue">📅 Tapping below makes <b>today Day 1</b> — your Week 1 plan starts <b>right now</b> and counts forward from today. (Just looking? Use the link below — nothing starts until you say go.)</div>';
         nextLabel="Start — today is Day 1 →";

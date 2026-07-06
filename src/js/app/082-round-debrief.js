@@ -177,7 +177,7 @@
       // Receipts: what the training is doing for actual golf, from the user's own data.
       var ins=[]; try{ ins=rdInsights(ffRounds()); }catch(e){}
       if(ins.length){
-        h+='<div class="rd-ins-h">Receipts</div>'+ins.map(function(t){
+        h+='<div class="rd-ins-h">'+ffTerm('receipts','Receipts')+'</div>'+ins.map(function(t){
           return '<div class="rd-ins">'+t+'</div>'; }).join("");
       } else if(rounds.length<5){
         h+='<div class="rd-ins dim">🧾 Keep logging — at ~5 rounds this card starts showing receipts: scoring trend, drives near vs far from gym days, deload-week distance.</div>';
