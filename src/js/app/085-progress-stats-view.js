@@ -3,17 +3,31 @@
      trends that prove the system works — clubhead speed (the north star),
      bodyweight, estimated 1RM on the big lifts, and training consistency.
      All from data the app already records (ff_body + the workout log). */
-  function pcLine(vals, color, gid){
-    var pts=vals.map(function(v){ return parseFloat(v); }).filter(function(v){ return !isNaN(v); });
+  // The trend chart: smooth gradient-filled curve, and — when labels are passed —
+  // a scrubbable one: touch it and a crosshair + readout follow your finger
+  // (see the pcwrap pointer controller below).
+  function pcLine(vals, color, gid, labels, unit){
+    var pts=[], labs=[];
+    vals.forEach(function(v,i){ var n=parseFloat(v); if(!isNaN(n)){ pts.push(n); labs.push(labels?String(labels[i]||""):""); } });
     if(pts.length<2) return '';
     var W=320,H=104,pad=8, mn=Math.min.apply(null,pts), mx=Math.max.apply(null,pts), rng=(mx-mn)||1;
     var stepX=(W-pad*2)/(pts.length-1);
     function X(i){ return pad+i*stepX; }
     function Y(v){ return pad+(H-pad*2)*(1-(v-mn)/rng); }
-    var line=pts.map(function(v,i){ return (i?"L":"M")+X(i).toFixed(1)+","+Y(v).toFixed(1); }).join(" ");
-    var lastX=X(pts.length-1), lastY=Y(pts[pts.length-1]);
-    var area=line+" L"+lastX.toFixed(1)+","+(H-pad)+" L"+X(0).toFixed(1)+","+(H-pad)+" Z";
-    return '<svg class="pc-svg" viewBox="0 0 '+W+' '+H+'" width="100%" preserveAspectRatio="xMidYMid meet">'+
+    var xs=pts.map(function(v,i){ return X(i); }), ys=pts.map(Y);
+    // Catmull-Rom → cubic beziers: the polyline becomes a natural curve.
+    var line="M"+xs[0].toFixed(1)+","+ys[0].toFixed(1);
+    for(var i=0;i<pts.length-1;i++){
+      var p0=Math.max(0,i-1), p3=Math.min(pts.length-1,i+2);
+      var c1y=Math.min(H-2,Math.max(2, ys[i]+(ys[i+1]-ys[p0])/6));
+      var c2y=Math.min(H-2,Math.max(2, ys[i+1]-(ys[p3]-ys[i])/6));
+      line+="C"+(xs[i]+(xs[i+1]-xs[p0])/6).toFixed(1)+","+c1y.toFixed(1)+" "+
+             (xs[i+1]-(xs[p3]-xs[i])/6).toFixed(1)+","+c2y.toFixed(1)+" "+
+             xs[i+1].toFixed(1)+","+ys[i+1].toFixed(1);
+    }
+    var lastX=xs[pts.length-1], lastY=ys[pts.length-1];
+    var area=line+" L"+lastX.toFixed(1)+","+(H-pad)+" L"+xs[0].toFixed(1)+","+(H-pad)+" Z";
+    var svg='<svg class="pc-svg" viewBox="0 0 '+W+' '+H+'" width="100%" preserveAspectRatio="xMidYMid meet">'+
       '<defs><linearGradient id="'+gid+'" x1="0" y1="0" x2="0" y2="1">'+
         '<stop offset="0" stop-color="'+color+'" stop-opacity=".26"/>'+
         '<stop offset="1" stop-color="'+color+'" stop-opacity="0"/></linearGradient></defs>'+
@@ -21,7 +35,45 @@
       '<path d="'+line+'" fill="none" stroke="'+color+'" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>'+
       '<circle cx="'+lastX.toFixed(1)+'" cy="'+lastY.toFixed(1)+'" r="4" fill="'+color+'"/>'+
       '<circle cx="'+lastX.toFixed(1)+'" cy="'+lastY.toFixed(1)+'" r="8" fill="'+color+'" opacity=".18"/></svg>';
+    return '<div class="pcwrap" data-pcv="'+pts.join("|")+'" data-pcl="'+escAttr(labs.join("|"))+'"'+
+      ' data-pcu="'+escAttr(unit||"")+'" data-pcc="'+color+'">'+svg+
+      '<div class="pc-cross" hidden></div><div class="pc-sdot" hidden></div><div class="pc-tip" hidden></div></div>';
   }
+  // Scrub controller: one delegated pointer handler drives every pcwrap chart.
+  (function(){
+    var active=null;
+    function showAt(wrap, clientX){
+      var vals=wrap.getAttribute("data-pcv").split("|").map(Number);
+      var labs=(wrap.getAttribute("data-pcl")||"").split("|");
+      var unit=wrap.getAttribute("data-pcu")||"", color=wrap.getAttribute("data-pcc")||"#16a34a";
+      var svg=wrap.querySelector("svg"); if(!svg || vals.length<2) return;
+      var r=svg.getBoundingClientRect(), W=320,H=104,pad=8;
+      var stepX=(W-pad*2)/(vals.length-1);
+      var vx=(clientX-r.left)/r.width*W;
+      var i=Math.min(vals.length-1, Math.max(0, Math.round((vx-pad)/stepX)));
+      var mn=Math.min.apply(null,vals), mx=Math.max.apply(null,vals), rng=(mx-mn)||1;
+      var px=(pad+i*stepX)/W*r.width, py=(pad+(H-pad*2)*(1-(vals[i]-mn)/rng))/H*r.height;
+      var cross=wrap.querySelector(".pc-cross"), dot=wrap.querySelector(".pc-sdot"), tip=wrap.querySelector(".pc-tip");
+      cross.hidden=dot.hidden=tip.hidden=false;
+      cross.style.left=px+"px"; cross.style.background=color;
+      dot.style.left=px+"px"; dot.style.top=py+"px"; dot.style.background=color;
+      tip.innerHTML='<b>'+vals[i]+lbEsc(unit)+'</b>'+(labs[i]?' <span>'+lbEsc(labs[i])+'</span>':'');
+      var tw=tip.offsetWidth;
+      tip.style.left=Math.min(Math.max(px, tw/2+2), r.width-tw/2-2)+"px";
+    }
+    function hide(){
+      if(!active) return;
+      ["pc-cross","pc-sdot","pc-tip"].forEach(function(c){ var el=active.querySelector("."+c); if(el) el.hidden=true; });
+      active=null;
+    }
+    document.addEventListener("pointerdown", function(e){
+      var w=e.target.closest(".pcwrap"); if(!w) return;
+      active=w; showAt(w, e.clientX);
+    }, true);
+    document.addEventListener("pointermove", function(e){ if(active) showAt(active, e.clientX); }, true);
+    document.addEventListener("pointerup", hide, true);
+    document.addEventListener("pointercancel", hide, true);
+  })();
   function pcMiniSpark(vals, color){
     var pts=vals.filter(function(v){ return v!=null && !isNaN(v); });
     if(pts.length<2) return '';
@@ -149,9 +201,11 @@
   function renderProgress(){
     var el=$("progressBody"); if(!el) return;
     var body=lsGet("ff_body",[]);
-    var speeds=body.map(function(e){ return e.s; }), weights=body.map(function(e){ return e.w; });
-    var spF=speeds.map(parseFloat).filter(function(v){ return !isNaN(v); });
-    var wtF=weights.map(parseFloat).filter(function(v){ return !isNaN(v); });
+    var spF=[], spD=[], wtF=[], wtD=[];
+    body.forEach(function(e){
+      var s=parseFloat(e.s); if(!isNaN(s)){ spF.push(s); spD.push(e.date||""); }
+      var w=parseFloat(e.w); if(!isNaN(w)){ wtF.push(w); wtD.push(e.date||""); }
+    });
     var sess=Object.keys(getLog()).length, lifts=bigLiftStats();
     var hasAny = sess>0 || spF.length>0 || wtF.length>0;
 
@@ -175,7 +229,7 @@
       html += '<div class="pcard"><div class="pc-head"><span class="pc-t">⚡ Clubhead speed <small>7-iron</small></span>'+
           (spF.length>=2?pcDelta(spNow-spBase," mph"):"")+'</div>'+
         (spNow!=null?'<div class="pc-now">'+spNow+'<span>mph</span></div>':'<div class="pc-now muted">—</div>')+
-        (spF.length>=2 ? pcLine(spF,"#16a34a","pcSpeed")
+        (spF.length>=2 ? pcLine(spF,"#16a34a","pcSpeed", spD, " mph")
           : '<div class="pc-need">'+(spF.length===1?"One more entry and your speed trend appears.":"Add your 7-iron speed below to start the trend.")+'</div>')+
         (spF.length>=2&&spGain>0
           ? '<div class="pc-payoff">🎯 That’s roughly <b>+'+Math.round(spGain*YDS_PER_MPH)+' yards</b> of 7-iron carry since your baseline. <span>Speed is distance — ~2 yds per mph.</span></div>'
@@ -206,7 +260,7 @@
       html += '<div class="pcard"><div class="pc-head"><span class="pc-t">⚖️ Bodyweight</span>'+
           (wtF.length>=2?pcDelta(wtNow-wtBase," lb",true):"")+'</div>'+
         (wtNow!=null?'<div class="pc-now">'+wtNow+'<span>lb</span></div>':'<div class="pc-now muted">—</div>')+
-        (wtF.length>=2 ? pcLine(wtF,"#0e7490","pcWt")
+        (wtF.length>=2 ? pcLine(wtF,"#0e7490","pcWt", wtD, " lb")
           : '<div class="pc-need">Add your bodyweight below to track the trend against your speed.</div>')+
         (wtF.length>=2?'<div class="pc-foot"><span>start <b>'+wtBase+'</b></span><span>now <b>'+wtNow+'</b> lb</span></div>':"")+
         '</div>';
