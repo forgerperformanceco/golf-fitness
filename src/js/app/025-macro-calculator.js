@@ -778,6 +778,15 @@
   function ffPlanDay(p,t,roll){
     var n=Math.max(1,Math.min(6,t.m||4)), names=ffMealNames(n);
     var postIdx = n>=4 ? n-2 : (n-1);                         // the carb-loaded "around training" meal
+    // Anchor the recovery meal to the ACTUAL post-workout slot from today's
+    // schedule — morning lifters recover at breakfast, evening lifters at dinner —
+    // instead of a fixed position in the meal list.
+    try{
+      if(typeof ffSchedule!=="undefined" && ffSchedule){
+        var postLbl=null; ffSchedule.forEach(function(sl){ if(sl.isPost) postLbl=sl.label; });
+        if(postLbl){ var gi=names.indexOf(postLbl); if(gi>=0) postIdx=gi; }
+      }
+    }catch(e){}
     var w=[]; for(var i=0;i<n;i++) w.push(i===postIdx?1.6:(names[i]==="Snack"?0.7:1));
     var wsum=w.reduce(function(a,b){return a+b;},0)||1;
     var slots=[], totP=0,totC=0,totF=0;
@@ -953,7 +962,14 @@
     if(card) card.hidden=false;
     var p=ffPrefs(), hasPrefs=ffHasPrefs(p), html="";
     // 1. Carb timing around training — "when to eat" sits right above "what to eat".
-    if(lastMealPlan && lastMealPlan.timing){ try{ html+=timingBlock(lastMealPlan.timing); }catch(e){} }
+    if(lastMealPlan && lastMealPlan.timing){ try{
+      var tb=timingBlock(lastMealPlan.timing);
+      // Once the day is built from their foods, the timing lecture collapses to a
+      // reference line — the same info is embedded in the meal order and tags.
+      html+= hasPrefs
+        ? '<details class="fold timing-fold"><summary>🕒 Carb timing around your workout <span class="fold-sub">'+lastMealPlan.timing.preG+'g pre · '+lastMealPlan.timing.postG+'g post</span></summary>'+tb+'</details>'
+        : tb;
+    }catch(e){} }
     if(!hasPrefs){
       // 2a. The generic per-meal split (the schedule the calculator builds) + an upgrade nudge.
       if(lastMealPlan && lastMealPlan.meal){ try{ html+=mealBlock(lastMealPlan.meal); }catch(e){} }
@@ -984,9 +1000,16 @@
       html+='<div class="sched-title">'+ffIcon("calendar",14)+' An example day — <b>'+(t.m||4)+' meals</b> from <b>foods you love</b></div>'+
         '<div class="sched-sample">This is a <b>sample</b> that hits your numbers — eat it as written or anything close, and still check it off. The macros are the assignment, not the menu. <b>Shuffle</b> deals another day.</div>';
       var fdNow=fuelDay(ffISO())||{ m:{} };
-      plan.slots.forEach(function(s,k){
-        var si=schedIdx[k], v=(si>=0&&fdNow.m)?fdNow.m[si]:null;
-        html+='<div class="ffm-meal'+(v?' fdone':'')+'"><div class="ffm-meal-h has-fchk"><span class="ffm-meal-n">'+s.name+ffMealTag(s)+'</span><span class="ffm-meal-m">≈ '+s.P+'P · '+s.C+'C · '+s.F+'F</span>'+(si>=0?ffFchkHtml(si):'')+'</div>'+
+      // Render in SCHEDULE order — the day as you'll live it (pre-workout before
+      // breakfast on a morning-training day), not the generator's build order.
+      var order=plan.slots.map(function(_,k){ return k; }).sort(function(x,y){
+        var A=schedIdx[x], B=schedIdx[y];
+        return ((A<0?99:A)-(B<0?99:B)) || (x-y);
+      });
+      order.forEach(function(k){
+        var s=plan.slots[k], si=schedIdx[k], v=(si>=0&&fdNow.m)?fdNow.m[si]:null;
+        var tlab=(si>=0&&ffSchedule[si].time)?'<span class="ffm-meal-t">'+ffSchedule[si].time+'</span>':'';
+        html+='<div class="ffm-meal'+(v?' fdone':'')+'"><div class="ffm-meal-h has-fchk">'+tlab+'<span class="ffm-meal-n">'+s.name+ffMealTag(s)+'</span><span class="ffm-meal-m">≈ '+s.P+'P · '+s.C+'C · '+s.F+'F</span>'+(si>=0?ffFchkHtml(si):'')+'</div>'+
           '<div class="ffm-items">'+ffItemsHtml(s.items)+'</div></div>';
       });
       var tt=plan.totals, tg2=plan.target;

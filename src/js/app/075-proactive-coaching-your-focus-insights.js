@@ -175,8 +175,15 @@
     var fuelChip='';
     if(ffSchedule && ffSchedule.length){
       var nDone=0; ffSchedule.forEach(function(sl,i){ if(fdT.m && fdT.m[i]) nDone++; });
-      fuelChip='<button type="button" class="tl-fuelchip'+(nDone>=ffSchedule.length?" full":"")+'" data-goview="calc">'+
-        ffIcon("gauge",12)+' '+nDone+'/'+ffSchedule.length+' meals</button>';
+      var mealsOk=nDone>=ffSchedule.length || fdT.rating==="on" || fdT.rating==="close";
+      var trainOk=train ? trained : restDoneToday;
+      if(mealsOk && trainOk && weighed){
+        // Everything on the list is done — the marker becomes the reward.
+        fuelChip='<button type="button" class="tl-fuelchip full" data-goview="progress">✓ Day banked</button>';
+      } else {
+        fuelChip='<button type="button" class="tl-fuelchip'+(nDone>=ffSchedule.length?" full":"")+'" data-goview="calc">'+
+          ffIcon("gauge",12)+' '+nDone+'/'+ffSchedule.length+' meals</button>';
+      }
     }
     var h='<div class="tl"><div class="tl-h"><span>'+ffIcon("calendar",13)+' Your day</span>'+fuelChip+'</div>';
     h+=item("AM","⚖️","Morning weigh-in", weighed?("Logged — "+row.w+" lb ✓"):"Same scale, same time — feeds your trend & Octane",

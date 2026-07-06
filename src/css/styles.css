@@ -699,6 +699,9 @@
   .ffm-meal { margin-bottom:10px; }
   .ffm-meal-h { font:800 12.5px system-ui; color:var(--ink); margin-bottom:4px; display:flex; justify-content:space-between; gap:8px; }
   .ffm-meal-h span { color:var(--muted); font-weight:700; }
+  .ffm-meal-t{ flex:0 0 auto; font:700 11.5px system-ui; color:var(--muted); min-width:56px; }
+  .timing-fold .timing{ border:none; box-shadow:none; margin:0; border-radius:0; }
+  details.fold .fold-sub{ margin-left:auto; color:var(--muted); font-weight:600; font-size:12px; }
   .sched-sample{ font-size:12.5px; color:var(--muted); line-height:1.5; margin:-4px 2px 12px; }
   .sched-sample b{ color:var(--green-800); }
   /* Meal cards with check-offs: name left, macros pushed right, buttons at the edge. */
