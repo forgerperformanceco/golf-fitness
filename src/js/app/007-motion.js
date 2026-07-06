@@ -110,3 +110,28 @@
       })(t0);
     }catch(e){}
   }
+
+  // iOS leaves position:fixed bottom bars stranded mid-screen after the
+  // on-screen keyboard closes (the visual viewport shrinks and fixed elements
+  // aren't re-anchored). Track the visual viewport: while the keyboard is up,
+  // hide the pinned bars (body.ff-kb); when it closes, force the compositor to
+  // re-anchor them with a one-frame transform nudge.
+  (function(){
+    var vv=window.visualViewport; if(!vv) return;
+    var t=null;
+    function sync(){
+      var kb=(window.innerHeight - vv.height) > 60;
+      document.body.classList.toggle("ff-kb", kb);
+      if(!kb){
+        ["mobileTabs","ffFab","plPauseBar"].forEach(function(id){
+          var el=document.getElementById(id); if(!el) return;
+          el.style.transform="translateZ(0)";
+          requestAnimationFrame(function(){ el.style.transform=""; });
+        });
+      }
+    }
+    ["resize","scroll"].forEach(function(ev){
+      vv.addEventListener(ev, function(){ clearTimeout(t); t=setTimeout(sync, 90); });
+    });
+    document.addEventListener("focusout", function(){ setTimeout(sync, 250); }, true);
+  })();
