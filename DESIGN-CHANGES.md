@@ -724,6 +724,34 @@ stay glued to the bottom of what you can see. Phones only (≤760px); the
 desktop pause-bar centering moved from transform to margin so the pinner owns
 the transform channel. Relaunching the installed app still resets zoom fully.
 
+## 39 · Sync trust: visible sync health + backup/export (make-it-great #1 of 3)
+
+**Why.** `cloud-sync.js` swallowed every error silently (recorded tech debt) —
+a persistently failing push would only be discovered the day a new phone came
+up empty. And all data lived in localStorage + one cloud blob with no copy the
+user owns.
+
+**What.**
+- `cloud-sync.js` now records every push/pull outcome to `ff_sync_status`
+  (device-local, deliberately NOT in the sync `KEYS`) and dispatches
+  `ff-sync-status`. The record keeps `okTs` (last *good* sync) through
+  failures. Pin bumped to `?v=107`.
+- Account hero (signed in) shows a live line: "☁ Synced · 2 min ago" →
+  "⚠ Sync failing — last good sync 1 hr ago" (amber `.acct-synced.warn`,
+  hero variant `#ffd28a`). The `ff-sync-status` listener updates just the
+  line in place — no full re-render while the user is mid-edit in the card.
+- New "💾 Backup & export" Account card: **Export** writes
+  `fairwayfuel-backup-YYYY-MM-DD.json` (`{app,kind:"backup",version,exported,
+  data:{every ff_* key + fairwayfuel}}`) — share sheet on iOS (a[download]
+  is unreliable in installed PWAs), anchor download elsewhere. **Restore**
+  file-picks a backup, validates it looks like one, confirms (copy notes the
+  cloud merge keeps workout history), writes keys, fires `ff-data-changed`,
+  reloads. Garbage files are rejected without touching data.
+
+**Verified** (test-backup.mjs): signed-out card copy, ok→warn live flip,
+export parses with correct keys, restore round-trip survives reload,
+bad-file rejection. e2e suite green.
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob

@@ -119,6 +119,25 @@
   var lastSnapshot = null;   // JSON of the last state we know matches the cloud
   var pushing = false;
 
+  // ---- Sync health (device-local, surfaced in the Account tab) ----
+  // Every push/pull outcome lands in ff_sync_status so a persistently failing
+  // sync is VISIBLE instead of silently eating months of data. Deliberately
+  // NOT in KEYS — each device reports the health of its own link to the cloud.
+  function noteSync(ok, err) {
+    try {
+      var prev = {};
+      try { prev = JSON.parse(localStorage.getItem("ff_sync_status")) || {}; } catch (e) {}
+      var rec = {
+        state: ok ? "ok" : "error",
+        ts: Date.now(),
+        okTs: ok ? Date.now() : (prev.okTs || null),   // last GOOD sync survives failures
+        err: ok ? null : String((err && err.message) || err || "sync failed").slice(0, 200)
+      };
+      localStorage.setItem("ff_sync_status", JSON.stringify(rec));
+      window.dispatchEvent(new CustomEvent("ff-sync-status", { detail: rec }));
+    } catch (e) {}
+  }
+
   function snapshot() {
     var blob = {};
     KEYS.forEach(function (k) {
@@ -147,8 +166,9 @@
       var res = await sb.from("profiles").upsert({
         id: user.id, data: JSON.parse(snap), updated_at: new Date().toISOString()
       });
-      if (!res.error) lastSnapshot = snap;
-    } catch (e) {}
+      if (!res.error) { lastSnapshot = snap; noteSync(true); }
+      else noteSync(false, res.error);
+    } catch (e) { noteSync(false, e); }
     pushing = false;
   }
 
@@ -261,8 +281,9 @@
     var row;
     try {
       var r = await sb.from("profiles").select("data").eq("id", user.id).maybeSingle();
+      if (r.error) { noteSync(false, r.error); return; }
       row = r.data;
-    } catch (e) { return; }
+    } catch (e) { noteSync(false, e); return; }
 
     if (!row || row.data == null) {            // first login anywhere → seed from local
       lastSnapshot = null; await push();
@@ -271,6 +292,7 @@
     var localObj; try { localObj = JSON.parse(snapshot()); } catch (e) { localObj = {}; }
     if (stable(row.data) === stable(localObj)) { // already in sync (ignoring key order)
       lastSnapshot = JSON.stringify(row.data);
+      noteSync(true);
       return;
     }
     // Merge (don't overwrite): union the additive logs so a completed workout or body
