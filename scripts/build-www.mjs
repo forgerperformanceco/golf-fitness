@@ -34,7 +34,7 @@ const FILES = [
   "shot-train.png",
 ];
 // Whole directories to copy verbatim (iOS launch splash images).
-const DIRS = ["splash"];
+const DIRS = ["splash", "fonts"];
 
 function copyDir(src, dst) {
   mkdirSync(dst, { recursive: true });

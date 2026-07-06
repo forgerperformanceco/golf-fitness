@@ -6,6 +6,7 @@ var ASSETS = [
   './',
   './index.html',
   './styles.css?v={{V}}',
+  './fonts/ffnum.woff2',
   './app.js?v={{V}}',
   './privacy.html',
   './cloud-sync.js?v=105',
