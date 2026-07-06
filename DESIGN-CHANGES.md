@@ -617,6 +617,23 @@ incline+chest presses gate on the chest-press machine toggle and the shoulder
 variant on the shoulder-press toggle — own-gear-first ordering and the "not
 in your gym" flag apply automatically.
 
+## 31 · Exiting a live workout now PAUSES it (user request)
+
+Exiting mid-session always preserved the data (sets save continuously), but
+nothing said so, and the session clock kept running while you were away.
+
+- **The clock stops.** On exit, elapsed active time banks into the session
+  (`activeMs`); the recap's "session time" is banked + current stint, so a
+  workout split around an errand reports honest minutes.
+- **A paused bar follows you.** A slim mini-player bar ("⏸ Workout paused —
+  Lower · 12 sets done · ▶ Resume") sits above the tab bar on every view
+  until the session is resumed or finished. Tap = resume exactly where you
+  were (values intact, first unfinished lift). The FAB lifts out of its way.
+- Lifecycle: set on exit-with-unfinished-work, cleared on resume/finish, and
+  self-heals if the session was completed elsewhere (inline logger). Kept in
+  device-local storage — a pause is an activity of THIS phone, not synced
+  state. Refreshes on ff-data-changed.
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob
