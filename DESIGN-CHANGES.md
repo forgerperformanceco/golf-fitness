@@ -363,6 +363,25 @@ every device, couldn't be tinted to brand green, and didn't dim in dark mode.
   recap PR banner (🚀), plate-math hint — anywhere the emoji is part of a
   sentence rather than a control.
 
+## 14 · Display numerals — hero numbers get an instrumentation face (premium pass 2b)
+
+This is a numbers product, but 252 yds / 83 mph / Octane 43 rendered in the
+same system font as body copy. Hero figures now use **Barlow Condensed
+SemiBold** (OFL, DIN-derived — motorsport/instrumentation DNA that fits the
+Octane metaphor).
+
+- `fonts/ffnum.woff2` — ~12KB self-hosted subset (basic latin + a few symbols,
+  so "83 mph" and "E/F" stay one voice; no external font hosts, CSP-clean).
+- `@font-face` with `font-display:swap` (numbers never block on the font) +
+  `<link rel="preload">` so it's usually there before first paint; added to
+  the SW asset cache and the Capacitor `www/` bundle (fonts/ dir).
+- Applied to: driver-carry hero, Octane gauge digit, player recap "lb moved" +
+  stat tiles, rest timer, speed-test and mobility result numbers, and the
+  Fuel macro grids (kcal/day, per-macro grams).
+- Condensed metrics: negative tracking tuned for system-ui reset to ~0, and
+  sizes bumped (58→66px hero, 34→38 gauge, etc.) so the narrower face keeps
+  its presence.
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob
