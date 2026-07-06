@@ -730,6 +730,19 @@
   .rd-save{ display:block; width:100%; margin-top:16px; border:0; border-radius:12px; background:#16a34a;
     color:#fff; font-weight:900; font-size:15px; padding:14px; cursor:pointer; min-height:48px; }
   .rd-foot{ font-size:12px; color:var(--muted); margin-top:9px; text-align:center; }
+  .pl-livepr{ margin:2px 0 10px; display:inline-flex; align-items:center; gap:6px;
+    background:linear-gradient(90deg,#f59e0b,#ef4444); color:#fff; font:800 13px system-ui;
+    border-radius:999px; padding:7px 14px; }
+  .pl-livepr b{ font-family:'FF Numeral', system-ui, sans-serif; font-weight:600; font-size:15px; }
+  .prw-r{ display:flex; align-items:center; gap:9px; padding:9px 2px; border-bottom:1px solid var(--line); font-size:13.5px; }
+  .prw-r:last-child{ border-bottom:0; }
+  .prw-ic{ flex:0 0 auto; font-size:15px; }
+  .prw-lb{ flex:1; min-width:0; color:var(--ink); font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .prw-v{ flex:0 0 auto; color:var(--ink); }
+  .prw-v b{ font-family:'FF Numeral', system-ui, sans-serif; font-weight:600; font-size:17px; }
+  .prw-d{ flex:0 0 auto; min-width:52px; text-align:right; font-size:11.5px; color:var(--muted); }
+  .prw-tot{ margin-top:9px; font-size:12.5px; color:var(--muted); }
+  .prw-tot b{ color:var(--green-800); font-family:'FF Numeral', system-ui, sans-serif; font-weight:600; }
   .rd-stam{ font-size:13px; color:var(--muted); line-height:1.5; margin:8px 0 4px; }
   .rd-list{ margin:8px 0 4px; }
   .rd-r{ display:flex; align-items:center; gap:10px; padding:8px 2px; border-bottom:1px solid var(--line); font-size:13px; }
@@ -1566,7 +1579,7 @@
   .pl-pausebar .pl-pb-tx{ flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .pl-pausebar .pl-pb-go{ flex:0 0 auto; display:inline-flex; align-items:center; gap:4px;
     background:#22b45e; color:#08150c; font-weight:900; font-size:12px; border-radius:999px; padding:6px 12px; }
-  @media (min-width:761px){ .pl-pausebar{ bottom:14px; max-width:560px; left:50%; right:auto; transform:translateX(-50%); width:calc(100% - 28px); } }
+  @media (min-width:761px){ .pl-pausebar{ bottom:14px; max-width:560px; left:calc(50% - 280px); right:auto; width:560px; } }
   body.ff-plpaused .ff-fab{ bottom:calc(126px + env(safe-area-inset-bottom)); }
   @media (min-width:761px){ body.ff-plpaused .ff-fab{ bottom:74px; } }
   .ff-fab{ position:fixed; right:16px; bottom:calc(76px + env(safe-area-inset-bottom)); z-index:45;

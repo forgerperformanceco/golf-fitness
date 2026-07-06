@@ -697,6 +697,33 @@ PR to friends shouldn't look like an ad. Footer now reads "FairwayFuel · Turn
 muscle into distance ⛳" (brand, no URL), and the share/clipboard text
 fallbacks dropped the https link too ("— training with FairwayFuel ⛳").
 
+## 37 · The hype pack — live PRs, milestones, PR Wall (user request: "I need some motivation")
+
+- **Live set-level PRs.** The moment a checked set beats your all-time e1RM
+  for that lift: confetti + haptic + toast ("🚀 e1RM PR — Romanian Deadlift
+  294 lb. New ceiling.") and a gradient PR badge pinned to the station. Fires
+  once per lift per session, only on a NEW ceiling — no confetti fatigue. The
+  recap moment stays.
+- **Milestones.** Finishing a session checks two lifetime ladders — sessions
+  banked (5·10·25·50·75·100·150·200·300) and iron moved (50k → 2M lb) — and
+  celebrates crossings ("🏆 25 sessions banked — that's a habit, not a
+  phase."). Celebrated levels stored per device so each fires once.
+- **🏆 PR Wall on Stats** (top of the trends): top-3 lift e1RMs with dates,
+  7-iron speed best, longest drive, biggest single session, and a lifetime
+  line ("Lifetime: 21,000 lb moved · 4 sessions banked") in the numeral face.
+
+## 38 · Floating bars, round 3: pin to the VISUAL viewport (user-reported)
+
+Blocking zoom (§35) prevents new zoom but can't un-zoom an already-zoomed
+standalone session — and the nudge hack didn't help there. New approach
+attacks the symptom directly: on every visualViewport resize/scroll (and
+window scroll), the pinned bars are translated to the VISIBLE bottom
+(`dy = vv.offsetTop + vv.height − innerHeight`, rAF-throttled). In a healthy
+viewport dy=0 and it's a no-op; zoomed, mid-pan, or post-keyboard, the bars
+stay glued to the bottom of what you can see. Phones only (≤760px); the
+desktop pause-bar centering moved from transform to margin so the pinner owns
+the transform channel. Relaunching the installed app still resets zoom fully.
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob

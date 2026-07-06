@@ -162,35 +162,37 @@
   // re-anchor them with a one-frame transform nudge.
   (function(){
     var vv=window.visualViewport; if(!vv) return;
-    var t=null;
+    var raf=null, narrow=null;
+    try{ narrow=window.matchMedia("(max-width: 760px)"); }catch(e){}
     function editing(){
       var a=document.activeElement;
       return !!(a && (a.tagName==="INPUT"||a.tagName==="TEXTAREA"||a.tagName==="SELECT"||a.isContentEditable));
     }
-    function sync(){
-      // Keyboard = a field is focused AND the visual viewport lost real height.
-      // vv.height is in visual CSS px — multiply by scale so pinch-zoom (which
-      // shrinks vv.height without any keyboard) can never read as a keyboard.
+    function pin(){
+      raf=null;
       var gap=window.innerHeight - vv.height*vv.scale;
       var kb=editing() && vv.scale<1.15 && gap>150;
       document.body.classList.toggle("ff-kb", kb);
-      if(!kb){
-        ["mobileTabs","ffFab","plPauseBar"].forEach(function(id){
-          var el=document.getElementById(id); if(!el) return;
-          el.style.transform="translateZ(0)";
-          requestAnimationFrame(function(){ el.style.transform=""; });
-        });
-      }
+      // THE fix for iOS floating bars: whatever state the viewport is in —
+      // zoomed, mid-pan, post-keyboard — glue the pinned bars to the VISIBLE
+      // bottom. dy is how far the visible bottom sits from the layout bottom;
+      // 0 in a normal viewport, so this is a no-op unless iOS misbehaves.
+      var dy=(vv.offsetTop + vv.height) - window.innerHeight;
+      var mobile=!narrow || narrow.matches;
+      ["mobileTabs","ffFab","plPauseBar"].forEach(function(id){
+        var el=document.getElementById(id); if(!el) return;
+        el.style.transform=(mobile && !kb && Math.abs(dy)>1) ? "translateY("+dy+"px)" : "";
+      });
     }
-    ["resize","scroll"].forEach(function(ev){
-      vv.addEventListener(ev, function(){ clearTimeout(t); t=setTimeout(sync, 90); });
-    });
-    document.addEventListener("focusout", function(){ setTimeout(sync, 250); }, true);
-    // Failsafe: the hide class can never outlive its cause — any tap with no
-    // field focused re-syncs immediately.
+    function req(){ if(!raf) raf=requestAnimationFrame(pin); }
+    vv.addEventListener("resize", req);
+    vv.addEventListener("scroll", req);
+    window.addEventListener("scroll", req, { passive:true });
+    document.addEventListener("focusout", function(){ setTimeout(req, 250); }, true);
     document.addEventListener("pointerdown", function(){
-      if(document.body.classList.contains("ff-kb") && !editing()) sync();
+      if(document.body.classList.contains("ff-kb") && !editing()) req();
     }, true);
+    req();
   })();
 
 /* ────────── js/app/008-sheets.js ────────── */
@@ -3760,6 +3762,8 @@
         '<button type="button" data-plsetadd="1">＋ Add set</button>'+
         '<button type="button" data-plsetrem="1">− Remove set</button>'+
         '<span class="pl-setops-hint">hold a set to remove it · hold the name to reorder</span></div>';
+      var livePr=(player.prHit && player.prHit[x.name])
+        ? '<div class="pl-livepr">🚀 e1RM PR — <b>'+Math.round(player.prHit[x.name])+'</b> lb</div>' : '';
       var prescLine = presc!=null
         ? (wv==="deload" ? '🪫 Deload — today: <b>'+presc+' lb</b> (~60% of last week)' : '📈 Progression earned — today: <b>'+presc+' lb</b>')
         : (topLast ? 'Last time’s top: <b>'+topLast+' lb</b> — beat the reps, then the load follows.' : 'First time — find a weight you can own with 2 reps in reserve.');
@@ -3779,7 +3783,7 @@
         '<span class="pl-target dim">'+(purposeFor(x.name)==="⚡"?"max intent · full rest":effortNote(x.target))+'</span>'+
         '<div class="pl-presc">'+prescLine+'</div>'+
         '<div class="pl-cue">⚡ '+cue+'</div>'+
-        acts+whyBox+
+        acts+whyBox+livePr+
         '<div class="pl-sets">'+setsHtml+'</div>';
     }
     // recap
@@ -3837,6 +3841,7 @@
     saveSession(player.week, player.dayName, player.sess);
     try{ localStorage.removeItem("ff_pl_paused"); }catch(e){}
     pushHistory(player.week, player.dayName, player.sess);
+    try{ ffMilestones(); }catch(e){}
     focusDay=player.dayName;
     ffToast("Workout saved to history 💪 Nice work.");
     plClose();
@@ -3943,6 +3948,20 @@
           // Empty fields inherit the nearest earlier set — one tap repeats the work.
           if(!s3.w){ for(var cw2=si2-1;cw2>=0;cw2--){ if(x2.sets[cw2]&&x2.sets[cw2].w){ s3.w=x2.sets[cw2].w; break; } } }
           if(!s3.r){ for(var cr2=si2-1;cr2>=0;cr2--){ if(x2.sets[cr2]&&x2.sets[cr2].r){ s3.r=x2.sets[cr2].r; break; } } }
+          // Live PR moment: this set beats your all-time e1RM for the lift —
+          // celebrate NOW, not at the recap.
+          try{
+            var w3=parseFloat(s3.w), r3=parseFloat(s3.r);
+            if(w3>0 && r3>0){
+              var e13=e1RM(w3,r3), pb3=player.prevBest[x2.name];
+              player.prHit=player.prHit||{};
+              if(pb3!=null && e13>pb3+0.5 && e13>(player.prHit[x2.name]||0)){
+                player.prHit[x2.name]=e13;
+                ffCelebrate(); ffTick([25,45,25]);
+                ffToast("🚀 e1RM PR — "+x2.name+" "+Math.round(e13)+" lb. New ceiling.");
+              }
+            }
+          }catch(e3){}
         }
         plSave();
         if(s3.done){
@@ -3991,6 +4010,66 @@
       if(x && x.sets[si]){ x.sets[si][e.target.getAttribute("data-plf")]=e.target.value; plSave(); }
     });
   }
+  // Milestones: crossing a session-count or lifetime-volume threshold gets a
+  // celebration. Celebrated levels stored so each fires once per device.
+  var FF_MS_SESS=[5,10,25,50,75,100,150,200,300];
+  var FF_MS_VOL=[50000,100000,250000,500000,750000,1000000,2000000];
+  function ffMilestones(){
+    var hist=lsGet("ff_history",[])||[];
+    var n=hist.length, vol=0;
+    hist.forEach(function(h){ vol+=(h.volume||0); });
+    var seen={}; try{ seen=JSON.parse(localStorage.getItem("ff_milestones"))||{}; }catch(e){}
+    var msg=null;
+    FF_MS_SESS.forEach(function(t){ if(n>=t && (seen.s||0)<t){ seen.s=t; msg="🏆 "+t+" sessions banked — that's a habit, not a phase."; } });
+    FF_MS_VOL.forEach(function(t){ if(vol>=t && (seen.v||0)<t){ seen.v=t; msg="🏋️ "+t.toLocaleString()+" lb moved lifetime — you've lifted a house."; } });
+    if(msg){
+      try{ localStorage.setItem("ff_milestones", JSON.stringify(seen)); }catch(e){}
+      setTimeout(function(){ try{ ffCelebrate(); ffTick([30,50,30]); }catch(e){} ffToast(msg); }, 600);
+    }
+  }
+
+  // The PR Wall: every best the app knows about, in one trophy case.
+  function prWallHtml(){
+    var rows=[];
+    var bests={};
+    sessionsByWeek().forEach(function(se){
+      (se.s.ex||[]).forEach(function(x){
+        if(!/Squat|Deadlift|Bench|Press|Row|Romanian|Hinge|Hip Thrust|Pull-?up|Chin/i.test(x.name)) return;
+        (x.sets||[]).forEach(function(st){
+          var e1=e1RM(st.w,st.r);
+          if(e1>0 && (!bests[x.name] || e1>bests[x.name].v)) bests[x.name]={v:e1, d:se.s.date||""};
+        });
+      });
+    });
+    Object.keys(bests).sort(function(a,b){ return bests[b].v-bests[a].v; }).slice(0,3).forEach(function(nm){
+      rows.push({ ic:"🏋️", lb:nm+" e1RM", v:Math.round(bests[nm].v), u:"lb", d:bests[nm].d });
+    });
+    var sBest=null, dBest=null;
+    (lsGet("ff_body",[])||[]).forEach(function(e){
+      var sv=parseFloat(e.s); if(!isNaN(sv) && (!sBest || sv>sBest.v)) sBest={v:sv, d:e.date||""};
+      var dv=parseFloat(e.d); if(!isNaN(dv) && (!dBest || dv>dBest.v)) dBest={v:dv, d:e.date||""};
+    });
+    if(sBest) rows.push({ ic:"⚡", lb:"7-iron speed", v:Math.round(sBest.v), u:"mph", d:sBest.d });
+    if(dBest) rows.push({ ic:"⛳", lb:"Longest drive", v:Math.round(dBest.v), u:"yds", d:dBest.d });
+    var big=null, hist=lsGet("ff_history",[])||[], vol=0;
+    hist.forEach(function(h){ vol+=(h.volume||0); if(h.volume && (!big || h.volume>big.v)) big={v:h.volume, d:h.date||""}; });
+    if(big) rows.push({ ic:"🔥", lb:"Biggest session", v:big.v, u:"lb", d:big.d, loc:true });
+    var h='<div class="pcard"><div class="pc-head"><span class="pc-t">🏆 PR Wall</span>'+
+      (rows.length?'<span class="pc-delta up">▲ '+rows.length+' bests</span>':'')+'</div>';
+    if(!rows.length){
+      h+='<div class="pc-need">Every PR you set — heaviest e1RM, fastest swing, longest drive, biggest session — gets a spot on this wall. Go set the first one.</div>';
+    } else {
+      h+='<div class="prw">'+rows.map(function(r){
+        return '<div class="prw-r"><span class="prw-ic">'+r.ic+'</span><span class="prw-lb">'+lbEsc(r.lb)+'</span>'+
+          '<span class="prw-v"><b>'+(r.loc?r.v.toLocaleString():r.v)+'</b> '+r.u+'</span>'+
+          '<span class="prw-d">'+lbEsc(String(r.d||"").replace(/, \d{4}$/,''))+'</span></div>';
+      }).join("")+'</div>';
+      if(hist.length) h+='<div class="prw-tot">Lifetime: <b>'+vol.toLocaleString()+'</b> lb moved · <b>'+hist.length+'</b> session'+(hist.length===1?'':'s')+' banked</div>';
+    }
+    h+='</div>';
+    return h;
+  }
+
   // Reorder the session: a sheet listing today's lifts — drag a row (or use the
   // arrows) and the session order, stations and inline logger all follow.
   function plRebuildStations(keepObj){
@@ -5438,6 +5517,9 @@
         '<h3>No trends yet</h3><p>Log a workout on the Train tab, and add today’s bodyweight + 7-iron speed below. '+
         'Two data points and your lines start climbing.</p></div>';
     } else {
+      // ---- PR Wall: the trophy case ----
+      try{ html+=prWallHtml(); }catch(e){}
+
       // ---- Clubhead speed (north star) ----
       // The payoff of speed is DISTANCE. A 7-iron carries ~2 yards farther per +1 mph of
       // clubhead speed (public TrackMan/FlightScope data; smash ~1.33). We show the GAIN,
