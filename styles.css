@@ -136,13 +136,16 @@
   label.field > span.lbl {
     display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #243a2c;
   }
-  input[type="number"], select {
+  input[type="number"], input[type="text"], input[type="date"], input[type="time"], select {
     width: 100%; padding: 13px 13px; border: 1.5px solid var(--line);
     border-radius: 10px; font-size: 16px; background: #fcfdfc; color: var(--ink);
     transition: border-color .15s, box-shadow .15s; -webkit-appearance: none; appearance: none;
   }
+  /* iOS renders date/time inputs as centered mini-pills unless told otherwise. */
+  input[type="date"], input[type="time"]{ min-height:47px; text-align:left; box-sizing:border-box; font-family:inherit; }
+  input::-webkit-date-and-time-value{ text-align:left; }
   select { -webkit-appearance: none; background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%235b6b60' d='M6 8L0 0h12z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 14px center; padding-right:34px; }
-  input[type="number"]:focus, select:focus {
+  input[type="number"]:focus, input[type="text"]:focus, input[type="date"]:focus, input[type="time"]:focus, select:focus {
     outline: none; border-color: var(--green-600); box-shadow: 0 0 0 3px rgba(34,197,94,.15);
   }
   .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
@@ -1786,7 +1789,7 @@
   html:not([data-theme="light"]) .brand-kicker .ball{ background:radial-gradient(circle at 35% 30%, #1a1a1a, #212d21); }
   html:not([data-theme="light"]) .tabs button.active{ background:#1a1a1a; }
   html:not([data-theme="light"]) label.field > span.lbl{ color:#caded2; }
-  html:not([data-theme="light"]) input[type="number"], html:not([data-theme="light"]) select{ background:#141f14; }
+  html:not([data-theme="light"]) input[type="number"], html:not([data-theme="light"]) input[type="text"], html:not([data-theme="light"]) input[type="date"], html:not([data-theme="light"]) input[type="time"], html:not([data-theme="light"]) select{ background:#141f14; }
   html:not([data-theme="light"]) .seg{ background:#182518; }
   html:not([data-theme="light"]) .field-help{ background:#172014; }
   html:not([data-theme="light"]) .field-help b{ color:#c8dcd0; }
@@ -2058,7 +2061,7 @@
   html[data-theme="dark"] .brand-kicker .ball{ background:radial-gradient(circle at 35% 30%, #1a1a1a, #212d21); }
   html[data-theme="dark"] .tabs button.active{ background:#1a1a1a; }
   html[data-theme="dark"] label.field > span.lbl{ color:#caded2; }
-  html[data-theme="dark"] input[type="number"], html[data-theme="dark"] select{ background:#141f14; }
+  html[data-theme="dark"] input[type="number"], html[data-theme="dark"] input[type="text"], html[data-theme="dark"] input[type="date"], html[data-theme="dark"] input[type="time"], html[data-theme="dark"] select{ background:#141f14; }
   html[data-theme="dark"] .seg{ background:#182518; }
   html[data-theme="dark"] .field-help{ background:#172014; }
   html[data-theme="dark"] .field-help b{ color:#c8dcd0; }
