@@ -188,7 +188,7 @@
     var c=weekCard();
     var txt="My FairwayFuel week "+curWeek()+" scorecard: "+c.sessions+"/"+c.freq+" sessions"+
       (c.vol>0?(" · "+c.vol.toLocaleString()+" lb moved"):"")+
-      (c.bestT!=null?(" · 7-iron "+c.bestT+" mph"):"")+" ⛳ https://fairwayfuel.app";
+      (c.bestT!=null?(" · 7-iron "+c.bestT+" mph"):"")+" — FairwayFuel ⛳";
     ffShareImage({
       kick:"Sunday Scorecard · Week "+curWeek(),
       big:c.sessions+"/"+c.freq, unit:"sessions",

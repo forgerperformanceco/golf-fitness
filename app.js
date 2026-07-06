@@ -3341,8 +3341,8 @@
     // footer — one line, left-aligned, no collisions
     g.fillStyle="rgba(255,255,255,.08)"; g.fillRect(0,H-150,W,150);
     g.font="800 42px system-ui, sans-serif"; g.fillStyle="#8be9ac";
-    g.fillText("fairwayfuel.app",72,H-58);
-    var fw=g.measureText("fairwayfuel.app").width;
+    g.fillText("FairwayFuel",72,H-58);
+    var fw=g.measureText("FairwayFuel").width;
     g.font="600 36px system-ui, sans-serif"; g.fillStyle="#9fc4ac";
     g.fillText("· Turn muscle into distance ⛳", 72+fw+18, H-58);
     try{ c.toBlob(function(b){ cb(b); },"image/png"); }catch(e){ cb(null); }
@@ -3497,7 +3497,7 @@
     var r=stState.saved, gain=(r.baseline!=null)?Math.round((r.best-r.baseline)*10)/10:0;
     var txt=(r.pr?"New 7-iron speed PR: ":"7-iron speed test: ")+r.best+" mph"+
       (gain>0?(" (+"+gain+" mph ≈ +"+Math.round(gain*2)+" yds since baseline)"):"")+
-      " — training with FairwayFuel ⛳ https://fairwayfuel.app";
+      " — training with FairwayFuel ⛳";
     ffShareImage({
       kick:"Speed test · 7-iron", big:String(r.best), unit:"mph",
       badge:(r.pr?"🚀 NEW ALL-TIME PR":null),
@@ -3850,7 +3850,7 @@
       if(top>0 && pb!=null && top>pb+0.5) prs.push(x.name+" e1RM "+Math.round(top)+" lb");
     });
     var txt=player.dayName.replace(/^Day \d+ — /,'')+" done 💪 "+(vol>0?vol.toLocaleString()+" lb moved":"session banked")+
-      (prs.length?(" · PR: "+prs.join(", ")):"")+" — training with FairwayFuel ⛳ https://fairwayfuel.app";
+      (prs.length?(" · PR: "+prs.join(", ")):"")+" — training with FairwayFuel ⛳";
     var mins=Math.max(1, Math.round(((player.sess.activeMs||0)+(Date.now()-player.startedAt))/60000));
     ffShareImage({
       kick:"Session complete · Week "+player.week,
@@ -5406,7 +5406,7 @@
     var c=weekCard();
     var txt="My FairwayFuel week "+curWeek()+" scorecard: "+c.sessions+"/"+c.freq+" sessions"+
       (c.vol>0?(" · "+c.vol.toLocaleString()+" lb moved"):"")+
-      (c.bestT!=null?(" · 7-iron "+c.bestT+" mph"):"")+" ⛳ https://fairwayfuel.app";
+      (c.bestT!=null?(" · 7-iron "+c.bestT+" mph"):"")+" — FairwayFuel ⛳";
     ffShareImage({
       kick:"Sunday Scorecard · Week "+curWeek(),
       big:c.sessions+"/"+c.freq, unit:"sessions",

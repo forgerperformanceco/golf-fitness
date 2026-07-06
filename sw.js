@@ -2,13 +2,13 @@
 /* FairwayFuel service worker — offline-first for the single-page app.
    CACHE is stamped with the build's content hash by scripts/build.mjs, so a new
    build invalidates old caches automatically — no manual version bumps. */
-var CACHE = 'fairwayfuel-b4b7df9e4d';
+var CACHE = 'fairwayfuel-cdf09dcde5';
 var ASSETS = [
   './',
   './index.html',
-  './styles.css?v=b4b7df9e4d',
+  './styles.css?v=cdf09dcde5',
   './fonts/ffnum.woff2',
-  './app.js?v=b4b7df9e4d',
+  './app.js?v=cdf09dcde5',
   './privacy.html',
   './cloud-sync.js?v=106',
   './coach.js?v=88',

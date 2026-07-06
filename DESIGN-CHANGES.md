@@ -690,6 +690,13 @@ Fix — the app now behaves like an app, not a document:
 - `maximum-scale=1` added to the viewport meta as belt-and-braces.
 Recovery for an already-zoomed session: double-tap once or reopen the app.
 
+## 36 · Share cards: no website link (user request)
+
+The PNG footer read "fairwayfuel.app · Turn muscle into distance" — sharing a
+PR to friends shouldn't look like an ad. Footer now reads "FairwayFuel · Turn
+muscle into distance ⛳" (brand, no URL), and the share/clipboard text
+fallbacks dropped the https link too ("— training with FairwayFuel ⛳").
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob
