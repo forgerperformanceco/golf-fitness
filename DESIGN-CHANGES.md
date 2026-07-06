@@ -558,6 +558,31 @@ the labels now say what's being counted:
 - Example-day fold: "4 meals + pre · 2 ✓"
 - The summary's "4 of 5 down" is unit-less and stays.
 
+## 27 · Round Debrief — the gym-to-course loop closes (the golf feature)
+
+The whole app pointed at the course and then looked away: waves peak you for
+an event, speed tests every two weeks, round-day fueling — and no record that
+the golf ever happened. This is the feature only FairwayFuel can own: Arccos
+tracks the course but not the gym; Hevy tracks the gym but not the course.
+
+- **A ~20-second post-round ritual** (swap-card sheet — inherits drag physics
+  + entrance): score (optional), longest drive, driving feel (bombing it /
+  normal / short), and the question no golf app asks — how did the BODY hold
+  up? (strong all 18 / faded late / gassed). Stored in new synced `ff_rounds`
+  (cloud-sync KEYS + pin bump to v106), capped at 60 rounds.
+- **Course data feeds the engine**: the longest drive writes into the
+  driver-carry trend via the existing `logBodyEntry` path — the Home hero
+  number is now fed by actual golf. A new on-course best fires the PR
+  celebration (confetti + haptic + "that's the gym showing up" toast).
+- **Entry points**: quick-log sheet action, Game Day CTA ("Just played? Log
+  your round — 20 seconds" → "✓ Round banked"), and the Home timeline round
+  row flips to "Round banked ✓ — shot 86 · 265 yd bomb · finished strong".
+- **Stats: "On the course"** — best on-course drive (numeral face), the
+  stamina story ("2 of 3 rounds finished strong — fading late is a fuel +
+  conditioning problem; both are in the plan"), last 3 rounds, log button.
+- Follow-ups queued: scorecard hole for rounds; deload-week vs energy
+  correlation once data accumulates; round count into Octane consistency.
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob

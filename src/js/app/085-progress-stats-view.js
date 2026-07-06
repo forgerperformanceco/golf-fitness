@@ -241,6 +241,9 @@
           : '<span class="st-note">🎯 Next speed test in <b>'+Math.max(1, SPEEDTEST_EVERY-daysSinceTest())+'</b> days — <button class="stest-link" data-speedtest="1">test early</button></span>')+'</div>'+
         '</div>';
 
+      // ---- On the course: the gym-to-course proof ----
+      try{ html+=courseCardHtml(); }catch(e){}
+
       // ---- Strength: estimated 1RM on the big lifts ----
       html += '<div class="pcard"><div class="pc-head"><span class="pc-t">🏋️ Strength <small>est. 1RM</small></span></div>';
       if(lifts.length){
@@ -637,6 +640,7 @@
         (train?('<button type="button" class="qsheet-act" data-startplayer="'+escAttr(d.name)+'">'+ffIcon("barbell",18)+'<span>Start today’s workout<span class="qa-sub">'+d.name.replace(/^Day \d+ — /,"")+' · guided player</span></span><span class="qa-go">›</span></button>'):'')+
         '<button type="button" class="qsheet-act" data-speedtest="1">'+ffIcon("target",18)+'<span>Speed test<span class="qa-sub">3 max swings — best one counts</span></span><span class="qa-go">›</span></button>'+
         '<button type="button" class="qsheet-act" data-mobscreen="1">'+ffIcon("compass",18)+'<span>Mobility screen<span class="qa-sub">3 moves · ~3 minutes</span></span><span class="qa-go">›</span></button>'+
+        '<button type="button" class="qsheet-act" data-roundlog="1">⛳<span>Log a round<span class="qa-sub">score, longest drive, how the body held up</span></span><span class="qa-go">›</span></button>'+
         '</div></div>';
       sheet.hidden=false; document.body.style.overflow="hidden";
     }
@@ -653,7 +657,7 @@
         return;
       }
       // Action rows open their overlays via the document-level listeners — just get out of the way.
-      if(e.target.closest("[data-startplayer],[data-speedtest],[data-mobscreen]")) closeSheet();
+      if(e.target.closest("[data-startplayer],[data-speedtest],[data-mobscreen],[data-roundlog]")) closeSheet();
     });
   })();
 
