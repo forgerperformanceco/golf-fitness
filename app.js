@@ -4971,6 +4971,87 @@
   }
 
   function acctRow(k,v){ return '<div class="acct-li"><span>'+k+'</span><b>'+v+'</b></div>'; }
+
+  /* ----- Sync health + backup ----- */
+  // cloud-sync.js records every push/pull outcome in ff_sync_status (device-local)
+  // and fires "ff-sync-status". Here we turn that into a live status line on the
+  // signed-in hero card, so a sync that quietly broke is visible the moment you
+  // look — instead of on the day a new phone comes up empty.
+  function ffAgo(ts){
+    var s=Math.max(0,(Date.now()-ts)/1000);
+    if(s<75) return "just now";
+    if(s<3600) return Math.round(s/60)+" min ago";
+    if(s<86400) return Math.round(s/3600)+" hr ago";
+    var d=Math.round(s/86400); return d+(d===1?" day ago":" days ago");
+  }
+  function ffSyncLine(){
+    var st=lsGet("ff_sync_status",null);
+    if(!st || !st.state) return '<div class="acct-synced" id="acctSyncLine">☁ Syncs across your devices</div>';
+    if(st.state==="ok") return '<div class="acct-synced" id="acctSyncLine">☁ Synced · '+ffAgo(st.ts)+'</div>';
+    var tail=st.okTs ? ' — last good sync '+ffAgo(st.okTs) : ' — nothing saved to the cloud yet';
+    var head=(navigator.onLine===false) ? '⚠ Offline' : '⚠ Sync failing';
+    return '<div class="acct-synced warn" id="acctSyncLine">'+head+tail+'</div>';
+  }
+  window.addEventListener("ff-sync-status", function(){
+    var el=$("acctSyncLine"); if(!el) return;
+    var tmp=document.createElement("div"); tmp.innerHTML=ffSyncLine();
+    el.className=tmp.firstChild.className; el.innerHTML=tmp.firstChild.innerHTML;
+  });
+
+  // Export: every ff_* key (plus the calculator profile) in one JSON file the
+  // user owns. iOS installed apps have no downloads UI, so the share sheet is
+  // the reliable path there; everywhere else a plain download works.
+  function ffExportData(){
+    var blob={};
+    try{
+      for(var i=0;i<localStorage.length;i++){
+        var k=localStorage.key(i);
+        if(k!=="fairwayfuel" && k.indexOf("ff_")!==0) continue;
+        try{ blob[k]=JSON.parse(localStorage.getItem(k)); }catch(e){}
+      }
+    }catch(e){}
+    var out={ app:"FairwayFuel", kind:"backup", version:1, exported:new Date().toISOString(), data:blob };
+    var name="fairwayfuel-backup-"+new Date().toISOString().slice(0,10)+".json";
+    var payload=JSON.stringify(out);
+    try{
+      if(ffIsIOS() && navigator.canShare && window.File){
+        var f=new File([payload],name,{type:"application/json"});
+        if(navigator.canShare({files:[f]})){ navigator.share({files:[f],title:name}).catch(function(){}); return; }
+      }
+    }catch(e){}
+    var a=document.createElement("a");
+    a.href=URL.createObjectURL(new Blob([payload],{type:"application/json"}));
+    a.download=name;
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ try{ URL.revokeObjectURL(a.href); a.remove(); }catch(e){} },2000);
+  }
+  function ffImportData(){
+    var inp=document.createElement("input");
+    inp.type="file"; inp.accept=".json,application/json";
+    inp.onchange=function(){
+      var f=inp.files&&inp.files[0]; if(!f) return;
+      var rd=new FileReader();
+      rd.onload=function(){
+        var obj=null; try{ obj=JSON.parse(rd.result); }catch(e){}
+        var data=obj && (obj.kind==="backup" ? obj.data : obj);   // accept a raw key dump too
+        var looksRight=data && typeof data==="object" &&
+          Object.keys(data).some(function(k){ return k==="fairwayfuel"||k.indexOf("ff_")===0; });
+        if(!looksRight){ alert("That file doesn't look like a FairwayFuel backup."); return; }
+        var when=(obj&&obj.exported)?(" from "+String(obj.exported).slice(0,10)):"";
+        if(!confirm("Restore the backup"+when+"?\n\nThis replaces the data on this device with the file's contents."+
+          ((window.FF&&window.FF.user)?" It then syncs to your account (workout history merges, it isn't lost).":""))) return;
+        Object.keys(data).forEach(function(k){
+          if(k!=="fairwayfuel" && k.indexOf("ff_")!==0) return;
+          try{ localStorage.setItem(k, JSON.stringify(data[k])); }catch(e){}
+        });
+        try{ window.dispatchEvent(new Event("ff-data-changed")); }catch(e){}
+        alert("Backup restored ✓");
+        location.reload();
+      };
+      rd.readAsText(f);
+    };
+    inp.click();
+  }
   // Reflect an Account-tab change onto the matching segmented control elsewhere
   // (the calculator / Train fold) so the two stay in sync without a reload.
   function ffSyncSeg(id, attr, val){ var s=$(id); if(!s) return;
@@ -4988,7 +5069,7 @@
       var email=user.email||'your account', initial=(email[0]||'⛳').toUpperCase();
       html+='<div class="acct-card hero"><div class="acct-id"><div class="acct-ava">'+initial+'</div>'+
         '<div class="acct-idtext"><div class="acct-email">'+email+'</div>'+
-        '<div class="acct-synced">☁ Synced across your devices</div></div></div>'+
+        ffSyncLine()+'</div></div>'+
         '<button class="acct-btn ghost" id="acctSignOut">Sign out</button></div>';
     } else {
       html+='<div class="acct-card hero center"><div class="acct-bigico">☁</div>'+
@@ -5074,6 +5155,12 @@
         ? ('Last screen: <b>'+lmA.score+'/100</b> · '+lmA.date+'. Re-screen every 4 weeks — it keeps the muscle you’re adding from costing you rotation.')
         : 'A 3-move self-check (~3 min, no gear): trunk rotation, hips, deep squat. It becomes the 5th pillar of your Octane and tunes your warm-ups to what’s tight.')+'</p>'+
       '<button class="acct-btn ghost" data-mobscreen="1">'+(lmA?'↻ Re-run the screen':'Take the screen')+'</button></div>';
+    html+='<div class="acct-card"><div class="acct-head">💾 Backup &amp; export</div>'+
+      '<p class="acct-p">'+(user
+        ? 'Your data syncs to your account — a downloaded copy is your belt-and-suspenders. Every workout, weigh-in, round and setting in one file you own.'
+        : 'Your data lives only on this device. Download a copy — every workout, weigh-in, round and setting in one file — so a lost phone can’t take your history with it.')+'</p>'+
+      '<button class="acct-btn ghost" id="acctExport">⬇ Export my data</button>'+
+      '<button class="acct-btn ghost" id="acctImport">Restore from a backup</button></div>';
     html+='<div class="acct-card"><div class="acct-head">🍽️ Your favorite foods</div>'+
       '<p class="acct-p">Tell us what you actually eat and your meal ideas + day plans get built around it. Set it once, tweak anytime.</p>'+
       '<button class="acct-btn ghost" id="acctFoods">Edit my foods</button></div>';
@@ -5142,6 +5229,8 @@
       renderAccount();
     };
     var su=$("acctSetup"); if(su) su.onclick=function(){ startOnboarding(true); };
+    var ex=$("acctExport"); if(ex) ex.onclick=function(){ ffExportData(); };
+    var im=$("acctImport"); if(im) im.onclick=function(){ ffImportData(); };
     var af=$("acctFoods"); if(af) af.onclick=function(){ openFoodPrefs(); };
     var ai=$("acctInstall"); if(ai) ai.onclick=function(){ if(!ffPromptInstall()) alert("Use your browser menu → “Install app” / “Add to Home Screen.”"); };
     var nb=$("acctNotif"); if(nb) nb.onclick=function(){ nb.disabled=true; ffNotifToggle().then(function(){ renderAccount(); }); };
