@@ -963,13 +963,29 @@
     } else {
       // 2b. The same per-meal split, built from foods you love, with a one-day shopping list.
       var plan=ffPlanDay(p,t,ffRoll);
+      // Map each food-built meal to its schedule slot, so the ✓/≈ check-offs here
+      // write the SAME ff_fuel indices as the generic schedule and the Home timeline.
+      var schedUsed={};
+      var schedIdx=plan.slots.map(function(s){
+        if(typeof ffSchedule==="undefined" || !ffSchedule) return -1;
+        for(var i=0;i<ffSchedule.length;i++){
+          if(schedUsed[i]) continue;
+          var sl=ffSchedule[i];
+          var hit = s.pre ? (sl.kind==="pre"||sl.isPre) : (sl.label===s.name && sl.kind!=="pre");
+          if(hit){ schedUsed[i]=true; return i; }
+        }
+        return -1;
+      });
       html+='<div class="meals"><div class="meals-head"><span>🍽️ Your Meals</span>'+
         '<span class="meal-pick"><span class="meal-pick-lbl">meals/day</span><span class="seg meal-seg">'+
           [3,4,5,6].map(function(n){ return '<button type="button" data-meals="'+n+'"'+((t.m||4)===n?' class="active"':'')+'>'+n+'</button>'; }).join("")+
         '</span></span></div><div class="meals-body">';
+      try{ if(lastMealPlan && lastMealPlan.meal) html+=fuelSummaryHtml(lastMealPlan.meal); }catch(e){}
       html+='<div class="sched-title">'+ffIcon("calendar",14)+' Your day — <b>'+(t.m||4)+' meals</b>, built around <b>foods you love</b></div>';
-      plan.slots.forEach(function(s){
-        html+='<div class="ffm-meal"><div class="ffm-meal-h">'+s.name+ffMealTag(s)+' <span>≈ '+s.P+'P · '+s.C+'C · '+s.F+'F</span></div>'+
+      var fdNow=fuelDay(ffISO())||{ m:{} };
+      plan.slots.forEach(function(s,k){
+        var si=schedIdx[k], v=(si>=0&&fdNow.m)?fdNow.m[si]:null;
+        html+='<div class="ffm-meal'+(v?' fdone':'')+'"><div class="ffm-meal-h has-fchk"><span class="ffm-meal-n">'+s.name+ffMealTag(s)+'</span><span class="ffm-meal-m">≈ '+s.P+'P · '+s.C+'C · '+s.F+'F</span>'+(si>=0?ffFchkHtml(si):'')+'</div>'+
           '<div class="ffm-items">'+ffItemsHtml(s.items)+'</div></div>';
       });
       var tt=plan.totals, tg2=plan.target;

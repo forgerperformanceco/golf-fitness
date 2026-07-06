@@ -700,6 +700,13 @@
   .ffm-meal { margin-bottom:10px; }
   .ffm-meal-h { font:800 12.5px system-ui; color:var(--ink); margin-bottom:4px; display:flex; justify-content:space-between; gap:8px; }
   .ffm-meal-h span { color:var(--muted); font-weight:700; }
+  /* Meal cards with check-offs: name left, macros pushed right, buttons at the edge. */
+  .ffm-meal-h.has-fchk{ justify-content:flex-start; align-items:center; }
+  .ffm-meal-h.has-fchk .ffm-meal-n{ color:var(--ink); }
+  .ffm-meal-h.has-fchk .ffm-meal-m{ margin-left:auto; text-align:right; }
+  .ffm-meal-h.has-fchk .fchk{ flex-direction:row; }
+  .ffm-meal.fdone{ opacity:.62; }
+  .ffm-meal.fdone .ffm-meal-n{ text-decoration:line-through; text-decoration-color:#9db8a5; text-decoration-thickness:1.5px; }
   .ffm-groc { margin-top:12px; background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:11px 13px; }
   .ffm-groc-h { font:800 12.5px system-ui; color:var(--green-800); margin-bottom:7px; }
   /* One-day shopping list collapses — a scan-later artifact, not a daily read. */
