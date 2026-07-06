@@ -583,6 +583,16 @@ tracks the course but not the gym; Hevy tracks the gym but not the course.
 - Follow-ups queued: scorecard hole for rounds; deload-week vs energy
   correlation once data accumulates; round count into Octane consistency.
 
+## 28 · Base input styling covered only number/select (user-reported via Big event)
+
+The polished input style targeted `input[type="number"], select` — every
+`type="text"`, `date`, and `time` input rendered with raw browser defaults
+(on iOS: the grey centered mini-pill). That's what made the Big event date/
+name fields look wrong; the Game Day tee-time and leaderboard handle had the
+same gap. Base rule extended to text/date/time (+ focus ring), with the iOS
+quirks handled: `-webkit-appearance:none`, left-aligned
+`::-webkit-date-and-time-value`, 47px min-height, 16px font (no zoom-on-focus).
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob
