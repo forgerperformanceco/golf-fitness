@@ -893,6 +893,17 @@
   .pc-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:6px; }
   .pc-t { font:800 13.5px system-ui; color:var(--green-800); }
   .pc-t small { font-weight:600; color:var(--muted); font-size:12px; margin-left:3px; }
+  /* Calm pass: Stats cards fold to a headline row (title · stat · chevron). */
+  .pf-head{ width:100%; text-align:left; background:none; border:0; padding:0; cursor:pointer; font:inherit; }
+  .pf-side{ margin-left:auto; display:flex; align-items:center; gap:8px; flex:0 0 auto; }
+  .pf-num{ font-family:'FF Numeral', system-ui, sans-serif; font-weight:600; font-size:15px; color:var(--green-800); }
+  .pf-sub{ font-size:11.5px; color:var(--muted); font-weight:600; }
+  .pf-arr{ color:#9db8a5; font-size:16px; line-height:1; }
+  .pcard.pf-closed{ padding:13px 16px; }
+  .pcard.pf-closed .pc-head{ margin-bottom:0; }
+  .pcard.pf-closed .pc-t{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+  .pcard.season .pf-num, .pcard.season .pf-sub{ color:#bfe3cd; }
+  .lb-seg-top{ margin:2px 0 10px; }
   .pc-delta { font:800 12px system-ui; padding:3px 9px; border-radius:999px; white-space:nowrap; }
   .pc-delta.up { background:#e6f6ec; color:#15803d; }
   .pc-delta.down { background:#fdeaea; color:#c0392b; }

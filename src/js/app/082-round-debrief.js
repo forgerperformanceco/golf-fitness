@@ -156,12 +156,11 @@
   // The Stats proof card: rounds, best drive, and the stamina story.
   function courseCardHtml(){
     var rounds=ffRounds().slice().reverse();
-    var h='<div class="pcard"><div class="pc-head"><span class="pc-t">⛳ On the course</span>'+
-      (rounds.length?'<span class="pc-delta neu">'+rounds.length+' round'+(rounds.length===1?"":"s")+'</span>':'')+'</div>';
+    var bd=0; rounds.forEach(function(r){ if(r.drive&&r.drive>bd) bd=r.drive; });
+    var h='';
     if(!rounds.length){
       h+='<div class="pc-need">After your next round, log it here — score, longest drive, and how the body held up. This is where the gym work proves out in actual golf.</div>';
     } else {
-      var bd=0; rounds.forEach(function(r){ if(r.drive&&r.drive>bd) bd=r.drive; });
       var strong=rounds.filter(function(r){ return r.energy==="strong"; }).length;
       var rated=rounds.filter(function(r){ return r.energy; }).length;
       if(bd>0) h+='<div class="pc-now">'+Math.round(bd)+'<span>yds best on-course drive</span></div>';
@@ -183,6 +182,8 @@
         h+='<div class="rd-ins dim">🧾 Keep logging — at ~5 rounds this card starts showing receipts: scoring trend, drives near vs far from gym days, deload-week distance.</div>';
       }
     }
-    h+='<button type="button" class="fd-act" data-roundlog="1">⛳ Log a round ›</button></div>';
-    return h;
+    h+='<button type="button" class="fd-act" data-roundlog="1">⛳ Log a round ›</button>';
+    return pfCard('course','⛳ On the course',
+      (bd>0?'<span class="pf-num">'+Math.round(bd)+' yds</span>':'')+
+      (rounds.length?'<span class="pc-delta neu">'+rounds.length+' round'+(rounds.length===1?"":"s")+'</span>':''), h);
   }

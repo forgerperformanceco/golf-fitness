@@ -850,6 +850,36 @@ pill; pill toggles done rows in/out; slim meal tap banks it; zero page
 errors; 390×844 light+dark screenshots reviewed. (Test-seed gotcha: profile
 `goal` must be a real GOALS key — 'leanbulk', not 'lean'.)
 
+## 43 · Calm pass B — Stats folds to headline rows
+
+**Why.** Stats had grown to ~10 full-height cards — a wall of everything.
+Pass B of the calm pass: every card folds to one line (title · headline
+stat · chevron), expanding on tap.
+
+**What.** New fold system in 085 (`pfIsOpen`/`pfHead`/`pfCard` + document
+`data-pftoggle` handler): state in `ff_statsfold` (device-local, NOT
+synced — like theme). The stat renders only on the CLOSED row (the open
+card says it bigger). `openCls` preserves special containers (dark
+`pcard season`, dashed `scorecard`). Defaults: **Octane hub and quick-log
+never fold, Speed opens**, everything else starts closed — first paint is
+hub + speed trend + 8 quiet rows.
+- Converted: speed / strength / bodyweight / consistency (inline),
+  PR Wall (070), course card (082), season map, Sunday Scorecard,
+  leaderboard (seg moved into the body; **loadLeaderboard only fires when
+  the fold is open** — no network for a closed row).
+- Closed-row stats carry the headline: "84 mph ▲ +4", "266 yds · 1 round",
+  "263 lb best e1RM", "Wk 9/20 · Accumulate", "0/4 sessions", "▲ N bests".
+- 390px: closed titles ellipsize (`.pf-closed .pc-t`), `pf-side` no-shrink;
+  Sunday title trimmed to "Wk N".
+
+**Verified** (test-calm-stats.mjs): defaults (8 closed + speed open + hub +
+quick-log), expand persists across view changes via ff_statsfold, speed
+collapses to its stat row, lb lazy-loads only when opened, season/scorecard
+containers intact when open; e2e + receipts suites green (receipts test now
+opens the course fold first). Follow-up noted: Home "Week so far →
+Leaderboard" button lands on Stats with the lb fold closed — consider
+auto-opening it from that entry point.
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob
