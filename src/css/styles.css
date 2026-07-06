@@ -1537,6 +1537,25 @@
   .tl-item.done .tl-t{ text-decoration:line-through; text-decoration-color:#9db8a5; text-decoration-thickness:1.5px; }
   .tl-s{ font-size:12.5px; color:var(--muted); margin-top:1px; line-height:1.4; }
   .tl-go{ color:#9db8a5; font-size:17px; flex:0 0 auto; }
+  /* Reorder sheet rows */
+  .ord-row{ display:flex; align-items:center; gap:10px; background:#fff; border:1.5px solid var(--line);
+    border-radius:12px; padding:12px 12px; margin-bottom:6px; font:700 14px system-ui; color:var(--ink);
+    touch-action:none; user-select:none; -webkit-user-select:none; }
+  .ord-row.dragging{ opacity:.92; box-shadow:0 8px 22px rgba(0,0,0,.22); position:relative; z-index:5; }
+  .ord-row.done .ord-n{ opacity:.55; text-decoration:line-through; }
+  .ord-row .ord-n em{ font-style:normal; font-size:11px; color:var(--green-700); text-decoration:none; margin-left:4px; }
+  .ord-grab{ color:var(--muted); font-size:15px; flex:0 0 auto; cursor:grab; }
+  .ord-n{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .ord-btns{ display:flex; gap:6px; flex:0 0 auto; }
+  .ord-btns button{ width:38px; height:38px; border-radius:10px; border:1.5px solid var(--line); background:#fff;
+    font-size:16px; font-weight:800; color:var(--ink); cursor:pointer; }
+  /* Add/remove set controls in the player */
+  .pl-setops{ display:flex; align-items:center; gap:8px; margin-top:10px; flex-wrap:wrap; }
+  .pl-setops button{ border:1px solid rgba(255,255,255,.22); background:rgba(255,255,255,.07); color:#dff1e4;
+    border-radius:10px; padding:9px 13px; font:800 12.5px system-ui; cursor:pointer; min-height:40px; }
+  .pl-setops-hint{ flex-basis:100%; font-size:11px; color:#7f9c8b; }
+  /* While the on-screen keyboard is up, the pinned bars hide (and can't strand mid-air). */
+  body.ff-kb .mobile-tabbar, body.ff-kb .ff-fab, body.ff-kb .pl-pausebar{ display:none !important; }
   .pl-pausebar{ position:fixed; left:10px; right:10px; bottom:calc(66px + env(safe-area-inset-bottom)); z-index:46;
     display:flex; align-items:center; gap:9px; border:0; cursor:pointer; text-align:left;
     background:linear-gradient(160deg,#0f2417,#14532d); color:#dff1e4; border-radius:14px;
@@ -2030,6 +2049,8 @@
   html:not([data-theme="light"]) .fchk-b{ border:1.5px solid #2b4334; background:#1a1a1a; color:#c4d3ca; }
   html:not([data-theme="light"]) .tl-fuelchip.full{ background:#142417; border-color:#274531; }
   html:not([data-theme="light"]) .tl-dot{ border:2.5px solid #34493a; }
+  html:not([data-theme="light"]) .ord-row{ background:#1a1a1a; }
+  html:not([data-theme="light"]) .ord-btns button{ background:#1a1a1a; }
   html:not([data-theme="light"]) .pl-dot.cur{ background:#274933; }
   html:not([data-theme="light"]) .pl-whybox .pl-howto{ background:#274933; color:#c9e5d5; }
   html:not([data-theme="light"]) .pl-rest-fill{ background:#274933; }
@@ -2302,6 +2323,8 @@
   html[data-theme="dark"] .fchk-b{ border:1.5px solid #2b4334; background:#1a1a1a; color:#c4d3ca; }
   html[data-theme="dark"] .tl-fuelchip.full{ background:#142417; border-color:#274531; }
   html[data-theme="dark"] .tl-dot{ border:2.5px solid #34493a; }
+  html[data-theme="dark"] .ord-row{ background:#1a1a1a; }
+  html[data-theme="dark"] .ord-btns button{ background:#1a1a1a; }
   html[data-theme="dark"] .pl-dot.cur{ background:#274933; }
   html[data-theme="dark"] .pl-whybox .pl-howto{ background:#274933; color:#c9e5d5; }
   html[data-theme="dark"] .pl-rest-fill{ background:#274933; }

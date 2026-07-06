@@ -634,6 +634,29 @@ nothing said so, and the session clock kept running while you were away.
   device-local storage — a pause is an activity of THIS phone, not synced
   state. Refreshes on ff-data-changed.
 
+## 32 · Player: reorder lifts + remove sets mid-workout (user request)
+
+- **Reorder**: hold the exercise name (~550ms, haptic tick) and a sheet lists
+  today's lifts — drag a row (live swap as you cross) or tap ↑/↓. The session
+  order, stations, saved log and inline logger all follow; the player keeps
+  showing the lift you were on. Done lifts show struck-through.
+- **Remove a set**: hold a set row to remove THAT set, or use the new
+  "＋ Add set / − Remove set" buttons under the sets (remove takes the last).
+  The last remaining set is protected ("swap or remove the lift instead").
+  A hint line under the sets teaches both holds.
+- buildSession returns the saved session verbatim, so reordering and set
+  counts survive close/reopen without any migration.
+
+## 33 · Fix: bottom bar stranded mid-screen on iOS (user screenshot)
+
+`position:fixed; bottom:0` elements (tab bar, FAB, pause bar) get left
+floating mid-air on iOS after the on-screen keyboard closes — the visual
+viewport shrinks and Safari doesn't re-anchor fixed elements. Now the app
+tracks `visualViewport`: while the keyboard is up the pinned bars hide
+(`body.ff-kb` — they shouldn't sit above a keyboard anyway); on close, a
+one-frame transform nudge forces the compositor to re-anchor them. Also
+fires on focusout as a belt-and-braces.
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob

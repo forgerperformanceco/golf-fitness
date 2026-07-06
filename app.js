@@ -155,6 +155,31 @@
     }catch(e){}
   }
 
+  // iOS leaves position:fixed bottom bars stranded mid-screen after the
+  // on-screen keyboard closes (the visual viewport shrinks and fixed elements
+  // aren't re-anchored). Track the visual viewport: while the keyboard is up,
+  // hide the pinned bars (body.ff-kb); when it closes, force the compositor to
+  // re-anchor them with a one-frame transform nudge.
+  (function(){
+    var vv=window.visualViewport; if(!vv) return;
+    var t=null;
+    function sync(){
+      var kb=(window.innerHeight - vv.height) > 60;
+      document.body.classList.toggle("ff-kb", kb);
+      if(!kb){
+        ["mobileTabs","ffFab","plPauseBar"].forEach(function(id){
+          var el=document.getElementById(id); if(!el) return;
+          el.style.transform="translateZ(0)";
+          requestAnimationFrame(function(){ el.style.transform=""; });
+        });
+      }
+    }
+    ["resize","scroll"].forEach(function(ev){
+      vv.addEventListener(ev, function(){ clearTimeout(t); t=setTimeout(sync, 90); });
+    });
+    document.addEventListener("focusout", function(){ setTimeout(sync, 250); }, true);
+  })();
+
 /* ────────── js/app/008-sheets.js ────────── */
   /* ===================== SHEETS — one drag physics for every overlay ===================== */
   // Every bottom sheet in the app (.swap-card shells, the workout-logger .modal,
@@ -3706,7 +3731,7 @@
         var wPh=cw!=null?cw:(presc!=null?presc:(pw||"lbs"));
         var rPh=cr!=null?cr:(pr||"reps");
         var pm=(isBarbell(x.name)&&s2.w)?platesFor(s2.w):"";
-        return '<div class="pl-set'+(s2.done?" done":"")+'">'+
+        return '<div class="pl-set'+(s2.done?" done":"")+'" data-plsetrow="'+si+'">'+
           '<div class="pl-set-head"><span>SET '+(si+1)+'</span><span>last: '+(pw?(pw+' × '+(pr||'–')):'–')+'</span></div>'+
           '<div class="pl-set-row">'+
             '<div class="pl-stp"><button type="button" data-plstep="w" data-dir="-1" data-si="'+si+'">−</button>'+
@@ -3718,6 +3743,10 @@
             '<button type="button" class="pl-check'+(s2.done?" on":"")+'" data-plcheck="'+si+'" aria-label="set done">✓</button>'+
           '</div>'+(pm?'<div class="pl-plates">🏋️ '+pm+'</div>':'')+'</div>';
       }).join("");
+      setsHtml+='<div class="pl-setops">'+
+        '<button type="button" data-plsetadd="1">＋ Add set</button>'+
+        '<button type="button" data-plsetrem="1">− Remove set</button>'+
+        '<span class="pl-setops-hint">hold a set to remove it · hold the name to reorder</span></div>';
       var prescLine = presc!=null
         ? (wv==="deload" ? '🪫 Deload — today: <b>'+presc+' lb</b> (~60% of last week)' : '📈 Progression earned — today: <b>'+presc+' lb</b>')
         : (topLast ? 'Last time’s top: <b>'+topLast+' lb</b> — beat the reps, then the load follows.' : 'First time — find a weight you can own with 2 reps in reserve.');
@@ -3869,6 +3898,18 @@
         plSave(); plRender(); return;
       }
       if(e.target.closest("[data-pladdlift]")){ addFromPlayer=true; openAddLift(); return; }
+      if(e.target.closest("[data-plsetadd]")){
+        var stA=player.stations[player.st]; if(stA.type!=="lift") return;
+        player.sess.ex[stA.xi].sets.push({w:"",r:"",done:false});
+        plSave(); plRender(); return;
+      }
+      if(e.target.closest("[data-plsetrem]")){
+        var stR=player.stations[player.st]; if(stR.type!=="lift") return;
+        var xR=player.sess.ex[stR.xi];
+        if(xR.sets.length>1){ xR.sets.pop(); plSave(); plRender(); ffTick(10); }
+        else ffToast("Last set — swap or remove the lift instead");
+        return;
+      }
       var pw=e.target.closest("[data-plwhy]");
       if(pw){ var wxi=+pw.getAttribute("data-plwhy");
         player.whyOpen=player.whyOpen||{};
@@ -3899,6 +3940,36 @@
         plRender(); return;
       }
     });
+    // Long-press: hold a set row to remove that set; hold the exercise name to reorder.
+    var lpTimer=null, lpStart=null;
+    r.addEventListener("pointerdown", function(e){
+      if(!player) return;
+      if(e.target.closest("button, input, textarea, select, a")) return;
+      var setRow=e.target.closest("[data-plsetrow]");
+      var onLift=e.target.closest(".pl-exname, .pl-skick, .pl-target");
+      if(!setRow && !onLift) return;
+      var st0=player.stations[player.st]; if(!st0 || st0.type!=="lift") return;
+      lpStart={x:e.clientX, y:e.clientY};
+      clearTimeout(lpTimer);
+      lpTimer=setTimeout(function(){
+        lpTimer=null;
+        try{ ffTick(15); }catch(_){}
+        if(setRow){
+          var xi0=st0.xi, si0=+setRow.getAttribute("data-plsetrow");
+          var xL=player.sess.ex[xi0];
+          if(xL.sets.length>1){ xL.sets.splice(si0,1); plSave(); plRender(); ffToast("Set "+(si0+1)+" removed"); }
+          else ffToast("Last set — swap or remove the lift instead");
+        } else {
+          openReorder();
+        }
+      }, 550);
+    }, true);
+    r.addEventListener("pointermove", function(e){
+      if(lpTimer && lpStart && (Math.abs(e.clientX-lpStart.x)>9 || Math.abs(e.clientY-lpStart.y)>9)){ clearTimeout(lpTimer); lpTimer=null; }
+    }, true);
+    ["pointerup","pointercancel"].forEach(function(ev){
+      r.addEventListener(ev, function(){ clearTimeout(lpTimer); lpTimer=null; }, true);
+    });
     r.addEventListener("input", function(e){
       if(player && e.target.id==="plNote"){ player.sess.note=e.target.value; plSave(); return; }
       if(!player || !e.target.classList.contains("pl-in")) return;
@@ -3907,6 +3978,90 @@
       if(x && x.sets[si]){ x.sets[si][e.target.getAttribute("data-plf")]=e.target.value; plSave(); }
     });
   }
+  // Reorder the session: a sheet listing today's lifts — drag a row (or use the
+  // arrows) and the session order, stations and inline logger all follow.
+  function plRebuildStations(keepObj){
+    var base=plLiftBase(player.day);
+    var stations=[{type:"warmup"}];
+    if(player.day.type!=="speed") stations.push({type:"primer"});
+    player.sess.ex.forEach(function(x,xi){ stations.push({type:"lift", xi:xi}); });
+    stations.push({type:"recap"});
+    player.stations=stations;
+    if(keepObj){ var ni=player.sess.ex.indexOf(keepObj); if(ni>=0) player.st=base+ni; }
+  }
+  function plOrdRows(){
+    return player.sess.ex.map(function(x,i){
+      var done=x.sets.length && x.sets.every(function(s2){ return s2.done; });
+      return '<div class="ord-row'+(done?' done':'')+'" data-oi="'+i+'">'+
+        '<span class="ord-grab">⠿</span>'+
+        '<span class="ord-n">'+ffPurposeIc(x.name,14)+' '+lbEsc(x.name)+(done?' <em>done</em>':'')+'</span>'+
+        '<span class="ord-btns"><button type="button" data-ordmv="-1" aria-label="Move up">↑</button>'+
+        '<button type="button" data-ordmv="1" aria-label="Move down">↓</button></span></div>';
+    }).join("");
+  }
+  function openReorder(){
+    if(!player) return;
+    var m=$("plOrdModal");
+    if(!m){
+      m=document.createElement("div"); m.id="plOrdModal"; m.className="swap-modal"; m.hidden=true;
+      m.innerHTML='<div class="swap-card"><div class="swap-head"><span>⇅ Reorder today’s lifts</span>'+
+        '<button class="swap-x" id="plOrdX" type="button" aria-label="Close">×</button></div>'+
+        '<div class="swap-body"><div class="swap-sub">Drag a row — or use the arrows. The player follows the lift you were on.</div>'+
+        '<div id="plOrdList"></div></div></div>';
+      document.body.appendChild(m);
+      m.addEventListener("click", function(e){
+        if(e.target===m || e.target.closest("#plOrdX")){ m.hidden=true; return; }
+        var mv=e.target.closest("[data-ordmv]");
+        if(mv && player){
+          var row=mv.closest(".ord-row"), i=+row.getAttribute("data-oi"), d=+mv.getAttribute("data-ordmv"), j=i+d;
+          if(j<0 || j>=player.sess.ex.length) return;
+          var cur=player.stations[player.st], keep=(cur&&cur.type==="lift")?player.sess.ex[cur.xi]:null;
+          var t=player.sess.ex[i]; player.sess.ex[i]=player.sess.ex[j]; player.sess.ex[j]=t;
+          plRebuildStations(keep); plSave(); plRender();
+          $("plOrdList").innerHTML=plOrdRows();
+        }
+      });
+      // Row drag: grab anywhere on a row (not the arrows), rows swap live as you cross.
+      var drag=null;
+      m.addEventListener("pointerdown", function(e){
+        if(e.target.closest("button")) return;
+        var row=e.target.closest(".ord-row"); if(!row || !player) return;
+        drag={ row:row, y0:e.clientY, h:row.getBoundingClientRect().height+6 };
+        row.classList.add("dragging");
+        try{ row.setPointerCapture(e.pointerId); }catch(_){}
+        e.preventDefault();
+      });
+      m.addEventListener("pointermove", function(e){
+        if(!drag) return;
+        var dy=e.clientY-drag.y0;
+        while(dy>drag.h*0.6 && drag.row.nextElementSibling){
+          drag.row.parentNode.insertBefore(drag.row.nextElementSibling, drag.row);
+          drag.y0+=drag.h; dy-=drag.h;
+        }
+        while(dy<-drag.h*0.6 && drag.row.previousElementSibling){
+          drag.row.parentNode.insertBefore(drag.row, drag.row.previousElementSibling);
+          drag.y0-=drag.h; dy+=drag.h;
+        }
+        drag.row.style.transform="translateY("+dy+"px)";
+      });
+      function ordDrop(){
+        if(!drag) return;
+        var row=drag.row; drag=null;
+        row.style.transform=""; row.classList.remove("dragging");
+        if(!player) return;
+        var order=[].map.call($("plOrdList").querySelectorAll(".ord-row"), function(rw){ return +rw.getAttribute("data-oi"); });
+        var cur=player.stations[player.st], keep=(cur&&cur.type==="lift")?player.sess.ex[cur.xi]:null;
+        player.sess.ex=order.map(function(oi){ return player.sess.ex[oi]; });
+        plRebuildStations(keep); plSave(); plRender();
+        $("plOrdList").innerHTML=plOrdRows();
+      }
+      m.addEventListener("pointerup", ordDrop);
+      m.addEventListener("pointercancel", ordDrop);
+    }
+    $("plOrdList").innerHTML=plOrdRows();
+    m.hidden=false;
+  }
+
   // Paused-session bar: when a session with logged work is exited un-finished,
   // a slim resume bar sits above the tab bar on every view until you're back.
   function plPauseSync(){
