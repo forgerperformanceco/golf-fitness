@@ -1672,6 +1672,19 @@
   .mobile-tabbar button .ic svg{ display:block; margin:0 auto; }
   .ffscore-head h3 .ffi{ vertical-align:-2px; }
 
+  /* ===== Sheets — one drag physics for every overlay (see src/js/app/008-sheets.js) ===== */
+  /* Grab affordance: the pill every native bottom sheet carries. Lives on the
+     sticky heads so it never scrolls away. touch-action:none lets the drag
+     controller own vertical gestures on the header without fighting scroll. */
+  .swap-head, .modal-head, .qsheet-grab, .qsheet-h{ touch-action:none; }
+  .swap-head, .modal-head{ cursor:grab; }
+  .swap-head::after, .modal-head::after{
+    content:""; position:absolute; top:7px; left:50%; width:44px; height:5px;
+    margin-left:-22px; border-radius:99px; background:rgba(255,255,255,.38);
+  }
+  .swap-head, .modal-head{ position:sticky; top:0; z-index:2; }
+  .swap-card, .modal{ will-change:transform; }
+
   /* ===== Motion system — entrances, physics, celebration (see src/js/app/007-motion.js) ===== */
   /* Tab switches cross-fade via the View Transitions API; keep it quick and quiet. */
   ::view-transition-old(root){ animation-duration:.16s; }
