@@ -3600,15 +3600,29 @@
     plRender();
     $("playerRoot").hidden=false;
     document.body.style.overflow="hidden";
+    try{ localStorage.removeItem("ff_pl_paused"); }catch(e){}
+    plPauseSync();
   }
   function plClose(){
     plStopRest();
     var r=$("playerRoot"); if(r) r.hidden=true;
     document.body.style.overflow="";
-    if(player) focusDay=player.dayName;   // stay on the session you were in (Resume, not next day)
+    if(player){
+      focusDay=player.dayName;   // stay on the session you were in (Resume, not next day)
+      // Exiting mid-session PAUSES it: bank the active time (the recap clock
+      // stops while you're away) and surface the resume bar on every view.
+      var sess=player.sess, started=player.startedAt;
+      var hasWork=sess && sess.ex && sess.ex.some(function(x){ return (x.sets||[]).some(function(st){ return st.w||st.r||st.done; }); });
+      if(hasWork && !sess.finishedAt){
+        sess.activeMs=(sess.activeMs||0)+Math.max(0, Date.now()-started);
+        try{ saveSession(player.week, player.dayName, sess); }catch(e){}
+        try{ localStorage.setItem("ff_pl_paused", JSON.stringify({ day:player.dayName, week:player.week })); }catch(e){}
+      }
+    }
     player=null;
     try{ renderPhase(); }catch(e){}
     try{ renderDash(); }catch(e){}
+    plPauseSync();
   }
   function plSave(){
     if(!player) return;
@@ -3738,7 +3752,7 @@
         else if(pb==null && /Squat|Deadlift|Bench|Press|Row|Romanian|Hinge|Hip Thrust|Pull-?up|Chin/i.test(x.name)) firsts.push(x.name);
       }
     });
-    var mins=Math.max(1, Math.round((Date.now()-player.startedAt)/60000));
+    var mins=Math.max(1, Math.round(((player.sess.activeMs||0)+(Date.now()-player.startedAt))/60000));
     var octNow=ffScore().score||0, dOct=octNow-player.octBefore;
     return '<div class="pl-recap">'+
       '<div class="pl-recap-kick">Session complete</div>'+
@@ -3779,6 +3793,7 @@
     plSave();
     player.sess.finishedAt=todayStr();
     saveSession(player.week, player.dayName, player.sess);
+    try{ localStorage.removeItem("ff_pl_paused"); }catch(e){}
     pushHistory(player.week, player.dayName, player.sess);
     focusDay=player.dayName;
     ffToast("Workout saved to history 💪 Nice work.");
@@ -3794,7 +3809,7 @@
     });
     var txt=player.dayName.replace(/^Day \d+ — /,'')+" done 💪 "+(vol>0?vol.toLocaleString()+" lb moved":"session banked")+
       (prs.length?(" · PR: "+prs.join(", ")):"")+" — training with FairwayFuel ⛳ https://fairwayfuel.app";
-    var mins=Math.max(1, Math.round((Date.now()-player.startedAt)/60000));
+    var mins=Math.max(1, Math.round(((player.sess.activeMs||0)+(Date.now()-player.startedAt))/60000));
     ffShareImage({
       kick:"Session complete · Week "+player.week,
       big:(vol>0?vol.toLocaleString():"✓"), unit:(vol>0?"lb moved":""),
@@ -3892,6 +3907,44 @@
       if(x && x.sets[si]){ x.sets[si][e.target.getAttribute("data-plf")]=e.target.value; plSave(); }
     });
   }
+  // Paused-session bar: when a session with logged work is exited un-finished,
+  // a slim resume bar sits above the tab bar on every view until you're back.
+  function plPauseSync(){
+    var bar=$("plPauseBar");
+    if(!bar){
+      bar=document.createElement("button");
+      bar.id="plPauseBar"; bar.type="button"; bar.className="pl-pausebar"; bar.hidden=true;
+      bar.addEventListener("click", function(){
+        var st=null; try{ st=JSON.parse(localStorage.getItem("ff_pl_paused")); }catch(e){}
+        if(st && st.day) startPlayer(st.day);
+      });
+      document.body.appendChild(bar);
+    }
+    var st=null; try{ st=JSON.parse(localStorage.getItem("ff_pl_paused")); }catch(e){}
+    var show=false, doneSets=0;
+    if(st && st.day && (!player)){
+      var sess=getSession(st.week||curWeek(), st.day);
+      if(sess && !sess.finishedAt && sess.ex){
+        sess.ex.forEach(function(x){ (x.sets||[]).forEach(function(s2){ if(s2.done) doneSets++; }); });
+        var allDone=sess.ex.length && sess.ex.every(function(x){ return (x.sets||[]).length && x.sets.every(function(s2){ return s2.done; }); });
+        show=!allDone;
+      }
+      if(!show){ try{ localStorage.removeItem("ff_pl_paused"); }catch(e){} }
+    }
+    if(show){
+      bar.innerHTML='<span class="pl-pb-ic">⏸</span><span class="pl-pb-tx"><b>Workout paused</b> — '+
+        lbEsc(st.day.replace(/^Day \d+ — /,""))+' · '+doneSets+' set'+(doneSets===1?'':'s')+' done</span>'+
+        '<span class="pl-pb-go">'+ffIcon("play",12)+' Resume</span>';
+      bar.hidden=false;
+      document.body.classList.add("ff-plpaused");
+    } else {
+      bar.hidden=true;
+      document.body.classList.remove("ff-plpaused");
+    }
+  }
+  window.addEventListener("ff-data-changed", function(){ try{ plPauseSync(); }catch(e){} });
+  setTimeout(function(){ try{ plPauseSync(); }catch(e){} }, 400);
+
   // Every "start workout" entry point (featured day card, speed day, Today spine).
   document.addEventListener("click", function(e){
     var sp=e.target.closest("[data-startplayer]");
