@@ -182,7 +182,7 @@
         fuelChip='<button type="button" class="tl-fuelchip full" data-goview="progress">✓ Day banked</button>';
       } else {
         fuelChip='<button type="button" class="tl-fuelchip'+(nDone>=ffSchedule.length?" full":"")+'" data-goview="calc">'+
-          ffIcon("gauge",12)+' '+nDone+'/'+ffSchedule.length+' meals</button>';
+          ffIcon("gauge",12)+' '+nDone+'/'+ffSchedule.length+' fueled</button>';
       }
     }
     var h='<div class="tl"><div class="tl-h"><span>'+ffIcon("calendar",13)+' Your day</span>'+fuelChip+'</div>';

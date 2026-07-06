@@ -1428,8 +1428,11 @@
       var nChk=0; plan.slots.forEach(function(_,k){ var si=schedIdx[k]; if(si>=0&&fdNow.m&&fdNow.m[si]) nChk++; });
       // The sample menu is reference, not a daily read — it folds; the header
       // carries live progress so it still reads as a checklist when closed.
+      var mealsN=0, hasPre=false;
+      if(typeof ffSchedule!=="undefined" && ffSchedule) ffSchedule.forEach(function(sl){ if(sl.kind==="pre") hasPre=true; else mealsN++; });
+      else mealsN=(t.m||4);
       html+='<details class="fold exday-fold"><summary>'+ffIcon("calendar",14)+'<span class="fold-t">An example day</span>'+
-        '<span class="fold-sub">'+(t.m||4)+' meals'+(nChk?' · <b>'+nChk+' ✓</b>':'')+'</span></summary><div class="exday-body">'+
+        '<span class="fold-sub">'+mealsN+' meals'+(hasPre?' + pre':'')+(nChk?' · <b>'+nChk+' ✓</b>':'')+'</span></summary><div class="exday-body">'+
         '<div class="sched-sample">This is a <b>sample</b> that hits your numbers — eat it as written or anything close, and still check it off. The macros are the assignment, not the menu. <b>Shuffle</b> deals another day.</div>';
       // Render in SCHEDULE order — the day as you'll live it (pre-workout before
       // breakfast on a morning-training day), not the generator's build order.
@@ -4439,7 +4442,7 @@
         fuelChip='<button type="button" class="tl-fuelchip full" data-goview="progress">✓ Day banked</button>';
       } else {
         fuelChip='<button type="button" class="tl-fuelchip'+(nDone>=ffSchedule.length?" full":"")+'" data-goview="calc">'+
-          ffIcon("gauge",12)+' '+nDone+'/'+ffSchedule.length+' meals</button>';
+          ffIcon("gauge",12)+' '+nDone+'/'+ffSchedule.length+' fueled</button>';
       }
     }
     var h='<div class="tl"><div class="tl-h"><span>'+ffIcon("calendar",13)+' Your day</span>'+fuelChip+'</div>';
