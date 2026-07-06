@@ -1394,14 +1394,9 @@
     if(card) card.hidden=false;
     var p=ffPrefs(), hasPrefs=ffHasPrefs(p), html="";
     // 1. Carb timing around training — "when to eat" sits right above "what to eat".
-    if(lastMealPlan && lastMealPlan.timing){ try{
-      var tb=timingBlock(lastMealPlan.timing);
-      // Once the day is built from their foods, the timing lecture collapses to a
-      // reference line — the same info is embedded in the meal order and tags.
-      html+= hasPrefs
-        ? '<details class="fold timing-fold"><summary>🕒 Carb timing around your workout <span class="fold-sub">'+lastMealPlan.timing.preG+'g pre · '+lastMealPlan.timing.postG+'g post</span></summary>'+tb+'</details>'
-        : tb;
-    }catch(e){} }
+    // The pre/post carb block is the daily ACTIONABLE — it stays expanded.
+    // The example menu below is reference material — it folds.
+    if(lastMealPlan && lastMealPlan.timing){ try{ html+=timingBlock(lastMealPlan.timing); }catch(e){} }
     if(!hasPrefs){
       // 2a. The generic per-meal split (the schedule the calculator builds) + an upgrade nudge.
       if(lastMealPlan && lastMealPlan.meal){ try{ html+=mealBlock(lastMealPlan.meal); }catch(e){} }
@@ -1429,9 +1424,13 @@
           [3,4,5,6].map(function(n){ return '<button type="button" data-meals="'+n+'"'+((t.m||4)===n?' class="active"':'')+'>'+n+'</button>'; }).join("")+
         '</span></span></div><div class="meals-body">';
       try{ if(lastMealPlan && lastMealPlan.meal) html+=fuelSummaryHtml(lastMealPlan.meal); }catch(e){}
-      html+='<div class="sched-title">'+ffIcon("calendar",14)+' An example day — <b>'+(t.m||4)+' meals</b> from <b>foods you love</b></div>'+
-        '<div class="sched-sample">This is a <b>sample</b> that hits your numbers — eat it as written or anything close, and still check it off. The macros are the assignment, not the menu. <b>Shuffle</b> deals another day.</div>';
       var fdNow=fuelDay(ffISO())||{ m:{} };
+      var nChk=0; plan.slots.forEach(function(_,k){ var si=schedIdx[k]; if(si>=0&&fdNow.m&&fdNow.m[si]) nChk++; });
+      // The sample menu is reference, not a daily read — it folds; the header
+      // carries live progress so it still reads as a checklist when closed.
+      html+='<details class="fold exday-fold"><summary>'+ffIcon("calendar",13)+' An example day'+
+        '<span class="fold-sub">'+(t.m||4)+' meals · from your foods'+(nChk?' · '+nChk+' ✓':'')+'</span></summary><div class="exday-body">'+
+        '<div class="sched-sample">This is a <b>sample</b> that hits your numbers — eat it as written or anything close, and still check it off. The macros are the assignment, not the menu. <b>Shuffle</b> deals another day.</div>';
       // Render in SCHEDULE order — the day as you'll live it (pre-workout before
       // breakfast on a morning-training day), not the generator's build order.
       var order=plan.slots.map(function(_,k){ return k; }).sort(function(x,y){
@@ -1458,6 +1457,7 @@
         '<button type="button" class="ffm-act" data-ffaction="week">🗓️ Plan my week</button>'+
         '<button type="button" class="ffm-act" data-ffaction="edit">✏️ Edit foods</button></div>';
       html+='<div class="meal-foot">Macro-complete — protein, carbs <b>and</b> fat all targeted. Portions are starting points; faster carbs cluster around training.</div>';
+      html+='</div></details>';
       html+='</div></div>';
     }
     el.innerHTML=html;
