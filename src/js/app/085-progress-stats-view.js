@@ -136,7 +136,8 @@
     svg+='<text x="6" y="80" font-size="13">🏌️</text>';
     svg+='<text x="'+(pad+NW*segW+2)+'" y="80" font-size="14">🚩</text>';
     var wave2=WAVES[waveFor(wk)];
-    return '<div class="pcard season"><div class="pc-head"><span class="pc-t">🗺️ Your 20-week season'+(gy?(' · mission +'+gy+' yds'):'')+'</span></div>'+
+    return pfCard('season','🗺️ Your 20-week season'+(gy?(' · mission +'+gy+' yds'):''),
+      '<span class="pf-num">Wk '+wk+'/20</span><span class="pf-sub">'+wave2.label+'</span>',
       '<div class="season-scroll"><svg width="'+width+'" height="'+H+'" viewBox="0 0 '+width+' '+H+'">'+svg+'</svg></div>'+
       '<div class="season-leg"><span><i style="background:#2f9e5d"></i>Build</span><span><i style="background:#e0a33a"></i>Heavy</span>'+
       '<span><i style="background:#4d685a"></i>Deload</span><span><i style="background:#f4c542"></i>Peak</span><span>⛳ speed test (mph)</span>'+(ev&&ev.week?'<span>🏆 your event</span>':'')+'</div>'+
@@ -145,7 +146,7 @@
                 ? ' <br><b>🏆 '+(ev.name||"Your event")+' — week '+ev.week+'.</b> The taper re-anchors to it: weeks '+(ev.week-1)+'–'+ev.week+' peak (volume down, intensity heavy), week '+(ev.week+1)+' recovers.'
                 : (ev.past ? '' : ' <br>🏆 '+(ev.name||"Your event")+' falls outside this 20-week block.'))
              : ' <br>🏆 Peaking for something? <button type="button" class="stest-link" data-goview="account" style="color:#8be9ac">Set your event date</button> and the taper re-anchors to it.')+
-      '</div></div>';
+      '</div>', 'pcard season');
   }
   /* ----- Sunday Scorecard: the week as a golf card — one ritual close per week ----- */
   function weekCard(){
@@ -179,10 +180,11 @@
       { h:5, n:"Mobility", v:(c.mob?'screened':'—'), chip: c.mob?scChip("good","DONE"):(mobDue()?scChip("mid","DUE"):scChip("good","CURRENT")) },
       { h:6, n:"Fuel days", v:c.fuelOn+' / 7', chip: c.fuelOn>=5?scChip("good","ON PLAN"):(c.fuelLogged>0?scChip("mid","BUILDING"):scChip("miss","LOG FUEL")) }
     ];
-    return '<div class="scorecard"><div class="sc-head"><span class="sc-t">🗒️ Sunday Scorecard</span><span class="sc-sub">Week '+curWeek()+' · Mon–Sun</span></div>'+
+    return pfCard('sunday','🗒️ Sunday Scorecard <small>Wk '+curWeek()+'</small>',
+      '<span class="pf-num">'+c.sessions+'/'+c.freq+'</span><span class="pf-sub">sessions</span>',
       '<div class="sc-grid">'+rows.map(function(r){
         return '<div class="sc-row"><span class="sc-hole">'+r.h+'</span><span class="sc-name">'+r.n+'</span><span class="sc-val">'+r.v+'</span>'+r.chip+'</div>'; }).join("")+'</div>'+
-      '<button type="button" class="sc-share" data-scshare="1">'+ffIcon("share",14)+' Share this week’s card</button></div>';
+      '<button type="button" class="sc-share" data-scshare="1">'+ffIcon("share",14)+' Share this week’s card</button>', 'scorecard');
   }
   function shareScorecard(){
     var c=weekCard();
@@ -198,6 +200,39 @@
               ("⚖️ "+c.weighs+" weigh-in"+(c.weighs===1?"":"s")+(c.mob?" · 🧭 mobility screened":"")) ]
     }, txt);
   }
+  /* ----- Calm pass: every Stats card folds to a headline row -----
+     One compact line — title, headline stat, chevron — expanding on tap.
+     Per-card state lives in ff_statsfold (device-local, NOT synced: how much
+     you like expanded is a device preference, like theme). Defaults: the
+     Octane hub and quick-log never fold; Speed opens; everything else starts
+     as a headline. The stat only renders on the CLOSED row — the open card
+     already says it bigger. */
+  var PF_DEFAULTS={ speed:true };
+  function pfIsOpen(key){
+    var st=lsGet("ff_statsfold",null)||{};
+    return (key in st) ? !!st[key] : !!PF_DEFAULTS[key];
+  }
+  function pfHead(key, title, stat, open){
+    return '<button type="button" class="pc-head pf-head" data-pftoggle="'+key+'">'+
+      '<span class="pc-t">'+title+'</span><span class="pf-side">'+(open?'':(stat||''))+
+      '<span class="pf-arr">'+(open?'⌄':'›')+'</span></span></button>';
+  }
+  // openCls swaps the container class when expanded (e.g. the season map's
+  // dark card, the scorecard's dashed card) — closed rows are always plain.
+  function pfCard(key, title, stat, inner, openCls){
+    var open=pfIsOpen(key);
+    if(!open) return '<div class="pcard pf-closed">'+pfHead(key,title,stat,false)+'</div>';
+    return '<div class="'+(openCls||'pcard')+' pf-open">'+pfHead(key,title,'',true)+inner+'</div>';
+  }
+  document.addEventListener("click", function(e){
+    var b=e.target.closest("[data-pftoggle]"); if(!b) return;
+    var k=b.getAttribute("data-pftoggle");
+    var st=lsGet("ff_statsfold",null)||{};
+    st[k]=!pfIsOpen(k);
+    lsSet("ff_statsfold", st);
+    renderProgress();
+  });
+
   function renderProgress(){
     var el=$("progressBody"); if(!el) return;
     var body=lsGet("ff_body",[]);
@@ -229,8 +264,8 @@
       // not an absolute carry claim — the trend is the honest, motivating signal.
       var spNow=spF.length?spF[spF.length-1]:null, spBase=spF.length?spF[0]:null, spBest=spF.length?Math.max.apply(null,spF):null;
       var YDS_PER_MPH=2, spGain=(spNow!=null&&spBase!=null)?(spNow-spBase):0;
-      html += '<div class="pcard"><div class="pc-head"><span class="pc-t">⚡ Clubhead speed <small>7-iron</small></span>'+
-          (spF.length>=2?pcDelta(spNow-spBase," mph"):"")+'</div>'+
+      html += pfCard('speed','⚡ Clubhead speed <small>7-iron</small>',
+        (spNow!=null?'<span class="pf-num">'+spNow+' mph</span>':'')+(spF.length>=2?pcDelta(spNow-spBase," mph"):""),
         (spNow!=null?'<div class="pc-now">'+spNow+'<span>mph</span></div>':'<div class="pc-now muted">—</div>')+
         (spF.length>=2 ? pcLine(spF,"#16a34a","pcSpeed", spD, " mph")
           : '<div class="pc-need">'+(spF.length===1?"One more entry and your speed trend appears.":"Add your 7-iron speed below to start the trend.")+'</div>')+
@@ -241,42 +276,37 @@
         (spNow!=null?'<div class="pc-bench">Context: '+ffBench().label+' is '+ffBench().range+' — but your trend vs your own baseline is the number that matters.</div>':"")+
         '<div class="pc-test">'+(speedTestDue()
           ? '<button class="stest-go sm" data-speedtest="1">🎯 Speed test due — run it now</button>'
-          : '<span class="st-note">🎯 Next speed test in <b>'+Math.max(1, SPEEDTEST_EVERY-daysSinceTest())+'</b> days — <button class="stest-link" data-speedtest="1">test early</button></span>')+'</div>'+
-        '</div>';
+          : '<span class="st-note">🎯 Next speed test in <b>'+Math.max(1, SPEEDTEST_EVERY-daysSinceTest())+'</b> days — <button class="stest-link" data-speedtest="1">test early</button></span>')+'</div>');
 
       // ---- On the course: the gym-to-course proof ----
       try{ html+=courseCardHtml(); }catch(e){}
 
       // ---- Strength: estimated 1RM on the big lifts ----
-      html += '<div class="pcard"><div class="pc-head"><span class="pc-t">🏋️ Strength <small>est. 1RM</small></span></div>';
-      if(lifts.length){
-        html += lifts.slice(0,6).map(function(L){
-          var d = L.first>0 ? (L.last-L.first)/L.first*100 : null;
-          return '<button type="button" class="lr" data-exhist="'+escAttr(L.name)+'"><div class="lr-name">'+L.name+'</div>'+
-            '<div class="lr-spark">'+(L.n>=2?pcMiniSpark(L.series,"#16a34a"):'<span class="lr-one">'+L.n+' set'+(L.n===1?"":"s")+'</span>')+'</div>'+
-            '<div class="lr-val">'+Math.round(L.last)+'<small>lb</small>'+(L.n>=2&&d!=null?pcDelta(d,"%"):"")+'</div></button>';
-        }).join("");
-      } else {
-        html += '<div class="pc-need">Log weights on the big lifts (squat, bench, hinge, press, row) and your estimated 1RM trend builds here.</div>';
-      }
-      html += '</div>';
+      html += pfCard('strength','🏋️ Strength <small>est. 1RM</small>',
+        (lifts.length?'<span class="pf-num">'+Math.round(lifts[0].best)+' lb</span><span class="pf-sub">best e1RM</span>':''),
+        (lifts.length
+          ? lifts.slice(0,6).map(function(L){
+              var d = L.first>0 ? (L.last-L.first)/L.first*100 : null;
+              return '<button type="button" class="lr" data-exhist="'+escAttr(L.name)+'"><div class="lr-name">'+L.name+'</div>'+
+                '<div class="lr-spark">'+(L.n>=2?pcMiniSpark(L.series,"#16a34a"):'<span class="lr-one">'+L.n+' set'+(L.n===1?"":"s")+'</span>')+'</div>'+
+                '<div class="lr-val">'+Math.round(L.last)+'<small>lb</small>'+(L.n>=2&&d!=null?pcDelta(d,"%"):"")+'</div></button>';
+            }).join("")
+          : '<div class="pc-need">Log weights on the big lifts (squat, bench, hinge, press, row) and your estimated 1RM trend builds here.</div>'));
 
       // ---- Bodyweight ----
       var wtNow=wtF.length?wtF[wtF.length-1]:null, wtBase=wtF.length?wtF[0]:null;
-      html += '<div class="pcard"><div class="pc-head"><span class="pc-t">⚖️ Bodyweight</span>'+
-          (wtF.length>=2?pcDelta(wtNow-wtBase," lb",true):"")+'</div>'+
+      html += pfCard('weight','⚖️ Bodyweight',
+        (wtNow!=null?'<span class="pf-num">'+wtNow+' lb</span>':'')+(wtF.length>=2?pcDelta(wtNow-wtBase," lb",true):""),
         (wtNow!=null?'<div class="pc-now">'+wtNow+'<span>lb</span></div>':'<div class="pc-now muted">—</div>')+
         (wtF.length>=2 ? pcLine(wtF,"#0e7490","pcWt", wtD, " lb")
           : '<div class="pc-need">Add your bodyweight below to track the trend against your speed.</div>')+
-        (wtF.length>=2?'<div class="pc-foot"><span>start <b>'+wtBase+'</b></span><span>now <b>'+wtNow+'</b> lb</span></div>':"")+
-        '</div>';
+        (wtF.length>=2?'<div class="pc-foot"><span>start <b>'+wtBase+'</b></span><span>now <b>'+wtNow+'</b> lb</span></div>':""));
 
       // ---- Consistency ----
-      html += '<div class="pcard"><div class="pc-head"><span class="pc-t">📅 Consistency</span>'+
-          '<span class="pc-delta neu">'+sess+' total</span></div>'+
+      html += pfCard('consist','📅 Consistency',
+        '<span class="pc-delta neu">'+sess+' total</span>',
         '<div class="wkbars">'+weekBars()+'</div>'+
-        '<div class="pc-foot"><span>sessions per week (last 8)</span><span>goal <b>'+((typeof planState!=="undefined"&&planState.freq)||4)+'</b>/wk</span></div>'+
-        '</div>';
+        '<div class="pc-foot"><span>'+sess+' total · sessions per week (last 8)</span><span>goal <b>'+((typeof planState!=="undefined"&&planState.freq)||4)+'</b>/wk</span></div>');
     }
 
     // ---- Quick add (always available) ----
@@ -293,7 +323,7 @@
     el.innerHTML=html;
     var ss=el.querySelector(".season-scroll");
     if(ss) ss.scrollLeft=Math.max(0, (curWeek()-3)*46);
-    loadLeaderboard();   // async fill once the card shell is in the DOM
+    if(pfIsOpen('lb')) loadLeaderboard();   // async fill only when the fold is open
   }
 
   /* ----- Leaderboard: opt-in, golf-relevant boards (Score / Speed / Streak) ----- */
@@ -360,9 +390,9 @@
     var seg=["week","score","speed","streak"].map(function(b){
       return '<button data-lb="'+b+'" class="'+(lbBoard===b?"on":"")+'">'+
         ({week:"This week",score:"Score",speed:"Speed",streak:"Streak"}[b])+'</button>'; }).join("");
-    return '<div class="pcard lb"><div class="pc-head"><span class="pc-t">🏆 Leaderboard</span>'+
-      '<div class="lb-seg" id="lbSeg">'+seg+'</div></div>'+
-      '<div id="lbBody"><div class="pc-need">Loading the board…</div></div></div>';
+    return pfCard('lb','🏆 Leaderboard','',
+      '<div class="lb-seg lb-seg-top" id="lbSeg">'+seg+'</div>'+
+      '<div id="lbBody"><div class="pc-need">Loading the board…</div></div>', 'pcard lb');
   }
   function lbMedal(i){ return i===0?"🥇":(i===1?"🥈":(i===2?"🥉":(i+1))); }
   function lbListHtml(rows, mine){
