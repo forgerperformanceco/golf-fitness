@@ -1732,6 +1732,13 @@
     color:#6b4a10; font-size:13px; line-height:1.5; text-align:left; }
   .wu-row.from-screen .wu-move::after{ content:" · from your mobility screen"; font-size:12px; color:#b8860b; font-weight:700; }
 
+  /* App, not document: block pinch-zoom and double-tap zoom (rapid stepper taps
+     were zooming the page, which makes iOS float the fixed bottom bars while
+     scrolling). Panning/scrolling unaffected; per-element touch-action rules
+     (charts, sheet heads, reorder rows) still override locally. */
+  html{ touch-action: pan-x pan-y; }
+  button, input, select, textarea, a{ touch-action: manipulation; }
+
   /* ===== Display numerals — Barlow Condensed (OFL), self-hosted ~12KB subset =====
      This is a numbers product; hero figures get an instrumentation face instead
      of body-copy system-ui. Units and letters are in the subset too, so "83 mph"

@@ -674,6 +674,22 @@ immediately — the hide class can never outlive its cause.
 Lesson recorded: a heuristic that HIDES navigation needs a positive signal
 (focused field), not just a geometric one.
 
+## 35 · Root cause of the floating bars: the page was ZOOMED (user-reported)
+
+"Still floating as I scroll" after §34 pinned it: once iOS pinch- or
+double-tap-zooms a page even slightly, position:fixed elements stop tracking
+the visual viewport and drift while panning. The workout player made
+accidental zoom easy — RAPID +/− STEPPER TAPS read as double-tap-zoom.
+
+Fix — the app now behaves like an app, not a document:
+- `html{ touch-action: pan-x pan-y; }` blocks pinch-zoom and double-tap zoom
+  while leaving scrolling untouched (per-element touch-action for charts,
+  sheet heads and reorder rows still overrides locally);
+- `button/input/select/textarea/a { touch-action: manipulation; }` kills the
+  double-tap-zoom path on every control (and the 300ms tap delay with it);
+- `maximum-scale=1` added to the viewport meta as belt-and-braces.
+Recovery for an already-zoomed session: double-tap once or reopen the app.
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob
