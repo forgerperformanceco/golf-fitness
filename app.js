@@ -1409,8 +1409,8 @@
         ffTotCell('Protein',tt.P,tg2.P,'p')+ffTotCell('Carbs',tt.C,tg2.C,'c')+ffTotCell('Fat',tt.F,tg2.F,'f')+'</div></div>';
       var shop=ffShopping(plan.slots);
       if(shop.length){
-        html+='<div class="ffm-groc"><div class="ffm-groc-h">🛒 Shopping list <span>· one day</span></div><ul class="ffm-shop">'+
-          shop.map(function(it){ return '<li><span class="shop-n">'+it.food.e+' '+ffName(it.food)+'</span><span class="shop-q">'+ffQtyLabel(it)+'</span></li>'; }).join("")+'</ul></div>';
+        html+='<details class="ffm-groc ffm-groc-fold"><summary class="ffm-groc-h">🛒 Shopping list <span>· one day · '+shop.length+' items</span></summary><ul class="ffm-shop">'+
+          shop.map(function(it){ return '<li><span class="shop-n">'+it.food.e+' '+ffName(it.food)+'</span><span class="shop-q">'+ffQtyLabel(it)+'</span></li>'; }).join("")+'</ul></details>';
       }
       html+='<div class="ffm-acts">'+
         '<button type="button" class="ffm-act" data-ffaction="reroll">🔁 Shuffle</button>'+

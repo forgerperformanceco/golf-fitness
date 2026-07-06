@@ -455,6 +455,13 @@ check meals broke it.
   when no meal plan has been built yet, the old generic pre/post guidance rows
   remain as the fallback.
 
+## 19 · One-day shopping list collapses (user request)
+
+The shopping list is a scan-later artifact, not a daily read — it now renders
+as a collapsed `<details>` fold ("🛒 Shopping list · one day · N items") using
+the app's existing fold idiom, so the Meals card ends at the day-total instead
+of a long ingredient list. Tap to expand; the weekly sheet is unchanged.
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob
