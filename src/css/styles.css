@@ -1558,6 +1558,19 @@
   .tl-item.done .tl-t{ text-decoration:line-through; text-decoration-color:#9db8a5; text-decoration-thickness:1.5px; }
   .tl-s{ font-size:12.5px; color:var(--muted); margin-top:1px; line-height:1.4; }
   .tl-go{ color:#9db8a5; font-size:17px; flex:0 0 auto; }
+  /* Calm pass: completed items fold into one pill; non-next items go slim. */
+  .tl-donepill{ display:flex; align-items:center; width:100%; text-align:left; background:transparent;
+    border:1.5px dashed var(--line); color:var(--green-700); border-radius:11px; padding:9px 13px;
+    font:800 12.5px system-ui; cursor:pointer; margin:0 0 6px; }
+  .tl-donepill span{ margin-left:auto; color:var(--muted); font-weight:600; text-transform:uppercase;
+    letter-spacing:.06em; font-size:10.5px; }
+  .tl-donepill:active{ transform:translateY(1px); }
+  .tl-item.slim .tl-card{ padding:7px 11px; margin:3px 0; border-radius:11px; }
+  .tl-item.slim .tl-ic{ font-size:14px; }
+  .tl-item.slim .tl-t{ font-size:13px; font-weight:600; letter-spacing:0; }
+  .tl-item.slim .tl-when{ padding-top:11px; }
+  .tl-item.slim .tl-dot{ top:14px; width:9px; height:9px; left:6px; }
+  .tl-item.slim .tl-go{ font-size:15px; }
   /* Reorder sheet rows */
   .ord-row{ display:flex; align-items:center; gap:10px; background:#fff; border:1.5px solid var(--line);
     border-radius:12px; padding:12px 12px; margin-bottom:6px; font:700 14px system-ui; color:var(--ink);
