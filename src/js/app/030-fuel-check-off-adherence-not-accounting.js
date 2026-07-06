@@ -102,6 +102,16 @@
       '</div></div>';
   }
 
+  // The ✓/≈ pair for schedule slot i — shared by the generic schedule, the
+  // foods-you-love meal cards, and any other surface that shows a meal.
+  function ffFchkHtml(i){
+    var fd=fuelDay(ffISO())||{ m:{} };
+    var v=fd.m?fd.m[i]:null;
+    return '<div class="fchk">'+
+      '<button type="button" class="fchk-b'+(v==="a"?" on":"")+'" data-fuelmeal="'+i+'" data-fuelval="a" aria-label="Ate it">✓</button>'+
+      '<button type="button" class="fchk-b close'+(v==="c"?" on":"")+'" data-fuelmeal="'+i+'" data-fuelval="c" aria-label="Ate something close">≈</button>'+
+      '</div>';
+  }
   function mealBlock(m){
     var opts="";
     [3,4,5,6].forEach(function(n){
@@ -110,13 +120,7 @@
     var recTxt = m.n===m.recommended ? "recommended for this plan" : "recommended: "+m.recommended;
 
     var fd=fuelDay(ffISO())||{ m:{} };
-    function fchk(i){
-      var v=fd.m?fd.m[i]:null;
-      return '<div class="fchk">'+
-        '<button type="button" class="fchk-b'+(v==="a"?" on":"")+'" data-fuelmeal="'+i+'" data-fuelval="a" aria-label="Ate it">✓</button>'+
-        '<button type="button" class="fchk-b close'+(v==="c"?" on":"")+'" data-fuelmeal="'+i+'" data-fuelval="c" aria-label="Ate something close">≈</button>'+
-        '</div>';
-    }
+    function fchk(i){ return ffFchkHtml(i); }
     var rows = m.schedule.map(function(s, i){
       var v=fd.m?fd.m[i]:null, done=v?' fdone':'';
       if(s.kind==="pre"){

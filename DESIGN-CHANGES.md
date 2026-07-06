@@ -462,6 +462,23 @@ as a collapsed `<details>` fold ("🛒 Shopping list · one day · N items") usi
 the app's existing fold idiom, so the Meals card ends at the day-total instead
 of a long ingredient list. Tap to expand; the weekly sheet is unchanged.
 
+## 20 · Fix: fuel check-off missing for foods-you-love users (user-reported)
+
+The check-off UI (Today's-fuel summary with the 3 day-rating chips + the ✓/≈
+buttons per meal) only rendered on the GENERIC meal schedule — the branch shown
+before a user picks favorite foods. Anyone who had picked foods got the
+upgraded "Your Meals" cards with no check-off at all. Found because the owner
+uses food prefs; the earlier verification seeded a prefs-less user.
+
+- The foods-you-love meal cards now carry the same summary card and per-meal
+  ✓/≈ buttons. Each food-built meal is mapped to its schedule slot (label
+  match, pre/post-aware, first-unused for duplicate "Snack" names) so the
+  check-offs write the SAME ff_fuel indices as the schedule and Home timeline.
+- ffFchkHtml() extracted as the one shared ✓/≈ renderer.
+- Checked cards fade + strike; verified in-sync with the Home chip both ways.
+- Testing lesson recorded: seed BOTH user shapes (with and without food prefs)
+  — the Fuel tab renders a different tree for each.
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob
