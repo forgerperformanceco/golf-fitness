@@ -1454,7 +1454,12 @@
   .nu-go{ position:absolute; right:15px; top:50%; transform:translateY(-50%); font-size:26px; color:#8be9ac; }
   .nu-card.alt .nu-go{ color:#8ec8e8; }
   .tl{ margin:2px 0 14px; }
-  .tl-h{ font-size:12px; font-weight:800; letter-spacing:.09em; text-transform:uppercase; color:var(--muted); margin:0 2px 8px; }
+  .tl-h{ font-size:12px; font-weight:800; letter-spacing:.09em; text-transform:uppercase; color:var(--muted); margin:0 2px 8px;
+    display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .tl-fuelchip{ display:inline-flex; align-items:center; gap:5px; border:1px solid var(--line); background:var(--card);
+    color:var(--green-700); font:800 11px system-ui; letter-spacing:.05em; border-radius:999px; padding:4px 10px; cursor:pointer; }
+  .tl-fuelchip.full{ background:#eef7f0; border-color:#cfe9d8; }
+  .tl-fuelchip:active{ transform:translateY(1px); }
   .tl-item{ display:flex; gap:0; align-items:stretch; }
   .tl-when{ flex:0 0 62px; text-align:right; padding:13px 10px 0 0; font-size:12px; font-weight:800; color:var(--muted); }
   .tl-rail{ flex:0 0 22px; position:relative; }
@@ -1953,6 +1958,7 @@
   html:not([data-theme="light"]) .frate-chip{ border:1px solid #2b4334; background:#1a1a1a; color:#c5ddd5; }
   html:not([data-theme="light"]) .frate-chip.on{ background:#14261a; color:#c4e3d1; }
   html:not([data-theme="light"]) .fchk-b{ border:1.5px solid #2b4334; background:#1a1a1a; color:#c4d3ca; }
+  html:not([data-theme="light"]) .tl-fuelchip.full{ background:#142417; border-color:#274531; }
   html:not([data-theme="light"]) .tl-dot{ border:2.5px solid #34493a; }
   html:not([data-theme="light"]) .pl-dot.cur{ background:#274933; }
   html:not([data-theme="light"]) .pl-whybox .pl-howto{ background:#274933; color:#c9e5d5; }
@@ -2222,6 +2228,7 @@
   html[data-theme="dark"] .frate-chip{ border:1px solid #2b4334; background:#1a1a1a; color:#c5ddd5; }
   html[data-theme="dark"] .frate-chip.on{ background:#14261a; color:#c4e3d1; }
   html[data-theme="dark"] .fchk-b{ border:1.5px solid #2b4334; background:#1a1a1a; color:#c4d3ca; }
+  html[data-theme="dark"] .tl-fuelchip.full{ background:#142417; border-color:#274531; }
   html[data-theme="dark"] .tl-dot{ border:2.5px solid #34493a; }
   html[data-theme="dark"] .pl-dot.cur{ background:#274933; }
   html[data-theme="dark"] .pl-whybox .pl-howto{ background:#274933; color:#c9e5d5; }

@@ -697,7 +697,7 @@
     meals.forEach(function(m){ if(m.isPost) postMeal=m; if(m.isPreMeal) preMeal=m; });
     var feedList = preMerged ? meals.slice() : meals.concat([pre]);
     var schedule = feedList.sort(function(a,b){ return a.time-b.time; }).map(function(f){
-      return { kind:f.kind||"meal", label:f.label, time:formatTime(f.time),
+      return { kind:f.kind||"meal", label:f.label, time:formatTime(f.time), t:f.time,
         isPost:!!f.isPost, isPre:!!f.isPreMeal, p:f.p||0, c:f.c||0, f:f.f||0 };
     });
 
@@ -4381,31 +4381,47 @@
         '<span class="tl-ic">'+ic+'</span><span class="tl-tx"><span class="tl-t">'+t+'</span><span class="tl-s">'+sub+'</span></span>'+
         (opts.attr?'<span class="tl-go">›</span>':'')+'</button></div>';
     }
-    var h='<div class="tl"><div class="tl-h">'+ffIcon("calendar",13)+' Your day</div>';
+    var fdT=fuelDay(ffISO())||{ m:{} };
+    // The full daily checklist: EVERY meal from today's plan is a one-tap
+    // check-off here, time-sorted around the training block — the fuel loop
+    // lives on Home; the Fuel tab stays the detail view.
+    var fuelChip='';
+    if(ffSchedule && ffSchedule.length){
+      var nDone=0; ffSchedule.forEach(function(sl,i){ if(fdT.m && fdT.m[i]) nDone++; });
+      fuelChip='<button type="button" class="tl-fuelchip'+(nDone>=ffSchedule.length?" full":"")+'" data-goview="calc">'+
+        ffIcon("gauge",12)+' '+nDone+'/'+ffSchedule.length+' meals</button>';
+    }
+    var h='<div class="tl"><div class="tl-h"><span>'+ffIcon("calendar",13)+' Your day</span>'+fuelChip+'</div>';
     h+=item("AM","⚖️","Morning weigh-in", weighed?("Logged — "+row.w+" lb ✓"):"Same scale, same time — feeds your trend & Octane",
       { done:weighed, now:!weighed && nowH<11, attr:' data-qopen="1"' });
-    var preIdx=-1, postIdx=-1;
-    if(ffSchedule) ffSchedule.forEach(function(sl,i){
-      if((sl.kind==="pre"||sl.isPre) && preIdx<0) preIdx=i;
-      if(sl.isPost) postIdx=i;
-    });
-    var fdT=fuelDay(ffISO())||{ m:{} };
+    var evts=[];
     if(train){
-      h+=item(fmtMin((hour-1)*60),"🍚","Pre-workout fuel",
-        (fdT.m && fdT.m[preIdx])?"Banked ✓ — tap to undo":"Carbs + lean protein ~60–90 min out — tap when eaten",
-        preIdx>=0 ? { attr:' data-fuelmeal="'+preIdx+'" data-fuelval="a"', done:!!(fdT.m && fdT.m[preIdx]) }
-                  : { attr:' data-goview="calc"', done:trained || nowH>hour });
-      h+=item(fmtMin(hour*60),"🏋️",d.name.replace(/^Day \d+ — /,""),
+      evts.push({ min:hour*60, html:item(fmtMin(hour*60),"🏋️",d.name.replace(/^Day \d+ — /,""),
         trained?"Done — banked to history":(WAVES[waveFor(curWeek())].label+" week · guided player"),
-        { attr:' data-startplayer="'+escAttr(d.name)+'"', done:trained, now:!trained && Math.abs(nowH-hour)<=2 });
-      h+=item(fmtMin((hour+1)*60),"🥤","Post-workout meal",
-        (fdT.m && fdT.m[postIdx])?"Banked ✓ — tap to undo":"Protein + fast carbs within ~45 min — tap when eaten",
-        postIdx>=0 ? { attr:' data-fuelmeal="'+postIdx+'" data-fuelval="a"', done:!!(fdT.m && fdT.m[postIdx]) }
-                   : { attr:' data-goview="calc"', done:trained && nowH>hour+1 });
+        { attr:' data-startplayer="'+escAttr(d.name)+'"', done:trained, now:!trained && Math.abs(nowH-hour)<=2 }) });
     } else if(d){
-      h+=item(fmtMin(12*60),"🌱","Active recovery", restDoneToday?"Recovery logged":"Walk 9, mobility flow, foam roll — growth day",
-        { attr:' data-nurest="'+escAttr(dayKey(d))+'"', done:restDoneToday, now:!restDoneToday });
+      evts.push({ min:12*60, html:item(fmtMin(12*60),"🌱","Active recovery", restDoneToday?"Recovery logged":"Walk 9, mobility flow, foam roll — growth day",
+        { attr:' data-nurest="'+escAttr(dayKey(d))+'"', done:restDoneToday, now:!restDoneToday }) });
     }
+    if(ffSchedule && ffSchedule.length){
+      ffSchedule.forEach(function(sl,i){
+        var done=!!(fdT.m && fdT.m[i]);
+        var mins=(sl.t!=null)? Math.round(sl.t*60) : (9+i*3)*60;
+        var ic=(sl.kind==="pre"||sl.isPre)?"🍚":(sl.isPost?"🥤":"🍽️");
+        var macro=(sl.p?sl.p+"P":"")+(sl.c?((sl.p?" · ":"")+sl.c+"C"):"");
+        evts.push({ min:mins, html:item(fmtMin(mins), ic, sl.label,
+          done?"Banked ✓ — tap to undo":(macro?macro+" — tap when eaten":"Tap when eaten"),
+          { attr:' data-fuelmeal="'+i+'" data-fuelval="a"', done:done }) });
+      });
+    } else if(train){
+      // No meal plan built yet — keep generic fuel guidance rows.
+      evts.push({ min:(hour-1)*60, html:item(fmtMin((hour-1)*60),"🍚","Pre-workout fuel",
+        "Carbs + lean protein ~60–90 min out", { attr:' data-goview="calc"', done:trained || nowH>hour }) });
+      evts.push({ min:(hour+1)*60, html:item(fmtMin((hour+1)*60),"🥤","Post-workout meal",
+        "Protein + fast carbs within ~45 min", { attr:' data-goview="calc"', done:trained && nowH>hour+1 }) });
+    }
+    evts.sort(function(a,b){ return a.min-b.min; });
+    h+=evts.map(function(e){ return e.html; }).join("");
     h+=item("Any","⛳","Playing a round?","Tee-time fueling + first-tee warm-up plan",{ attr:' data-goview="gameday"' });
     h+='</div>';
     return h;

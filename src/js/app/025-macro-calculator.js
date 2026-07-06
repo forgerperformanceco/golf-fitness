@@ -265,7 +265,7 @@
     meals.forEach(function(m){ if(m.isPost) postMeal=m; if(m.isPreMeal) preMeal=m; });
     var feedList = preMerged ? meals.slice() : meals.concat([pre]);
     var schedule = feedList.sort(function(a,b){ return a.time-b.time; }).map(function(f){
-      return { kind:f.kind||"meal", label:f.label, time:formatTime(f.time),
+      return { kind:f.kind||"meal", label:f.label, time:formatTime(f.time), t:f.time,
         isPost:!!f.isPost, isPre:!!f.isPreMeal, p:f.p||0, c:f.c||0, f:f.f||0 };
     });
 
