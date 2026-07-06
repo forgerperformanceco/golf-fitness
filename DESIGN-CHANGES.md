@@ -593,6 +593,20 @@ same gap. Base rule extended to text/date/time (+ focus ring), with the iOS
 quirks handled: `-webkit-appearance:none`, left-aligned
 `::-webkit-date-and-time-value`, 47px min-height, 16px font (no zoom-on-focus).
 
+## 29 · Player: set values carry forward (user request)
+
+Set 1's weight and reps now flow through the exercise the way Hevy does it:
+- Later empty sets GHOST the nearest earlier set's values as placeholders
+  (kept as placeholders, not values, so unchecked sets never inflate volume
+  or fire phantom PRs — the recap counts any set with w+r).
+- Tapping ✓ on an empty set commits the carried values — one tap repeats
+  the work.
+- The +/− steppers on an empty later set start from the carried value
+  (205 → tap + → 210), not the prescription.
+- "Nearest earlier" beats "set 1": bump set 3 to 215×5 and set 4 inherits
+  215×5. First set with no session data still seeds from the prescribed
+  load, unchanged.
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob
