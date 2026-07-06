@@ -216,7 +216,14 @@
     }
     evts.sort(function(a,b){ return a.min-b.min; });
     h+=evts.map(function(e){ return e.html; }).join("");
-    h+=item("Any","⛳","Playing a round?","Tee-time fueling + first-tee warm-up plan",{ attr:' data-goview="gameday"' });
+    var rd=(typeof roundToday==="function")?roundToday():null;
+    if(rd){
+      h+=item("Any","⛳","Round banked ✓",
+        [(rd.score!=null?("shot "+rd.score):null),(rd.drive?(Math.round(rd.drive)+" yd bomb"):null),(rd.energy==="strong"?"finished strong":null)].filter(Boolean).join(" · ")||"tap to edit",
+        { attr:' data-roundlog="1"', done:true });
+    } else {
+      h+=item("Any","⛳","Playing a round?","Plan it — and log how it went after",{ attr:' data-goview="gameday"' });
+    }
     h+='</div>';
     return h;
   }

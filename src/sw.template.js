@@ -9,7 +9,7 @@ var ASSETS = [
   './fonts/ffnum.woff2',
   './app.js?v={{V}}',
   './privacy.html',
-  './cloud-sync.js?v=105',
+  './cloud-sync.js?v=106',
   './coach.js?v=88',
   './manifest.webmanifest',
   './logo-dark-mark.png',

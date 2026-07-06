@@ -715,6 +715,29 @@
   .exday-body{ padding:2px 13px 13px; }
   .exday-body .sched-sample{ margin-top:2px; }
   details.fold .fold-sub{ margin-left:auto; color:var(--muted); font-weight:600; font-size:12px; }
+  /* Round debrief sheet + the on-course proof card */
+  .rd-grid{ display:flex; gap:10px; margin:4px 0 12px; }
+  .rd-f{ flex:1; display:flex; flex-direction:column; gap:5px; }
+  .rd-f span{ font:700 12px system-ui; color:var(--muted); }
+  .rd-f span em{ font-style:normal; font-weight:600; opacity:.7; }
+  .rd-f input{ width:100%; box-sizing:border-box; border:1.5px solid var(--line); border-radius:12px;
+    padding:12px; font:600 20px 'FF Numeral', system-ui; text-align:center; }
+  .rd-lbl{ font:700 12.5px system-ui; color:var(--muted); margin:10px 0 7px; }
+  .rd-chips{ display:flex; flex-wrap:wrap; gap:7px; }
+  .rd-save{ display:block; width:100%; margin-top:16px; border:0; border-radius:12px; background:#16a34a;
+    color:#fff; font-weight:900; font-size:15px; padding:14px; cursor:pointer; min-height:48px; }
+  .rd-foot{ font-size:12px; color:var(--muted); margin-top:9px; text-align:center; }
+  .rd-stam{ font-size:13px; color:var(--muted); line-height:1.5; margin:8px 0 4px; }
+  .rd-list{ margin:8px 0 4px; }
+  .rd-r{ display:flex; align-items:center; gap:10px; padding:8px 2px; border-bottom:1px solid var(--line); font-size:13px; }
+  .rd-r:last-child{ border-bottom:0; }
+  .rd-d{ color:var(--muted); flex:1; }
+  .rd-v{ min-width:56px; text-align:right; }
+  .rd-v b{ font-family:'FF Numeral', system-ui, sans-serif; font-weight:600; font-size:15px; }
+  .rd-e{ min-width:86px; text-align:right; font-size:12px; color:var(--green-700); font-weight:700; }
+  .gd-loground{ display:block; width:100%; margin:0 0 14px; border:1.5px dashed #cfe0d5; background:#f4faf6;
+    color:var(--green-800); border-radius:13px; padding:13px; font:800 13.5px system-ui; cursor:pointer; }
+  .gd-loground.done{ border-style:solid; background:#eef7f0; }
   .sched-sample{ font-size:12.5px; color:var(--muted); line-height:1.5; margin:-4px 2px 12px; }
   .sched-sample b{ color:var(--green-800); }
   /* Meal cards with check-offs: name left, macros pushed right, buttons at the edge. */
@@ -1871,6 +1894,8 @@
   html:not([data-theme="light"]) .cs-edit{ background:#1a1a1a; }
   html:not([data-theme="light"]) .ffm-snk{ background:#1a1a1a; }
   html:not([data-theme="light"]) .ffm-act{ background:#1a1a1a; }
+  html:not([data-theme="light"]) .gd-loground{ border:1.5px dashed #2b4334; background:#122117; }
+  html:not([data-theme="light"]) .gd-loground.done{ background:#142417; }
   html:not([data-theme="light"]) .ffm-groc-i{ background:#1a1a1a; }
   html:not([data-theme="light"]) .ffm-pair-h em, html:not([data-theme="light"]) .ffm-meal-h em{ color:#ddcfb8; }
   html:not([data-theme="light"]) .ffm-tot-cell.ok{ border-color:#2e523b; background:#132317; }
@@ -2141,6 +2166,8 @@
   html[data-theme="dark"] .cs-edit{ background:#1a1a1a; }
   html[data-theme="dark"] .ffm-snk{ background:#1a1a1a; }
   html[data-theme="dark"] .ffm-act{ background:#1a1a1a; }
+  html[data-theme="dark"] .gd-loground{ border:1.5px dashed #2b4334; background:#122117; }
+  html[data-theme="dark"] .gd-loground.done{ background:#142417; }
   html[data-theme="dark"] .ffm-groc-i{ background:#1a1a1a; }
   html[data-theme="dark"] .ffm-pair-h em, html[data-theme="dark"] .ffm-meal-h em{ color:#ddcfb8; }
   html[data-theme="dark"] .ffm-tot-cell.ok{ border-color:#2e523b; background:#132317; }
