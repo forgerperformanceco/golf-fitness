@@ -44,8 +44,8 @@
     // footer — one line, left-aligned, no collisions
     g.fillStyle="rgba(255,255,255,.08)"; g.fillRect(0,H-150,W,150);
     g.font="800 42px system-ui, sans-serif"; g.fillStyle="#8be9ac";
-    g.fillText("fairwayfuel.app",72,H-58);
-    var fw=g.measureText("fairwayfuel.app").width;
+    g.fillText("FairwayFuel",72,H-58);
+    var fw=g.measureText("FairwayFuel").width;
     g.font="600 36px system-ui, sans-serif"; g.fillStyle="#9fc4ac";
     g.fillText("· Turn muscle into distance ⛳", 72+fw+18, H-58);
     try{ c.toBlob(function(b){ cb(b); },"image/png"); }catch(e){ cb(null); }
