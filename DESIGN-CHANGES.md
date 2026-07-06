@@ -752,6 +752,50 @@ user owns.
 export parses with correct keys, restore round-trip survives reload,
 bad-file rejection. e2e suite green.
 
+## 40 · Real web push — reminders with the app closed (make-it-great #2 of 3)
+
+**Why.** Every retention mechanic built this year (streaks, milestones, Day
+banked) only fires if the user opens the app. This was the recorded Phase-3
+follow-up: "true web push deferred… needs VAPID keys, a subscription table,
+and a scheduled Edge Function sender."
+
+**Design: the server never understands the plan.** On every app open (and on
+login / training-time / frequency change) the client writes its `push_subs`
+row with tz, training-slot hour, and a **7-day schedule of day-aware messages**
+(`ffPushWeek()` — same copy as the Capacitor local reminders). The hourly
+`push-daily` Edge Function just sends "today's entry at the user's hour".
+A schedule with no entry for today means the app hasn't been opened in a week
+— exactly when the function switches to its re-engagement fallback copy.
+One send per local day (`last_sent`), 404/410 prunes the row.
+
+**Pieces.**
+- `cloud-sync.js` (pin `?v=108`): `FF.pushKey` (VAPID public key),
+  `FF.pushSave` (upsert own row), `FF.pushRemove`. Private key is in Edge
+  Function secrets only — never committed.
+- `080` module: "Turn on reminders" upgrades to `pushManager.subscribe`
+  when signed in + backend configured; falls back to the open-tab path
+  otherwise (and on subscribe failure). Toggle-off deletes the row and
+  unsubscribes. `ffWebNotifCheck` skips while push is live (no double-notify).
+  Card copy advertises "delivered even when the app is closed" / nudges
+  sign-in when that's the missing piece.
+- `supabase/schema.sql`: `push_subs` + own-row RLS + touch trigger +
+  commented `cron.schedule` snippet. `supabase/functions/push-daily/index.ts`
+  (npm:web-push, x-cron-secret guard, per-tz hour matching via Intl).
+  `config.toml`: `verify_jwt=false` (paddle-webhook pattern).
+- `scripts/gen-vapid.mjs` mints a keypair (prints, never writes).
+  `PUSH-SETUP.md`: the ~10-minute dashboard checklist (table → deploy →
+  secrets → pg_cron) + a curl-based verification path.
+
+**Server setup is a one-time user action** (needs dashboard access; secrets
+can't ship in a public repo). Until then the client detects the absence and
+behaves exactly as before.
+
+**Verified** (test-push.mjs, stubbed pushManager + FF backend): subscribe
+passes a 65-byte applicationServerKey and saves endpoint/keys/tz/hour + a
+7-day week with train AND rest copy on local dates; training-time change
+re-saves with the new hour; local fallback skipped while push on; toggle-off
+removes row + unsubscribes. Edge Function TS syntax-checked with esbuild.
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob

@@ -4924,16 +4924,96 @@
      push (VAPID + a scheduled Edge Function) is the Phase-3 upgrade; the sw.js
      push handler is already in place for it. */
   function ffWebNotifSupported(){ return !ffNotifPlugin() && !window.Capacitor && ("Notification" in window) && ("serviceWorker" in navigator); }
+
+  /* ----- Real server push (VAPID) -----
+     When the push backend is configured (FF.pushKey shipped by cloud-sync.js,
+     push_subs table + push-daily Edge Function on Supabase — see PUSH-SETUP.md)
+     and the user is signed in, "Turn on reminders" upgrades from the best-effort
+     local path to a real PushManager subscription: reminders then land even with
+     the app fully closed. The subscription row carries a 7-day schedule of the
+     SAME day-aware copy the local reminders use, rebuilt on every app open, so
+     the server never needs to understand the plan — and a schedule that's gone
+     stale tells the server the user hasn't opened the app in a week, which is
+     exactly when it switches to a re-engagement nudge. */
+  function ffPushCapable(){
+    return ffWebNotifSupported() && ("PushManager" in window) &&
+      !!(window.FF && window.FF.pushKey && window.FF.user && window.FF.pushSave);
+  }
+  function ffB64ToU8(s){
+    var pad="====".slice(0,(4-s.length%4)%4);
+    var raw=atob((s+pad).replace(/-/g,"+").replace(/_/g,"/"));
+    var u=new Uint8Array(raw.length);
+    for(var i=0;i<raw.length;i++) u[i]=raw.charCodeAt(i);
+    return u;
+  }
+  function ffLocalISO(d){ return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2); }
+  function ffPushWeek(){
+    var out=[], dop=dayOfPlan(), wk=curWeek(), slots=stripDays();
+    if(dop==null) return out;                          // plan not started → server uses its fallback copy
+    for(var o=0;o<7;o++){
+      var d=new Date(); d.setDate(d.getDate()+o);
+      var day=slots[(dop-1+o)%7]||{};
+      var rest=day.type==="rest";
+      out.push({ d: ffLocalISO(d),
+        title: rest ? "Recovery day 🌱" : "Time to train ⛳",
+        body: rest ? "Walk, mobility, foam roll — growth happens today."
+                   : ((day.name||"Your session").replace(/^Day \d+ — /,"")+" · Week "+wk+" — your yards are waiting.") });
+    }
+    return out;
+  }
+  function ffPushSubscribe(){
+    return navigator.serviceWorker.ready.then(function(reg){
+      return reg.pushManager.subscribe({ userVisibleOnly:true, applicationServerKey:ffB64ToU8(window.FF.pushKey) });
+    }).then(function(sub){
+      var j=sub.toJSON();
+      var tz="UTC"; try{ tz=Intl.DateTimeFormat().resolvedOptions().timeZone||"UTC"; }catch(e){}
+      return window.FF.pushSave({
+        endpoint:j.endpoint, p256dh:j.keys.p256dh, auth:j.keys.auth,
+        tz:tz, hour:FF_SLOT_HOUR[state.workout]||17, week:ffPushWeek()
+      });
+    }).then(function(r){
+      if(r && r.ok){ lsSet("ff_push_on", true); return true; }
+      return false;
+    });
+  }
+  function ffPushUnsubscribe(){
+    lsSet("ff_push_on", false);
+    if(!("serviceWorker" in navigator)) return Promise.resolve();
+    return navigator.serviceWorker.ready.then(function(reg){
+      return reg.pushManager.getSubscription();
+    }).then(function(sub){
+      if(!sub) return;
+      var ep=sub.endpoint;
+      return Promise.resolve(window.FF && window.FF.pushRemove ? window.FF.pushRemove(ep) : null)
+        .then(function(){ return sub.unsubscribe(); });
+    }).catch(function(){});
+  }
+  // Keep the server's 7-day schedule fresh (mirrors ffNotifReschedule for Capacitor).
+  function ffPushResync(){
+    if(!lsGet("ff_push_on",false) || !ffPushCapable() || Notification.permission!=="granted") return Promise.resolve();
+    return ffPushSubscribe().catch(function(){});
+  }
+
   function ffWebNotifToggle(){
     if(!ffWebNotifSupported()) return Promise.resolve(false);
-    if(ffNotifOn()){ lsSet("ff_notif", false); return Promise.resolve(false); }
+    if(ffNotifOn()){ lsSet("ff_notif", false); return ffPushUnsubscribe().then(function(){ return false; }); }
     return Promise.resolve().then(function(){ return Notification.requestPermission(); }).then(function(p){
       if(p!=="granted"){ alert("Notifications are blocked — allow them for this site in your browser settings."); return false; }
-      lsSet("ff_notif", true); ffWebNotifCheck(); return true;
+      lsSet("ff_notif", true);
+      if(ffPushCapable()){
+        // Real push when the backend is up; if the subscribe fails for any
+        // reason, the local best-effort path still covers open-tab reminders.
+        return ffPushSubscribe().catch(function(){ return false; }).then(function(ok){
+          if(!ok) ffWebNotifCheck();
+          return true;
+        });
+      }
+      ffWebNotifCheck(); return true;
     }).catch(function(){ return false; });
   }
   function ffWebNotifCheck(){
     try{
+      if(lsGet("ff_push_on",false)) return;            // the server sends these now
       if(!ffWebNotifSupported() || !ffNotifOn() || Notification.permission!=="granted") return;
       if(planStart()==null) return;
       var hour=FF_SLOT_HOUR[state.workout]||17;
@@ -4968,6 +5048,9 @@
     setTimeout(function(){ try{ ffWebNotifCheck(); }catch(e){} }, 4000);
     setInterval(function(){ try{ ffWebNotifCheck(); }catch(e){} }, 15*60*1000);
     document.addEventListener("visibilitychange", function(){ if(!document.hidden){ try{ ffWebNotifCheck(); }catch(e){} } });
+    // Refresh the server-side 7-day schedule on open and right after login.
+    setTimeout(function(){ try{ ffPushResync(); }catch(e){} }, 5000);
+    window.addEventListener("ff-auth", function(){ setTimeout(function(){ try{ ffPushResync(); }catch(e){} }, 1500); });
   }
 
   function acctRow(k,v){ return '<div class="acct-li"><span>'+k+'</span><b>'+v+'</b></div>'; }
@@ -5101,8 +5184,14 @@
         '<button class="acct-btn'+(non?' ghost':'')+'" id="acctNotif">'+(non?"Reminders on — tap to turn off":"Turn on reminders")+'</button></div>';
     } else if(ffWebNotifSupported()){
       var nonW=ffNotifOn() && Notification.permission==="granted";
+      var pushReady=("PushManager" in window) && !!(window.FF && window.FF.pushKey);
+      var pushLive=nonW && lsGet("ff_push_on",false);
       html+='<div class="acct-card"><div class="acct-head">🔔 Workout reminders</div>'+
-        '<p class="acct-p">A daily nudge at your training time — the session on training days, recovery on rest days. On the web it fires while FairwayFuel is open in a tab or installed; for bulletproof daily reminders, install the app.</p>'+
+        '<p class="acct-p">A daily nudge at your training time — the session on training days, recovery on rest days. '+
+        (pushLive ? '<b>Delivered even when the app is closed.</b>'
+         : (pushReady && user ? 'Delivered even when the app is closed.'
+         : (pushReady ? '<b>Sign in</b> and reminders land even when the app is closed; signed out they only fire while the app is open.'
+                      : 'On the web they fire while FairwayFuel is open in a tab or installed.')))+'</p>'+
         '<button class="acct-btn'+(nonW?' ghost':'')+'" id="acctNotifWeb">'+(nonW?"Reminders on — tap to turn off":"Turn on reminders")+'</button></div>';
     }
     var curTheme=ffTheme();
@@ -5216,6 +5305,7 @@
       try{ persist(); }catch(_){}
       try{ renderPhase(); }catch(_){}
       try{ ffNotifReschedule(); }catch(_){}             // reminders follow the new plan now
+      try{ ffPushResync(); }catch(_){}
       renderAccount();
     };
     var awk=$("acctWk"); if(awk) awk.onclick=function(ev){
@@ -5226,6 +5316,7 @@
       try{ ffRefreshCalcTrainTime(); }catch(_){}          // update the Fuel-tab reference
       try{ persist(); }catch(_){}
       try{ ffNotifReschedule(); }catch(_){}              // reminder hour follows training time
+      try{ ffPushResync(); }catch(_){}
       renderAccount();
     };
     var su=$("acctSetup"); if(su) su.onclick=function(){ startOnboarding(true); };

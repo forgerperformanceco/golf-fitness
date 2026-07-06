@@ -115,6 +115,28 @@
     }
   };
 
+  // ---- Web push (server reminders) ----
+  // The VAPID PUBLIC key — safe to ship (it only identifies our push server);
+  // its private half lives in Supabase Edge Function secrets. Regenerate the
+  // pair with `node scripts/gen-vapid.mjs` (doing so invalidates existing
+  // subscriptions — every device must re-toggle reminders).
+  var FF_PUSH_PUB = "BHhvzZKWGc_ULisImsEa_faL5TNqlGA9pKuSC4UaDp7TyglKv7Wxg1EH9fmmjSsYbTkHq-FJOL_NiuJGO9N8Og4";
+  window.FF.pushKey = FF_PUSH_PUB;
+  // Upsert this browser's subscription + its 7-day message schedule (the app
+  // rebuilds `week` on every open so the copy stays day-aware server-side).
+  window.FF.pushSave = async function (row) {
+    if (!user) return { error: "not-signed-in" };
+    try {
+      var rec = Object.assign({ user_id: user.id }, row);
+      var r = await sb.from("push_subs").upsert(rec, { onConflict: "endpoint" });
+      return r.error ? { error: r.error.message } : { ok: true };
+    } catch (e) { return { error: String(e) }; }
+  };
+  window.FF.pushRemove = async function (endpoint) {
+    if (!user || !endpoint) return;
+    try { await sb.from("push_subs").delete().eq("endpoint", endpoint); } catch (e) {}
+  };
+
   var user = null;
   var lastSnapshot = null;   // JSON of the last state we know matches the cloud
   var pushing = false;

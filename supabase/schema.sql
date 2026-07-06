@@ -196,3 +196,73 @@ grant insert, update, delete on public.leaderboard to authenticated;
 --   measured_at timestamptz not null default now(), weight_lb numeric
 -- );
 -- (RLS "own row" policies would mirror profiles.)
+
+-- ============================================================================
+-- push_subs: one row per browser push subscription (web push reminders).
+-- The client (cloud-sync.js FF.pushSave) upserts its own subscription plus a
+-- 7-day, day-aware message schedule; the push-daily Edge Function (service
+-- role, hourly via pg_cron) sends whatever `week` says for today at `hour`
+-- local time in `tz`, falling back to a re-engagement nudge when the schedule
+-- has gone stale (user hasn't opened the app in over a week).
+-- ============================================================================
+create table if not exists public.push_subs (
+  endpoint    text primary key,                                        -- push-service URL, unique per browser
+  user_id     uuid not null references auth.users (id) on delete cascade,
+  p256dh      text not null,                                           -- client public key (RFC 8291)
+  auth        text not null,                                           -- client auth secret
+  tz          text not null default 'UTC',                             -- IANA zone, e.g. America/Chicago
+  hour        int  not null default 17 check (hour between 0 and 23),  -- local send hour = training slot
+  week        jsonb not null default '[]'::jsonb,                      -- [{d:'YYYY-MM-DD', title, body}, ...]
+  last_sent   date,                                                    -- dedupe: one nudge per local day
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+
+comment on table public.push_subs is 'Web-push subscriptions + 7-day message schedule, refreshed on every app open.';
+
+alter table public.push_subs enable row level security;
+
+drop policy if exists "push_subs_select_own" on public.push_subs;
+create policy "push_subs_select_own"
+  on public.push_subs for select
+  using (auth.uid() = user_id);
+
+drop policy if exists "push_subs_insert_own" on public.push_subs;
+create policy "push_subs_insert_own"
+  on public.push_subs for insert
+  with check (auth.uid() = user_id);
+
+drop policy if exists "push_subs_update_own" on public.push_subs;
+create policy "push_subs_update_own"
+  on public.push_subs for update
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+drop policy if exists "push_subs_delete_own" on public.push_subs;
+create policy "push_subs_delete_own"
+  on public.push_subs for delete
+  using (auth.uid() = user_id);
+
+drop trigger if exists push_subs_touch on public.push_subs;
+create trigger push_subs_touch
+  before update on public.push_subs
+  for each row execute function public.touch_updated_at();
+
+grant select, insert, update, delete on public.push_subs to authenticated;
+
+-- Hourly trigger for the sender. Requires the pg_cron + pg_net extensions
+-- (Dashboard → Database → Extensions → enable both), then run — with the two
+-- placeholders filled in (the anon key is the same public one in cloud-sync.js;
+-- the cron secret is whatever you set as the PUSH_CRON_SECRET function secret):
+--
+--   select cron.schedule('ff-push-hourly', '5 * * * *', $cron$
+--     select net.http_post(
+--       url     := 'https://tbwmckmyzoxzhpqlomsp.supabase.co/functions/v1/push-daily',
+--       headers := jsonb_build_object(
+--         'Content-Type',  'application/json',
+--         'Authorization', 'Bearer <ANON_KEY>',
+--         'x-cron-secret', '<PUSH_CRON_SECRET>'),
+--       body := '{}'::jsonb);
+--   $cron$);
+--
+-- (kept commented so `supabase db push` never fails on projects without pg_cron)
