@@ -614,7 +614,7 @@
       try{ window.dispatchEvent(new Event("ff-data-changed")); }catch(_){}
       renderDash(); return; }
     if(e.target.closest("[data-qopen]")){ var fb=$("ffFab"); if(fb) fb.click(); return; }
-    var t=e.target.closest("[data-goview]"); if(t) setView(t.getAttribute("data-goview"));
+    // [data-goview] is handled by the global delegated navigator (015-coach-tips).
   });
   /* ---- Global quick-log: the floating ＋ and its bottom sheet. One entry point
      for the daily inputs (weight / 7-iron / driver) plus jump-offs to the player,
