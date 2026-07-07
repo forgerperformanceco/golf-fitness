@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* Generate a VAPID keypair for FairwayFuel web push.
+/* Generate a VAPID keypair for Yardsmith web push.
    - The PUBLIC key goes into FF_PUSH_PUB in cloud-sync.js (committed).
    - The PRIVATE key goes ONLY into the push-daily Edge Function secrets
      (VAPID_PRIVATE_KEY). Never commit it.

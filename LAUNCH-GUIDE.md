@@ -1,6 +1,6 @@
-# 🚀 FairwayFuel Launch Guide
+# 🚀 Yardsmith Launch Guide
 
-Everything you need to get FairwayFuel in front of your friends — from "it's already
+Everything you need to get Yardsmith in front of your friends — from "it's already
 live" to a custom domain and optional logins. Work top to bottom; each section is
 self-contained and tells you exactly what to click.
 
@@ -38,7 +38,7 @@ https://pharmerbobby.github.io/Golf-Fitness/
 1. Go to your repo on GitHub → **Settings** → **Pages**.
 2. Under "GitHub Pages" it says **"Your site is live at …"** — that's the real URL.
 3. If it's not on yet: set **Source = GitHub Actions**, then push any commit (or re-run the
-   latest "Deploy FairwayFuel to GitHub Pages" workflow under the **Actions** tab).
+   latest "Deploy Yardsmith to GitHub Pages" workflow under the **Actions** tab).
 
 **To check a deploy:** repo → **Actions** tab → newest run should have a green ✔. The run's
 summary shows the published URL.

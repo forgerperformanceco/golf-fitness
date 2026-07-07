@@ -1,4 +1,4 @@
-# FairwayFuel — Go-Live Checklist (backend + Pro)
+# Yardsmith — Go-Live Checklist (backend + Pro)
 
 Copy-paste steps to turn on the paid backend: the **AI coach** and **subscriptions**.
 Nothing here touches the free app — it stays live the whole time. Order matters; each
@@ -33,12 +33,12 @@ supabase functions deploy ai-coach
 ```
 
 **Verify:** open the live site, sign in, tap **💬 Ask Coach**. While unsubscribed you'll
-get the "FairwayFuel Pro" gate (HTTP 402) — that's correct. To smoke-test the model
+get the "Yardsmith Pro" gate (HTTP 402) — that's correct. To smoke-test the model
 before billing exists, temporarily flip your own row:
 ```sql
 update profiles set subscription_status='active' where id = auth.uid();
 ```
-Ask "How do I raise my FairwayFuel Score?" — it should answer using your own numbers,
+Ask "How do I raise my Yardsmith Score?" — it should answer using your own numbers,
 then set it back to `free`.
 
 ---
@@ -49,7 +49,7 @@ Paddle is a **Merchant of Record** — it collects payment and remits sales tax/
 you. Sign up at paddle.com and choose the **"Digital products or SaaS"** category (the
 web checkout), not "Mobile apps" (that's for native iOS/Android IAP).
 
-1. **Product + prices:** Paddle → Catalog → create "FairwayFuel Pro" with a monthly
+1. **Product + prices:** Paddle → Catalog → create "Yardsmith Pro" with a monthly
    price and an annual price. Copy both **price IDs** (`pri_...`).
 2. **Secret + deploy:**
    ```sh

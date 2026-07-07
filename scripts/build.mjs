@@ -10,7 +10,7 @@
 //   sw.js        from src/sw.template.js
 //
 // {{V}} placeholders become a content hash, so cache-busting is automatic:
-// no more manual `fairwayfuel-vNNN` bumps or ?v= pin edits. Never edit the
+// no more manual `yardsmith-vNNN` bumps or ?v= pin edits. Never edit the
 // four outputs directly — they carry a GENERATED header and your change will
 // be overwritten by the next build.
 //

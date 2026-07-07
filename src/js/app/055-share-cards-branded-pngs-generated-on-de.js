@@ -44,8 +44,8 @@
     // footer — one line, left-aligned, no collisions
     g.fillStyle="rgba(255,255,255,.08)"; g.fillRect(0,H-150,W,150);
     g.font="800 42px system-ui, sans-serif"; g.fillStyle="#8be9ac";
-    g.fillText("FairwayFuel",72,H-58);
-    var fw=g.measureText("FairwayFuel").width;
+    g.fillText("Yardsmith",72,H-58);
+    var fw=g.measureText("Yardsmith").width;
     g.font="600 36px system-ui, sans-serif"; g.fillStyle="#9fc4ac";
     g.fillText("· Turn muscle into distance ⛳", 72+fw+18, H-58);
     try{ c.toBlob(function(b){ cb(b); },"image/png"); }catch(e){ cb(null); }
@@ -54,7 +54,7 @@
     ffMakeCard(o, function(blob){
       if(blob){
         try{
-          var file=new File([blob],"fairwayfuel-card.png",{type:"image/png"});
+          var file=new File([blob],"yardsmith-card.png",{type:"image/png"});
           if(navigator.canShare && navigator.canShare({files:[file]}) && navigator.share){
             navigator.share({ files:[file], text:textFallback }).catch(function(){});
             return;
@@ -62,7 +62,7 @@
         }catch(e){}
         try{
           var url=URL.createObjectURL(blob), a=document.createElement("a");
-          a.href=url; a.download="fairwayfuel-card.png";
+          a.href=url; a.download="yardsmith-card.png";
           document.body.appendChild(a); a.click();
           setTimeout(function(){ try{ URL.revokeObjectURL(url); a.remove(); }catch(e2){} },1500);
           ffToast("Card saved as an image — post it anywhere 📤");

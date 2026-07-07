@@ -1,5 +1,5 @@
 // ============================================================================
-// FairwayFuel AI Coach — Supabase Edge Function (Deno).
+// Yardsmith AI Coach — Supabase Edge Function (Deno).
 //
 // The browser POSTs the user's question + a compact snapshot of their own app
 // data (macro targets, recent log, clubhead-speed trend). This function:
@@ -35,7 +35,7 @@ interface CoachRequest {
   history?: { role: "user" | "assistant"; content: string }[];
   profile?: Record<string, unknown>;   // their `fairwayfuel` blob
   targets?: Record<string, unknown>;   // computed macros: { target, proteinG, carbG, fatG, mealN, goal }
-  score?: unknown;                     // FairwayFuel Score + pillar breakdown
+  score?: unknown;                     // Yardsmith Score + pillar breakdown
   recentLog?: unknown;                 // trimmed ff_log / speed trend
 }
 

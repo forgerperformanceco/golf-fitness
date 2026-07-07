@@ -1,4 +1,4 @@
-package app.fairwayfuel;
+package app.yardsmith;
 
 import com.getcapacitor.BridgeActivity;
 

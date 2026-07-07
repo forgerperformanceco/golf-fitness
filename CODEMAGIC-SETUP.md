@@ -1,4 +1,4 @@
-# FairwayFuel — ship iOS (and Android) from Windows via Codemagic
+# Yardsmith — ship iOS (and Android) from Windows via Codemagic
 
 You don't have a Mac, and you don't need one. **Codemagic** runs a cloud macOS
 machine that builds, signs and uploads the iOS app for you. This guide is the
@@ -34,19 +34,19 @@ one-time UI setup that pairs with the committed `codemagic.yaml`.
 1. Codemagic → **Teams / Personal Account → Integrations → App Store Connect →
    Connect**.
 2. Upload the `.p8`, paste the **Key ID** + **Issuer ID**, and name it
-   **exactly** `FairwayFuel ASC key` (this name is referenced in
+   **exactly** `Yardsmith ASC key` (this name is referenced in
    `codemagic.yaml` → `integrations.app_store_connect`).
 
 ### 3. Create the app record
 - In **App Store Connect → Apps → +**, create a new app with bundle id
-  **`app.fairwayfuel`**, platform iOS. (If the bundle id isn't offered, register
+  **`app.yardsmith`**, platform iOS. (If the bundle id isn't offered, register
   it under **Certificates, Identifiers & Profiles → Identifiers** first — or let
   Codemagic's automatic signing create it on the first build.)
 
 ### 4. Connect the repo and run
 1. Codemagic → **Add application → GitHub → `forgerperformanceco/golf-fitness`**.
    It auto-detects `codemagic.yaml`.
-2. Pick the **FairwayFuel iOS — App Store** workflow → **Start new build**.
+2. Pick the **Yardsmith iOS — App Store** workflow → **Start new build**.
 3. Codemagic will: install deps → build `www/` → generate the iOS project →
    sign with your key → produce a signed `.ipa` → upload to **TestFlight**.
 
@@ -81,8 +81,8 @@ this once on Windows:
 2. Create an **upload keystore** (keep it safe forever — losing it blocks
    updates):
    ```bash
-   keytool -genkey -v -keystore fairwayfuel-upload.keystore ^
-     -alias fairwayfuel -keyalg RSA -keysize 2048 -validity 10000
+   keytool -genkey -v -keystore yardsmith-upload.keystore ^
+     -alias yardsmith -keyalg RSA -keysize 2048 -validity 10000
    ```
 3. Add this signing block to **`android/app/build.gradle`** inside `android { }`,
    then commit the `android/` folder:
@@ -106,12 +106,12 @@ this once on Windows:
    *(For a local Android Studio build instead, point these at your keystore
    file/passwords directly, or use Android Studio's Generate Signed Bundle UI.)*
 4. In Codemagic → **Code signing identities → Android keystores**, upload the
-   keystore and name it **`fairwayfuel_upload`** (matches `codemagic.yaml`).
+   keystore and name it **`yardsmith_upload`** (matches `codemagic.yaml`).
 5. For auto-publishing to Play: create a **Google Play service account**, grant
    it release access, download the JSON, and add it in Codemagic as an encrypted
    env var **`GCLOUD_SERVICE_ACCOUNT_CREDENTIALS`**. (Or skip publishing and just
    download the `.aab` artifact to upload manually.)
-6. Run the **FairwayFuel Android — Play** workflow.
+6. Run the **Yardsmith Android — Play** workflow.
 
 ---
 

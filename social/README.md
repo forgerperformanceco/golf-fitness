@@ -1,4 +1,4 @@
-# FairwayFuel — Social kit
+# Yardsmith — Social kit
 
 Brand assets for Instagram / TikTok / X, plus the generator that renders them.
 
@@ -9,7 +9,7 @@ Brand assets for Instagram / TikTok / X, plus the generator that renders them.
 
 ## Profile setup
 - **Handle (grab first available):** @fairwayfuel → @fairwayfuelapp → @fairwayfuel.app → @getfairwayfuel → @eatliftbomb
-- **Name field:** FairwayFuel · Golf Strength & Distance
+- **Name field:** Yardsmith · Golf Strength & Distance
 - **Bio:** Turn muscle into distance ⛳💪 / Macro engine + 20-wk speed plan + AI coach for golfers who lift. / Eat. Lift. Bomb. 👇
 - **Link:** fairwayfuel.app
 - **Account type:** Business/Creator · Category: App Page or Health/Wellness

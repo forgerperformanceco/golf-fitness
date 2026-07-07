@@ -1,4 +1,4 @@
-name: Deploy FairwayFuel to GitHub Pages
+name: Deploy Yardsmith to GitHub Pages
 
 # Auto-deploys the site on pushes that change SERVED files. Docs (*.md), the
 # backend (supabase/), and the native projects (android/, ios/, build tooling)

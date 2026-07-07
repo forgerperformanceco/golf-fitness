@@ -1,6 +1,6 @@
 // Assemble the web build that Capacitor bundles into the native apps.
 //
-// FairwayFuel is a zero-build static site served from the repo root by GitHub
+// Yardsmith is a zero-build static site served from the repo root by GitHub
 // Pages. Capacitor wants a single `webDir` to copy into the iOS/Android shells,
 // so this script gathers ONLY the files the app actually serves into `www/` —
 // no markdown docs, no supabase/, no node_modules. Run it before `cap sync`.

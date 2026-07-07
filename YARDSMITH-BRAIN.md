@@ -1,21 +1,31 @@
-# FairwayFuel — Company Brain
+# Yardsmith — Company Brain
 
-The single onboarding + context document for FairwayFuel: what it is, how it's
+The single onboarding + context document for Yardsmith: what it is, how it's
 built, what we believe, how we're positioned, what we've decided (and rejected),
 how it ships, and what's still open. Start here; every section points to the
 deeper doc when there is one.
 
-> **Status snapshot** (keep current): live PWA at **fairwayfuel.app**; free, no
-> paywall; Supabase backend wired but billing + AI coach gated off pending launch;
-> native Android project ready to build; iOS via cloud build; app-store accounts
-> not yet created. **The web app is now a modular `src/` codebase with a build
-> step** (see §3) — the committed root files are generated build outputs. Service
-> worker cache is **content-hash stamped** (no manual version bumps).
+> **Status snapshot** (keep current): live PWA at **fairwayfuel.app** (domain
+> migration to a yardsmith domain pending — see §10); free, no paywall; Supabase
+> backend wired but billing + AI coach gated off pending launch; native Android
+> project ready to build; iOS via cloud build; app-store accounts not yet created.
+> **The web app is now a modular `src/` codebase with a build step** (see §3) —
+> the committed root files are generated build outputs. Service worker cache is
+> **content-hash stamped** (no manual version bumps).
+>
+> **Rebrand (Jul 2026): FairwayFuel → Yardsmith.** A live federal trademark
+> application for FAIRWAY FUEL (Ser. 99663152, filed Feb 20 2026, Class 32 golf
+> energy/sports drinks) plus two more "Fairway Fuel" golf-nutrition brands made
+> the old name legally risky and SEO-crowded in our own concept space. Renamed
+> before any store presence existed (the cheapest possible moment). Bundle id is
+> now **`app.yardsmith`**. The localStorage profile key stays `"fairwayfuel"` and
+> all `ff_*` keys are unchanged — renaming them would wipe existing users' data
+> for zero user-visible gain.
 
 ---
 
 ## 0. Table of contents
-1. What FairwayFuel is (thesis + one-liners)
+1. What Yardsmith is (thesis + one-liners)
 2. The product (tabs, features, mechanics)
 3. Architecture & build system & data model
 4. The evidence base (why anyone should trust it)
@@ -30,7 +40,7 @@ deeper doc when there is one.
 
 ---
 
-## 1. What FairwayFuel is
+## 1. What Yardsmith is
 
 **One-liner:** *Turn muscle into distance* — a golf fitness + nutrition app that
 builds the athletic engine (strength, power, fuel) and converts it into driver
@@ -64,7 +74,7 @@ First visit to each tab fires a one-time coaching tip.
   **six pillars**: training consistency, clubhead-speed gain, strength e1RM,
   power-to-weight, the **mobility screen** (5th pillar), and **fuel adherence**
   (6th pillar). It's a *trajectory* score off the user's own data; only counts
-  pillars they've fed. Full design in `FAIRWAYFUEL-SCORE.md`.
+  pillars they've fed. Full design in `OCTANE-SCORE.md`.
 - **One coaching voice** — a single prioritized "your focus" insight from a rules
   engine over the user's data (no filler; the hero defers to the advice slot).
 - **The day as a timeline** — the day's primary action first, quick-log for
@@ -144,7 +154,7 @@ zero infra. **Never hand-edit the root files — edit `src/` and rebuild.**
 filename) into **one IIFE** — modules share one scope, so a function declared in
 any module is visible to all (exactly like the old monolith). `src/js/global/*.js`
 is appended after. `{{V}}` placeholders become a **10-char content hash**, so
-**cache-busting is automatic** — no manual `fairwayfuel-vNNN` SW bumps, no `?v=`
+**cache-busting is automatic** — no manual `yardsmith-vNNN` SW bumps, no `?v=`
 edits for app.js/styles.css. (`cloud-sync.js` and `coach.js` keep **manual `?v=`
 pins** — currently `?v=108` and `?v=88` — bump those in `src/index.template.html`
 + `src/sw.template.js` when you edit them.) Dark theme is **generated** into the
@@ -195,7 +205,7 @@ merges a blob to `profiles` with additive unions (`ff_log`, `ff_body`,
 
 ## 4. The evidence base
 
-FairwayFuel's credibility rests on **independent, public, peer-reviewed sourcing**
+Yardsmith's credibility rests on **independent, public, peer-reviewed sourcing**
 — never a competitor's compiled/branded data. Two reference docs hold it:
 
 - **`CLUBHEAD-SPEED-REFERENCE.md`** — the biomechanics + strength/power evidence
@@ -312,7 +322,7 @@ stores; we're a URL). Shipping the app matters more than more docs.
 
 ## 7. Distribution & app-store path
 
-Native wrapper: **Capacitor**, appId **`app.fairwayfuel`**. Web app unchanged;
+Native wrapper: **Capacitor**, appId **`app.yardsmith`**. Web app unchanged;
 `www/` is assembled from the served files (`npm run build:www`, which runs after
 `scripts/build.mjs`) and bundled.
 
@@ -333,9 +343,9 @@ Native wrapper: **Capacitor**, appId **`app.fairwayfuel`**. Web app unchanged;
   inside the Android app via Paddle.
 
 **OPEN: Play Console account type.** The GitHub org "forgerperformanceco" =
-Bobby's **peptide** company (Forger Performance Co), **not** FairwayFuel's
-publisher. FairwayFuel has no legal entity yet → default recommendation is a
-**Personal** developer account (display name "FairwayFuel"), accepting the
+Bobby's **peptide** company (Forger Performance Co), **not** Yardsmith's
+publisher. Yardsmith has no legal entity yet → default recommendation is a
+**Personal** developer account (display name "Yardsmith"), accepting the
 **20-tester / 14-day closed-testing** gate. Organization account (no gate,
 branded name) needs a registered entity + D-U-N-S number. **You can't switch type
 later — decide deliberately.** (Undecided.)
@@ -389,7 +399,7 @@ Plan of record: **`ROADMAP.md`**. Phases:
   (VAPID web push live)**; remaining — normalized data tables, food/exercise DBs.
 
 **Free forever:** calculator, 20-week plan, offline, single-device.
-**FairwayFuel Pro (future):** AI coach, dynamic adaptation, cross-device history,
+**Yardsmith Pro (future):** AI coach, dynamic adaptation, cross-device history,
 analytics. Monthly + discounted annual, 7-day trial. Cost control via prompt
 caching on the knowledge base.
 
@@ -401,14 +411,19 @@ publishable key + VAPID public key ship client.
 
 ## 10. Open threads / next actions
 
-1. **Decide the Play Console account type** (Personal vs Organization) — see §7.
+1. **Secure the Yardsmith domains** (`yardsmith.app` first; `.com`/`.golf` if
+   available) and migrate: register → point DNS → update CNAME + og:url/og:image
+   URLs + privacy-policy URL → keep fairwayfuel.app redirecting. Also regenerate
+   `og-image.png` (it shows the old domain in the corner). File the YARDSMITH
+   trademark in Classes 9/41/42 when committed.
+2. **Decide the Play Console account type** (Personal vs Organization) — see §7.
    The current gating decision for the Android launch.
-2. **Ship Android** — first build on Windows, internal testing → (20-tester closed
+3. **Ship Android** — first build on Windows, internal testing → (20-tester closed
    test if Personal) → production.
-3. **iOS via Codemagic** — after Android, or in parallel.
-4. **Before monetizing:** Play Billing compliance + move hosting to Cloudflare Pages.
-5. **HealthKit / Health Connect** — auto-pull bodyweight; strong native-only upgrade.
-6. **Pressure-test the Speed & Power day** (selection, volume, overspeed protocol) —
+4. **iOS via Codemagic** — after Android, or in parallel.
+5. **Before monetizing:** Play Billing compliance + move hosting to Cloudflare Pages.
+6. **HealthKit / Health Connect** — auto-pull bodyweight; strong native-only upgrade.
+7. **Pressure-test the Speed & Power day** (selection, volume, overspeed protocol) —
    the day with the most direct clubhead-speed transfer.
 
 ---
@@ -434,14 +449,14 @@ publishable key + VAPID public key ship client.
 
 | Doc | What it holds |
 |---|---|
-| `FAIRWAYFUEL-BRAIN.md` | **This file** — the company brain / start here |
+| `YARDSMITH-BRAIN.md` | **This file** — the company brain / start here |
 | `CLAUDE.md` | Repo guide: the `src/` build rule, dark theme, deploy, testing |
 | `DESIGN-CHANGES.md` | Running log of design/feature changes + Playwright patterns |
 | `CLUBHEAD-SPEED-REFERENCE.md` | Biomechanics + strength/power evidence, session design, thesis validation, three-force lens, sources |
 | `NUTRITION-AND-TRAINING-REFERENCE.md` | Fuel science, hypertrophy principles, hinge/deadlift build |
 | `COMPETITIVE-LANDSCAPE.md` | Market lanes, DRVN, moat, borrow-vs-avoid rules |
 | `ROADMAP.md` | Product + revenue phases, billing/AI plan, secrets |
-| `FAIRWAYFUEL-SCORE.md` | The Octane score design (the six pillars) |
+| `OCTANE-SCORE.md` | The Octane score design (the six pillars) |
 | `COACH-PERSONA.md` | AI coach voice/persona |
 | `BUILD-NATIVE-APP.md` | Capacitor build runbook (iOS + Android) |
 | `ANDROID-LAUNCH-STEP-BY-STEP.md` | Full Windows→Play walkthrough + store listing copy |

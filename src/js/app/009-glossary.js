@@ -1,4 +1,4 @@
-  /* ===================== GLOSSARY — the app speaks FairwayFuel, on demand =====================
+  /* ===================== GLOSSARY — the app speaks Yardsmith, on demand =====================
      Every invented term (Octane, banked, iron moved, receipts…) can render as a
      tappable span with a dotted underline; tapping opens a one-sentence bottom
      sheet. One shared vocabulary, one place to learn it — the charm stays, the
@@ -44,13 +44,13 @@
     m.innerHTML='<div class="qsheet-card"><div class="qsheet-grab"></div>'+
       '<div class="term-one"><span class="term-ic">'+T.ic+'</span><div class="term-tx">'+
       '<div class="term-t">'+T.t+'</div><div class="term-d">'+T.d+(T.dyn?T.dyn():'')+'</div></div></div>'+
-      '<button type="button" class="term-all" data-termall="1">📖 See all FairwayFuel terms</button></div>';
+      '<button type="button" class="term-all" data-termall="1">📖 See all Yardsmith terms</button></div>';
     m.hidden=false; document.body.style.overflow="hidden";
   }
   function openGlossary(){
     var m=ffTermSheet();
     m.innerHTML='<div class="qsheet-card"><div class="qsheet-grab"></div>'+
-      '<div class="qsheet-h">📖 The FairwayFuel dictionary</div>'+
+      '<div class="qsheet-h">📖 The Yardsmith dictionary</div>'+
       Object.keys(FF_TERMS).map(function(k){
         var T=FF_TERMS[k];
         return '<div class="term-one sm"><span class="term-ic">'+T.ic+'</span><div class="term-tx">'+
@@ -86,7 +86,7 @@
   function openLoop(){
     var m=ffTermSheet();
     m.innerHTML='<div class="qsheet-card"><div class="qsheet-grab"></div>'+
-      '<div class="qsheet-h">🔁 How FairwayFuel works</div>'+
+      '<div class="qsheet-h">🔁 How Yardsmith works</div>'+
       '<p class="term-lead">One loop, repeated. Everything in the app either feeds it or proves it’s working.</p>'+
       ffLoopHtml()+
       '<button type="button" class="term-all" data-termall="1">📖 See what the terms mean</button></div>';

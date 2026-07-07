@@ -47,15 +47,15 @@
     if(ffStandalone()) return null;
     var seen = lsGet("ff_tips_seen", []); if(seen.indexOf("install")>=0) return null;
     if(ffIsIOS()){
-      return { key:"install", cls:"tip-install", ic:"📲", t:"Keep FairwayFuel one tap away",
+      return { key:"install", cls:"tip-install", ic:"📲", t:"Keep Yardsmith one tap away",
         b:"Tap the <b>Share</b> icon (□ with ↑) in Safari's bar, then <b>“Add to Home Screen.”</b> It installs like a real app and works offline." };
     }
     if(ffDeferredPrompt){
-      return { key:"install", cls:"tip-install", ic:"📲", t:"Install FairwayFuel",
+      return { key:"install", cls:"tip-install", ic:"📲", t:"Install Yardsmith",
         b:"Add it to your home screen — opens full-screen, works offline, always one tap away.",
         cta:"Install app", ctaAction:"install" };
     }
-    return { key:"install", cls:"tip-install", ic:"📲", t:"Keep FairwayFuel one tap away",
+    return { key:"install", cls:"tip-install", ic:"📲", t:"Keep Yardsmith one tap away",
       b:"In your browser menu, tap <b>“Install app”</b> / <b>“Add to Home Screen.”</b> It works offline like a real app." };
   }
   function ffTipHtml(tip){

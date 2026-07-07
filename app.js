@@ -256,7 +256,7 @@
   })();
 
 /* ────────── js/app/009-glossary.js ────────── */
-  /* ===================== GLOSSARY — the app speaks FairwayFuel, on demand =====================
+  /* ===================== GLOSSARY — the app speaks Yardsmith, on demand =====================
      Every invented term (Octane, banked, iron moved, receipts…) can render as a
      tappable span with a dotted underline; tapping opens a one-sentence bottom
      sheet. One shared vocabulary, one place to learn it — the charm stays, the
@@ -302,13 +302,13 @@
     m.innerHTML='<div class="qsheet-card"><div class="qsheet-grab"></div>'+
       '<div class="term-one"><span class="term-ic">'+T.ic+'</span><div class="term-tx">'+
       '<div class="term-t">'+T.t+'</div><div class="term-d">'+T.d+(T.dyn?T.dyn():'')+'</div></div></div>'+
-      '<button type="button" class="term-all" data-termall="1">📖 See all FairwayFuel terms</button></div>';
+      '<button type="button" class="term-all" data-termall="1">📖 See all Yardsmith terms</button></div>';
     m.hidden=false; document.body.style.overflow="hidden";
   }
   function openGlossary(){
     var m=ffTermSheet();
     m.innerHTML='<div class="qsheet-card"><div class="qsheet-grab"></div>'+
-      '<div class="qsheet-h">📖 The FairwayFuel dictionary</div>'+
+      '<div class="qsheet-h">📖 The Yardsmith dictionary</div>'+
       Object.keys(FF_TERMS).map(function(k){
         var T=FF_TERMS[k];
         return '<div class="term-one sm"><span class="term-ic">'+T.ic+'</span><div class="term-tx">'+
@@ -344,7 +344,7 @@
   function openLoop(){
     var m=ffTermSheet();
     m.innerHTML='<div class="qsheet-card"><div class="qsheet-grab"></div>'+
-      '<div class="qsheet-h">🔁 How FairwayFuel works</div>'+
+      '<div class="qsheet-h">🔁 How Yardsmith works</div>'+
       '<p class="term-lead">One loop, repeated. Everything in the app either feeds it or proves it’s working.</p>'+
       ffLoopHtml()+
       '<button type="button" class="term-all" data-termall="1">📖 See what the terms mean</button></div>';
@@ -415,15 +415,15 @@
     if(ffStandalone()) return null;
     var seen = lsGet("ff_tips_seen", []); if(seen.indexOf("install")>=0) return null;
     if(ffIsIOS()){
-      return { key:"install", cls:"tip-install", ic:"📲", t:"Keep FairwayFuel one tap away",
+      return { key:"install", cls:"tip-install", ic:"📲", t:"Keep Yardsmith one tap away",
         b:"Tap the <b>Share</b> icon (□ with ↑) in Safari's bar, then <b>“Add to Home Screen.”</b> It installs like a real app and works offline." };
     }
     if(ffDeferredPrompt){
-      return { key:"install", cls:"tip-install", ic:"📲", t:"Install FairwayFuel",
+      return { key:"install", cls:"tip-install", ic:"📲", t:"Install Yardsmith",
         b:"Add it to your home screen — opens full-screen, works offline, always one tap away.",
         cta:"Install app", ctaAction:"install" };
     }
-    return { key:"install", cls:"tip-install", ic:"📲", t:"Keep FairwayFuel one tap away",
+    return { key:"install", cls:"tip-install", ic:"📲", t:"Keep Yardsmith one tap away",
       b:"In your browser menu, tap <b>“Install app”</b> / <b>“Add to Home Screen.”</b> It works offline like a real app." };
   }
   function ffTipHtml(tip){
@@ -1699,7 +1699,7 @@
   }
   function ffCopyWeekList(btn){
     var p=ffPrefs(), t=ffTargets(); if(!t) return;
-    var groups=ffWeekGroups(ffWeekPlans(p,t)), lines=["FairwayFuel — 7-day shopping list",""];
+    var groups=ffWeekGroups(ffWeekPlans(p,t)), lines=["Yardsmith — 7-day shopping list",""];
     FF_AISLE_ORDER.concat(["🛒 Other"]).forEach(function(a){ if(!groups[a]) return;
       lines.push(a.replace(/^\S+\s/,"").toUpperCase());
       groups[a].forEach(function(it){ lines.push("- "+ffName(it.food)+" — "+ffWeekQty(it)); });
@@ -3597,8 +3597,8 @@
     // footer — one line, left-aligned, no collisions
     g.fillStyle="rgba(255,255,255,.08)"; g.fillRect(0,H-150,W,150);
     g.font="800 42px system-ui, sans-serif"; g.fillStyle="#8be9ac";
-    g.fillText("FairwayFuel",72,H-58);
-    var fw=g.measureText("FairwayFuel").width;
+    g.fillText("Yardsmith",72,H-58);
+    var fw=g.measureText("Yardsmith").width;
     g.font="600 36px system-ui, sans-serif"; g.fillStyle="#9fc4ac";
     g.fillText("· Turn muscle into distance ⛳", 72+fw+18, H-58);
     try{ c.toBlob(function(b){ cb(b); },"image/png"); }catch(e){ cb(null); }
@@ -3607,7 +3607,7 @@
     ffMakeCard(o, function(blob){
       if(blob){
         try{
-          var file=new File([blob],"fairwayfuel-card.png",{type:"image/png"});
+          var file=new File([blob],"yardsmith-card.png",{type:"image/png"});
           if(navigator.canShare && navigator.canShare({files:[file]}) && navigator.share){
             navigator.share({ files:[file], text:textFallback }).catch(function(){});
             return;
@@ -3615,7 +3615,7 @@
         }catch(e){}
         try{
           var url=URL.createObjectURL(blob), a=document.createElement("a");
-          a.href=url; a.download="fairwayfuel-card.png";
+          a.href=url; a.download="yardsmith-card.png";
           document.body.appendChild(a); a.click();
           setTimeout(function(){ try{ URL.revokeObjectURL(url); a.remove(); }catch(e2){} },1500);
           ffToast("Card saved as an image — post it anywhere 📤");
@@ -3753,7 +3753,7 @@
     var r=stState.saved, gain=(r.baseline!=null)?Math.round((r.best-r.baseline)*10)/10:0;
     var txt=(r.pr?"New 7-iron speed PR: ":"7-iron speed test: ")+r.best+" mph"+
       (gain>0?(" (+"+gain+" mph ≈ +"+Math.round(gain*2)+" yds since baseline)"):"")+
-      " — training with FairwayFuel ⛳";
+      " — training with Yardsmith ⛳";
     ffShareImage({
       kick:"Speed test · 7-iron", big:String(r.best), unit:"mph",
       badge:(r.pr?"🚀 NEW ALL-TIME PR":null),
@@ -4109,7 +4109,7 @@
       if(top>0 && pb!=null && top>pb+0.5) prs.push(x.name+" e1RM "+Math.round(top)+" lb");
     });
     var txt=player.dayName.replace(/^Day \d+ — /,'')+" done 💪 "+(vol>0?vol.toLocaleString()+" lb moved":"session banked")+
-      (prs.length?(" · PR: "+prs.join(", ")):"")+" — training with FairwayFuel ⛳";
+      (prs.length?(" · PR: "+prs.join(", ")):"")+" — training with Yardsmith ⛳";
     var mins=Math.max(1, Math.round(((player.sess.activeMs||0)+(Date.now()-player.startedAt))/60000));
     ffShareImage({
       kick:"Session complete · Week "+player.week,
@@ -5229,7 +5229,7 @@
     if(ffNotifOn()){ lsSet("ff_notif", false); await ffNotifReschedule(); return false; }
     try{
       var p=await LN.requestPermissions();
-      if(!p || p.display!=="granted"){ alert("Notifications are blocked — allow them in your phone's settings for FairwayFuel."); return false; }
+      if(!p || p.display!=="granted"){ alert("Notifications are blocked — allow them in your phone's settings for Yardsmith."); return false; }
     }catch(e){ return false; }
     lsSet("ff_notif", true); await ffNotifReschedule(); return true;
   }
@@ -5413,8 +5413,8 @@
         try{ blob[k]=JSON.parse(localStorage.getItem(k)); }catch(e){}
       }
     }catch(e){}
-    var out={ app:"FairwayFuel", kind:"backup", version:1, exported:new Date().toISOString(), data:blob };
-    var name="fairwayfuel-backup-"+new Date().toISOString().slice(0,10)+".json";
+    var out={ app:"Yardsmith", kind:"backup", version:1, exported:new Date().toISOString(), data:blob };
+    var name="yardsmith-backup-"+new Date().toISOString().slice(0,10)+".json";
     var payload=JSON.stringify(out);
     try{
       if(ffIsIOS() && navigator.canShare && window.File){
@@ -5439,7 +5439,7 @@
         var data=obj && (obj.kind==="backup" ? obj.data : obj);   // accept a raw key dump too
         var looksRight=data && typeof data==="object" &&
           Object.keys(data).some(function(k){ return k==="fairwayfuel"||k.indexOf("ff_")===0; });
-        if(!looksRight){ alert("That file doesn't look like a FairwayFuel backup."); return; }
+        if(!looksRight){ alert("That file doesn't look like a Yardsmith backup."); return; }
         var when=(obj&&obj.exported)?(" from "+String(obj.exported).slice(0,10)):"";
         if(!confirm("Restore the backup"+when+"?\n\nThis replaces the data on this device with the file's contents."+
           ((window.FF&&window.FF.user)?" It then syncs to your account (workout history merges, it isn't lost).":""))) return;
@@ -5509,11 +5509,11 @@
           '<p class="acct-p">Get the full-screen app: tap the <b>Share</b> icon (□ with ↑) in Safari, then <b>“Add to Home Screen.”</b> It opens like a native app and works offline.</p></div>';
       } else if(ffDeferredPrompt){
         html+='<div class="acct-card"><div class="acct-head">📲 Install the app</div>'+
-          '<p class="acct-p">Add FairwayFuel to your home screen — full-screen, offline, one tap away.</p>'+
+          '<p class="acct-p">Add Yardsmith to your home screen — full-screen, offline, one tap away.</p>'+
           '<button class="acct-btn" id="acctInstall">Install app</button></div>';
       } else {
         html+='<div class="acct-card"><div class="acct-head">📲 Install the app</div>'+
-          '<p class="acct-p">In your browser menu, tap <b>“Install app”</b> / <b>“Add to Home Screen”</b> to run FairwayFuel full-screen and offline.</p></div>';
+          '<p class="acct-p">In your browser menu, tap <b>“Install app”</b> / <b>“Add to Home Screen”</b> to run Yardsmith full-screen and offline.</p></div>';
       }
     }
     if(ffNotifPlugin()){
@@ -5530,7 +5530,7 @@
         (pushLive ? '<b>Delivered even when the app is closed.</b>'
          : (pushReady && user ? 'Delivered even when the app is closed.'
          : (pushReady ? '<b>Sign in</b> and reminders land even when the app is closed; signed out they only fire while the app is open.'
-                      : 'On the web they fire while FairwayFuel is open in a tab or installed.')))+'</p>'+
+                      : 'On the web they fire while Yardsmith is open in a tab or installed.')))+'</p>'+
         '<button class="acct-btn'+(nonW?' ghost':'')+'" id="acctNotifWeb">'+(nonW?"Reminders on — tap to turn off":"Turn on reminders")+'</button></div>';
     }
     var curTheme=ffTheme();
@@ -5599,8 +5599,8 @@
       '<p class="acct-p">Clears your plan start date and logged workouts so the plan resets to week 1. Your bodyweight &amp; 7-iron history and your calculator stay put.</p>'+
       '<button class="acct-btn danger" id="acctResetPlan">↺ Reset plan</button></div>';
     html+='<div class="acct-card"><div class="acct-head">Show me around</div>'+
-      '<p class="acct-p">The system in one picture, every FairwayFuel term in plain English, and the tab-by-tab tips — whenever you want a refresher.</p>'+
-      '<button class="acct-btn ghost" data-ffloop="1">🔁 How FairwayFuel works</button>'+
+      '<p class="acct-p">The system in one picture, every Yardsmith term in plain English, and the tab-by-tab tips — whenever you want a refresher.</p>'+
+      '<button class="acct-btn ghost" data-ffloop="1">🔁 How Yardsmith works</button>'+
       '<button class="acct-btn ghost" data-termall="1">📖 What the terms mean</button>'+
       '<button class="acct-btn ghost" id="acctReplayTips">↻ Replay the tips</button></div>';
     if(user){
@@ -5613,10 +5613,10 @@
       '<p class="acct-p">You’ve got everything: AI coaching, the full training plan, macro tuning, progress tracking and the leaderboard. No paywall.</p>'+
       '<div class="acct-plan">Plan: <b>Full access</b> · free</div></div>';
     html+='<div class="acct-links">'+
-      '<a href="mailto:bobbydenisclay@gmail.com?subject=FairwayFuel%20feedback">✉ Send feedback</a>'+
+      '<a href="mailto:bobbydenisclay@gmail.com?subject=Yardsmith%20feedback">✉ Send feedback</a>'+
       '<span>·</span>'+
       '<a href="privacy.html">Privacy</a></div>';
-    html+='<div class="acct-foot">FairwayFuel · installs &amp; works offline<br>Evidence-based starting points — not medical advice.</div>';
+    html+='<div class="acct-foot">Yardsmith · installs &amp; works offline<br>Evidence-based starting points — not medical advice.</div>';
     el.innerHTML=html;
     var rt=$("acctReplayTips"); if(rt) rt.onclick=function(){
       lsSet("ff_tips_seen", []); try{ persist(); }catch(e){}
@@ -5629,7 +5629,7 @@
     var so=$("acctSignOut"); if(so) so.onclick=function(){ if(window.FF&&window.FF.signOut) window.FF.signOut(); };
     var da=$("acctDelete"); if(da) da.onclick=function(){
       if(!(window.FF&&window.FF.deleteAccount)){ alert("Deleting your account needs an internet connection. Reconnect and try again."); return; }
-      if(!confirm("Permanently delete your FairwayFuel account and ALL your data — workouts, bodyweight & 7-iron history, Octane and any leaderboard entry?\n\nThis cannot be undone.")) return;
+      if(!confirm("Permanently delete your Yardsmith account and ALL your data — workouts, bodyweight & 7-iron history, Octane and any leaderboard entry?\n\nThis cannot be undone.")) return;
       if(!confirm("Are you absolutely sure? There is no way to recover this account or its data.")) return;
       da.disabled=true; da.textContent="Deleting…";
       window.FF.deleteAccount().then(function(r){
@@ -6087,9 +6087,9 @@
   function scChip(kind, label){ return '<span class="sc-chip '+kind+'">'+label+'</span>'; }
   function shareScorecard(){
     var c=weekCard();
-    var txt="My FairwayFuel week "+curWeek()+" scorecard: "+c.sessions+"/"+c.freq+" sessions"+
+    var txt="My Yardsmith week "+curWeek()+" scorecard: "+c.sessions+"/"+c.freq+" sessions"+
       (c.vol>0?(" · "+c.vol.toLocaleString()+" lb moved"):"")+
-      (c.bestT!=null?(" · 7-iron "+c.bestT+" mph"):"")+" — FairwayFuel ⛳";
+      (c.bestT!=null?(" · 7-iron "+c.bestT+" mph"):"")+" — Yardsmith ⛳";
     ffShareImage({
       kick:"Sunday Scorecard · Week "+curWeek(),
       big:c.sessions+"/"+c.freq, unit:"sessions",

@@ -16,13 +16,13 @@ const cards = {
   'post-bomb': `<div style="width:1080px;height:1080px;position:relative;overflow:hidden;background:${BG};color:#fff;font-family:${FONT};display:flex;flex-direction:column;align-items:center;justify-content:center">
     ${ball}
     <div style="font-size:188px;line-height:.96;font-weight:900;letter-spacing:-.03em;text-align:center">EAT.<br>LIFT.<br><span style="color:#7ef0a8">BOMB.</span></div>
-    <div style="position:absolute;bottom:66px;font-size:32px;font-weight:800;color:#bfe3cd">FairwayFuel · fairwayfuel.app</div></div>`,
+    <div style="position:absolute;bottom:66px;font-size:32px;font-weight:800;color:#bfe3cd">Yardsmith · fairwayfuel.app</div></div>`,
   'post-thesis': `<div style="width:1080px;height:1080px;position:relative;overflow:hidden;background:${BG};color:#fff;font-family:${FONT};display:flex;flex-direction:column;justify-content:center;padding:96px;box-sizing:border-box">
     ${ball}
     <div style="font-size:26px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:#7ef0a8;margin-bottom:30px">Real talk</div>
     <div style="font-size:104px;line-height:1.02;font-weight:900;letter-spacing:-.035em">Flexibility won't<br>add 20 yards.<br><span style="color:#7ef0a8">Power will.</span></div>
     <div style="font-size:36px;font-weight:600;color:#dbe7da;margin-top:38px">Stop stretching for distance. Start lifting.</div>
-    <div style="position:absolute;bottom:64px;left:96px;font-size:30px;font-weight:800;color:#bfe3cd">FairwayFuel · Turn muscle into distance</div></div>`,
+    <div style="position:absolute;bottom:64px;left:96px;font-size:30px;font-weight:800;color:#bfe3cd">Yardsmith · Turn muscle into distance</div></div>`,
   'post-stat': `<div style="width:1080px;height:1080px;position:relative;overflow:hidden;background:${BG};color:#fff;font-family:${FONT};display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:80px;box-sizing:border-box">
     ${ball}
     <div style="font-size:30px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:#7ef0a8;margin-bottom:24px">The math of distance</div>

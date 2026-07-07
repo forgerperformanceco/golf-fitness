@@ -1,6 +1,6 @@
-# FairwayFuel — Nutrition & Training Reference
+# Yardsmith — Nutrition & Training Reference
 
-The knowledge base behind the FairwayFuel calculator and training plan. This is the
+The knowledge base behind the Yardsmith calculator and training plan. This is the
 "why" behind every number the app produces, plus the broader sports-nutrition and
 bodybuilding principles it's built on.
 
@@ -28,7 +28,7 @@ bodybuilding principles it's built on.
 9. [Where golf actually changes things](#9-where-golf-actually-changes-things)
 10. [The app's exact formulas & config](#10-the-apps-exact-formulas--config)
 11. [Supplements: the few that actually work](#11-supplements-the-few-that-actually-work)
-12. [How FairwayFuel compares to other calculators](#12-how-fairwayfuel-compares-to-other-calculators)
+12. [How Yardsmith compares to other calculators](#12-how-yardsmith-compares-to-other-calculators)
 13. [Applied example: Bryson DeChambeau (vetted)](#13-applied-example-bryson-dechambeau-vetted)
 14. [Applied example: Rory McIlroy — 2025 Masters (vetted)](#14-applied-example-rory-mcilroy--2025-masters-vetted)
 15. [Sources & further reading](#15-sources--further-reading)
@@ -38,7 +38,7 @@ bodybuilding principles it's built on.
 
 ## 1. Energy: BMR & TDEE
 
-**BMR (Basal Metabolic Rate)** — calories burned at complete rest. FairwayFuel uses the
+**BMR (Basal Metabolic Rate)** — calories burned at complete rest. Yardsmith uses the
 **Mifflin–St Jeor equation**, the most accurate predictive formula for the general
 population:
 
@@ -95,7 +95,7 @@ training — to retain muscle. Crash deficits cost muscle and performance.
 
 ## 3. Macro rules (and the science behind them)
 
-FairwayFuel sets macros in a fixed priority order: **protein → fat → carbs fill the
+Yardsmith sets macros in a fixed priority order: **protein → fat → carbs fill the
 rest.** This is the standard physique-athlete approach.
 
 ### The app's rules (user-tuned)
@@ -148,7 +148,7 @@ overshooting the "optimal" number costs nothing but a little money.
 - **ISSN** position stand: 1.4–2.0 g/kg supports most athletes; for **fat loss, intakes
   >3.0 g/kg** are supported in lean, resistance-trained individuals.
 
-**What FairwayFuel uses** (protein as a **% of total calories**, rounded to 5 g):
+**What Yardsmith uses** (protein as a **% of total calories**, rounded to 5 g):
 
 | Goal | Protein (% kcal) |
 |---|---|
@@ -200,7 +200,7 @@ Its biggest practical value is *fueling the session* and *kick-starting recovery
   Faster carbs (rice, potatoes, fruit, dextrose) refill quickest.
 - **Protein** (~30–50 g) supplies the amino acids for repair and growth. **Pair carbs
   with protein** post-workout.
-- **Per-plan emphasis** (how FairwayFuel weights it):
+- **Per-plan emphasis** (how Yardsmith weights it):
   - **Bulk** → load the post-workout window hardest (biggest glycogen + growth window).
   - **Lean Bulk** → post-workout is your main "build" feeding.
   - **Maintain** → split fairly evenly around training; save some carbs for the round.
@@ -220,10 +220,10 @@ Its biggest practical value is *fueling the session* and *kick-starting recovery
   threshold (~30–50 g).
 - **More meals** help when you need to eat a *lot* (bulking) or prefer smaller, frequent
   feedings. **Fewer, larger meals** are often more satiating on a **cut.**
-- FairwayFuel's recommended **main-meal counts**: Lean Bulk 4 · Bulk 5 · Maintain 4 ·
+- Yardsmith's recommended **main-meal counts**: Lean Bulk 4 · Bulk 5 · Maintain 4 ·
   Cut 3 — with a pre-workout carb snack and the post-workout meal placed *around training*.
 
-### How FairwayFuel distributes the macros (not evenly!)
+### How Yardsmith distributes the macros (not evenly!)
 Real people don't eat identical meals. The app **weights each meal by its role** so the
 day reads like a normal one:
 - **Dinner** is the biggest meal — most protein, more fat.
@@ -267,7 +267,7 @@ The training side of adding muscle ("build like a bodybuilder").
     effective for size, a touch better for strength, and keeps speed sharp year-round.
   - You **don't lose muscle** training this way — there's no "interference" between lifting
     for size and lifting for strength/power, and brief intensity shifts don't detrain you.
-- **So FairwayFuel uses one consistent, concurrent week for all 20 weeks** — heavy strength,
+- **So Yardsmith uses one consistent, concurrent week for all 20 weeks** — heavy strength,
   hypertrophy volume, and power/speed in every week — progressed by **progressive overload**
   (add a little weight or a rep most weeks) with a **deload every 6th week.**
 
@@ -320,7 +320,7 @@ This is the short list — almost everything above is general fitness. Golf only
 
 1. **Power-to-weight ratio.** Clubhead speed comes from power *relative to bodyweight* and
    how fast you rotate — not raw size. Don't bulk into immobility. A leaner, more powerful
-   athlete often out-drives a heavier, slower one. This is why FairwayFuel frames bulking
+   athlete often out-drives a heavier, slower one. This is why Yardsmith frames bulking
    as a *means to speed*, with a Lean Out phase to follow.
 2. **Mobility & rotation earn their place — mostly as injury insurance.** Big muscles that
    can't turn won't help your driver, but be honest about *why* we train mobility: passive
@@ -397,7 +397,7 @@ meal frequency — is **the same as for any fit, muscle-building athlete.**
 
 ## 10. The app's exact formulas & config
 
-So this file fully documents the data behind FairwayFuel.
+So this file fully documents the data behind Yardsmith.
 
 ### Macro logic (per day)
 ```
@@ -542,9 +542,9 @@ mostly marketing. Food, protein, creatine, sleep, and progressive overload do ~9
 
 ---
 
-## 12. How FairwayFuel compares to other calculators
+## 12. How Yardsmith compares to other calculators
 
-FairwayFuel's logic lines up with the most respected evidence-based calculators — and
+Yardsmith's logic lines up with the most respected evidence-based calculators — and
 errs slightly higher on protein, by design.
 
 | Source | Protein | Fat | Carbs | Surplus / deficit |
@@ -552,11 +552,11 @@ errs slightly higher on protein, by design.
 | **RippedBody** (Andy Morgan / Leangains) | ~1 g/lb | 15–25% kcal (cut), 20–30% (maint/bulk) | remainder | adjust via carb:fat 2:1 |
 | **Bony to Beastly** | 0.7–1 g/lb | 20–40% kcal | 40–60% kcal | bulk ≈ +750 kcal, ~0.5 lb/wk |
 | **Bodybuilding.com** | ~30% kcal (gain) / 40% (loss) | 20–30% kcal | 40% kcal | by goal & body type |
-| **FairwayFuel** | **1.0–1.2 g/lb** | **≤65 g (50 g cut)** | remainder | +10/+20% or −20% |
+| **Yardsmith** | **1.0–1.2 g/lb** | **≤65 g (50 g cut)** | remainder | +10/+20% or −20% |
 
 Common ground across all of them: **protein set by bodyweight first, fat second (with a
 floor/ceiling), carbs fill the rest, and a moderate surplus (~+10–20%) gained at roughly
-0.5 lb/week.** Where they differ is mostly preference. FairwayFuel deliberately runs
+0.5 lb/week.** Where they differ is mostly preference. Yardsmith deliberately runs
 protein at the **top** of the evidence range, caps fat to protect carbs (which fuel hard
 training and a long round), and adds the golf-specific carb-timing and meal schedule.
 
@@ -602,7 +602,7 @@ principles; their numbers don't survive scrutiny.
 
 McIlroy's 2025 Masters win — completing the career Grand Slam — is the clearest modern
 proof of the "train like an athlete, for years, to play better golf" thesis. His
-publicly-reported program lines up almost exactly with what FairwayFuel already
+publicly-reported program lines up almost exactly with what Yardsmith already
 prescribes. *(Facts below are drawn from mainstream reporting and trainer/recovery-coach
 interviews — Golf Monthly, WHOOP, and similar — not from any single proprietary source;
 where a claim mattered it was cross-checked against multiple outlets.)*
@@ -612,7 +612,7 @@ where a claim mattered it was cross-checked against multiple outlets.)*
   physiologist Dr. Steve McGregor around **2010**, on a **stability → strength → power**
   progression; the green jacket arrived ~**15 years** later. The lesson is the one in
   [§8](#8-gaining-10-lb-of-muscle-realistic-rate--timeline): real athleticism is built
-  over **months and years, not weeks** — which is exactly why FairwayFuel runs repeatable
+  over **months and years, not weeks** — which is exactly why Yardsmith runs repeatable
   20-week blocks, not a "12-week transformation."
 - **A concurrent in-season micro-split.** In tournament weeks he reportedly runs ~3
   quality gym touches — a **heavy strength day** (trap-bar deadlifts, weighted pull-ups),
@@ -641,7 +641,7 @@ where a claim mattered it was cross-checked against multiple outlets.)*
   don't.
 
 **Bottom line:** McIlroy's program is an elite, well-resourced version of the *same*
-concurrent, power-biased, recovery-anchored approach FairwayFuel encodes — built
+concurrent, power-biased, recovery-anchored approach Yardsmith encodes — built
 patiently over years. It validates the method; the specific routine numbers are not the
 point.
 

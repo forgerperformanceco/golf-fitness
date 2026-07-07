@@ -253,7 +253,7 @@ access to gear they didn't list.
   list and on the matching rows of the exercise sheet. Free coaching context
   for the AI coach later.
 - **Deliberately skipped from the Hevy checklist**: warm-up/failure set
-  types — FairwayFuel's warm-ups live in the checklist and never enter the
+  types — Yardsmith's warm-ups live in the checklist and never enter the
   log, so e1RM math is already clean without per-set typing. Revisit only if
   users start logging ramp-up sets.
 
@@ -562,7 +562,7 @@ the labels now say what's being counted:
 
 The whole app pointed at the course and then looked away: waves peak you for
 an event, speed tests every two weeks, round-day fueling — and no record that
-the golf ever happened. This is the feature only FairwayFuel can own: Arccos
+the golf ever happened. This is the feature only Yardsmith can own: Arccos
 tracks the course but not the gym; Hevy tracks the gym but not the course.
 
 - **A ~20-second post-round ritual** (swap-card sheet — inherits drag physics
@@ -693,9 +693,9 @@ Recovery for an already-zoomed session: double-tap once or reopen the app.
 ## 36 · Share cards: no website link (user request)
 
 The PNG footer read "fairwayfuel.app · Turn muscle into distance" — sharing a
-PR to friends shouldn't look like an ad. Footer now reads "FairwayFuel · Turn
+PR to friends shouldn't look like an ad. Footer now reads "Yardsmith · Turn
 muscle into distance ⛳" (brand, no URL), and the share/clipboard text
-fallbacks dropped the https link too ("— training with FairwayFuel ⛳").
+fallbacks dropped the https link too ("— training with Yardsmith ⛳").
 
 ## 37 · The hype pack — live PRs, milestones, PR Wall (user request: "I need some motivation")
 
@@ -741,7 +741,7 @@ user owns.
   hero variant `#ffd28a`). The `ff-sync-status` listener updates just the
   line in place — no full re-render while the user is mid-edit in the card.
 - New "💾 Backup & export" Account card: **Export** writes
-  `fairwayfuel-backup-YYYY-MM-DD.json` (`{app,kind:"backup",version,exported,
+  `yardsmith-backup-YYYY-MM-DD.json` (`{app,kind:"backup",version,exported,
   data:{every ff_* key + fairwayfuel}}`) — share sheet on iOS (a[download]
   is unreliable in installed PWAs), anchor download elsewhere. **Restore**
   file-picks a backup, validates it looks like one, confirms (copy notes the
@@ -936,7 +936,7 @@ invisible gestures.
   (`ff_hint_press`, set inside the 550ms timer callback).
 - **The loop.** `ffLoopHtml()` — weigh in → train → eat → play & log →
   Octane climbs → repeat — added to onboarding's final screen and to a
-  "🔁 How FairwayFuel works" sheet from the You tab (next to the new
+  "🔁 How Yardsmith works" sheet from the You tab (next to the new
   "📖 What the terms mean" button). Styled for light sheets AND the dark
   onboarding shell.
 

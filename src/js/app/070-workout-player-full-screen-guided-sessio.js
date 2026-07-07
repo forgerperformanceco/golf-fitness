@@ -243,7 +243,7 @@
       if(top>0 && pb!=null && top>pb+0.5) prs.push(x.name+" e1RM "+Math.round(top)+" lb");
     });
     var txt=player.dayName.replace(/^Day \d+ — /,'')+" done 💪 "+(vol>0?vol.toLocaleString()+" lb moved":"session banked")+
-      (prs.length?(" · PR: "+prs.join(", ")):"")+" — training with FairwayFuel ⛳";
+      (prs.length?(" · PR: "+prs.join(", ")):"")+" — training with Yardsmith ⛳";
     var mins=Math.max(1, Math.round(((player.sess.activeMs||0)+(Date.now()-player.startedAt))/60000));
     ffShareImage({
       kick:"Session complete · Week "+player.week,

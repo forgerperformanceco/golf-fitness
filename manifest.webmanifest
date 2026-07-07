@@ -1,7 +1,7 @@
 {
   "id": "/index.html",
-  "name": "FairwayFuel — Golf Mass & Speed System",
-  "short_name": "FairwayFuel",
+  "name": "Yardsmith — Golf Mass & Speed System",
+  "short_name": "Yardsmith",
   "description": "Macro calculator and 20-week build-muscle, swing-faster training plan for golfers.",
   "start_url": "./index.html",
   "scope": "./",

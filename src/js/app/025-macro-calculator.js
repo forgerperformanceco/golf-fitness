@@ -1126,7 +1126,7 @@
   }
   function ffCopyWeekList(btn){
     var p=ffPrefs(), t=ffTargets(); if(!t) return;
-    var groups=ffWeekGroups(ffWeekPlans(p,t)), lines=["FairwayFuel — 7-day shopping list",""];
+    var groups=ffWeekGroups(ffWeekPlans(p,t)), lines=["Yardsmith — 7-day shopping list",""];
     FF_AISLE_ORDER.concat(["🛒 Other"]).forEach(function(a){ if(!groups[a]) return;
       lines.push(a.replace(/^\S+\s/,"").toUpperCase());
       groups[a].forEach(function(it){ lines.push("- "+ffName(it.food)+" — "+ffWeekQty(it)); });

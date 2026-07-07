@@ -15,7 +15,7 @@ credited in a "further reading" list — lands in the tracked files:
 - `supabase/functions/_shared/knowledge.ts`  ← what the coach actually reads
 
 Facts, principles, protocols and numbers aren't copyrightable; their specific
-wording is. So we extract the *what* and rewrite it in FairwayFuel's own voice.
+wording is. So we extract the *what* and rewrite it in Yardsmith's own voice.
 
 ## How to drop a source
 

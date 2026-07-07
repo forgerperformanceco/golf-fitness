@@ -1,4 +1,4 @@
-# FairwayFuel — Build the iOS & Android apps (Capacitor)
+# Yardsmith — Build the iOS & Android apps (Capacitor)
 
 This wraps the existing web app (unchanged) in native iOS/Android shells so it
 can ship on the **App Store** and **Google Play**. The web PWA at fairwayfuel.app
@@ -8,7 +8,7 @@ keeps working exactly as-is; this is packaging, not a rewrite.
 
 | File | Purpose |
 |---|---|
-| `capacitor.config.json` | App id **`app.fairwayfuel`**, name, `webDir: www`, brand splash colors |
+| `capacitor.config.json` | App id **`app.yardsmith`**, name, `webDir: www`, brand splash colors |
 | `package.json` | Capacitor + plugin deps and helper scripts |
 | `scripts/build-www.mjs` | Assembles `www/` (only the served files) for Capacitor to bundle |
 | `assets/icon.png`, `assets/splash*.png` | Source art for native icon + splash generation |
@@ -61,7 +61,7 @@ build output are gitignored; the project files themselves are tracked).
 
 The web app and the bundled copy must stay in lockstep. On every release:
 
-1. **Bump the service-worker cache** in `sw.js` (`fairwayfuel-vNN`) — same as any web change.
+1. **Bump the service-worker cache** in `sw.js` (`yardsmith-vNN`) — same as any web change.
 2. Rebuild + copy the web bundle into the native projects:
    ```bash
    npm run sync                 # = build-www.mjs + cap sync
@@ -84,14 +84,14 @@ npm run open:ios               # opens ios/App/App.xcworkspace in Xcode
 
 In Xcode:
 1. **Signing & Capabilities** → select your Apple Developer **Team**. Bundle id is
-   `app.fairwayfuel`.
+   `app.yardsmith`.
 2. Add capability **Push Notifications** (and Background Modes → Remote
    notifications) if/when you turn on the nudge notifications.
 3. **Privacy manifest**: add `PrivacyInfo.xcprivacy` declaring data use (email for
    login, bodyweight — collected, linked to the user, not used for tracking).
 4. Set the **Version/Build**, choose *Any iOS Device*, then **Product → Archive**.
 5. **Distribute App → App Store Connect → Upload.**
-6. In **App Store Connect**: create the app record (bundle id `app.fairwayfuel`),
+6. In **App Store Connect**: create the app record (bundle id `app.yardsmith`),
    fill the listing (use `shot-home.png` / `shot-train.png` for screenshots),
    set the **privacy “nutrition” labels**, link **Privacy Policy URL** →
    `https://fairwayfuel.app/privacy.html`, then submit for review (TestFlight first
@@ -114,7 +114,7 @@ npm run open:android           # opens android/ in Android Studio
 
 1. **Build → Generate Signed Bundle / APK → Android App Bundle (.aab).** Create/keep
    an upload keystore **safe** (losing it blocks future updates).
-2. In **Play Console**: create the app (package `app.fairwayfuel`), complete the
+2. In **Play Console**: create the app (package `app.yardsmith`), complete the
    **Data safety** form (email + bodyweight; account deletion available in-app AND
    note the URL/flow), add the **Privacy Policy** URL, upload the `.aab` to internal
    testing → then production.

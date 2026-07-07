@@ -1,4 +1,4 @@
-# FairwayFuel — cloud builds via Codemagic (no Mac needed).
+# Yardsmith — cloud builds via Codemagic (no Mac needed).
 #
 # Codemagic runs a cloud macOS machine, so a Windows user can build, sign and
 # ship the iOS app to the App Store — and optionally the Android app to Play.
@@ -15,17 +15,17 @@ workflows:
   # iOS → App Store / TestFlight   (the reason we're here — no Mac required)
   # ────────────────────────────────────────────────────────────────────────
   ios-app-store:
-    name: FairwayFuel iOS — App Store
+    name: Yardsmith iOS — App Store
     instance_type: mac_mini_m2
     max_build_duration: 60
     integrations:
       # Name of the App Store Connect API key you add in the Codemagic UI
       # (Teams/Personal → Integrations → App Store Connect). Rename to match.
-      app_store_connect: FairwayFuel ASC key
+      app_store_connect: Yardsmith ASC key
     environment:
       ios_signing:
         distribution_type: app_store
-        bundle_identifier: app.fairwayfuel
+        bundle_identifier: app.yardsmith
       node: 20
       xcode: latest
       cocoapods: default
@@ -63,17 +63,17 @@ workflows:
   # Windows in Android Studio; see CODEMAGIC-SETUP.md)
   # ────────────────────────────────────────────────────────────────────────
   android-play:
-    name: FairwayFuel Android — Play
+    name: Yardsmith Android — Play
     instance_type: linux_x2
     max_build_duration: 60
     environment:
       android_signing:
         # Name of the keystore you upload in the Codemagic UI
         # (Teams/Personal → Code signing identities → Android keystores).
-        - fairwayfuel_upload
+        - yardsmith_upload
       node: 20
       vars:
-        PACKAGE_NAME: "app.fairwayfuel"
+        PACKAGE_NAME: "app.yardsmith"
     scripts:
       - name: Install npm dependencies
         script: npm ci

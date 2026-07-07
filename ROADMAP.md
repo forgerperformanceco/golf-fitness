@@ -1,6 +1,6 @@
-# FairwayFuel — Product & Revenue Roadmap
+# Yardsmith — Product & Revenue Roadmap
 
-How FairwayFuel goes from a free static PWA to a subscription app with an AI coach.
+How Yardsmith goes from a free static PWA to a subscription app with an AI coach.
 This file is the plan of record. The scaffolding it describes lives in `/supabase`
 and `.env.example`; nothing here is wired to a live billing or AI backend yet —
 each phase is gated behind a deliberate "go" so we never ship a half-built paywall.
@@ -12,7 +12,7 @@ each phase is gated behind a deliberate "go" so we never ship a half-built paywa
 
 > **Market positioning** lives in [`COMPETITIVE-LANDSCAPE.md`](./COMPETITIVE-LANDSCAPE.md):
 > how we differ from DRVN / GolfForever / JoeyD / swing-analysis apps, what we can borrow
-> without infringing, and the "FairwayFuel Score" that closes our one measurability gap.
+> without infringing, and the "Yardsmith Score" that closes our one measurability gap.
 
 ---
 
@@ -131,7 +131,7 @@ smarter from, and a real app-store presence.
 ## Monetization
 
 - **Free forever:** calculator, 20-week plan, offline PWA, single-device save.
-- **FairwayFuel Pro (subscription):** the AI coach, dynamic meal/training adaptation,
+- **Yardsmith Pro (subscription):** the AI coach, dynamic meal/training adaptation,
   cross-device sync history, progress analytics. Monthly with a discounted annual;
   7-day free trial.
 - **Cost control:** prompt caching on the knowledge base (largest lever), cheaper

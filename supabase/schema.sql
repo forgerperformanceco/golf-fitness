@@ -1,5 +1,5 @@
 -- ============================================================================
--- FairwayFuel — database schema (Supabase / Postgres)
+-- Yardsmith — database schema (Supabase / Postgres)
 --
 -- Apply in Supabase → SQL Editor, or via the Supabase CLI:
 --   supabase db push
@@ -117,7 +117,7 @@ $$;
 -- Leaderboard — opt-in, public, normalized golf-relevant boards.
 --
 -- One row per user who chooses to compete. Stores a self-chosen HANDLE (never
--- the email) plus the metrics the app already computes: FairwayFuel Score,
+-- the email) plus the metrics the app already computes: Yardsmith Score,
 -- 7-iron clubhead speed, weekly streak, total sessions, and goal/division.
 -- Anyone (even signed-out) may READ opted-in rows; a user may only write their
 -- own row. No private data is exposed.
@@ -126,7 +126,7 @@ create table if not exists public.leaderboard (
   user_id     uuid primary key references auth.users (id) on delete cascade,
   handle      text not null,
   opted_in    boolean not null default true,
-  score       int,                 -- FairwayFuel Score (0–100)
+  score       int,                 -- Yardsmith Score (0–100)
   speed       numeric,             -- latest 7-iron clubhead speed (mph)
   speed_gain  numeric,             -- % gain since baseline
   streak      int,                 -- consecutive active weeks

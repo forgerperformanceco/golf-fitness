@@ -1,5 +1,5 @@
 /* ============================================================================
-   FairwayFuel — AI woven through the app (no corner bubble).
+   Yardsmith — AI woven through the app (no corner bubble).
 
    The AI is summoned IN CONTEXT from inline buttons across the app
    (Dashboard "Coach's read", Fuel "Build my meals", Train "Coach this week").
@@ -108,7 +108,7 @@
 
   function degradedState() {
     log.innerHTML = "";
-    bubble("bot", "I'm your FairwayFuel coach — I work from your own numbers (macros, training log, 7-iron speed and your Score) to give specific, golf-smart advice.");
+    bubble("bot", "I'm your Yardsmith coach — I work from your own numbers (macros, training log, 7-iron speed and your Score) to give specific, golf-smart advice.");
     var note = document.createElement("div");
     note.className = "ffc-msg note";
     note.innerHTML = signedIn()
@@ -214,7 +214,7 @@
     wrap.innerHTML =
       '<div class="ffc-sheet">'
       + '<div class="ffc-grab"></div>'
-      + '<div class="ffc-head"><div><h3>⛳ FairwayFuel Coach</h3><div class="ffc-ctx">Personal to your plan</div></div>'
+      + '<div class="ffc-head"><div><h3>⛳ Yardsmith Coach</h3><div class="ffc-ctx">Personal to your plan</div></div>'
       + '<button class="ffc-x" aria-label="Close">×</button></div>'
       + '<div class="ffc-log"></div>'
       + '<div class="ffc-in"><textarea rows="1" placeholder="Ask a follow-up…"></textarea><button class="ffc-send">Send</button></div>'

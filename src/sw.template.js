@@ -1,7 +1,7 @@
-/* FairwayFuel service worker — offline-first for the single-page app.
+/* Yardsmith service worker — offline-first for the single-page app.
    CACHE is stamped with the build's content hash by scripts/build.mjs, so a new
    build invalidates old caches automatically — no manual version bumps. */
-var CACHE = 'fairwayfuel-{{V}}';
+var CACHE = 'yardsmith-{{V}}';
 var ASSETS = [
   './',
   './index.html',
@@ -50,7 +50,7 @@ self.addEventListener('notificationclick', function (e) {
 self.addEventListener('push', function (e) {
   var data = {};
   try { data = e.data ? e.data.json() : {}; } catch (err) {}
-  e.waitUntil(self.registration.showNotification(data.title || 'FairwayFuel ⛳', {
+  e.waitUntil(self.registration.showNotification(data.title || 'Yardsmith ⛳', {
     body: data.body || 'Time to train — your yards are waiting.',
     icon: 'icon-192.png', badge: 'icon-192.png', tag: data.tag || 'ff-push'
   }));

@@ -1,5 +1,5 @@
 // ============================================================================
-// FairwayFuel — Delete Account — Supabase Edge Function (Deno).
+// Yardsmith — Delete Account — Supabase Edge Function (Deno).
 //
 // Permanently deletes the signed-in user's account and ALL their data. This is
 // required by the Apple App Store (any app with account creation must offer

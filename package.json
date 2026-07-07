@@ -1,8 +1,8 @@
 {
-  "name": "fairwayfuel",
+  "name": "yardsmith",
   "version": "1.0.0",
   "private": true,
-  "description": "FairwayFuel — golf mass & clubhead-speed PWA, wrapped for the App Store / Play Store via Capacitor.",
+  "description": "Yardsmith — golf mass & clubhead-speed PWA, wrapped for the App Store / Play Store via Capacitor.",
   "type": "module",
   "scripts": {
     "build:www": "node scripts/build-www.mjs",

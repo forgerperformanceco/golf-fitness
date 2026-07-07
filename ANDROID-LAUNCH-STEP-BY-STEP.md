@@ -1,6 +1,6 @@
-# FairwayFuel → Google Play — the whole thing, step by step (Windows)
+# Yardsmith → Google Play — the whole thing, step by step (Windows)
 
-Everything to take FairwayFuel from this repo to live on the Play Store. The
+Everything to take Yardsmith from this repo to live on the Play Store. The
 `android/` project, icons, splash, and store graphics are **already built and
 committed** — you install two tools, build a signed file, and fill in forms.
 
@@ -48,7 +48,7 @@ npm run sync
    and re-sync.
 3. Test it: click the green **Run ▶** with an emulator (Device Manager → create
    one) or a USB-connected phone with **Developer options → USB debugging** on.
-   You should see the FairwayFuel splash, then the app. Sign in, poke around.
+   You should see the Yardsmith splash, then the app. Sign in, poke around.
 
 ---
 
@@ -56,8 +56,8 @@ npm run sync
 
 1. **Build → Generate Signed App Bundle / APK → Android App Bundle → Next.**
 2. **Create new…** keystore (first time only):
-   - Key store path: e.g. `C:\keys\fairwayfuel-upload.jks`
-   - Set a password; alias `fairwayfuel`; another password; validity 25+ years;
+   - Key store path: e.g. `C:\keys\yardsmith-upload.jks`
+   - Set a password; alias `yardsmith`; another password; validity 25+ years;
      fill in name/org (anything reasonable).
    - **⚠️ BACK THIS FILE + PASSWORDS UP FOREVER (cloud + offline).** Lose it and
      you can never update the app again — you'd have to publish a brand-new listing.
@@ -70,7 +70,7 @@ npm run sync
 ## PHASE 4 — Create the app in Play Console
 
 https://play.google.com/console → **Create app**:
-- App name: **FairwayFuel** · Language: English (US)
+- App name: **Yardsmith** · Language: English (US)
 - App or game: **App** · Free or paid: **Free**
 - Accept the declarations → **Create app.**
 
@@ -99,7 +99,7 @@ submit for review.
 
 ### App name (max 30)
 ```
-FairwayFuel: Golf Distance
+Yardsmith: Golf Distance
 ```
 
 ### Short description (max 80)
@@ -109,10 +109,10 @@ Build muscle, swing faster, hit it farther. Training + fuel built for golfers.
 
 ### Full description (max 4000)
 ```
-FairwayFuel is the golf training app built on one simple, evidence-backed idea:
+Yardsmith is the golf training app built on one simple, evidence-backed idea:
 build the right kind of muscle, turn it into power, and the yards follow.
 
-Most golf apps track your score. FairwayFuel builds the engine behind your
+Most golf apps track your score. Yardsmith builds the engine behind your
 swing — then proves it with your own driver distance and clubhead-speed trend.
 
 WHAT YOU GET
@@ -162,7 +162,7 @@ professional before starting any training or nutrition program.
 
 ## ⚠️ Two compliance things to know
 1. **Don't sell subscriptions inside the Android app via Paddle.** Google Play
-   requires **Google Play Billing** for in-app digital purchases. FairwayFuel is
+   requires **Google Play Billing** for in-app digital purchases. Yardsmith is
    free at launch, so this is fine now — but if you add paid tiers, the Android
    app must use Play Billing (or keep payment entirely on the website, outside
    the app, per Google's rules). Flag this before you monetize.

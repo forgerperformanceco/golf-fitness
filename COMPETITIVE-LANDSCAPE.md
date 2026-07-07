@@ -1,6 +1,6 @@
-# FairwayFuel — Competitive Landscape & Differentiation
+# Yardsmith — Competitive Landscape & Differentiation
 
-How FairwayFuel is positioned against the existing golf-fitness app market: who's
+How Yardsmith is positioned against the existing golf-fitness app market: who's
 out there, where the open field is, what we can legitimately borrow, what we must
 avoid, and the features that close our one measurability gap.
 
@@ -14,7 +14,7 @@ avoid, and the features that close our one measurability gap.
 ## The market, in three lanes
 
 Golf fitness/performance apps cluster into three groups — and **none of them occupy
-the training × nutrition × AI-coach intersection FairwayFuel is built for.**
+the training × nutrition × AI-coach intersection Yardsmith is built for.**
 
 | App | Lane | Does | Model | Gap |
 |---|---|---|---|---|
@@ -35,19 +35,19 @@ the training × nutrition × AI-coach intersection FairwayFuel is built for.**
 
 ---
 
-## FairwayFuel scored against DRVN's own 5 criteria
+## Yardsmith scored against DRVN's own 5 criteria
 
-| Criterion | FairwayFuel | Verdict |
+| Criterion | Yardsmith | Verdict |
 |---|---|---|
 | **Sport-science methodology** | Program sourced to primary research + golf-clinic sources; *plus* a full nutrition-science layer (Mifflin–St Jeor, protein meta-analyses, nutrient timing) competitors don't have. | **Win** |
 | **Athletic development (real strength)** | Progressive overload, heavy compounds, power primers, overspeed — not a stability-only app. | **Tie / Win** |
-| **Measurability** | 7-iron clubhead speed + bodyweight + training log. Competitors' edge: a single composite baseline number. | **Partial — see "FairwayFuel Score"** |
+| **Measurability** | 7-iron clubhead speed + bodyweight + training log. Competitors' edge: a single composite baseline number. | **Partial — see "Yardsmith Score"** |
 | **Periodisation** | Deliberate, evidence-based divergence: a concurrent week beats block-switching when volume is equated. The one place a reviewer dings us. | **Own it — see below** |
 | **Value** | Free core, offline, no hardware. Competitors gate behind kits/subscriptions. | **Win** |
 
 **Net:** we match or beat the field on methodology, athletic development, and value;
 we lead an entire pillar (nutrition + fueling) they ignore; we trail on exactly one
-thing — a single composite score — which the "FairwayFuel Score" below closes.
+thing — a single composite score — which the "Yardsmith Score" below closes.
 
 ---
 
@@ -109,7 +109,7 @@ criticism without abandoning the science:
 
 ---
 
-## Closing the one gap: the "FairwayFuel Score"
+## Closing the one gap: the "Yardsmith Score"
 
 A single composite athleticism/readiness number — our answer to DRVN's headline
 assessment, built entirely from **our own data**, so there's no IP overlap.
@@ -131,6 +131,6 @@ assessment, built entirely from **our own data**, so there's no IP overlap.
 ---
 
 > **Bottom line:** the field is mature on training and measurement but blind on
-> nutrition and genuine AI coaching. FairwayFuel wins by owning that intersection,
+> nutrition and genuine AI coaching. Yardsmith wins by owning that intersection,
 > borrowing only non-proprietary science and UX patterns, and closing its single
 > measurability gap with a score built from its own data.

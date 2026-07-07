@@ -1,4 +1,4 @@
-// Shared CORS + JSON helpers for FairwayFuel Edge Functions.
+// Shared CORS + JSON helpers for Yardsmith Edge Functions.
 //
 // Allowed origins: the live website PLUS the Capacitor native-shell origins, so
 // the very same functions serve both the web PWA and the wrapped App Store /

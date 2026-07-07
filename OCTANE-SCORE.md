@@ -1,4 +1,4 @@
-# FairwayFuel Score — feature spec
+# Yardsmith Score — feature spec
 
 One number for a golfer's **build-to-speed progress**, shown as an on-brand fuel
 gauge (E→F). It's our answer to the one measurability edge competitors have (e.g.
@@ -48,7 +48,7 @@ Headless (Chromium) with seeded data: gauge **63**, needle rotation correct
 - **AI explanation:** the coach (already wired) reads these same numbers — have it
   narrate "your speed bar is maxed but consistency is the gap; here's the week."
 - **Server-side score** once `ff_log` is normalized into tables (`COMPETITIVE-LANDSCAPE.md`
-  → FairwayFuel Score, `ROADMAP.md` Phase 3) so the trend survives device loss and
+  → Yardsmith Score, `ROADMAP.md` Phase 3) so the trend survives device loss and
   feeds analytics.
 - ~~Optional mobility pillar~~ — **shipped** as the 5th pillar (see table above): an
   original 3-move self-screen (no borrowed assessment IP) that also routes targeted

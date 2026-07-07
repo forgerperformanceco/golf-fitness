@@ -1,5 +1,5 @@
 // ============================================================================
-// FairwayFuel — Paddle Billing webhook (Supabase Edge Function, Deno).
+// Yardsmith — Paddle Billing webhook (Supabase Edge Function, Deno).
 //
 // Receives Paddle subscription events, verifies the signature, and writes the
 // user's subscription state into public.profiles using the SERVICE-ROLE key

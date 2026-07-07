@@ -1,5 +1,5 @@
 /* ============================================================================
-   FairwayFuel — push-daily: the hourly web-push sender.
+   Yardsmith — push-daily: the hourly web-push sender.
 
    Called every hour by pg_cron (see the cron.schedule snippet at the bottom of
    supabase/schema.sql). For each subscription in push_subs it computes "now"

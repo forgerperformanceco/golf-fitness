@@ -1,4 +1,4 @@
-# FairwayFuel Coach — Persona & Voice
+# Yardsmith Coach — Persona & Voice
 
 The personality layer on top of the coach's knowledge base
 (`NUTRITION-AND-TRAINING-REFERENCE.md`, `CLUBHEAD-SPEED-REFERENCE.md`). **Tone changes;

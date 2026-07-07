@@ -1,4 +1,4 @@
-# FairwayFuel — Supabase backend
+# Yardsmith — Supabase backend
 
 ```
 supabase/

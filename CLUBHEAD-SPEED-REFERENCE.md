@@ -1,6 +1,6 @@
-# FairwayFuel — Clubhead Speed & the Body Behind the Swing
+# Yardsmith — Clubhead Speed & the Body Behind the Swing
 
-The "why" behind FairwayFuel's training bias: **what physically produces clubhead speed,
+The "why" behind Yardsmith's training bias: **what physically produces clubhead speed,
 and how building mass the right way turns into more of it.** This is the companion to
 `NUTRITION-AND-TRAINING-REFERENCE.md` (which covers fuel) — together they document the
 two halves of the goal: **add lean mass, and convert it into swing speed.**
@@ -12,7 +12,7 @@ two halves of the goal: **add lean mass, and convert it into swing speed.**
 > (kinetic chain, X-factor, ground force, overspeed) are established sports science, not
 > anyone's IP.
 
-> **The throughline.** FairwayFuel is a **mass + clubhead-speed** program first. We build
+> **The throughline.** Yardsmith is a **mass + clubhead-speed** program first. We build
 > muscle as a *means to speed*. Even a cut serves speed: dropping fat while protecting
 > muscle raises **power-to-weight**, so you swing as fast or faster at a leaner bodyweight.
 
@@ -26,7 +26,7 @@ So the order that actually produces lasting change is:
 
 **Assess → build mobility → add stability → express strength & power → refine technique.**
 
-FairwayFuel owns the middle of that chain — the **physical engine**. Swing *mechanics*
+Yardsmith owns the middle of that chain — the **physical engine**. Swing *mechanics*
 are a complementary discipline (a coach/launch monitor); better physical capacity simply
 gives that instruction better raw material to work with. We don't teach the swing; we
 build the body that repeats it.
@@ -107,7 +107,7 @@ speed. The key qualifiers:
   hamstrings, hips, upper back, forearms**, and a strong, powerful core.
 - **Strength *and* speed are different stimuli.** Heavy compounds give the muscle more to
   work with; **explosive/overspeed work teaches it to fire fast.** You need both — which is
-  why every FairwayFuel week trains them concurrently (see the reference doc, §7).
+  why every Yardsmith week trains them concurrently (see the reference doc, §7).
 - **Power-to-weight rules golf.** Don't bulk into immobility. A leaner, more powerful
   athlete out-drives a heavier, slower one — so we frame bulking as a means to speed, with
   a Lean-Out phase to follow, and we keep mobility in even during a hard bulk.
@@ -118,7 +118,7 @@ training transfers; the extreme numbers and branded routines don't.
 
 ---
 
-## 4. How FairwayFuel already trains each driver
+## 4. How Yardsmith already trains each driver
 
 | Speed driver | Where it lives in the program |
 |---|---|
@@ -149,9 +149,9 @@ matters more than any table.
 
 - **Smash factor** (ball speed ÷ club speed) tops out ~**1.48–1.50** with a driver, lower
   for irons (~1.33 for a 7-iron) — a check on *strike quality*, not just speed.
-- **Why FairwayFuel tracks the 7-iron.** It's more repeatable than the driver, so the
+- **Why Yardsmith tracks the 7-iron.** It's more repeatable than the driver, so the
   week-to-week trend is a cleaner signal that the mass you're building is becoming speed.
-  Log it weekly in the app; it feeds your FairwayFuel Score.
+  Log it weekly in the app; it feeds your Yardsmith Score.
 
 ---
 
@@ -166,17 +166,17 @@ matters more than any table.
 - **Ignoring asymmetry** — the swing is one-sided; train both sides and address the
   dominant-side restriction so the pattern doesn't reinforce itself.
 - **Training too little to adapt** — ~**2 quality sessions/week is the minimum effective
-  dose**; one maintains at best. FairwayFuel's 4–5 day week clears this comfortably.
+  dose**; one maintains at best. Yardsmith's 4–5 day week clears this comfortably.
 
 ---
 
 ## 7. Structure & progression: how the training compounds
 
 Random gym work resets every season; a *system* compounds. The non-negotiables of a
-program that actually moves the needle — and how FairwayFuel delivers each:
+program that actually moves the needle — and how Yardsmith delivers each:
 
 - **Start where the body is (readiness, not one-size-fits-all).** A new lifter and a
-  competitive player need different entry points. FairwayFuel ramps by readiness: the
+  competitive player need different entry points. Yardsmith ramps by readiness: the
   explosive primers and overspeed work **ramp in** for beginners (start with fewer
   sets / a low box, add over weeks, stop well short of fatigue) before full output.
 - **Progress on purpose.** Training must build over time, not just vary. We use **double
@@ -185,7 +185,7 @@ program that actually moves the needle — and how FairwayFuel delivers each:
 - **Transfer to the swing.** Every block ties back to a swing demand (the driver→exercise
   map in §4), and the payoff is tracked as **7-iron clubhead speed**, not just gym PRs.
 - **Close the loop with a benchmark.** The hardest part of any program is knowing whether
-  it's working. That's exactly what the **FairwayFuel Score** is for — our own composite
+  it's working. That's exactly what the **Yardsmith Score** is for — our own composite
   (consistency + clubhead speed + logged strength + power-to-weight), built from *your*
   data, that you watch trend over weeks. It's our feedback loop: number moving up = the
   training is working; flat = adjust (eat/sleep/overload/consistency). It is **our own
@@ -223,7 +223,7 @@ The case for training the body, in **public** numbers (no vendor data):
   is enough to build elite ball speed. Same throughline this program is built on: progressive,
   golf-specific, *consistent* — not heroic and sporadic.
 
-> FairwayFuel's job is exactly the trainable part of that gap: build the mass, power, and
+> Yardsmith's job is exactly the trainable part of that gap: build the mass, power, and
 > power-to-weight that put yards back on the ball — and keep them there as the years pass.
 
 ---
@@ -234,7 +234,7 @@ The case for training the body, in **public** numbers (no vendor data):
 > paired with a *heavier* one) is marketed hard with big numbers. We ran an independent,
 > peer-reviewed-first review before leaning on it. **Bottom line: the _mechanism_ is sound and
 > general strength/power training reliably adds speed — but the evidence for overspeed *clubs
-> specifically* is thin, mostly acute, and far more modest than the marketing. So FairwayFuel uses
+> specifically* is thin, mostly acute, and far more modest than the marketing. So Yardsmith uses
 > overspeed as a low-cost _adjunct_, never as a headline promise.** Every quantitative figure below
 > carries its source and a confidence level.
 
@@ -315,7 +315,7 @@ analogous evidence:
 - **Train both lead and trail side** — the swing is one-sided; balance it so you don't reinforce the
   asymmetry (and its injury pattern).
 
-### 9.6 What this means for FairwayFuel (and what we will NOT claim)
+### 9.6 What this means for Yardsmith (and what we will NOT claim)
 
 - **Lead with the well-evidenced levers:** heavy strength + explosive/plyometric + med-ball rotational
   power — that's where the reliable ~4% lives.
@@ -415,7 +415,7 @@ Almost no golf study has tested within-session order, rest, or reps-to-velocity-
 ## 11. Does muscle actually turn into distance? (the thesis, stress-tested)
 
 > A third independent deep-research pass (peer-reviewed / independent-first, adversarially
-> verified — 25 claims checked, 23 confirmed, 2 killed) aimed straight at FairwayFuel's core
+> verified — 25 claims checked, 23 confirmed, 2 killed) aimed straight at Yardsmith's core
 > premise: **does building the body actually produce clubhead speed and driving distance?**
 > **Bottom line: yes — the evidence backs the thesis — but the honest version is "turn muscle
 > into _power_ into distance." It's lean, fast-firing muscle that drives speed, not bulk, and
@@ -536,7 +536,7 @@ Two independent meta-analyses agree on the ranking of physical qualities vs club
   subject-count characterization, and a claim that traditional and golf-specific resistance training
   are strictly equivalent.
 
-> **Net effect on FairwayFuel:** the thesis holds — **build lean muscle, convert it to power, and the
+> **Net effect on Yardsmith:** the thesis holds — **build lean muscle, convert it to power, and the
 > yards follow** — so nothing in the program needs to change. What this sharpens is the *language*:
 > say **"lean/quality mass → power → distance,"** keep flexibility out of the speed pitch (it's
 > injury insurance), and keep proving it **per-user** with the driver-carry and 7-iron trends rather
@@ -616,7 +616,7 @@ that the plan matches how speed is actually produced:
 | **Lateral** | Lateral bound; single-leg / lunge work; weight-shift drills |
 | **Rotational** | Med-ball rotational + seated/chest throws; anti-rotation core (Pallof) |
 
-> **Net:** the "vertical/lateral/rotational" coaching lens gives FairwayFuel a simple, honest
+> **Net:** the "vertical/lateral/rotational" coaching lens gives Yardsmith a simple, honest
 > way to explain *why* the speed day looks the way it does — three ways to push the ground,
 > each backed by the GRF evidence, each already in the program. Use it in copy and coaching;
 > keep the long-drive extremes and the demo mph figures out of it.

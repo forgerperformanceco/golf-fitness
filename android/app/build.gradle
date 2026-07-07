@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace "app.fairwayfuel"
+    namespace "app.yardsmith"
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "app.fairwayfuel"
+        applicationId "app.yardsmith"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

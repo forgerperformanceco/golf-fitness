@@ -1,7 +1,7 @@
-# FairwayFuel — Android on Windows (first build → Google Play)
+# Yardsmith — Android on Windows (first build → Google Play)
 
 The `android/` project is **already generated and committed** (correct app id
-`app.fairwayfuel`, your green icon + splash baked in). You just install two
+`app.yardsmith`, your green icon + splash baked in). You just install two
 tools, build a signed bundle, and upload it. No Mac, no cloud.
 
 ---
@@ -28,7 +28,7 @@ Then in **Android Studio**:
    to smoke-test it first.
 3. **Build → Generate Signed App Bundle / APK → Android App Bundle.**
 4. **Create new keystore** (first time): pick a file path + passwords, an alias
-   (e.g. `fairwayfuel`). **⚠️ Back this keystore up somewhere safe forever** —
+   (e.g. `yardsmith`). **⚠️ Back this keystore up somewhere safe forever** —
    lose it and you can never update the app again.
 5. Choose the **release** build variant → **Finish.** The `.aab` lands in
    `android/app/release/` (Android Studio shows a link).
@@ -36,7 +36,7 @@ Then in **Android Studio**:
 ---
 
 ## Ship it to Google Play
-1. **Play Console → Create app** — name *FairwayFuel*, app (not game), free.
+1. **Play Console → Create app** — name *Yardsmith*, app (not game), free.
 2. **Create app → Internal testing → Create release → upload the `.aab`.**
 3. Fill the required forms (Play won't publish until these are done):
    - **App content → Data safety:** you collect **email** (login) and

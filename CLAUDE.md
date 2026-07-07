@@ -1,4 +1,4 @@
-# FairwayFuel — repo guide
+# Yardsmith — repo guide
 
 Vanilla-JS PWA (no framework, no npm build for the site itself), served as-is
 from the repo root by GitHub Pages at fairwayfuel.app.
@@ -32,7 +32,7 @@ IIFE — the modules share one scope, exactly like the old monolith, so
 function declarations in any module are visible to all others. `src/js/global/*.js`
 is appended after the IIFE. `{{V}}` placeholders in the templates become a
 10-char content hash, so **cache busting is automatic**: no manual
-`fairwayfuel-vNNN` service-worker bumps, no `?v=` pin edits for app.js/styles.css.
+`yardsmith-vNNN` service-worker bumps, no `?v=` pin edits for app.js/styles.css.
 (cloud-sync.js and coach.js keep their manual `?v=` pins in
 `src/index.template.html` + `src/sw.template.js` — bump those when editing them.)
 

@@ -123,7 +123,7 @@
     var r=stState.saved, gain=(r.baseline!=null)?Math.round((r.best-r.baseline)*10)/10:0;
     var txt=(r.pr?"New 7-iron speed PR: ":"7-iron speed test: ")+r.best+" mph"+
       (gain>0?(" (+"+gain+" mph ≈ +"+Math.round(gain*2)+" yds since baseline)"):"")+
-      " — training with FairwayFuel ⛳";
+      " — training with Yardsmith ⛳";
     ffShareImage({
       kick:"Speed test · 7-iron", big:String(r.best), unit:"mph",
       badge:(r.pr?"🚀 NEW ALL-TIME PR":null),
