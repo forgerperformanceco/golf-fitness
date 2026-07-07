@@ -150,6 +150,10 @@
   if(appRefresh) appRefresh.addEventListener("click", function(){
     appRefresh.classList.add("spin");
     try{ if(window.FF && window.FF.user) {} }catch(e){}
+    // Land on Home after the refresh, not whatever tab you were on. Write the saved view
+    // directly — setView() persists asynchronously through the View Transition, so it can't
+    // be relied on to land before the reload fires. restore() reopens this view on next load.
+    try{ var _d=JSON.parse(localStorage.getItem("fairwayfuel")||"{}"); _d.view="dash"; localStorage.setItem("fairwayfuel", JSON.stringify(_d)); }catch(e){}
     try{ if("serviceWorker" in navigator){ navigator.serviceWorker.getRegistration().then(function(r){ if(r) r.update(); }); } }catch(e){}
     setTimeout(function(){ location.reload(); }, 350);
   });
