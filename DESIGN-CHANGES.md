@@ -1118,6 +1118,35 @@ glossary/loop entries all in place from earlier passes. Two grammar nits:
 setup → mobility → backup → foods → start-over → show-me-around →
 full-access), reset button wired, zero page errors.
 
+## 57 · PWA update reliability (user: "I'm refreshing the save-to-home version and it's not working")
+
+The installed (home-screen) PWA wasn't picking up new builds on refresh. Three
+compounding causes, three fixes:
+
+1. **HTTP-cache staleness on the HTML.** GitHub Pages serves HTML with
+   `max-age=600`, and the SW's network-first document fetch used the default
+   cache mode — so for ~10 min after a deploy it could hand back a stale
+   `index.html` (old hashed `app.js` → old app) even online. The SW now fetches
+   the document with `{ cache: 'no-store' }`, guaranteeing the fresh HTML that
+   points at the new hashed assets (offline still falls back to cache).
+2. **Standalone PWAs resume, they don't reload.** `reg.update()` ran only on
+   `load`, which a home-screen app often skips when reopened from the app
+   switcher — so the update check could be missed for days. Now it also runs on
+   `visibilitychange→visible`, `focus`, and `pageshow[persisted]`. A new SW
+   self-activates (`skipWaiting`) and the existing `controllerchange` handler
+   reloads once.
+3. **No manual escape hatch.** New **🔄 App version** card on the You tab shows
+   the live build hash (`window.FF_BUILD`, injected into the HTML template as
+   `{{V}}`) and a **↻ Force refresh to the latest** button — `ffForceUpdate()`
+   unregisters every SW, deletes every Cache Storage entry, and hard-reloads
+   (2.5s watchdog so a wedged SW can't hang it). Data is untouched (it's all in
+   localStorage, not the asset cache).
+
+Note: the stuck client has to receive this new SW once (a full close/reopen or
+one Force-refresh) before the automatic path self-heals future updates.
+Verified in test-forceupdate.mjs (build stamp is a 10-char hash and shows on
+the card, button present, click flips it + clears Cache Storage, zero errors).
+
 ## 56 · Warm-up collapsed by default on every Today card (user: "it's the whole train day… I thought we collapsed a little more")
 
 The warm-up & power primer `<details>` opened by default (since §36 —

@@ -2,13 +2,13 @@
 /* FairwayFuel service worker — offline-first for the single-page app.
    CACHE is stamped with the build's content hash by scripts/build.mjs, so a new
    build invalidates old caches automatically — no manual version bumps. */
-var CACHE = 'fairwayfuel-9a6608f36f';
+var CACHE = 'fairwayfuel-20be826d99';
 var ASSETS = [
   './',
   './index.html',
-  './styles.css?v=9a6608f36f',
+  './styles.css?v=20be826d99',
   './fonts/ffnum.woff2',
-  './app.js?v=9a6608f36f',
+  './app.js?v=20be826d99',
   './privacy.html',
   './cloud-sync.js?v=108',
   './coach.js?v=88',
@@ -65,12 +65,17 @@ self.addEventListener('fetch', function (e) {
   var isDoc = e.request.mode === 'navigate' ||
     (e.request.headers.get('accept') || '').indexOf('text/html') !== -1;
   if (isDoc) {
+    // network-first, and force a fresh trip past the browser's HTTP cache —
+    // GitHub Pages serves HTML with max-age=600, so a plain fetch could hand
+    // back a 10-minute-stale index.html (old app.js hash → old app) right after
+    // a deploy. no-store guarantees the new index.html, which pulls the new
+    // hashed app.js/styles.css. Offline still falls back to the cached copy.
     e.respondWith(
-      fetch(e.request).then(function (res) {
+      fetch(e.request.url, { cache: 'no-store', credentials: 'same-origin' }).then(function (res) {
         var copy = res.clone();
         caches.open(CACHE).then(function (c) { c.put('./index.html', copy); });
         return res;
-      }).catch(function () { return caches.match('./index.html'); })
+      }).catch(function () { return caches.match('./index.html').then(function (h) { return h || caches.match('./'); }); })
     );
   } else {
     e.respondWith(

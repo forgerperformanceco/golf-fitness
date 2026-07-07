@@ -4,8 +4,19 @@
 if ('serviceWorker' in navigator && !window.Capacitor) {
   window.addEventListener('load', function () {
     navigator.serviceWorker.register('sw.js').then(function (reg) {
-      // Installed PWAs cache hard — check for a newer version on every launch.
-      try { reg.update(); } catch (e) {}
+      // Installed PWAs cache hard — check for a newer version on launch AND every
+      // time the app is brought back to the foreground. A home-screen PWA usually
+      // RESUMES (no fresh 'load') when reopened from the app switcher, so a
+      // load-only check would miss updates for days. visibilitychange/focus/
+      // pageshow cover resume; a new SW self-activates (skipWaiting) and the
+      // controllerchange handler below reloads once.
+      function ffUpd() { try { reg.update(); } catch (e) {} }
+      ffUpd();
+      document.addEventListener('visibilitychange', function () {
+        if (document.visibilityState === 'visible') ffUpd();
+      });
+      window.addEventListener('focus', ffUpd);
+      window.addEventListener('pageshow', function (e) { if (e.persisted) ffUpd(); });
     }).catch(function () {});
     // When a new service worker takes control, reload once so the app picks up the fresh
     // files automatically — but only if we were already controlled (an UPDATE, not the
