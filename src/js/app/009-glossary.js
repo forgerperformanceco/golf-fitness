@@ -16,7 +16,10 @@
     scorecard:{ ic:"🗒️", t:"Sunday Scorecard", d:"Your week as a golf card — six holes: sessions, iron moved, speed test, weigh-ins, mobility and fuel days. Close it out on Sundays; share it when it’s good." },
     receipts: { ic:"🧾", t:"Receipts", d:"Proof from your own data that the training moves the ball — scoring trend, drives near vs far from gym days, deload-week distance. They appear once ~5 rounds are banked." },
     carry:    { ic:"⛳", t:"Driver carry", d:"How far your drive flies in the air, roll not included — the app’s headline distance. Log it from real rounds or a launch monitor." },
-    speedtest:{ ic:"🎯", t:"Speed Test Day", d:"Every 2 weeks: warm up, take 3 max-intent 7-iron swings, keep the best. Same club, same rule every time, so the trend is honest. Roughly +1 mph ≈ +2 yards of carry." },
+    // dyn: extra sentence computed when the sheet opens (needs the user's
+    // profile — ffBench() is age/sex aware), appended to d in both sheets.
+    speedtest:{ ic:"🎯", t:"Speed Test Day", d:"Every 2 weeks: warm up, take 3 max-intent 7-iron swings, keep the best. Same club, same rule every time, so the trend is honest. Roughly +1 mph ≈ +2 yards of carry.",
+      dyn:function(){ try{ var b=ffBench(); return " For context, a "+b.label+" runs "+b.range+" — but your trend vs your own baseline is the number that matters."; }catch(e){ return ""; } } },
     p2w:      { ic:"⚖️", t:"Power-to-weight", d:"Clubhead speed relative to bodyweight. Mass only helps when it swings faster — this pillar keeps a bulk honest." },
     tdee:     { ic:"🔥", t:"TDEE — maintenance calories", d:"Total Daily Energy Expenditure: the calories your body burns in a normal day (BMR × activity). Eat above it and you gain, below it and you lose — your goal target is TDEE plus or minus the right margin." }
   };
@@ -40,7 +43,7 @@
     var m=ffTermSheet();
     m.innerHTML='<div class="qsheet-card"><div class="qsheet-grab"></div>'+
       '<div class="term-one"><span class="term-ic">'+T.ic+'</span><div class="term-tx">'+
-      '<div class="term-t">'+T.t+'</div><div class="term-d">'+T.d+'</div></div></div>'+
+      '<div class="term-t">'+T.t+'</div><div class="term-d">'+T.d+(T.dyn?T.dyn():'')+'</div></div></div>'+
       '<button type="button" class="term-all" data-termall="1">📖 See all FairwayFuel terms</button></div>';
     m.hidden=false; document.body.style.overflow="hidden";
   }
@@ -51,7 +54,7 @@
       Object.keys(FF_TERMS).map(function(k){
         var T=FF_TERMS[k];
         return '<div class="term-one sm"><span class="term-ic">'+T.ic+'</span><div class="term-tx">'+
-          '<div class="term-t">'+T.t+'</div><div class="term-d">'+T.d+'</div></div></div>';
+          '<div class="term-t">'+T.t+'</div><div class="term-d">'+T.d+(T.dyn?T.dyn():'')+'</div></div></div>';
       }).join("")+'</div>';
     m.hidden=false; document.body.style.overflow="hidden";
   }

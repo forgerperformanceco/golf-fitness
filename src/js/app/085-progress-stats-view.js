@@ -113,10 +113,13 @@
     }
     return bars;
   }
-  /* ----- The Season map: the 20-week campaign as a course, tee to pin.
+  /* ----- The Season card: the 20-week campaign as a course, tee to pin.
      Wave phases are the terrain, speed tests fly flags where they happened,
-     deloads are marked, and YOU is pinned to the current week. ----- */
-  function seasonMapHtml(){
+     deloads are marked, and YOU is pinned to the current week. The Sunday
+     Scorecard lives INSIDE it (consolidation pass): map = where you are in
+     the plan, scorecard = how this week of it is going — one "your plan"
+     story, one row when closed. ----- */
+  function seasonCardHtml(){
     if(!planStart()) return '';
     var wk=curWeek(), gy=goalYds();
     var tests={}; speedTests().forEach(function(t){ if(t.week && (tests[t.week]==null || t.best>tests[t.week])) tests[t.week]=t.best; });
@@ -136,8 +139,17 @@
     svg+='<text x="6" y="80" font-size="13">🏌️</text>';
     svg+='<text x="'+(pad+NW*segW+2)+'" y="80" font-size="14">🚩</text>';
     var wave2=WAVES[waveFor(wk)];
-    return pfCard('season','🗺️ Your 20-week season'+(gy?(' · mission +'+gy+' yds'):''),
-      '<span class="pf-num">Wk '+wk+'/20</span><span class="pf-sub">'+wave2.label+'</span>',
+    var c=weekCard();
+    var scRows=[
+      { h:1, n:"Sessions", v:c.sessions+' / '+c.freq, chip: c.sessions>=c.freq?scChip("good","ON PLAN"):(c.sessions>0?scChip("mid",(c.freq-c.sessions)+" TO GO"):scChip("miss","0 YET")) },
+      { h:2, n:ffTerm('iron','Iron moved'), v:(c.vol>0?c.vol.toLocaleString()+' lb':'—'), chip: c.vol>0?scChip("good","BANKED"):scChip("miss","—") },
+      { h:3, n:ffTerm('speedtest','Speed test'), v:(c.bestT!=null?c.bestT+' mph':'—'), chip: c.bestT!=null?scChip("good","TESTED"):(speedTestDue()?scChip("mid","DUE"):scChip("miss","NEXT WK")) },
+      { h:4, n:"Weigh-ins", v:String(c.weighs), chip: c.weighs>=3?scChip("good","TRENDING"):(c.weighs>0?scChip("mid","MORE"):scChip("miss","0 YET")) },
+      { h:5, n:"Mobility", v:(c.mob?'screened':'—'), chip: c.mob?scChip("good","DONE"):(mobDue()?scChip("mid","DUE"):scChip("good","CURRENT")) },
+      { h:6, n:"Fuel days", v:c.fuelOn+' / 7', chip: c.fuelOn>=5?scChip("good","ON PLAN"):(c.fuelLogged>0?scChip("mid","BUILDING"):scChip("miss","LOG FUEL")) }
+    ];
+    return pfCard('season','🗺️ Your season <small>'+(gy?('mission +'+gy+' yds'):'20 weeks')+'</small>',
+      '<span class="pf-num">Wk '+wk+'/20</span><span class="pf-sub">'+c.sessions+'/'+c.freq+' this wk</span>',
       '<div class="season-scroll"><svg width="'+width+'" height="'+H+'" viewBox="0 0 '+width+' '+H+'">'+svg+'</svg></div>'+
       '<div class="season-leg"><span><i style="background:#2f9e5d"></i>Build</span><span><i style="background:#e0a33a"></i>Heavy</span>'+
       '<span><i style="background:#4d685a"></i>Deload</span><span><i style="background:#f4c542"></i>Peak</span><span>⛳ speed test (mph)</span>'+(ev&&ev.week?'<span>🏆 your event</span>':'')+'</div>'+
@@ -146,7 +158,12 @@
                 ? ' <br><b>🏆 '+(ev.name||"Your event")+' — week '+ev.week+'.</b> The taper re-anchors to it: weeks '+(ev.week-1)+'–'+ev.week+' peak (volume down, intensity heavy), week '+(ev.week+1)+' recovers.'
                 : (ev.past ? '' : ' <br>🏆 '+(ev.name||"Your event")+' falls outside this 20-week block.'))
              : ' <br>🏆 Peaking for something? <button type="button" class="stest-link" data-goview="account" style="color:#8be9ac">Set your event date</button> and the taper re-anchors to it.')+
-      '</div>', 'pcard season');
+      '</div>'+
+      '<div class="pc-sec">'+ffTerm('scorecard','🗒️ Sunday Scorecard')+' <small>Wk '+wk+'</small></div>'+
+      '<div class="sc-grid">'+scRows.map(function(r){
+        return '<div class="sc-row"><span class="sc-hole">'+r.h+'</span><span class="sc-name">'+r.n+'</span><span class="sc-val">'+r.v+'</span>'+r.chip+'</div>'; }).join("")+'</div>'+
+      '<button type="button" class="sc-share" data-scshare="1">'+ffIcon("share",14)+' Share this week’s card</button>',
+      'pcard season');
   }
   /* ----- Sunday Scorecard: the week as a golf card — one ritual close per week ----- */
   function weekCard(){
@@ -169,23 +186,6 @@
       fuelOn:fOn, fuelLogged:fLog };
   }
   function scChip(kind, label){ return '<span class="sc-chip '+kind+'">'+label+'</span>'; }
-  function scorecardHtml(){
-    if(!planStart()) return '';
-    var c=weekCard();
-    var rows=[
-      { h:1, n:"Sessions", v:c.sessions+' / '+c.freq, chip: c.sessions>=c.freq?scChip("good","ON PLAN"):(c.sessions>0?scChip("mid",(c.freq-c.sessions)+" TO GO"):scChip("miss","0 YET")) },
-      { h:2, n:ffTerm('iron','Iron moved'), v:(c.vol>0?c.vol.toLocaleString()+' lb':'—'), chip: c.vol>0?scChip("good","BANKED"):scChip("miss","—") },
-      { h:3, n:ffTerm('speedtest','Speed test'), v:(c.bestT!=null?c.bestT+' mph':'—'), chip: c.bestT!=null?scChip("good","TESTED"):(speedTestDue()?scChip("mid","DUE"):scChip("miss","NEXT WK")) },
-      { h:4, n:"Weigh-ins", v:String(c.weighs), chip: c.weighs>=3?scChip("good","TRENDING"):(c.weighs>0?scChip("mid","MORE"):scChip("miss","0 YET")) },
-      { h:5, n:"Mobility", v:(c.mob?'screened':'—'), chip: c.mob?scChip("good","DONE"):(mobDue()?scChip("mid","DUE"):scChip("good","CURRENT")) },
-      { h:6, n:"Fuel days", v:c.fuelOn+' / 7', chip: c.fuelOn>=5?scChip("good","ON PLAN"):(c.fuelLogged>0?scChip("mid","BUILDING"):scChip("miss","LOG FUEL")) }
-    ];
-    return pfCard('sunday','🗒️ Sunday Scorecard <small>Wk '+curWeek()+'</small>',
-      '<span class="pf-num">'+c.sessions+'/'+c.freq+'</span><span class="pf-sub">sessions</span>',
-      '<div class="sc-grid">'+rows.map(function(r){
-        return '<div class="sc-row"><span class="sc-hole">'+r.h+'</span><span class="sc-name">'+r.n+'</span><span class="sc-val">'+r.v+'</span>'+r.chip+'</div>'; }).join("")+'</div>'+
-      '<button type="button" class="sc-share" data-scshare="1">'+ffIcon("share",14)+' Share this week’s card</button>', 'scorecard');
-  }
   function shareScorecard(){
     var c=weekCard();
     var txt="My FairwayFuel week "+curWeek()+" scorecard: "+c.sessions+"/"+c.freq+" sessions"+
@@ -258,29 +258,26 @@
 
     var html='<div class="prog-hd"><div class="prog-kick">⛳ The proof it’s working</div><h2>Your Progress</h2></div>';
     html += renderScoreCard();
-    html += seasonMapHtml();
-    html += scorecardHtml();
 
-    // Calm pass C: cards with no data don't render as placeholder cards — they
-    // collect here and render as ONE quiet "unlocks as you log" strip, each row
-    // deep-linking to the action that earns the card. The view grows with you.
+    // Consolidation pass (Stats 3.0): the page tells THREE stories below the
+    // Octane hub — ⚡ speed (the north star, open), ⛳ the course (proof), and
+    // 🏋️ the gym (PRs + strength + bodyweight + consistency, merged into one
+    // card), with 🗺️ the season (map + Sunday Scorecard) as plan reference.
+    // Anything with no data collects into ONE "unlocks as you log" strip.
     var locked=[];
     if(!hasAny){
       locked.push(
         { ic:'⚡', t:'Speed trend', s:'run the guided 7-iron test — your north star number', attr:' data-speedtest="1"' },
-        { ic:'🏋️', t:'Strength + PR Wall', s:'log your first workout on the Train tab', attr:' data-goview="plan"' },
-        { ic:'⛳', t:'Course receipts', s:'bank rounds — the gym-to-course proof builds here', attr:' data-roundlog="1"' },
+        { ic:'🏋️', t:'Gym & body', s:'log your first workout — PRs, strength and consistency build here', attr:' data-goview="plan"' },
+        { ic:'⛳', t:'On the course', s:'bank rounds — the gym-to-course proof builds here', attr:' data-roundlog="1"' },
         { ic:'⚖️', t:'Bodyweight trend', s:'five seconds with ＋ Log', attr:' data-qopen="1"' });
     } else {
-      // ---- PR Wall: the trophy case ----
-      var prw=''; try{ prw=prWallHtml(); }catch(e){}
-      if(prw) html+=prw;
-      else locked.push({ ic:'🏆', t:'PR Wall', s:'your first PR hangs here — heaviest lift, fastest swing, longest drive', attr:' data-goview="plan"' });
-
       // ---- Clubhead speed (north star) ----
       // The payoff of speed is DISTANCE. A 7-iron carries ~2 yards farther per +1 mph of
       // clubhead speed (public TrackMan/FlightScope data; smash ~1.33). We show the GAIN,
       // not an absolute carry claim — the trend is the honest, motivating signal.
+      // (Population benchmarks live in the speed-test glossary term; the test
+      // schedule only surfaces here on the day it's actually due.)
       var spNow=spF.length?spF[spF.length-1]:null, spBase=spF.length?spF[0]:null, spBest=spF.length?Math.max.apply(null,spF):null;
       var YDS_PER_MPH=2, spGain=(spNow!=null&&spBase!=null)?(spNow-spBase):0;
       if(!spF.length) locked.push({ ic:'⚡', t:'Speed trend', s:'run the guided 7-iron test — your north star number', attr:' data-speedtest="1"' });
@@ -292,54 +289,54 @@
         (spF.length>=2&&spGain>0
           ? '<div class="pc-payoff">🎯 That’s roughly <b>+'+Math.round(spGain*YDS_PER_MPH)+' yards</b> of 7-iron carry since your baseline. <span>Speed is distance — ~2 yds per mph.</span></div>'
           : (spF.length>=2 ? '<div class="pc-payoff muted">Every <b>+1 mph</b> here is about <b>+2 yards</b> of carry. Keep the trend climbing.</div>' : ""))+
-        (spF.length>=2?'<div class="pc-foot"><span>baseline <b>'+spBase+'</b></span><span>best <b>'+spBest+'</b> mph</span></div>':"")+
-        (spNow!=null?'<div class="pc-bench">Context: '+ffBench().label+' is '+ffBench().range+' — but your trend vs your own baseline is the number that matters.</div>':"")+
-        '<div class="pc-test">'+(speedTestDue()
-          ? '<button class="stest-go sm" data-speedtest="1">🎯 Speed test due — run it now</button>'
-          : '<span class="st-note">🎯 Next speed test in <b>'+Math.max(1, SPEEDTEST_EVERY-daysSinceTest())+'</b> days — <button class="stest-link" data-speedtest="1">test early</button></span>')+'</div>');
+        '<div class="pc-foot"><span>'+ffTerm('speedtest','the test & benchmarks')+'</span>'+
+          (spF.length>=2?'<span>baseline <b>'+spBase+'</b> · best <b>'+spBest+'</b> mph</span>':'')+'</div>'+
+        (speedTestDue()?'<div class="pc-test"><button class="stest-go sm" data-speedtest="1">🎯 Speed test due — run it now</button></div>':""));
 
       // ---- On the course: the gym-to-course proof ----
       var cc=''; try{ cc=courseCardHtml(); }catch(e){}
       if(cc) html+=cc;
       else locked.push({ ic:'⛳', t:'On the course', s:'log a round — score, longest drive, how the body held up', attr:' data-roundlog="1"' });
 
-      // ---- Strength: estimated 1RM on the big lifts ----
-      if(!lifts.length) locked.push({ ic:'🏋️', t:'Strength <small>est. 1RM</small>', s:'log weights on the big lifts — squat, bench, hinge, press, row', attr:' data-goview="plan"' });
-      else html += pfCard('strength','🏋️ Strength <small>est. 1RM</small>',
-        '<span class="pf-num">'+Math.round(lifts[0].best)+' lb</span><span class="pf-sub">best e1RM</span>',
-        lifts.slice(0,6).map(function(L){
-          var d = L.first>0 ? (L.last-L.first)/L.first*100 : null;
-          return '<button type="button" class="lr" data-exhist="'+escAttr(L.name)+'"><div class="lr-name">'+L.name+'</div>'+
-            '<div class="lr-spark">'+(L.n>=2?pcMiniSpark(L.series,"#16a34a"):'<span class="lr-one">'+L.n+' set'+(L.n===1?"":"s")+'</span>')+'</div>'+
-            '<div class="lr-val">'+Math.round(L.last)+'<small>lb</small>'+(L.n>=2&&d!=null?pcDelta(d,"%"):"")+'</div></button>';
-        }).join("")+
-        '<div class="pc-foot"><span>'+ffTerm('e1rm','e1RM — what’s that?')+'</span><span>tap a lift for its full story</span></div>');
-
-      // ---- Bodyweight ----
+      // ---- Gym & body: ONE card for the bodybuilder side — PR wall, e1RM
+      // trends, bodyweight and consistency. They were four separate folds;
+      // they answer one question ("is the gym work working?") so they share
+      // one door. Missing pieces nudge inline instead of spawning cards. ----
+      var prw=''; try{ prw=prWallInner(); }catch(e){}
       var wtNow=wtF.length?wtF[wtF.length-1]:null, wtBase=wtF.length?wtF[0]:null;
-      if(wtNow==null) locked.push({ ic:'⚖️', t:'Bodyweight trend', s:'five seconds with ＋ Log', attr:' data-qopen="1"' });
-      else html += pfCard('weight','⚖️ Bodyweight',
-        '<span class="pf-num">'+wtNow+' lb</span>'+(wtF.length>=2?pcDelta(wtNow-wtBase," lb",true):""),
-        '<div class="pc-now">'+wtNow+'<span>lb</span></div>'+
-        (wtF.length>=2 ? pcLine(wtF,"#0e7490","pcWt", wtD, " lb")
-          : '<div class="pc-need">One more weigh-in and the trend line appears.</div>')+
-        (wtF.length>=2?'<div class="pc-foot"><span>start <b>'+wtBase+'</b></span><span>now <b>'+wtNow+'</b> lb</span></div>':""));
-
-      // ---- Consistency ----
-      if(!sess) locked.push({ ic:'📅', t:'Consistency', s:'appears with your first logged session', attr:' data-goview="plan"' });
-      else html += pfCard('consist','📅 Consistency',
-        '<span class="pc-delta neu">'+sess+' total</span>',
-        '<div class="wkbars">'+weekBars()+'</div>'+
-        '<div class="pc-foot"><span>'+sess+' total · sessions per week (last 8)</span><span>goal <b>'+((typeof planState!=="undefined"&&planState.freq)||4)+'</b>/wk</span></div>');
+      if(!prw && !lifts.length && wtNow==null && !sess){
+        locked.push({ ic:'🏋️', t:'Gym & body', s:'log your first workout — PRs, strength and consistency build here', attr:' data-goview="plan"' });
+      } else {
+        var g='';
+        if(prw) g+='<div class="pc-sec first">🏆 PR Wall</div>'+prw;
+        if(lifts.length) g+='<div class="pc-sec'+(g?'':' first')+'">🏋️ Strength <small>'+ffTerm('e1rm','est. 1RM')+'</small></div>'+
+          lifts.slice(0,5).map(function(L){
+            var d = L.first>0 ? (L.last-L.first)/L.first*100 : null;
+            return '<button type="button" class="lr" data-exhist="'+escAttr(L.name)+'"><div class="lr-name">'+L.name+'</div>'+
+              '<div class="lr-spark">'+(L.n>=2?pcMiniSpark(L.series,"#16a34a"):'<span class="lr-one">'+L.n+' set'+(L.n===1?"":"s")+'</span>')+'</div>'+
+              '<div class="lr-val">'+Math.round(L.last)+'<small>lb</small>'+(L.n>=2&&d!=null?pcDelta(d,"%"):"")+'</div></button>';
+          }).join("")+
+          '<div class="pc-foot"><span>tap a lift for its full story</span></div>';
+        else g+='<div class="pc-need">🏋️ Log weights on the big lifts — squat, bench, hinge, press, row — and your strength trends land here.</div>';
+        if(wtNow!=null) g+='<div class="pc-sec">⚖️ Bodyweight</div>'+
+          (wtF.length>=2 ? pcLine(wtF,"#0e7490","pcWt", wtD, " lb")+
+            '<div class="pc-foot"><span>start <b>'+wtBase+'</b></span><span>now <b>'+wtNow+'</b> lb '+pcDelta(wtNow-wtBase," lb",true)+'</span></div>'
+          : '<div class="pc-need">Logged <b>'+wtNow+' lb</b> — one more weigh-in and the trend line appears.</div>');
+        else g+='<div class="pc-need">⚖️ A five-second weigh-in with <b>＋ Log</b> starts your bodyweight trend.</div>';
+        if(sess) g+='<div class="pc-sec">📅 Consistency</div>'+
+          '<div class="wkbars">'+weekBars()+'</div>'+
+          '<div class="pc-foot"><span>'+sess+' total · sessions per week (last 8)</span><span>goal <b>'+((typeof planState!=="undefined"&&planState.freq)||4)+'</b>/wk</span></div>';
+        var gymStat = lifts.length ? '<span class="pf-num">'+Math.round(lifts[0].best)+' lb</span><span class="pf-sub">best e1RM</span>'
+          : (wtNow!=null ? '<span class="pf-num">'+wtNow+' lb</span><span class="pf-sub">bodyweight</span>'
+          : '<span class="pc-delta neu">'+sess+' session'+(sess===1?'':'s')+'</span>');
+        html += pfCard('gym','🏋️ Gym & body', gymStat, g);
+      }
     }
-    html += lockedStrip(locked);
 
-    // ---- Quick add: ONE log door (intuitive-pass rule). The ＋ Log sheet
-    // carries the actual inputs; this row just opens it from the page flow,
-    // replacing a second copy of the same form. ----
-    html += '<button type="button" class="pcard pf-closed qopen-row" data-qopen="1">'+
-      '<span class="pc-head"><span class="pc-t">📝 Log today — weight · 7-iron · driver</span>'+
-      '<span class="pf-side"><span class="pf-arr">›</span></span></span></button>';
+    // ---- The season: where you are in the plan + this week's scorecard ----
+    html += seasonCardHtml();
+
+    html += lockedStrip(locked);
 
     // ---- Leaderboard (opt-in, competitive) ----
     html += renderLeaderboardCard();

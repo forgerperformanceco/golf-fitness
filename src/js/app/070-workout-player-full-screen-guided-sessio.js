@@ -417,8 +417,9 @@
     }
   }
 
-  // The PR Wall: every best the app knows about, in one trophy case.
-  function prWallHtml(){
+  // The PR Wall: every best the app knows about, in one trophy case. Returns
+  // inner content only — it renders as a section of Stats' "Gym & body" card.
+  function prWallInner(){
     var rows=[];
     var bests={};
     sessionsByWeek().forEach(function(se){
@@ -450,8 +451,7 @@
           '<span class="prw-d">'+lbEsc(String(r.d||"").replace(/, \d{4}$/,''))+'</span></div>';
       }).join("")+'</div>';
     if(hist.length) inner+='<div class="prw-tot">Lifetime: <b>'+vol.toLocaleString()+'</b> lb moved · <b>'+hist.length+'</b> session'+(hist.length===1?'':'s')+' banked</div>';
-    return pfCard('prwall','🏆 PR Wall',
-      '<span class="pc-delta up">▲ '+rows.length+' bests</span>', inner);
+    return inner;
   }
 
   // Reorder the session: a sheet listing today's lifts — drag a row (or use the
@@ -886,6 +886,13 @@
       return '<button class="ffscore ffscore-compact" data-goview="progress">'+top+
         '<span class="ffscore-more">See the full breakdown ›</span></button>';
     }
+    // Consolidation pass: the gauge + lever line ARE the daily answer; the six
+    // pillar bars are the breakdown, so they fold (ff_statsfold key 'pillars',
+    // same toggle plumbing as every other Stats fold). Closed by default.
+    if(!pfIsOpen('pillars')){
+      return '<div class="ffscore">'+top+
+        '<button type="button" class="ffscore-drives" data-pftoggle="pillars">What drives it — the six pillars <span class="pf-arr">›</span></button></div>';
+    }
     var bars = r.parts.map(function(p){
       var w = p.max>0 ? Math.round(p.pts/p.max*100) : 0;
       var row='<button type="button" class="ffp'+(p.have?"":" locked")+'" data-pillar="'+p.key+'" aria-expanded="'+(openPillar===p.key?'true':'false')+'">'+
@@ -896,7 +903,8 @@
       return row;
     }).join("");
     return '<div class="ffscore">'+top+'<div class="ffscore-bars">'+bars+'</div>'+
-      '<div style="margin-top:8px;font-size:12px;color:#9fc4ac;">Tap a pillar to see what drives it — and the fastest way to move it.</div></div>';
+      '<div style="margin-top:8px;font-size:12px;color:#9fc4ac;">Tap a pillar to see what drives it — and the fastest way to move it.</div>'+
+      '<button type="button" class="ffscore-drives" data-pftoggle="pillars">Hide the breakdown <span class="pf-arr">⌄</span></button></div>';
   }
 
   /* ----- Dashboard (home overview) ----- */
