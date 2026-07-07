@@ -1044,6 +1044,41 @@ banking all 5 flips to the done state; section order asserted; band+note
 in the closed fold with the slim line + tdee term visible; legacy fuel
 suites green (test-fuel's timeline probe updated for calm-pass slim rows).
 
+## 49 · Train 2.0 — the benchmark pass (the player is the way; the spreadsheet is opt-in)
+
+**Finding.** Today view rendered the ENTIRE inline logging spreadsheet —
+~2,500px of empty set tables — directly under a "Start workout" button
+whose guided player does the same job better. Hevy shows a compact
+exercise list + one Start CTA; we showed both interfaces at once.
+(Page: 3,771px → 2,171px.)
+
+**What.**
+- **Compact session list by default**: each lift as a slim row (purpose
+  icon + name + set×rep scheme), tap → its full history sheet
+  (`data-exhist`, document-level). One note line points Why/swaps/logging
+  at the player. `pl-start` stays the single CTA; warm-up doctrine box
+  unchanged.
+- **Manual logging is opt-in**: "⌨️ Prefer typing? Log manually here"
+  sets `ff_manual_log` (device-local) and renders the classic ilogBox +
+  finish bar, with a dashed "back to the simple list" exit. **Typed work
+  always forces the tables open** regardless of the pref — entered sets
+  are never hidden — and the exit button doesn't render once work exists.
+  Finish/clear bar renders only in manual mode (the player has its own
+  finish flow).
+
+**Verified** (test-train2.mjs): default = 7 rows, zero `.il-set` tables,
+no finish bar, Start CTA present; row tap opens #xhModal; toggle
+round-trips through `ff_manual_log`; typed 225 survives re-render and
+forces tables with no exit button; player opens from the CTA. e2e /
+equipswap / player suites green.
+
+**Test-harness lessons recorded:** tab switches don't re-run renderPhase
+(by design) — force re-renders via the planview seg; and `nextWorkout()`
+deliberately advances past any day WITH a session, so after typing, tests
+must refocus the day via its week-strip chip. (Pre-existing quirk worth a
+future look: a typed-but-unfinished day loses the default focus once you
+leave the tab — the chip shows it, but "Resume" might deserve the focus.)
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob

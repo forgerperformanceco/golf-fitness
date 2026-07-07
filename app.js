@@ -2408,6 +2408,14 @@
      taper: the event week and the week before become Peak (volume cut, intensity
      held — exactly the playbook's 7-10 day taper), and the week after is a
      deload to absorb it. Everything else keeps the base cadence. */
+  // Manual-logging preference (device-local): the Today card's spreadsheet is
+  // opt-in — the guided player is the default way to train.
+  document.addEventListener("click", function(e){
+    var b=e.target.closest("[data-manuallog]"); if(!b) return;
+    lsSet("ff_manual_log", b.getAttribute("data-manuallog")==="1");
+    try{ renderPhase(); }catch(_){}
+  });
+
   function eventInfo(){
     var ev=lsGet("ff_event", null); if(!ev || !ev.date) return null;
     var t=new Date(ev.date+"T12:00:00").getTime(); if(isNaN(t)) return null;
@@ -2535,12 +2543,30 @@
       ilog = { week: curWeek(), day: d.name, sess: buildSession(d, curWeek()) }; openWhy={};
       var hasWork = ilog.sess.ex.some(function(x){ return (x.sets||[]).some(function(st){ return st.w||st.r||st.done; }); });
       var plDone = !!getSession(curWeek(), d.name) && !!(getSession(curWeek(), d.name)||{}).finishedAt;
+      // The guided player is the way to train; the inline spreadsheet is the
+      // fallback. By default Today shows the session as a compact lift list
+      // (Hevy-style) — the full set tables render only once the user opts into
+      // manual logging (device pref) or already has typed work here.
+      var manual = hasWork || lsGet("ff_manual_log", false);
+      var body;
+      if(manual){
+        body='<div class="ilogwrap" id="ilogBox">'+ilogBodyHtml()+'</div>';
+      } else {
+        body='<div class="sess-list">'+ilog.sess.ex.map(function(x){
+            return '<button type="button" class="sl-row" data-exhist="'+escAttr(x.name)+'">'+
+              '<span class="sl-ic">'+ffPurposeIc(x.name)+'</span>'+
+              '<span class="sl-tx"><b>'+x.name+'</b><span>'+x.target+'</span></span>'+
+              '<span class="sl-go">›</span></button>';
+          }).join("")+
+          '<div class="sl-note">Tap a lift for its full history. 🛈 why-it-works, ⇄ swaps and set logging live in the <b>guided player</b>.</div>'+
+          '<button type="button" class="sl-manual" data-manuallog="1">⌨️ Prefer typing? Log manually here</button></div>';
+      }
       return '<div class="day-focus">'+
         '<button class="pl-start" data-startplayer="'+escAttr(d.name)+'" type="button"><span class="pls-go">›</span>'+
           '<b>'+(plDone?'✓ Session finished — replay it':((hasWork?ffIcon("play",13)+' Resume':ffIcon("play",13)+' Start')+' workout'))+'</b>'+
           '<span class="pls-sub">Guided player — warm-up, prescribed loads, rest timer, recap</span></button>'+
         '<details class="prelift"'+(hasWork?'':' open')+'><summary>🔥 Warm-up &amp; power primer — do these first</summary><div class="prelift-body">'+warmPrimer+'</div></details>'+
-        '<div class="ilogwrap" id="ilogBox">'+ilogBodyHtml()+'</div></div>';
+        body+'</div>';
     }
     var head = '<div class="day"><div class="day-head">'+d.name+' <span class="tag '+(d.tag==="Lift"?"":d.tag)+'">'+labelFor(d.tag)+'</span></div>'+warmPrimer;
     return head +
@@ -2615,8 +2641,14 @@
           '<span class="ws-name">'+(done?"✓ ":"")+wsShort(d)+'</span></button>';
       }).join("");
       html+='<div class="weekstrip">'+strip+'</div>';
-      html+=dayCardHtml(featured, true, true);   // interactive inline logger
-      html+='<div id="finishBar">'+finishBtnHtml()+'</div>';   // finish + clear; refreshed in place as you log
+      html+=dayCardHtml(featured, true, true);   // interactive: player CTA + list (or opted-in inline logger)
+      // Finish/clear belong to manual logging — the player has its own finish flow.
+      var workNow = !!(ilog && ilog.sess.ex.some(function(x){ return (x.sets||[]).some(function(st){ return st.w||st.r||st.done; }); }));
+      if(workNow || lsGet("ff_manual_log", false)){
+        html+='<div id="finishBar">'+finishBtnHtml()+'</div>';
+        // Offer the way back only while nothing's typed — never hide entered work.
+        if(!workNow) html+='<button type="button" class="sl-manual off" data-manuallog="0">Hide manual logging — back to the simple list</button>';
+      }
     } else {
       var primerNoteShown=false;
       shown.forEach(function(d){
