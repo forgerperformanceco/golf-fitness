@@ -1118,6 +1118,55 @@ glossary/loop entries all in place from earlier passes. Two grammar nits:
 setup → mobility → backup → foods → start-over → show-me-around →
 full-access), reset button wired, zero page errors.
 
+## 52 · Stats 3.0 — consolidation (user: "still doing too much… can we consolidate?")
+
+The 2.0 folds made every card cheap, but eight parallel rows is still eight
+parallel decisions, and the two always-open cards each did several jobs.
+This pass groups by **story**, not by data source:
+
+1. **Octane hub folds its pillars.** The gauge + biggest-lever line is the
+   daily answer; the six pillar bars are the breakdown, now behind
+   "What drives it — the six pillars ›" (ff_statsfold key `pillars`, closed
+   by default, same toggle plumbing as every other fold). Pillar drill-ins
+   unchanged inside the fold.
+2. **Speed card trimmed to its story.** Keeps number → chart → "+N yards"
+   payoff → baseline/best foot. The "typical amateur is X–Y mph" paragraph
+   moved into the `speedtest` glossary term (new `dyn` hook on FF_TERMS:
+   a function whose output is appended when the sheet opens, so the line
+   stays age/sex-personalized via `ffBench()`); a term link sits in the
+   card foot. The "next test in N days" countdown is gone — the test only
+   claims a slot on the day it's due (`speedTestDue()` → CTA).
+3. **🏋️ Gym & body**: PR Wall + Strength (e1RM rows) + Bodyweight +
+   Consistency were four folds answering one question ("is the gym work
+   working?") → merged into ONE fold with `.pc-sec` sub-headers.
+   `prWallHtml()` → `prWallInner()` (returns content, not a card). Missing
+   sub-sections nudge inline (`pc-need` one-liners) instead of spawning
+   separate cards; the closed row's stat is best e1RM → bodyweight →
+   session count, whichever exists first.
+4. **🗺️ Your season** absorbs the Sunday Scorecard: map = where you are in
+   the plan, scorecard = how this week of it is going — one plan story.
+   Scorecard grid re-colored inside the dark season card (`.season .sc-*`
+   overrides); share button and glossary terms intact. `scorecardHtml()`
+   deleted; `sunday` fold key retired.
+5. **"📝 Log today" row deleted** — it duplicated the labeled ＋ Log FAB
+   floating on the same screen (`.qopen-row` CSS removed with it; the
+   dead `.scorecard`/`.sc-head`/`.pc-bench` styles removed too).
+
+Page is now: Octane (gauge + lever) → Speed (open) → 3 story rows + Leaderboard
+→ coach button. **Rich-state height 1,574px → 975px (−38%)**. Old fold keys
+(`prwall`/`strength`/`weight`/`consist`/`sunday`) simply orphan in
+`ff_statsfold` — harmless.
+
+**Verified** (test-stats3.mjs, 21 checks): fold set exactly
+pillars/speed/course/gym/season/lb; pillars expand to 6 bars + drill-in +
+collapse; gym card carries all four sections, lift rows still open the
+history sheet; season card = map + 6 holes + share, terms open sheets
+without toggling the fold; state survives tab round-trips; closed-row
+stats correct; fresh user gets the 4-row unlock strip and nothing else;
+zero page errors light/dark. Legacy tests patched (test-hype opens the gym
+fold to find the PR wall; test-intuitive targets `season` instead of
+`sunday`; test-calm-stats superseded by test-stats3).
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob

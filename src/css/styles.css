@@ -153,7 +153,6 @@
   .sl-manual{ display:block; width:100%; border:1.5px dashed var(--line); background:transparent;
     color:var(--green-700); border-radius:12px; padding:11px; font:800 13px system-ui; cursor:pointer; }
   .sl-manual.off{ margin-top:10px; color:var(--muted); }
-  .qopen-row{ width:100%; text-align:left; cursor:pointer; font:inherit; }
   .grid .card-full { grid-column: 1 / -1; }
 
   .card {
@@ -532,6 +531,11 @@
   .ffscore-compact:active { transform:translateY(1px); }
   .ffscore-more { display:block; margin-top:11px; padding-top:11px; border-top:1px solid rgba(255,255,255,.12);
     font:800 12.5px system-ui; color:#7ef0a8; }
+  /* the pillar-breakdown fold toggle inside the full (Stats) Octane card */
+  .ffscore-drives{ display:flex; align-items:center; justify-content:space-between; width:100%;
+    margin-top:12px; padding:11px 0 0; border:0; border-top:1px solid rgba(255,255,255,.12);
+    background:none; font:800 12.5px system-ui; color:#7ef0a8; cursor:pointer; text-align:left; }
+  .ffscore-drives .pf-arr{ color:#9fc4ac; font-size:15px; }
   .ffscore-top { display:flex; align-items:center; gap:16px; }
   .ffscore-gauge { position:relative; width:120px; flex:0 0 auto; }
   .ffscore-gauge .num { position:absolute; left:0; right:0; bottom:6px; text-align:center;
@@ -964,7 +968,6 @@
   .pc-now.muted { color:var(--line); }
   .pc-svg { display:block; margin:4px 0 2px; max-height:108px; }
   .pc-foot { display:flex; justify-content:space-between; font-size:12.5px; color:var(--muted); margin-top:4px; }
-  .pc-bench { font:500 11px/1.5 system-ui; color:var(--muted); margin-top:7px; padding-top:7px; border-top:1px dashed #e2ece5; }
   .pc-foot b { color:var(--green-700); }
   .pc-payoff { margin-top:9px; padding:9px 11px; border-radius:10px; background:linear-gradient(135deg,#ecfbf1,#e2f6ea);
     border:1px solid #c7ecd3; font-size:13px; line-height:1.45; color:var(--green-800); }
@@ -973,6 +976,11 @@
   .pc-payoff.muted { background:var(--paper); border-color:var(--line); color:var(--muted); }
   .pc-payoff.muted b { color:var(--green-700); }
   .pc-need { font-size:13px; color:var(--muted); line-height:1.45; background:var(--paper); border-radius:10px; padding:12px 13px; margin-top:4px; }
+  /* sub-section headers inside merged cards (Gym & body, Season) */
+  .pc-sec{ margin:15px 2px 7px; padding-top:12px; border-top:1px dashed var(--line);
+    font:800 12px system-ui; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); }
+  .pc-sec small{ font-size:11px; font-weight:700; letter-spacing:.03em; margin-left:4px; }
+  .pc-sec.first{ margin-top:4px; padding-top:0; border-top:0; }
   /* strength rows */
   .lr { display:flex; align-items:center; gap:11px; padding:10px 0; border-top:1px solid var(--line); }
   .lr:first-of-type { border-top:0; }
@@ -1506,10 +1514,16 @@
   .season-leg i{ width:10px; height:10px; border-radius:3px; display:inline-block; }
   .season-foot{ margin-top:10px; font-size:12.8px; color:#9fd4b3; line-height:1.5; }
   .season-foot b{ color:#eafbef; }
-  .scorecard{ border:1.5px dashed #b9cdbf; border-radius:16px; padding:14px 15px; background:var(--card); margin-bottom:13px; }
-  .sc-head{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
-  .sc-t{ font-weight:900; font-size:16px; letter-spacing:-.01em; color:var(--ink); }
-  .sc-sub{ font-size:12.5px; color:var(--muted); }
+  /* the Sunday Scorecard grid lives inside the dark season card — light-theme
+     ink/line tokens would vanish there, so the season context re-colors it */
+  .season .pc-sec{ color:#9fd4b3; border-top-color:rgba(255,255,255,.16); }
+  .season .sc-grid{ border-top-color:rgba(255,255,255,.16); }
+  .season .sc-row{ border-bottom-color:rgba(255,255,255,.12); }
+  .season .sc-name, .season .sc-val{ color:#eafbef; }
+  .season .sc-hole{ color:#9fd4b3; }
+  .season .sc-chip.miss{ background:rgba(255,255,255,.08); color:#bfe9cd; border-color:rgba(255,255,255,.16); }
+  .season .sc-share{ border-color:#8be9ac; color:#8be9ac; }
+  .season .ff-term{ text-decoration-color:rgba(139,233,172,.6); }
   .sc-grid{ margin-top:10px; border-top:1px solid var(--line); }
   .sc-row{ display:flex; align-items:center; gap:10px; padding:9px 2px; border-bottom:1px solid var(--line); }
   .sc-hole{ flex:0 0 26px; font-weight:900; font-size:13px; color:var(--muted); }
@@ -2094,7 +2108,6 @@
   html:not([data-theme="light"]) .pc-delta.up{ background:#15271c; color:#c0e1cc; }
   html:not([data-theme="light"]) .pc-delta.down{ background:#241313; }
   html:not([data-theme="light"]) .pc-delta.flat, html:not([data-theme="light"]) .pc-delta.neu{ background:#19211d; color:#c8d1cb; }
-  html:not([data-theme="light"]) .pc-bench{ border-top:1px dashed #273c2e; }
   html:not([data-theme="light"]) .pc-payoff{ background:linear-gradient(135deg,#132419,#16291d); border:1px solid #274631; }
   html:not([data-theme="light"]) .pc-payoff b{ color:#c3e2d2; }
   html:not([data-theme="light"]) .wkbar-fill{ background:#1f3a2a; }
@@ -2169,7 +2182,7 @@
   html:not([data-theme="light"]) .tip.tip-install .tip-t{ color:#c4e3d1; }
   html:not([data-theme="light"]) .tip.tip-install .tip-b{ color:#c4e2cf; }
   html:not([data-theme="light"]) .ffp-detail .fd-act{ background:#274933; color:#c9e5d5; }
-  html:not([data-theme="light"]) .scorecard{ border:1.5px dashed #34493a; }
+  html:not([data-theme="light"]) .season .sc-share{ border-color:#2f543c; }
   html:not([data-theme="light"]) .sc-chip.good{ background:#14261a; color:#c4e3d1; border:1px solid #2a4a33; }
   html:not([data-theme="light"]) .sc-chip.mid{ background:#252014; color:#e1d5c0; border:1px solid #4d432b; }
   html:not([data-theme="light"]) .sc-chip.miss{ background:#1a1c1a; border:1px solid #2f3931; }
@@ -2374,7 +2387,6 @@
   html[data-theme="dark"] .pc-delta.up{ background:#15271c; color:#c0e1cc; }
   html[data-theme="dark"] .pc-delta.down{ background:#241313; }
   html[data-theme="dark"] .pc-delta.flat, html[data-theme="dark"] .pc-delta.neu{ background:#19211d; color:#c8d1cb; }
-  html[data-theme="dark"] .pc-bench{ border-top:1px dashed #273c2e; }
   html[data-theme="dark"] .pc-payoff{ background:linear-gradient(135deg,#132419,#16291d); border:1px solid #274631; }
   html[data-theme="dark"] .pc-payoff b{ color:#c3e2d2; }
   html[data-theme="dark"] .wkbar-fill{ background:#1f3a2a; }
@@ -2449,7 +2461,7 @@
   html[data-theme="dark"] .tip.tip-install .tip-t{ color:#c4e3d1; }
   html[data-theme="dark"] .tip.tip-install .tip-b{ color:#c4e2cf; }
   html[data-theme="dark"] .ffp-detail .fd-act{ background:#274933; color:#c9e5d5; }
-  html[data-theme="dark"] .scorecard{ border:1.5px dashed #34493a; }
+  html[data-theme="dark"] .season .sc-share{ border-color:#2f543c; }
   html[data-theme="dark"] .sc-chip.good{ background:#14261a; color:#c4e3d1; border:1px solid #2a4a33; }
   html[data-theme="dark"] .sc-chip.mid{ background:#252014; color:#e1d5c0; border:1px solid #4d432b; }
   html[data-theme="dark"] .sc-chip.miss{ background:#1a1c1a; border:1px solid #2f3931; }
