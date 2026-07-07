@@ -1118,6 +1118,41 @@ glossary/loop entries all in place from earlier passes. Two grammar nits:
 setup → mobility → backup → foods → start-over → show-me-around →
 full-access), reset button wired, zero page errors.
 
+## 53 · Train fixes (user: "take out the stats… reset a workout… a future day starts to log it")
+
+Three reports from a day of real use on the Train tab:
+
+1. **The "📊 See your full progress → Stats" shortcut is gone.** The bottom
+   tab bar already has a Stats tab and the Train hero carries the week
+   progress bar, so the in-Train link was a redundant third door. Workout
+   history stays (it's a different destination — the log modal, not Stats).
+2. **A logged day always offers clear/reset.** The finish bar now renders
+   whenever the featured day has a saved session *or* typed work (was:
+   only while manual-log mode was on or work was typed), so a workout
+   finished in the guided player still surfaces its reset control on the
+   Train card. Button relabeled **"↺ Clear / reset this workout"** (the
+   existing two-tap confirm + `clearWorkout()` tombstone flow is unchanged).
+3. **Opening a future day previews it instead of starting a log.** Tapping
+   a day that hasn't arrived used to render the interactive inline logger
+   (auto-set `ilog`, finish bar, editable/`Resume` state) — it "started to
+   log it." A featured day whose calendar date is after today (new
+   `isFutureDay()`/`dayCalDate()` in 040, off the week-strip position) now
+   renders **read-only**: the plan + warm-up to preview, an amber
+   "📅 Coming up {date}" banner, and no auto-session. Training early is
+   still possible on purpose via the card's **Log workout** button (no
+   guard added — the fix is that *opening* ≠ *logging*, not blocking
+   intent). Nothing is written to `ff_log` on open.
+
+`.upcoming-banner` themes off tokens (no hand-pinned dark variant needed).
+
+**Verified** (test-train3.mjs): stats link absent + history link + hero
+bar present; today renders interactive; a future chip → upcoming banner,
+no `.day-focus`/finish bar/inputs, exercise table still previews, explicit
+log path intact, `ff_log` untouched on open; a logged day → finish bar with
+"↺ Clear / reset", two-tap wipes the session and un-marks the chip; zero
+page errors. test-train2 re-run green (no regression to the compact list,
+manual toggle, or player).
+
 ## 52 · Stats 3.0 — consolidation (user: "still doing too much… can we consolidate?")
 
 The 2.0 folds made every card cheap, but eight parallel rows is still eight

@@ -2644,13 +2644,29 @@
           '<span class="ws-name">'+(done?"✓ ":"")+wsShort(d)+'</span></button>';
       }).join("");
       html+='<div class="weekstrip">'+strip+'</div>';
-      html+=dayCardHtml(featured, true, true);   // interactive: player CTA + list (or opted-in inline logger)
-      // Finish/clear belong to manual logging — the player has its own finish flow.
-      var workNow = !!(ilog && ilog.sess.ex.some(function(x){ return (x.sets||[]).some(function(st){ return st.w||st.r||st.done; }); }));
-      if(workNow || lsGet("ff_manual_log", false)){
-        html+='<div id="finishBar">'+finishBtnHtml()+'</div>';
-        // Offer the way back only while nothing's typed — never hide entered work.
-        if(!workNow) html+='<button type="button" class="sl-manual off" data-manuallog="0">Hide manual logging — back to the simple list</button>';
+      // A future day is a PREVIEW, never an active session: rendering it
+      // interactive is what used to auto-open the inline logger the moment you
+      // tapped a day that hadn't arrived yet ("it starts to log it"). Show the
+      // plan read-only instead, with a note that it opens on the day — and an
+      // explicit "log it early" path still available from the card's log button.
+      var featFuture = featured.type!=="rest" && isFutureDay(featured.name);
+      if(featFuture){
+        var fdt=dayCalDate(featured.name);
+        var fwhen=fdt?fdt.toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric"}):"soon";
+        html+='<div class="upcoming-banner">📅 <b>Coming up '+fwhen+'.</b> Here’s the plan to preview — opening it won’t start logging. It unlocks on the day; to train it early, use <b>Log workout</b> at the bottom of the card.</div>';
+        html+=dayCardHtml(featured, true, false);   // static preview — opening never logs
+      } else {
+        html+=dayCardHtml(featured, true, true);   // interactive: player CTA + list (or opted-in inline logger)
+        // Finish + Clear/reset. Show whenever there's anything to save OR clear —
+        // a finished session (logged via the player or manually) always gets its
+        // reset control here, not only while manual mode is on.
+        var hasSession = !!getSession(curWeek(), featured.name);
+        var workNow = !!(ilog && ilog.sess.ex.some(function(x){ return (x.sets||[]).some(function(st){ return st.w||st.r||st.done; }); }));
+        if(workNow || hasSession || lsGet("ff_manual_log", false)){
+          html+='<div id="finishBar">'+finishBtnHtml()+'</div>';
+          // Offer the way back only while nothing's logged — never hide entered work.
+          if(!workNow && !hasSession) html+='<button type="button" class="sl-manual off" data-manuallog="0">Hide manual logging — back to the simple list</button>';
+        }
       }
     } else {
       var primerNoteShown=false;
@@ -2663,8 +2679,8 @@
 
     html+='<button class="train-ai" data-ask="train"><span>💬 <b>Coach this week</b></span><span class="tai-go">Adjust ›</span></button>';
 
-    // Review: a slim shortcut to the full Stats tab (no duplicated chart here).
-    html+='<button class="train-link" data-gostats="1"><span>📊 See your full progress</span><span class="tl-go">Stats ›</span></button>';
+    // Workout history stays; the Stats-tab shortcut is gone — the Stats tab and
+    // the hero's week progress bar already cover "see your progress."
     html+='<button class="train-link" data-gohistory="1"><span>📖 Workout history</span><span class="tl-go">All time ›</span></button>';
 
     // Learn: the three reference reads grouped under ONE playbook fold.
@@ -2789,6 +2805,23 @@
     catch(e){ return ""; }
   }
   function sameDay(a,b){ return !!(a && b && a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate()); }
+  // A training/speed day's real calendar date (from its slot in the week strip).
+  // Rest days repeat, so this is only meaningful for the uniquely-named work days.
+  function dayCalDate(dayName){
+    var ds=stripDays();
+    for(var i=0;i<ds.length;i++){ if(ds[i].name===dayName) return chipDate(i); }
+    return null;
+  }
+  // "Future" = the day's date is after today. A future day is a preview, not a
+  // logbook: merely opening it must never start a session (that would back/forward-
+  // date your history and make the week strip lie). You can still log it early on
+  // purpose from an explicit button — this only kills the accidental auto-log.
+  function isFutureDay(dayName){
+    var d=dayCalDate(dayName); if(!d) return false;
+    var t=new Date(); t.setHours(0,0,0,0);
+    var dd=new Date(d); dd.setHours(0,0,0,0);
+    return dd.getTime() > t.getTime();
+  }
   // The week strip as a full 7-day week: each training/speed day, then the program's
   // rest entry repeated to fill out every remaining calendar day.
   function stripDays(){
@@ -3354,7 +3387,7 @@
       ? '<button class="finish-btn done" data-finish="1"><span>✓ Workout saved to history</span><span class="fb-sub">'+escAttr(ilog.sess.finishedAt)+' · tap to re-save</span></button>'
       : '<button class="finish-btn" data-finish="1">✓ Finish workout</button>';
     // Only offer a clear once there's actually something logged for this day.
-    return btn + (logged ? '<button class="clear-workout" data-clearworkout="1">Clear this workout</button>' : '');
+    return btn + (logged ? '<button class="clear-workout" data-clearworkout="1">↺ Clear / reset this workout</button>' : '');
   }
   function ffTomb(key){ var d=lsGet("ff_deleted",{}); if(!d||typeof d!=="object") d={}; d[key]=Date.now(); lsSet("ff_deleted",d); }
   // Clear the active day: wipe its week log + any matching history entry, and drop a tombstone
@@ -6287,7 +6320,7 @@
     if(cw){
       if(cw.getAttribute("data-armed")==="1"){ clearWorkout(); return; }   // second tap confirms
       cw.setAttribute("data-armed","1"); cw.textContent="Tap again to clear ✕"; cw.classList.add("arm");
-      setTimeout(function(){ if(cw&&cw.isConnected){ cw.removeAttribute("data-armed"); cw.textContent="Clear this workout"; cw.classList.remove("arm"); } }, 3500);
+      setTimeout(function(){ if(cw&&cw.isConnected){ cw.removeAttribute("data-armed"); cw.textContent="↺ Clear / reset this workout"; cw.classList.remove("arm"); } }, 3500);
       return;
     }
     var wu=e.target.closest("[data-wu]");                              // tap a warm-up move to check it off

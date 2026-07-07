@@ -64,6 +64,23 @@
     catch(e){ return ""; }
   }
   function sameDay(a,b){ return !!(a && b && a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate()); }
+  // A training/speed day's real calendar date (from its slot in the week strip).
+  // Rest days repeat, so this is only meaningful for the uniquely-named work days.
+  function dayCalDate(dayName){
+    var ds=stripDays();
+    for(var i=0;i<ds.length;i++){ if(ds[i].name===dayName) return chipDate(i); }
+    return null;
+  }
+  // "Future" = the day's date is after today. A future day is a preview, not a
+  // logbook: merely opening it must never start a session (that would back/forward-
+  // date your history and make the week strip lie). You can still log it early on
+  // purpose from an explicit button — this only kills the accidental auto-log.
+  function isFutureDay(dayName){
+    var d=dayCalDate(dayName); if(!d) return false;
+    var t=new Date(); t.setHours(0,0,0,0);
+    var dd=new Date(d); dd.setHours(0,0,0,0);
+    return dd.getTime() > t.getTime();
+  }
   // The week strip as a full 7-day week: each training/speed day, then the program's
   // rest entry repeated to fill out every remaining calendar day.
   function stripDays(){
