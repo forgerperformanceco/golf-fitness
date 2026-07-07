@@ -872,11 +872,10 @@
   .ob { position:fixed; inset:0; z-index:200;
     background:radial-gradient(135% 95% at 82% -8%, #14512f 0%, #0a2317 44%, #05130c 100%);
     display:flex; flex-direction:column; overflow-y:auto; -webkit-overflow-scrolling:touch; }
-  .ob-top { padding:18px 18px 0; }
+  /* Clear the iPhone status bar / Dynamic Island on the installed app (viewport-fit=cover). */
+  .ob-top { padding:calc(18px + env(safe-area-inset-top, 0px)) 18px 0; }
   .ob-prog { height:6px; background:rgba(255,255,255,.14); border-radius:999px; overflow:hidden; max-width:560px; margin:0 auto; }
   .ob-prog > span { display:block; height:100%; background:linear-gradient(90deg,#34d27b,#7ef0a8); border-radius:999px; transition:width .35s cubic-bezier(.4,0,.2,1); }
-  .ob-skip { max-width:560px; margin:10px auto 0; text-align:right; }
-  .ob-skip button { background:none; border:0; color:rgba(255,255,255,.5); font:600 12.5px system-ui; cursor:pointer; }
   .ob-main { flex:1; display:flex; flex-direction:column; justify-content:center; padding:14px 18px 24px; }
   .ob-card { width:100%; max-width:560px; margin:0 auto; color:#fff; }
   .ob-kicker { font:800 11.5px/1.2 system-ui; letter-spacing:1.2px; text-transform:uppercase; color:#7ef0a8; margin-bottom:12px; display:flex; align-items:center; gap:7px; }

@@ -6829,13 +6829,17 @@
     function render(){
       var s=ob.step, pct=Math.round((s/(ob.total-1))*100);
       var kicker="", title="", body="", nextLabel="Continue";
-      var showBack=s>0, showSkip=s>0 && s<7;
+      // Skip is available from the FIRST page (never trap someone in setup) and lives at the
+      // BOTTOM of the card — the old top-right link sat under the iPhone status bar on the
+      // installed app (viewport-fit=cover) and couldn't be tapped. Step 7 has its own
+      // "start later" link, so the generic skip hides there.
+      var showBack=s>0, showSkip=s<7;
 
       if(s===0){
         // Lean welcome — they already installed/opened the app; don't re-pitch it.
         // One hook, one promise, straight into the questions ("under a minute" starts now).
         body='<div class="ob-kicker"><span class="ball"></span> The Golfer’s Mass &amp; Speed System</div>'+
-          '<div class="ob-brand">Fairway<span class="em">Fuel</span></div>'+
+          '<div class="ob-brand">Yard<span class="em">smith</span></div>'+
           '<div class="ob-hook">Turn muscle<br>into <span class="em">distance</span>.</div>'+
           '<p class="ob-p">Six quick questions dial your <b>fuel, 20-week plan and yardage mission</b> to you. Under a minute — let’s go.</p>';
         nextLabel="Build my plan →";
@@ -6914,8 +6918,7 @@
       }
 
       root.innerHTML=
-        '<div class="ob-top"><div class="ob-prog"><span style="width:'+pct+'%"></span></div>'+
-          (showSkip?'<div class="ob-skip"><button type="button" id="obSkip">Skip setup</button></div>':'')+'</div>'+
+        '<div class="ob-top"><div class="ob-prog"><span style="width:'+pct+'%"></span></div></div>'+
         '<div class="ob-main"><div class="ob-card">'+
           (kicker?'<div class="ob-kicker">'+kicker+'</div>':'')+
           (title?'<h2 class="ob-h">'+title+'</h2>':'')+ body+
@@ -6923,6 +6926,7 @@
           '<div class="ob-nav">'+
             (showBack?'<button type="button" class="ob-back" id="obBack">Back</button>':'')+
             '<button type="button" class="ob-next" id="obNext">'+nextLabel+'</button></div>'+
+          (showSkip?'<button type="button" class="ob-later" id="obSkip">Skip setup — just look around</button>':'')+
           (s===7?'<button type="button" class="ob-later" id="obLater">I’ll start later — just look around</button>':'')+
         '</div></div>';
 
