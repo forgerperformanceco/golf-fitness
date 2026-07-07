@@ -144,7 +144,7 @@ professional before starting any training or nutrition program.
 ### Other fields
 - **Category:** Health & Fitness
 - **Contact email:** bobbydenisclay@gmail.com
-- **Privacy policy:** https://fairwayfuel.app/privacy.html
+- **Privacy policy:** https://yardsmith.golf/privacy.html
 
 ### App content declarations (Dashboard → App content)
 - **Data safety:** you collect **email** (account/login) and **bodyweight +

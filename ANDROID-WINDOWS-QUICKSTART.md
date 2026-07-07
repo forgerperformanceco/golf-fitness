@@ -42,7 +42,7 @@ Then in **Android Studio**:
    - **App content → Data safety:** you collect **email** (login) and
      **bodyweight** (fitness). Account deletion is available **in-app**
      (Account → Delete my account) — declare that + the app itself.
-   - **Privacy policy URL:** `https://fairwayfuel.app/privacy.html`
+   - **Privacy policy URL:** `https://yardsmith.golf/privacy.html`
    - Store listing: short/long description, your icon, screenshots
      (`shot-home.png`, `shot-train.png`).
 4. Roll out to **Internal testing** first (instant, invite yourself), then

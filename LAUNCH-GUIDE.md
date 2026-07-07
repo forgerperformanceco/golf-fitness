@@ -51,7 +51,7 @@ summary shows the published URL.
 
 ## 2. Custom domain (optional, ~$12/year)
 
-A domain like **fairwayfuel.app** or **fairwayfuel.golf** makes it feel real. ~20 minutes,
+A domain like **yardsmith.golf** or **fairwayfuel.golf** makes it feel real. ~20 minutes,
 mostly waiting on DNS.
 
 ### Step 1 — Buy the domain
@@ -62,7 +62,7 @@ all good. Search for the name you want and check out. `.app` and `.com` are safe
 ### Step 2 — Point DNS at GitHub Pages
 In your registrar's **DNS settings**, add these records.
 
-**For an apex domain (`fairwayfuel.app`):** add four `A` records, all host `@`:
+**For an apex domain (`yardsmith.golf`):** add four `A` records, all host `@`:
 ```
 A   @   185.199.108.153
 A   @   185.199.109.153
@@ -86,12 +86,12 @@ CNAME   www   pharmerbobby.github.io.
 > proxied (orange), or GitHub's HTTPS cert won't issue.
 
 ### Step 3 — Tell GitHub about the domain
-1. Repo → **Settings** → **Pages** → **Custom domain** → type `fairwayfuel.app` → **Save**.
+1. Repo → **Settings** → **Pages** → **Custom domain** → type `yardsmith.golf` → **Save**.
    (GitHub adds a `CNAME` file to your repo automatically — leave it there.)
 2. Wait for the green **"DNS check successful"** (minutes to a few hours).
 3. Tick **Enforce HTTPS** once it's available.
 
-That's it — `https://fairwayfuel.app` now serves the app. The `start_url`/`scope` in
+That's it — `https://yardsmith.golf` now serves the app. The `start_url`/`scope` in
 `manifest.webmanifest` are relative, so the installable app and share links keep working on
 the new domain with no changes.
 
@@ -134,7 +134,7 @@ seeds the cloud from whatever's already saved there, so nobody loses progress.
    ```
    (The anon key is designed to be public/shipped in the browser — that's safe.)
 5. **Allow your domain to receive logins** — **Authentication → URL Configuration** → set
-   **Site URL** to your live URL (e.g. `https://fairwayfuel.app` or the GitHub Pages URL) and
+   **Site URL** to your live URL (e.g. `https://yardsmith.golf` or the GitHub Pages URL) and
    add it under **Redirect URLs**. This is what makes the magic link return to your site.
 6. **Commit & push** `cloud-sync.js` — the button goes live on the next deploy. Test it:
    sign in with your own email, click the link, log a workout, then open the site on your

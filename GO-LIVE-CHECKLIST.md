@@ -28,7 +28,7 @@ Or paste `supabase/schema.sql` into Supabase → SQL Editor → Run.
 
 ```sh
 supabase secrets set ANTHROPIC_API_KEY=sk-ant-...      # server-side only
-supabase secrets set ALLOWED_ORIGIN=https://fairwayfuel.app
+supabase secrets set ALLOWED_ORIGIN=https://yardsmith.golf
 supabase functions deploy ai-coach
 ```
 

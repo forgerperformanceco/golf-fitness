@@ -12,7 +12,7 @@ const cards = {
     <div style="display:flex;align-items:center;gap:16px;margin-bottom:26px"><img src="${LOGO}" style="width:62px;height:62px"><span style="font-size:23px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:#7ef0a8">The Golfer's Mass &amp; Speed System</span></div>
     <div style="font-size:118px;line-height:.98;font-weight:900;letter-spacing:-.04em">Turn muscle<br>into <span style="color:#7ef0a8">distance.</span></div>
     <div style="font-size:38px;font-weight:600;color:#dbe7da;margin-top:34px;max-width:840px">Build like a bodybuilder, move like a golfer — add lean mass and hit it longer.</div>
-    <div style="position:absolute;bottom:64px;left:96px;right:96px;display:flex;justify-content:space-between;align-items:center"><span style="font-size:30px;font-weight:900;letter-spacing:.05em;color:#7ef0a8">EAT. LIFT. BOMB.</span><span style="font-size:30px;font-weight:800;opacity:.85">Yardsmith</span></div></div>`,
+    <div style="position:absolute;bottom:64px;left:96px;right:96px;display:flex;justify-content:space-between;align-items:center"><span style="font-size:30px;font-weight:900;letter-spacing:.05em;color:#7ef0a8">EAT. LIFT. BOMB.</span><span style="font-size:30px;font-weight:800;opacity:.85">yardsmith.golf</span></div></div>`,
   'post-bomb': `<div style="width:1080px;height:1080px;position:relative;overflow:hidden;background:${BG};color:#fff;font-family:${FONT};display:flex;flex-direction:column;align-items:center;justify-content:center">
     ${ball}
     <div style="font-size:188px;line-height:.96;font-weight:900;letter-spacing:-.03em;text-align:center">EAT.<br>LIFT.<br><span style="color:#7ef0a8">BOMB.</span></div>
@@ -29,7 +29,7 @@ const cards = {
     <div style="font-size:220px;line-height:.9;font-weight:900;color:#7ef0a8;letter-spacing:-.04em">+1<span style="font-size:88px;color:#fff"> mph</span></div>
     <div style="font-size:50px;font-weight:800;margin-top:14px">clubhead speed</div>
     <div style="font-size:62px;font-weight:900;margin-top:28px">≈ +2 yards of carry</div>
-    <div style="position:absolute;bottom:66px;font-size:30px;font-weight:800;color:#bfe3cd">Train the engine. Yardsmith.</div></div>`
+    <div style="position:absolute;bottom:66px;font-size:30px;font-weight:800;color:#bfe3cd">Train the engine. yardsmith.golf</div></div>`
 };
 (async()=>{
   const b=await chromium.launch({executablePath:'/opt/pw-browsers/chromium'});

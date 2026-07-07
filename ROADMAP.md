@@ -19,7 +19,7 @@ each phase is gated behind a deliberate "go" so we never ship a half-built paywa
 ## Where we are today (Phase 0 — shipped)
 
 - **Static PWA** on GitHub Pages: single `index.html` + `sw.js` (offline) + `manifest`.
-- **Custom domain** `fairwayfuel.app` (Porkbun DNS → GitHub Pages, `CNAME`).
+- **Custom domain** `yardsmith.golf` (Porkbun DNS → GitHub Pages, `CNAME`).
 - **Optional cloud login** (`cloud-sync.js`): Supabase magic-link auth + a `profiles`
   row that syncs the localStorage blob (`fairwayfuel`, `ff_week`, `ff_log`, `ff_body`)
   across devices. Free, no paywall.

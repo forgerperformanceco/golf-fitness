@@ -8,8 +8,9 @@
 // We echo the request origin when it's on the allow-list, else fall back to the
 // live site. Override/extend the primary origin with the ALLOWED_ORIGIN secret.
 const ALLOWED = new Set<string>([
-  Deno.env.get("ALLOWED_ORIGIN") ?? "https://fairwayfuel.app",
-  "https://fairwayfuel.app",
+  Deno.env.get("ALLOWED_ORIGIN") ?? "https://yardsmith.golf",
+  "https://yardsmith.golf",
+  "https://fairwayfuel.app",   // old domain — kept while the redirect is live
   "capacitor://localhost",   // iOS native shell
   "http://localhost",        // Android native shell
   "https://localhost",       // some WebView configurations
@@ -17,7 +18,7 @@ const ALLOWED = new Set<string>([
 
 export function corsFor(req: Request): Record<string, string> {
   const origin = req.headers.get("Origin") ?? "";
-  const allow = ALLOWED.has(origin) ? origin : "https://fairwayfuel.app";
+  const allow = ALLOWED.has(origin) ? origin : "https://yardsmith.golf";
   return {
     "Access-Control-Allow-Origin": allow,
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",

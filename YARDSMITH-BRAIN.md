@@ -5,8 +5,8 @@ built, what we believe, how we're positioned, what we've decided (and rejected),
 how it ships, and what's still open. Start here; every section points to the
 deeper doc when there is one.
 
-> **Status snapshot** (keep current): live PWA at **fairwayfuel.app** (domain
-> migration to a yardsmith domain pending — see §10); free, no paywall; Supabase
+> **Status snapshot** (keep current): live PWA at **yardsmith.golf** (domain
+> purchased Jul 2026; fairwayfuel.app redirects); free, no paywall; Supabase
 > backend wired but billing + AI coach gated off pending launch; native Android
 > project ready to build; iOS via cloud build; app-store accounts not yet created.
 > **The web app is now a modular `src/` codebase with a build step** (see §3) —
@@ -199,7 +199,7 @@ merges a blob to `profiles` with additive unions (`ff_log`, `ff_body`,
 `ffBench()` sex/age-calibrated reference numbers.
 
 **Deployment:** GitHub Pages (Fastly CDN) on the **main** branch, custom domain
-**fairwayfuel.app** (CNAME). Repo: **forgerperformanceco/golf-fitness** (public).
+**yardsmith.golf** (CNAME). Repo: **forgerperformanceco/golf-fitness** (public).
 
 ---
 
@@ -411,11 +411,13 @@ publishable key + VAPID public key ship client.
 
 ## 10. Open threads / next actions
 
-1. **Secure the Yardsmith domains** (`yardsmith.app` first; `.com`/`.golf` if
-   available) and migrate: register → point DNS → update CNAME + og:url/og:image
-   URLs + privacy-policy URL → keep fairwayfuel.app redirecting. Also regenerate
-   `og-image.png` (it shows the old domain in the corner). File the YARDSMITH
-   trademark in Classes 9/41/42 when committed.
+1. **Finish the domain cutover** — `yardsmith.golf` is purchased and every repo
+   URL/asset is migrated. Remaining: (a) DNS A records at the registrar →
+   GitHub Pages IPs, (b) flip the `CNAME` file (the cutover switch), (c) set a
+   permanent redirect on fairwayfuel.app → https://yardsmith.golf at its
+   registrar, (d) Supabase Auth → URL Configuration: Site URL + redirect list →
+   yardsmith.golf, (e) re-paste the sign-in email template. Then file the
+   YARDSMITH trademark in Classes 9/41/42.
 2. **Decide the Play Console account type** (Personal vs Organization) — see §7.
    The current gating decision for the Android launch.
 3. **Ship Android** — first build on Windows, internal testing → (20-tester closed

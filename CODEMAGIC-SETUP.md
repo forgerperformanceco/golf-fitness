@@ -54,7 +54,7 @@ one-time UI setup that pairs with the committed `codemagic.yaml`.
 - Install via **TestFlight** on your iPhone and check it end-to-end.
 - Back in App Store Connect, fill the listing (screenshots: `shot-home.png`,
   `shot-train.png`), set **privacy labels**, add the **Privacy Policy URL**
-  `https://fairwayfuel.app/privacy.html`, then **Submit for Review**.
+  `https://yardsmith.golf/privacy.html`, then **Submit for Review**.
 
 **Reviewer notes to paste** (from `BUILD-NATIVE-APP.md` §3):
 - Account deletion: *Account tab → Delete my account* (Guideline 5.1.1(v)).

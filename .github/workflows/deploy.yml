@@ -57,7 +57,7 @@ jobs:
         # Publish ONLY what the app serves. Keep the .md strategy/reference docs,
         # the backend (supabase/), the native projects (android/, ios/) and build
         # tooling OFF the public app domain — they're already in the public repo,
-        # but there's no reason to serve them at fairwayfuel.app. CNAME MUST be
+        # but there's no reason to serve them at yardsmith.golf. CNAME MUST be
         # kept or the custom domain breaks. Deny-list (not allow-list) so a new
         # served asset is never accidentally dropped.
         run: |

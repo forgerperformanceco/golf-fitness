@@ -1,7 +1,7 @@
 # Yardsmith — Build the iOS & Android apps (Capacitor)
 
 This wraps the existing web app (unchanged) in native iOS/Android shells so it
-can ship on the **App Store** and **Google Play**. The web PWA at fairwayfuel.app
+can ship on the **App Store** and **Google Play**. The web PWA at yardsmith.golf
 keeps working exactly as-is; this is packaging, not a rewrite.
 
 **What's already scaffolded in this repo (done for you):**
@@ -94,7 +94,7 @@ In Xcode:
 6. In **App Store Connect**: create the app record (bundle id `app.yardsmith`),
    fill the listing (use `shot-home.png` / `shot-train.png` for screenshots),
    set the **privacy “nutrition” labels**, link **Privacy Policy URL** →
-   `https://fairwayfuel.app/privacy.html`, then submit for review (TestFlight first
+   `https://yardsmith.golf/privacy.html`, then submit for review (TestFlight first
    is recommended).
 
 **Review notes to include (avoids the usual rejections):**

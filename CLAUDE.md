@@ -1,7 +1,7 @@
 # Yardsmith — repo guide
 
 Vanilla-JS PWA (no framework, no npm build for the site itself), served as-is
-from the repo root by GitHub Pages at fairwayfuel.app.
+from the repo root by GitHub Pages at yardsmith.golf.
 
 ## Where to edit (the one rule that matters)
 
