@@ -17,7 +17,8 @@
     receipts: { ic:"🧾", t:"Receipts", d:"Proof from your own data that the training moves the ball — scoring trend, drives near vs far from gym days, deload-week distance. They appear once ~5 rounds are banked." },
     carry:    { ic:"⛳", t:"Driver carry", d:"How far your drive flies in the air, roll not included — the app’s headline distance. Log it from real rounds or a launch monitor." },
     speedtest:{ ic:"🎯", t:"Speed Test Day", d:"Every 2 weeks: warm up, take 3 max-intent 7-iron swings, keep the best. Same club, same rule every time, so the trend is honest. Roughly +1 mph ≈ +2 yards of carry." },
-    p2w:      { ic:"⚖️", t:"Power-to-weight", d:"Clubhead speed relative to bodyweight. Mass only helps when it swings faster — this pillar keeps a bulk honest." }
+    p2w:      { ic:"⚖️", t:"Power-to-weight", d:"Clubhead speed relative to bodyweight. Mass only helps when it swings faster — this pillar keeps a bulk honest." },
+    tdee:     { ic:"🔥", t:"TDEE — maintenance calories", d:"Total Daily Energy Expenditure: the calories your body burns in a normal day (BMR × activity). Eat above it and you gain, below it and you lose — your goal target is TDEE plus or minus the right margin." }
   };
   function ffTerm(key, label){
     var T=FF_TERMS[key]; if(!T) return (label||key);

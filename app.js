@@ -275,7 +275,8 @@
     receipts: { ic:"🧾", t:"Receipts", d:"Proof from your own data that the training moves the ball — scoring trend, drives near vs far from gym days, deload-week distance. They appear once ~5 rounds are banked." },
     carry:    { ic:"⛳", t:"Driver carry", d:"How far your drive flies in the air, roll not included — the app’s headline distance. Log it from real rounds or a launch monitor." },
     speedtest:{ ic:"🎯", t:"Speed Test Day", d:"Every 2 weeks: warm up, take 3 max-intent 7-iron swings, keep the best. Same club, same rule every time, so the trend is honest. Roughly +1 mph ≈ +2 yards of carry." },
-    p2w:      { ic:"⚖️", t:"Power-to-weight", d:"Clubhead speed relative to bodyweight. Mass only helps when it swings faster — this pillar keeps a bulk honest." }
+    p2w:      { ic:"⚖️", t:"Power-to-weight", d:"Clubhead speed relative to bodyweight. Mass only helps when it swings faster — this pillar keeps a bulk honest." },
+    tdee:     { ic:"🔥", t:"TDEE — maintenance calories", d:"Total Daily Energy Expenditure: the calories your body burns in a normal day (BMR × activity). Eat above it and you gain, below it and you lose — your goal target is TDEE plus or minus the right margin." }
   };
   function ffTerm(key, label){
     var T=FF_TERMS[key]; if(!T) return (label||key);
@@ -851,6 +852,7 @@
       goal:g,pct:g.pct, timing:timing, meal:meal, weekly:weekly });
     updateFoodTargets(proteinG, carbG, mealN);
     try{ renderFFMeals(); }catch(e){}
+    try{ renderFuelToday(); }catch(e){}
     try{ applyCalcCollapse(); }catch(e){}
     updatePlanCopy();                 // keep the Train-tab framing in step with the goal
     // Stash the computed targets so the AI coach can use the user's exact numbers.
@@ -1768,19 +1770,27 @@
 
     var adjNow=lsGet("ff_kcal_adj",0);
     var html="";
+    // Prose diet (same rule as Home): the numbers lead, one compact scale line
+    // stays visible, and the education (full weekly-target band + goal note)
+    // lives inside the "How this is calculated" fold.
+    var scaleLine = r.weekly
+      ? (r.weekly.gain?'▲':'▼')+' Scale target: <b>'+r.weekly.lo+'–'+r.weekly.hi+' lb/wk</b> · judge the weekly average'
+      : 'Scale target: <b>hold flat</b> — in-season maintenance';
     html+='<div class="result-hero">'+
       '<div class="kcal">'+round(totalK)+' <small>kcal/day</small></div>'+
       '<div class="goal-label">'+r.goal.label+' &middot; '+pctTxt+'</div>'+
-      '<div class="tdee-line">Maintenance (TDEE): <b>'+round5(r.tdee)+' kcal</b> &nbsp;·&nbsp; Goal target: <b>'+round5(r.target)+' kcal</b> ('+deltaTxt+')</div>'+
+      '<div class="tdee-line">'+ffTerm('tdee','Maintenance (TDEE)')+': <b>'+round5(r.tdee)+' kcal</b> &nbsp;·&nbsp; Goal target: <b>'+round5(r.target)+' kcal</b> ('+deltaTxt+')</div>'+
       (adjNow!==0 ? '<div class="tuned-note">📊 Tuned <b>'+(adjNow>0?'+':'')+adjNow+' kcal</b> from your actual weight trend</div>' : '')+
       '</div>';
-    html+=targetBand(r.weekly,r.goal);
     html+='<div class="macros">'+
       macroCard("p","Protein",r.proteinG,r.proteinKcal,pPct)+
       macroCard("c","Carbs",r.carbG,r.carbKcal,cPct)+
       macroCard("f","Fat",r.fatG,r.fatKcal,fPct)+'</div>';
-    html+='<div class="golf-note"><b>⛳ '+r.goal.label+':</b> '+r.goal.note+'</div>';
-    html+='<details class="fold"><summary>How this is calculated</summary><div class="fold-body breakdown"><table>'+
+    html+='<div class="golf-note slim">'+scaleLine+'</div>';
+    html+='<details class="fold"><summary>How this is calculated — and how fast the scale should move</summary><div class="fold-body breakdown">'+
+      targetBand(r.weekly,r.goal)+
+      '<div class="golf-note"><b>⛳ '+r.goal.label+':</b> '+r.goal.note+'</div>'+
+      '<table>'+
       tr("BMR (Mifflin–St Jeor)",round5(r.bmr)+" kcal")+
       tr("Activity multiplier","×"+r.activity+" ("+ACTIVITY_LABELS[String(r.activity)]+")")+
       tr("TDEE / Maintenance",round5(r.tdee)+" kcal")+
@@ -1856,6 +1866,39 @@
     try{ calc(); }catch(e){}
     try{ renderDash(); }catch(e){}
     try{ if($("view-progress") && $("view-progress").classList.contains("active")) renderProgress(); }catch(e){}
+    try{ renderFuelToday(); }catch(e){}
+  }
+  /* ----- The Fuel "Today" strip: the daily answer, first -----
+     MFP leads with calories remaining; we lead with the next unchecked meal
+     (one-tap check-off), the fueled count, and the protein/carbs still owed —
+     summed live from the unchecked schedule slots. A fully banked day gets the
+     reward state. Lives at the top of the Fuel tab; the plan and meal cards
+     below stay the reference. */
+  function renderFuelToday(){
+    var el=$("fuelToday"); if(!el) return;
+    var t=lsGet("ff_targets",null);
+    if(!t || !t.kcal || typeof ffSchedule==="undefined" || !ffSchedule || !ffSchedule.length){ el.innerHTML=""; return; }
+    var fd=fuelDay(ffISO())||{ m:{} };
+    var n=ffSchedule.length, done=0, next=null, ni=-1, remP=0, remC=0;
+    ffSchedule.forEach(function(sl,i){
+      if(fd.m && fd.m[i]){ done++; return; }
+      if(!next){ next=sl; ni=i; }
+      remP+=(sl.p||0); remC+=(sl.c||0);
+    });
+    if(!next){
+      el.innerHTML='<div class="ftoday done"><span class="ft-ic">✅</span>'+
+        '<span class="ft-tx"><b>Fuel day banked</b><span>All '+n+' meals checked — the scale does the judging now.</span></span></div>';
+      return;
+    }
+    var time=(next.t!=null)?fmtMin(Math.round(next.t*60)):"";
+    var macro=(next.p?next.p+"P":"")+(next.c?((next.p?" · ":"")+next.c+"C"):"");
+    el.innerHTML='<div class="ftoday">'+
+      '<button type="button" class="ft-next" data-fuelmeal="'+ni+'" data-fuelval="a">'+
+        '<span class="ft-ic">🍽️</span><span class="ft-tx"><b>Next: '+next.label+(time?' · '+time:'')+'</b>'+
+        '<span>'+(macro?macro+' — ':'')+'tap when eaten</span></span><span class="ft-chk">✓</span></button>'+
+      '<div class="ft-rem"><span><b>'+done+'</b>/'+n+' fueled</span>'+
+        '<span>still to eat: <b>'+remP+'</b>P · <b>'+remC+'</b>C</span></div>'+
+      '</div>';
   }
   // Every check-off surface routes through one listener.
   document.addEventListener("click", function(e){
