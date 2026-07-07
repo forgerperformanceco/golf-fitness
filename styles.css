@@ -471,6 +471,10 @@
   table.ex td.sets .effort { font-size:11px; font-weight:600; color:var(--muted); margin-top:3px; letter-spacing:.2px; white-space:nowrap; }
   .deload-banner { background:#eef3ff; border:1px solid #cfdbf2; color:#2c3e66; border-radius:12px; padding:11px 14px; font-size:13px; line-height:1.45; margin-bottom:14px; }
   .deload-banner b { color:#1f2f57; }
+  /* Future-day preview note — themes off tokens so no hand-pinned dark variant. */
+  .upcoming-banner { background:var(--paper); border:1px solid var(--line); border-left:3px solid #d9a441;
+    color:var(--muted); border-radius:12px; padding:11px 14px; font-size:13px; line-height:1.5; margin-bottom:14px; }
+  .upcoming-banner b { color:var(--ink); }
   .romcue { padding:8px 15px 2px; font-size:12px; color:var(--muted); font-style:italic; line-height:1.4; }
   .exlegend { font-size:12px; color:var(--muted); margin:-4px 0 14px; padding:0 2px; line-height:1.4; }
   .exlegend b { color:#3f3818; }
@@ -2052,6 +2056,7 @@
   html:not([data-theme="light"]) .warm{ color:#c8d1cb; background:#152112; }
   html:not([data-theme="light"]) .deload-banner{ background:#121722; border:1px solid #263043; color:#c0cae1; }
   html:not([data-theme="light"]) .deload-banner b{ color:#c3cce2; }
+  html:not([data-theme="light"]) .upcoming-banner{ border-left:3px solid #625337; }
   html:not([data-theme="light"]) .exlegend b{ color:#e4dec6; }
   html:not([data-theme="light"]) .mode-banner.build{ background:#142417; border:1px solid #274531; color:#cddad2; }
   html:not([data-theme="light"]) .mode-banner.retain{ background:#241c13; border:1px solid #493c29; color:#e0d2bf; }
@@ -2331,6 +2336,7 @@
   html[data-theme="dark"] .warm{ color:#c8d1cb; background:#152112; }
   html[data-theme="dark"] .deload-banner{ background:#121722; border:1px solid #263043; color:#c0cae1; }
   html[data-theme="dark"] .deload-banner b{ color:#c3cce2; }
+  html[data-theme="dark"] .upcoming-banner{ border-left:3px solid #625337; }
   html[data-theme="dark"] .exlegend b{ color:#e4dec6; }
   html[data-theme="dark"] .mode-banner.build{ background:#142417; border:1px solid #274531; color:#cddad2; }
   html[data-theme="dark"] .mode-banner.retain{ background:#241c13; border:1px solid #493c29; color:#e0d2bf; }

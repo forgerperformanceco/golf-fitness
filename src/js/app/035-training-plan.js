@@ -615,13 +615,29 @@
           '<span class="ws-name">'+(done?"✓ ":"")+wsShort(d)+'</span></button>';
       }).join("");
       html+='<div class="weekstrip">'+strip+'</div>';
-      html+=dayCardHtml(featured, true, true);   // interactive: player CTA + list (or opted-in inline logger)
-      // Finish/clear belong to manual logging — the player has its own finish flow.
-      var workNow = !!(ilog && ilog.sess.ex.some(function(x){ return (x.sets||[]).some(function(st){ return st.w||st.r||st.done; }); }));
-      if(workNow || lsGet("ff_manual_log", false)){
-        html+='<div id="finishBar">'+finishBtnHtml()+'</div>';
-        // Offer the way back only while nothing's typed — never hide entered work.
-        if(!workNow) html+='<button type="button" class="sl-manual off" data-manuallog="0">Hide manual logging — back to the simple list</button>';
+      // A future day is a PREVIEW, never an active session: rendering it
+      // interactive is what used to auto-open the inline logger the moment you
+      // tapped a day that hadn't arrived yet ("it starts to log it"). Show the
+      // plan read-only instead, with a note that it opens on the day — and an
+      // explicit "log it early" path still available from the card's log button.
+      var featFuture = featured.type!=="rest" && isFutureDay(featured.name);
+      if(featFuture){
+        var fdt=dayCalDate(featured.name);
+        var fwhen=fdt?fdt.toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric"}):"soon";
+        html+='<div class="upcoming-banner">📅 <b>Coming up '+fwhen+'.</b> Here’s the plan to preview — opening it won’t start logging. It unlocks on the day; to train it early, use <b>Log workout</b> at the bottom of the card.</div>';
+        html+=dayCardHtml(featured, true, false);   // static preview — opening never logs
+      } else {
+        html+=dayCardHtml(featured, true, true);   // interactive: player CTA + list (or opted-in inline logger)
+        // Finish + Clear/reset. Show whenever there's anything to save OR clear —
+        // a finished session (logged via the player or manually) always gets its
+        // reset control here, not only while manual mode is on.
+        var hasSession = !!getSession(curWeek(), featured.name);
+        var workNow = !!(ilog && ilog.sess.ex.some(function(x){ return (x.sets||[]).some(function(st){ return st.w||st.r||st.done; }); }));
+        if(workNow || hasSession || lsGet("ff_manual_log", false)){
+          html+='<div id="finishBar">'+finishBtnHtml()+'</div>';
+          // Offer the way back only while nothing's logged — never hide entered work.
+          if(!workNow && !hasSession) html+='<button type="button" class="sl-manual off" data-manuallog="0">Hide manual logging — back to the simple list</button>';
+        }
       }
     } else {
       var primerNoteShown=false;
@@ -634,8 +650,8 @@
 
     html+='<button class="train-ai" data-ask="train"><span>💬 <b>Coach this week</b></span><span class="tai-go">Adjust ›</span></button>';
 
-    // Review: a slim shortcut to the full Stats tab (no duplicated chart here).
-    html+='<button class="train-link" data-gostats="1"><span>📊 See your full progress</span><span class="tl-go">Stats ›</span></button>';
+    // Workout history stays; the Stats-tab shortcut is gone — the Stats tab and
+    // the hero's week progress bar already cover "see your progress."
     html+='<button class="train-link" data-gohistory="1"><span>📖 Workout history</span><span class="tl-go">All time ›</span></button>';
 
     // Learn: the three reference reads grouped under ONE playbook fold.

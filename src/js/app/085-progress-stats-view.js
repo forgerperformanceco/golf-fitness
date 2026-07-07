@@ -497,7 +497,7 @@
     if(cw){
       if(cw.getAttribute("data-armed")==="1"){ clearWorkout(); return; }   // second tap confirms
       cw.setAttribute("data-armed","1"); cw.textContent="Tap again to clear ✕"; cw.classList.add("arm");
-      setTimeout(function(){ if(cw&&cw.isConnected){ cw.removeAttribute("data-armed"); cw.textContent="Clear this workout"; cw.classList.remove("arm"); } }, 3500);
+      setTimeout(function(){ if(cw&&cw.isConnected){ cw.removeAttribute("data-armed"); cw.textContent="↺ Clear / reset this workout"; cw.classList.remove("arm"); } }, 3500);
       return;
     }
     var wu=e.target.closest("[data-wu]");                              // tap a warm-up move to check it off

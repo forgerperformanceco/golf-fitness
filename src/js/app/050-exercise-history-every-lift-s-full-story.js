@@ -192,7 +192,7 @@
       ? '<button class="finish-btn done" data-finish="1"><span>✓ Workout saved to history</span><span class="fb-sub">'+escAttr(ilog.sess.finishedAt)+' · tap to re-save</span></button>'
       : '<button class="finish-btn" data-finish="1">✓ Finish workout</button>';
     // Only offer a clear once there's actually something logged for this day.
-    return btn + (logged ? '<button class="clear-workout" data-clearworkout="1">Clear this workout</button>' : '');
+    return btn + (logged ? '<button class="clear-workout" data-clearworkout="1">↺ Clear / reset this workout</button>' : '');
   }
   function ffTomb(key){ var d=lsGet("ff_deleted",{}); if(!d||typeof d!=="object") d={}; d[key]=Date.now(); lsSet("ff_deleted",d); }
   // Clear the active day: wipe its week log + any matching history entry, and drop a tombstone
