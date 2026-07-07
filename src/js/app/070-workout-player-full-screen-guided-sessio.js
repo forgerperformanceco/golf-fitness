@@ -800,15 +800,40 @@
         (gain!=null
           ? '<div class="hero-gainrow"><span class="hero-gain'+(gain>=0?'':' neg')+'">'+(gain>=0?'▲ +':'▼ ')+Math.abs(gain)+' yds</span>'+
             '<span class="hero-since">vs your start · was '+d.baseline+'</span></div>'+missionHtml
-          : '<div class="hero-since solo">Your baseline is set — log again in a few weeks to see the gain.</div>');
+          : '<div class="hero-since solo">Baseline banked — your next logged drive starts the climb.</div>');
     } else {
       top = '<div class="hero-kick">⛳ Driver carry</div>'+
         '<div class="hero-empty"><b>Add your driver distance</b><span>From a launch monitor, or just how far you hit it — log it below and watch it climb.</span></div>';
     }
+    // The Octane subline is the SAME dynamic "biggest lever" read the Stats hub
+    // uses — a coach line that changes with the data beats a slogan that never does.
     var engine = '<div class="hero-engine">'+octaneGaugeHtml(r.score)+
       '<div class="hero-etx"><div class="hero-ename">'+ffTerm('octane','Octane')+'</div>'+
-      '<div class="hero-esub">Your engine — <b>lifting, fuel &amp; speed work.</b> Keep it high and the yards follow.</div></div></div>';
-    return '<button class="ffscore hero-card" data-goview="progress">'+top+engine+'</button>';
+      '<div class="hero-esub">'+ffScoreSummary(r)+'</div></div></div>';
+    return '<button class="ffscore hero-card" data-goview="progress">'+top+engine+heroWeekStrip()+'</button>';
+  }
+  // Hevy-style week strip: Mon–Sun dots, filled when a session was finished that
+  // day, ringed on today — the week's consistency in one glance, on the card you
+  // look at every open. Replaces the old "Week so far" row.
+  function heroWeekStrip(){
+    if(!planStart()) return '';
+    var ws=weekStartDateCal(), freq=(typeof planState!=="undefined"&&planState.freq)||4;
+    var byDay={};
+    lsGet("ff_history",[]).forEach(function(h){
+      if(!h || !h.ts) return;
+      var d=new Date(h.ts); d.setHours(0,0,0,0); byDay[d.getTime()]=true;
+    });
+    var today=new Date(); today.setHours(0,0,0,0);
+    var n=0, dots='';
+    for(var i=0;i<7;i++){
+      var d=new Date(ws); d.setDate(ws.getDate()+i);
+      var done=!!byDay[d.getTime()];
+      if(done) n++;
+      dots+='<span class="hw-d'+(done?' on':'')+(d.getTime()===today.getTime()?' today':'')+'">'+
+        ["M","T","W","T","F","S","S"][i]+'</span>';
+    }
+    return '<div class="hero-week"><span class="hw-dots">'+dots+'</span>'+
+      '<span class="hw-n"><b>'+n+'</b>/'+freq+' this week</span></div>';
   }
   // The Octane hub: each pillar opens a drill-in — its trend, what it means, and
   // the one action that moves it. The gauge stops being a number and becomes a map.

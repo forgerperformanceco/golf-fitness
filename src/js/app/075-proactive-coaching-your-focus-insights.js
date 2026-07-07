@@ -243,7 +243,8 @@
     // slim one-line rows — same taps, a fraction of the ink.
     var doneList=entries.filter(function(e){ return e.done; });
     var pending=entries.filter(function(e){ return !e.done; });
-    var h='<div class="tl"><div class="tl-h"><span>'+ffIcon("calendar",13)+' Your day</span>'+fuelChip+'</div>';
+    var wkday=''; try{ wkday=new Date().toLocaleDateString(undefined,{weekday:"long"}); }catch(e){}
+    var h='<div class="tl"><div class="tl-h"><span>'+ffIcon("calendar",13)+' Your '+(wkday||'day')+'</span>'+fuelChip+'</div>';
     if(doneList.length){
       h+='<button type="button" class="tl-donepill" data-tldone="1">✓ '+doneList.length+' banked'+
         '<span>'+(tlShowDone?'hide':'show')+'</span></button>';
@@ -260,12 +261,13 @@
   });
   function renderDash(){
     var el=$("dashBody"); if(!el) return;
-    var html = renderHeroCard();     // where you stand: driver carry + Octane
-    html += nextUpCard();            // the ONE thing to do right now
-    html += renderInsight();         // your focus (secondary nudge)
+    // Action first (the Hevy rule), status second, ONE advice card ever —
+    // the metabolism check-in outranks the focus nudge when it's due.
+    var html = nextUpCard();         // the ONE thing to do right now
+    try{ html += dashTipHtml(); }catch(e){}   // one-time nudge, never above the action
+    html += renderHeroCard();        // where you stand: carry + Octane + the week strip
+    html += (renderAdaptiveCard() || renderInsight());
     html += timelineHtml();          // the day, in time order
-    html += renderAdaptiveCard();    // metabolism check-in (only when due)
-    html += renderWeekRecap();       // week so far + the board
     html += '<button class="dash-ai" data-ask="read"><span class="dai-ic">💬</span>'+
       '<span class="dai-tx"><b>Coach’s read</b><span>A quick AI take on your numbers &amp; what to focus on</span></span>'+
       '<span class="dai-go">›</span></button>';

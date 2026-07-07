@@ -422,32 +422,33 @@
     return { key:"install", cls:"tip-install", ic:"📲", t:"Keep FairwayFuel one tap away",
       b:"In your browser menu, tap <b>“Install app”</b> / <b>“Add to Home Screen.”</b> It works offline like a real app." };
   }
-  function showTipFor(view){
-    var host = document.getElementById("view-"+view); if(!host) return;
-    var old = host.querySelector(":scope > .tip"); if(old) old.remove();
-    var tip;
-    if(view==="dash"){
-      // Priority on Home: sign-in nudge (signed out) → install hint → generic home tip.
-      tip = !ffSignedIn() ? FF_TIP_SIGNIN : (ffInstallTip() || FF_TIPS.dash);
-    } else if(view==="account" && ffSignedIn()){
-      return;   // already signed in — the "sign in to unlock" tip would be wrong
-    } else {
-      tip = FF_TIPS[view];
-    }
-    if(!tip) return;
+  function ffTipHtml(tip){
+    if(!tip) return '';
     var seen = lsGet("ff_tips_seen", []);
-    if(seen.indexOf(tip.key) >= 0) return;
-    var el = document.createElement("div");
-    el.className = "tip" + (tip.cls ? " "+tip.cls : "");
-    el.setAttribute("data-tipkey", tip.key);
-    el.innerHTML = '<span class="tip-ic">'+tip.ic+'</span>'+
+    if(seen.indexOf(tip.key) >= 0) return '';
+    return '<div class="tip'+(tip.cls?' '+tip.cls:'')+'" data-tipkey="'+tip.key+'">'+
+      '<span class="tip-ic">'+tip.ic+'</span>'+
       '<div class="tip-tx"><div class="tip-t">'+tip.t+'</div><div class="tip-b">'+tip.b+'</div>'+
       (tip.cta ? '<button type="button" class="tip-cta" data-tipcta="'+(tip.ctaAction||'signin')+'">'+tip.cta+'</button>' : '')+
       '</div>'+
-      '<button type="button" class="tip-x" data-tipclose="'+tip.key+'" aria-label="Dismiss">×</button>';
-    var anchor = host.firstChild;
-    if(view==="dash"){ var hero=host.querySelector(".dash-hero"); if(hero && !hero.hidden) anchor = hero.nextSibling; }
-    host.insertBefore(el, anchor);
+      '<button type="button" class="tip-x" data-tipclose="'+tip.key+'" aria-label="Dismiss">×</button></div>';
+  }
+  // Home renders its own tip INSIDE the dash flow (below the next-up card) so
+  // the nudge never outranks the action — and re-renders keep it consistent.
+  function dashTipHtml(){
+    var tip = !ffSignedIn() ? FF_TIP_SIGNIN : (ffInstallTip() || FF_TIPS.dash);
+    return ffTipHtml(tip);
+  }
+  function showTipFor(view){
+    if(view==="dash") return;   // Home owns its tip inline (renderDash)
+    var host = document.getElementById("view-"+view); if(!host) return;
+    var old = host.querySelector(":scope > .tip"); if(old) old.remove();
+    if(view==="account" && ffSignedIn()) return;   // "sign in to unlock" would be wrong
+    var html = ffTipHtml(FF_TIPS[view]);
+    if(!html) return;
+    var el = document.createElement("div");
+    el.innerHTML = html;
+    host.insertBefore(el.firstChild, host.firstChild);
   }
   function ffSeeTip(key){ var s=lsGet("ff_tips_seen", []); if(s.indexOf(key)<0){ s.push(key); lsSet("ff_tips_seen", s); } }
   // One delegated handler for every tip's close button + the sign-in CTA.
@@ -4504,15 +4505,40 @@
         (gain!=null
           ? '<div class="hero-gainrow"><span class="hero-gain'+(gain>=0?'':' neg')+'">'+(gain>=0?'▲ +':'▼ ')+Math.abs(gain)+' yds</span>'+
             '<span class="hero-since">vs your start · was '+d.baseline+'</span></div>'+missionHtml
-          : '<div class="hero-since solo">Your baseline is set — log again in a few weeks to see the gain.</div>');
+          : '<div class="hero-since solo">Baseline banked — your next logged drive starts the climb.</div>');
     } else {
       top = '<div class="hero-kick">⛳ Driver carry</div>'+
         '<div class="hero-empty"><b>Add your driver distance</b><span>From a launch monitor, or just how far you hit it — log it below and watch it climb.</span></div>';
     }
+    // The Octane subline is the SAME dynamic "biggest lever" read the Stats hub
+    // uses — a coach line that changes with the data beats a slogan that never does.
     var engine = '<div class="hero-engine">'+octaneGaugeHtml(r.score)+
       '<div class="hero-etx"><div class="hero-ename">'+ffTerm('octane','Octane')+'</div>'+
-      '<div class="hero-esub">Your engine — <b>lifting, fuel &amp; speed work.</b> Keep it high and the yards follow.</div></div></div>';
-    return '<button class="ffscore hero-card" data-goview="progress">'+top+engine+'</button>';
+      '<div class="hero-esub">'+ffScoreSummary(r)+'</div></div></div>';
+    return '<button class="ffscore hero-card" data-goview="progress">'+top+engine+heroWeekStrip()+'</button>';
+  }
+  // Hevy-style week strip: Mon–Sun dots, filled when a session was finished that
+  // day, ringed on today — the week's consistency in one glance, on the card you
+  // look at every open. Replaces the old "Week so far" row.
+  function heroWeekStrip(){
+    if(!planStart()) return '';
+    var ws=weekStartDateCal(), freq=(typeof planState!=="undefined"&&planState.freq)||4;
+    var byDay={};
+    lsGet("ff_history",[]).forEach(function(h){
+      if(!h || !h.ts) return;
+      var d=new Date(h.ts); d.setHours(0,0,0,0); byDay[d.getTime()]=true;
+    });
+    var today=new Date(); today.setHours(0,0,0,0);
+    var n=0, dots='';
+    for(var i=0;i<7;i++){
+      var d=new Date(ws); d.setDate(ws.getDate()+i);
+      var done=!!byDay[d.getTime()];
+      if(done) n++;
+      dots+='<span class="hw-d'+(done?' on':'')+(d.getTime()===today.getTime()?' today':'')+'">'+
+        ["M","T","W","T","F","S","S"][i]+'</span>';
+    }
+    return '<div class="hero-week"><span class="hw-dots">'+dots+'</span>'+
+      '<span class="hw-n"><b>'+n+'</b>/'+freq+' this week</span></div>';
   }
   // The Octane hub: each pillar opens a drill-in — its trend, what it means, and
   // the one action that moves it. The gauge stops being a number and becomes a map.
@@ -4909,7 +4935,8 @@
     // slim one-line rows — same taps, a fraction of the ink.
     var doneList=entries.filter(function(e){ return e.done; });
     var pending=entries.filter(function(e){ return !e.done; });
-    var h='<div class="tl"><div class="tl-h"><span>'+ffIcon("calendar",13)+' Your day</span>'+fuelChip+'</div>';
+    var wkday=''; try{ wkday=new Date().toLocaleDateString(undefined,{weekday:"long"}); }catch(e){}
+    var h='<div class="tl"><div class="tl-h"><span>'+ffIcon("calendar",13)+' Your '+(wkday||'day')+'</span>'+fuelChip+'</div>';
     if(doneList.length){
       h+='<button type="button" class="tl-donepill" data-tldone="1">✓ '+doneList.length+' banked'+
         '<span>'+(tlShowDone?'hide':'show')+'</span></button>';
@@ -4926,12 +4953,13 @@
   });
   function renderDash(){
     var el=$("dashBody"); if(!el) return;
-    var html = renderHeroCard();     // where you stand: driver carry + Octane
-    html += nextUpCard();            // the ONE thing to do right now
-    html += renderInsight();         // your focus (secondary nudge)
+    // Action first (the Hevy rule), status second, ONE advice card ever —
+    // the metabolism check-in outranks the focus nudge when it's due.
+    var html = nextUpCard();         // the ONE thing to do right now
+    try{ html += dashTipHtml(); }catch(e){}   // one-time nudge, never above the action
+    html += renderHeroCard();        // where you stand: carry + Octane + the week strip
+    html += (renderAdaptiveCard() || renderInsight());
     html += timelineHtml();          // the day, in time order
-    html += renderAdaptiveCard();    // metabolism check-in (only when due)
-    html += renderWeekRecap();       // week so far + the board
     html += '<button class="dash-ai" data-ask="read"><span class="dai-ic">💬</span>'+
       '<span class="dai-tx"><b>Coach’s read</b><span>A quick AI take on your numbers &amp; what to focus on</span></span>'+
       '<span class="dai-go">›</span></button>';
