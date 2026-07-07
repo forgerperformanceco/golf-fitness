@@ -1359,11 +1359,14 @@
   .add-group { font:800 11px system-ui; text-transform:uppercase; letter-spacing:.7px; color:var(--muted); margin:14px 2px 8px; }
   .swap-coach { width:100%; margin-top:6px; background:#eef7f0; border:1px solid #cfe9d8; color:var(--green-700);
     border-radius:12px; padding:13px; font:700 13.5px system-ui; cursor:pointer; }
-  .day-foot { padding:11px 15px 13px; border-top:1px solid var(--line); display:flex; justify-content:flex-end; align-items:center; gap:10px; }
-  .logbtn { display:inline-flex; align-items:center; gap:6px; border:none; cursor:pointer; font-weight:700; font-size:13px;
-    border-radius:10px; padding:11px 16px; background:var(--green-600); color:#fff; transition:all .15s; }
+  /* Full-width stacked buttons — a right-aligned half-width pill read as broken on mobile. */
+  .day-foot { padding:11px 15px 13px; border-top:1px solid var(--line); display:flex; flex-direction:column; align-items:stretch; gap:8px; }
+  .logbtn { display:flex; justify-content:center; align-items:center; gap:6px; width:100%; border:none; cursor:pointer; font-weight:700; font-size:13px;
+    border-radius:10px; padding:12px 16px; background:var(--green-600); color:#fff; transition:all .15s; }
   .logbtn:hover { background:var(--green-700); }
   .logbtn.logged { background:#eef7f0; color:var(--green-700); border:1px solid #cfe9d8; }
+  .logbtn.reset { background:none; color:var(--muted); border:1px solid var(--line); font-weight:700; }
+  .logbtn.reset.arm { border-color:#d9534f; color:#c0392b; }
 
   .modal-back { position:fixed; inset:0; background:rgba(8,24,15,.55); z-index:100;
     display:flex; align-items:flex-end; justify-content:center; opacity:0; pointer-events:none; transition:opacity .2s; }
@@ -2166,6 +2169,7 @@
   html:not([data-theme="light"]) .add-search{ background:#1a1a1a; }
   html:not([data-theme="light"]) .swap-coach{ background:#142417; border:1px solid #274531; }
   html:not([data-theme="light"]) .logbtn.logged{ background:#142417; border:1px solid #274531; }
+  html:not([data-theme="light"]) .logbtn.reset.arm{ border-color:#623837; }
   html:not([data-theme="light"]) .logx{ background:#1a1a1a; }
   html:not([data-theme="light"]) .logx-name{ color:#caded2; }
   html:not([data-theme="light"]) .logx-last{ background:#122116; }
@@ -2446,6 +2450,7 @@
   html[data-theme="dark"] .add-search{ background:#1a1a1a; }
   html[data-theme="dark"] .swap-coach{ background:#142417; border:1px solid #274531; }
   html[data-theme="dark"] .logbtn.logged{ background:#142417; border:1px solid #274531; }
+  html[data-theme="dark"] .logbtn.reset.arm{ border-color:#623837; }
   html[data-theme="dark"] .logx{ background:#1a1a1a; }
   html[data-theme="dark"] .logx-name{ color:#caded2; }
   html[data-theme="dark"] .logx-last{ background:#122116; }

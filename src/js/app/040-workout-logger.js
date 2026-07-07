@@ -144,8 +144,11 @@
   }
   function logFoot(name){
     var done=!!getSession(curWeek(), name);
-    return '<div class="day-foot"><button class="logbtn'+(done?" logged":"")+'" data-logday="'+escAttr(name)+'">'+
-      (done?"✓ Logged — tap to edit":ffIcon("play",13)+" Log workout")+'</button></div>';
+    if(!done) return '<div class="day-foot"><button class="logbtn" data-logday="'+escAttr(name)+'">'+ffIcon("play",13)+' Log workout</button></div>';
+    // Logged: full-width edit button + a reset, so any logged day (Full-week or a
+    // non-featured day) can be cleared without hunting for the Today finish bar.
+    return '<div class="day-foot"><button class="logbtn logged" data-logday="'+escAttr(name)+'">✓ Logged — tap to edit</button>'+
+      '<button class="logbtn reset" data-clearday="'+escAttr(name)+'">↺ Clear / reset this workout</button></div>';
   }
 
   // ---- User lift swaps: pick a valid same-muscle replacement; it sticks in the plan ----

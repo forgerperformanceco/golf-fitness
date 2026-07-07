@@ -1118,6 +1118,36 @@ glossary/loop entries all in place from earlier passes. Two grammar nits:
 setup → mobility → backup → foods → start-over → show-me-around →
 full-access), reset button wired, zero page errors.
 
+## 59 · Trim the Train prose + fix the logged-day button/reset everywhere (user: "shorten the words… speed day still doesn't have the reset button and the logged button is still half size")
+
+Two things.
+
+**Shorter copy.** The user clarified the clutter is the long "why" paragraphs,
+not the (already-folded) playbook. Cut roughly in half across the Train page —
+the speed rationale (`note`) and both field/gym intros, the four wave straps
+(`WAVES[*].strap`, which also feed the deload banner + season map), the rest-day
+line, the range cue (`romcue`), the primer caution note, and the exercise-list
+notes ("swaps, cues & logging live in the player"). Meaning preserved, words
+gone; the deep coaching still lives in the player + the playbook fold.
+
+**The half-size logged button + missing reset.** `logFoot()` (the per-day
+log/edit button used in Full-week and non-featured days) rendered a single
+right-aligned `inline-flex` pill — half-width on mobile, and with no reset. Root
+cause of both reports: the earlier clear/reset work only reached the Today
+finish bar, not `logFoot`. Fixes:
+- `.day-foot` is now a full-width stacked column; `.logbtn` is `width:100%`
+  centered — no more half pill.
+- A logged day's `logFoot` now shows **✓ Logged — tap to edit** *and* a
+  full-width **↺ Clear / reset this workout** (two-tap confirm, `.logbtn.reset`).
+- `clearWorkout()` refactored to `clearWorkoutFor(week, day)` (day-scoped, no
+  `ilog` needed); new `[data-clearday]` handler in the plan listener drives it.
+  So the speed day — and every logged day, in any view — can be reset in place.
+
+Verified in test-train3.mjs: Full-week logged day exposes a working
+`[data-clearday]` reset, the logged button spans ~91% of its card (was ~half),
+two-tap clears it; train2/hype/force-update suites green; no test referenced the
+old copy.
+
 ## 58 · Fold the Full-week warm-ups too (user: "collapse the daily warmups on this train page view")
 
 §56 folded the warm-up on the Today card, but the **Full week** view still
