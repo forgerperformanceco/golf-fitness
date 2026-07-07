@@ -2381,8 +2381,13 @@
   // One-glance purpose tag per exercise: 🏋️ strength · 💪 mass · ⚡ power/speed · 🌀 golf rotation
   function purposeFor(n){
     if(/Single-Arm/i.test(n)) return "🌀";
-    if(/Jump|Bound|Slam|Chest Pass|Overspeed|Footwork|Swing|Broad|Plyo/i.test(n)) return "⚡";
-    if(/Wood-?chop|Rotation|Rotational|Pallof|Landmine|Punch|Russian Twist/i.test(n)) return "🌀";
+    // Rotation before power, so rotational throws/chops stay 🌀. "Landmine Press" is a
+    // chest press, not rotation — excluded so the wave doesn't shield it from intensify.
+    if(/Wood-?chop|\bChop\b|Rotation|Rotational|Pallof|Landmine(?! Press)|Punch|Russian Twist/i.test(n)) return "🌀";
+    // Ballistic/velocity work: throws, tosses, cleans and "Speed X" lifts are ⚡ — the wave
+    // must never hand them the 🏋️ "drop reps, go heavier" prescription or trim them like
+    // 💪 accessories. They hold full doses and only ease at deload/peak.
+    if(/Jump|Bound|Slam|Chest Pass|Throw|Toss|\bClean\b|Overspeed|Footwork|Swing|Broad|Plyo|^Speed\s/i.test(n)) return "⚡";
     if(/Back Squat|Front Squat|Leg Press|Hack Squat|Bench Press|Deadlift|Overhead Press|Pull-up|Romanian/i.test(n)) return "🏋️";
     return "💪";
   }
