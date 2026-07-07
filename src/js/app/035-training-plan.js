@@ -486,12 +486,36 @@
           '<button type="button" data-speedmode="field"'+(smode==="field"?' class="active"':'')+'>⛳ Field</button>'+
           '<button type="button" data-speedmode="gym"'+(smode==="gym"?' class="active"':'')+'>🏋️ Gym</button>'+
         '</span></div>';
-      // Featured speed day is interactive like a lift day: set ilog so the
-      // finish + clear/reset bar below works (a speed session is logged via the
-      // player, but it still needs a reset), and drop the small right-aligned
-      // logFoot button — the full-width finish bar replaces it. Full-week view
-      // (interactive=false) keeps the compact logFoot per day.
-      if(interactive){ ilog = { week: curWeek(), day: d.name, sess: buildSession(d, curWeek()) }; }
+      // The featured (interactive) speed day is COMPACT like a lift day: player
+      // CTA up top, warm-up + the "why" prose folded, and the drills as a
+      // tap-for-more list instead of an inline wall of descriptions — that full
+      // table + prose stays the browsable Full-week reference below. Keeps the
+      // Today view short (this day used to dwarf every lift day).
+      if(interactive){
+        ilog = { week: curWeek(), day: d.name, sess: buildSession(d, curWeek()) };
+        var spWork = ilog.sess.ex.some(function(x){ return (x.sets||[]).some(function(st){ return st.w||st.r||st.done; }); });
+        var spDone = !!getSession(curWeek(), d.name);
+        var spList = '<div class="sess-list">'+ilog.sess.ex.map(function(x){
+            return '<button type="button" class="sl-row" data-exhist="'+escAttr(x.name)+'">'+
+              '<span class="sl-ic">'+ffPurposeIc(x.name)+'</span>'+
+              '<span class="sl-tx"><b>'+x.name+'</b><span>'+x.target+'</span></span>'+
+              '<span class="sl-go">›</span></button>';
+          }).join("")+
+          '<div class="sl-note">Tap a drill for its history. Cues, the field/gym toggle and full logging live in the <b>guided player</b>.</div></div>';
+        return '<div class="day-focus speedday">'+
+          speedTestCardHtml()+
+          '<button class="pl-start" data-startplayer="'+escAttr(d.name)+'" type="button"><span class="pls-go">›</span>'+
+            '<b>'+(spDone?'✓ Speed session done — replay it':((spWork?ffIcon("play",13)+' Resume':ffIcon("play",13)+' Start')+' speed session'))+'</b>'+
+            '<span class="pls-sub">Guided player — warm-up, max-intent drills, full rest</span></button>'+
+          '<details class="prelift"'+(spWork?'':' open')+'><summary>🔥 Warm-up &amp; the why — do these first</summary><div class="prelift-body">'+
+            toggle+warmupHtml("speed", false)+
+            '<div class="speed-intro">'+s.intro+'</div>'+
+            '<div class="speed101-wrap">'+speed101Html()+'</div>'+
+            '<div class="speed-why">'+p.speed.note+'</div>'+
+            '<div class="equip-note" style="padding:10px 15px 8px;">'+noGear+'</div>'+
+          '</div></details>'+
+          spList+'</div>';
+      }
       return '<div class="day speedday"><div class="day-head">'+d.name+' <span class="tag '+(d.tag)+'">'+labelFor(d.tag)+'</span></div>'+
         speedTestCardHtml()+
         toggle+
@@ -502,8 +526,8 @@
         '<div class="speed-why">'+p.speed.note+'</div>'+
         '<div class="equip-note" style="padding:10px 15px 8px;">'+noGear+'</div>'+
         '<div style="padding:0 15px 4px;"><button class="pl-start" data-startplayer="'+escAttr(d.name)+'" type="button"><span class="pls-go">›</span>'+
-          '<b>'+(getSession(curWeek(),d.name)?'✓ Speed session done — replay it':ffIcon("play",13)+' Start speed session')+'</b><span class="pls-sub">Guided player — warm-up, max-intent drills, full rest</span></button></div>'+
-        (interactive ? '' : logFoot(d.name))+'</div>';
+          '<b>'+ffIcon("play",13)+' Start speed session</b><span class="pls-sub">Guided player — warm-up, max-intent drills, full rest</span></button></div>'+
+        logFoot(d.name)+'</div>';
     }
     var rows = d.ex.map(function(row){
       var base = applySwapName(row[0]);

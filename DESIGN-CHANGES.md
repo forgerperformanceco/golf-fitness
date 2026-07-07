@@ -1118,6 +1118,30 @@ glossary/loop entries all in place from earlier passes. Two grammar nits:
 setup → mobility → backup → foods → start-over → show-me-around →
 full-access), reset button wired, zero page errors.
 
+## 55 · Speed day compaction (user: "I thought the train day / the workout was more collapsed")
+
+Train 2.0 (§36) made lift days compact — a tight drill list with the warm-up
+and set tables folded — but the Speed & Power day kept its old full layout:
+warm-up open inline, the complete drills table with every cue printed, plus
+the intro / "why this order" / no-gear prose, all expanded. So it towered
+over every lift day. The featured (interactive) speed day now uses the same
+`.day-focus` model as a lift day:
+
+- Player CTA ("▶ Start / Resume / ✓ replay speed session") up top.
+- Warm-up + the field/gym toggle + all the prose (intro, speed-101,
+  "why this order", no-gear) behind one `.prelift` fold — open when there's
+  no logged work yet, collapsed once you start (same rule as lift days).
+- The six drills as a compact `.sess-list` (icon · name · target · ›,
+  tap → history) instead of the inline description table. The full table +
+  prose remain the **Full-week** reference view (`interactive=false`
+  unchanged).
+
+Fresh interactive card ≈ 455px vs the old multi-screen card. Verified in
+test-train3.mjs (speed block): compact `.day-focus`, no inline `table.ex`,
+warm-up folded, fresh day lists all 6 drills with the warm-up open,
+Full-week view keeps the full table + per-day log buttons, finish/clear
+still work, zero page errors.
+
 ## 54 · Speed day parity (user: "Speed day is missing reset and the box is half sized")
 
 The §53 clear/reset fix landed on lift days but not the Speed & Power day —
