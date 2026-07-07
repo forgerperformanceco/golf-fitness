@@ -783,7 +783,7 @@
       ? { seven:75, drive:210, weight:185, label:"typical 50+ male amateur", range:"~70–78 mph 7-iron" }
       : { seven:85, drive:245, weight:180, label:"typical male amateur",     range:"~75–80 mph 7-iron" };
   }
-  function renderHeroCard(){
+  function renderHeroCard(muted){
     var r=ffScore(); saveScoreSnapshot(r);
     var d=driveStats(), top, gy=goalYds();
     if(d){
@@ -806,10 +806,12 @@
         '<div class="hero-empty"><b>Add your driver distance</b><span>From a launch monitor, or just how far you hit it — log it below and watch it climb.</span></div>';
     }
     // The Octane subline is the SAME dynamic "biggest lever" read the Stats hub
-    // uses — a coach line that changes with the data beats a slogan that never does.
+    // uses — a coach line that changes with the data beats a slogan that never
+    // does. `muted` = an advice card is already on screen (one coaching voice
+    // at a time), so step down to a quiet tag.
     var engine = '<div class="hero-engine">'+octaneGaugeHtml(r.score)+
       '<div class="hero-etx"><div class="hero-ename">'+ffTerm('octane','Octane')+'</div>'+
-      '<div class="hero-esub">'+ffScoreSummary(r)+'</div></div></div>';
+      '<div class="hero-esub">'+(muted ? 'Your engine — <b>tap for the full breakdown</b>.' : ffScoreSummary(r))+'</div></div></div>';
     return '<button class="ffscore hero-card" data-goview="progress">'+top+engine+heroWeekStrip()+'</button>';
   }
   // Hevy-style week strip: Mon–Sun dots, filled when a session was finished that

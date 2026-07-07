@@ -4488,7 +4488,7 @@
       ? { seven:75, drive:210, weight:185, label:"typical 50+ male amateur", range:"~70–78 mph 7-iron" }
       : { seven:85, drive:245, weight:180, label:"typical male amateur",     range:"~75–80 mph 7-iron" };
   }
-  function renderHeroCard(){
+  function renderHeroCard(muted){
     var r=ffScore(); saveScoreSnapshot(r);
     var d=driveStats(), top, gy=goalYds();
     if(d){
@@ -4511,10 +4511,12 @@
         '<div class="hero-empty"><b>Add your driver distance</b><span>From a launch monitor, or just how far you hit it — log it below and watch it climb.</span></div>';
     }
     // The Octane subline is the SAME dynamic "biggest lever" read the Stats hub
-    // uses — a coach line that changes with the data beats a slogan that never does.
+    // uses — a coach line that changes with the data beats a slogan that never
+    // does. `muted` = an advice card is already on screen (one coaching voice
+    // at a time), so step down to a quiet tag.
     var engine = '<div class="hero-engine">'+octaneGaugeHtml(r.score)+
       '<div class="hero-etx"><div class="hero-ename">'+ffTerm('octane','Octane')+'</div>'+
-      '<div class="hero-esub">'+ffScoreSummary(r)+'</div></div></div>';
+      '<div class="hero-esub">'+(muted ? 'Your engine — <b>tap for the full breakdown</b>.' : ffScoreSummary(r))+'</div></div></div>';
     return '<button class="ffscore hero-card" data-goview="progress">'+top+engine+heroWeekStrip()+'</button>';
   }
   // Hevy-style week strip: Mon–Sun dots, filled when a session was finished that
@@ -4783,10 +4785,9 @@
       }
     });
 
-    if(hasData)
-      out.push({prio:8, sig:"keepgoing:"+sessions.length+":"+(lastSpeed||0), ic:"📈", title:"You're stacking the work",
-        body:"<b>"+sessions.length+"</b> workout"+(sessions.length===1?"":"s")+" logged"+(lastSpeed?(" · 7-iron at <b>"+lastSpeed+" mph</b>"):"")+". The system works when the inputs are consistent — keep logging bodyweight, speed and sessions, and the trends do the rest.", ask:null});
-    else
+    // No filler card. A "keep going" pat-on-the-back every quiet day trains the
+    // eye to scroll past this slot — real signals only, so the slot stays loud.
+    if(!hasData)
       out.push({prio:40, sig:"firststeps", ic:"🌟", title:"Let's get your first data points",
         body:"Log a workout on the <b>Train</b> tab and drop today's bodyweight + 7-iron speed below. Two data points and your trends — and your Octane — start climbing.", ask:null});
 
@@ -4957,8 +4958,11 @@
     // the metabolism check-in outranks the focus nudge when it's due.
     var html = nextUpCard();         // the ONE thing to do right now
     try{ html += dashTipHtml(); }catch(e){}   // one-time nudge, never above the action
-    html += renderHeroCard();        // where you stand: carry + Octane + the week strip
-    html += (renderAdaptiveCard() || renderInsight());
+    // One coaching voice at a time: when an advice card is showing, the hero's
+    // lever line steps down to a quiet tag; otherwise the hero carries the coaching.
+    var advice = renderAdaptiveCard() || renderInsight();
+    html += renderHeroCard(!!advice);
+    html += advice;
     html += timelineHtml();          // the day, in time order
     html += '<button class="dash-ai" data-ask="read"><span class="dai-ic">💬</span>'+
       '<span class="dai-tx"><b>Coach’s read</b><span>A quick AI take on your numbers &amp; what to focus on</span></span>'+

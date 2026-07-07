@@ -44,7 +44,7 @@
 <link rel="apple-touch-startup-image" media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash/apple-splash-750x1334.png" />
 <link rel="apple-touch-startup-image" media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash/apple-splash-640x1136.png" />
 <link rel="preload" href="fonts/ffnum.woff2" as="font" type="font/woff2" crossorigin />
-<link rel="stylesheet" href="styles.css?v=f5b0206e2d" />
+<link rel="stylesheet" href="styles.css?v=7914ab2449" />
 </head>
 <body>
   <header class="appbar">
@@ -346,16 +346,19 @@
 
   <footer>
     <strong>FairwayFuel</strong> — Eat. Lift. Bomb. · The Golfer’s Mass &amp; Speed System.
-    <div class="disc">
-      Calorie estimates use the Mifflin–St Jeor equation with standard activity multipliers. Macro and
-      training targets follow evidence-based ranges for strength, power &amp; rotational athletes. These are
-      starting points — track for 2–3 weeks and adjust. Warm up, use a load you can control, and consult a
-      coach or physician before starting a new program. Not medical advice.
-    </div>
+    <details class="disc-fold">
+      <summary>Evidence-based starting points — not medical advice. How it’s calculated ›</summary>
+      <div class="disc">
+        Calorie estimates use the Mifflin–St Jeor equation with standard activity multipliers. Macro and
+        training targets follow evidence-based ranges for strength, power &amp; rotational athletes. These are
+        starting points — track for 2–3 weeks and adjust. Warm up, use a load you can control, and consult a
+        coach or physician before starting a new program. Not medical advice.
+      </div>
+    </details>
   </footer>
 </div>
 
-<script src="app.js?v=f5b0206e2d"></script>
+<script src="app.js?v=7914ab2449"></script>
 <!-- Login lives in the Account tab, so cloud-sync should skip its floating pill. -->
 <script>window.FF_ACCOUNT_TAB = true;</script>
 <!-- Optional cloud login + progress sync. Inactive until you add Supabase keys in cloud-sync.js. -->
