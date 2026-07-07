@@ -5386,9 +5386,6 @@
         '<p>One-tap email login — no password. Your calculator, workout log and Octane follow you across devices.</p>'+
         '<button class="acct-btn" id="acctSignIn">Sign in / Create account</button></div>';
     }
-    html+='<div class="acct-card"><div class="acct-head">⛳ Full access — unlocked</div>'+
-      '<p class="acct-p">You’ve got everything: AI coaching, the full training plan, macro tuning, progress tracking and the leaderboard. No paywall.</p>'+
-      '<div class="acct-plan">Plan: <b>Full access</b> · free</div></div>';
     // Install-to-home-screen — only when not already running as an installed app.
     if(!ffStandalone()){
       if(ffIsIOS()){
@@ -5479,8 +5476,8 @@
     html+='<div class="acct-card"><div class="acct-head">🍽️ Your favorite foods</div>'+
       '<p class="acct-p">Tell us what you actually eat and your meal ideas + day plans get built around it. Set it once, tweak anytime.</p>'+
       '<button class="acct-btn ghost" id="acctFoods">Edit my foods</button></div>';
-    html+='<div class="acct-card"><div class="acct-head">Your training plan</div>'+
-      '<p class="acct-p">Start over — clears your plan start date and logged workouts so the plan resets to week 1. Your bodyweight &amp; 7-iron history and your calculator stay put.</p>'+
+    html+='<div class="acct-card"><div class="acct-head">↺ Start the plan over</div>'+
+      '<p class="acct-p">Clears your plan start date and logged workouts so the plan resets to week 1. Your bodyweight &amp; 7-iron history and your calculator stay put.</p>'+
       '<button class="acct-btn danger" id="acctResetPlan">↺ Reset plan</button></div>';
     html+='<div class="acct-card"><div class="acct-head">Show me around</div>'+
       '<p class="acct-p">The system in one picture, every FairwayFuel term in plain English, and the tab-by-tab tips — whenever you want a refresher.</p>'+
@@ -5492,6 +5489,10 @@
         '<p class="acct-p">Permanently delete your account and <b>all</b> synced data — workouts, bodyweight &amp; 7-iron history, Octane and any leaderboard entry. This can’t be undone.</p>'+
         '<button class="acct-btn danger" id="acctDelete">Delete my account</button></div>';
     }
+    // Read-once reassurance lives at the bottom — it never outranks the settings.
+    html+='<div class="acct-card"><div class="acct-head">⛳ Full access — unlocked</div>'+
+      '<p class="acct-p">You’ve got everything: AI coaching, the full training plan, macro tuning, progress tracking and the leaderboard. No paywall.</p>'+
+      '<div class="acct-plan">Plan: <b>Full access</b> · free</div></div>';
     html+='<div class="acct-links">'+
       '<a href="mailto:bobbydenisclay@gmail.com?subject=FairwayFuel%20feedback">✉ Send feedback</a>'+
       '<span>·</span>'+
