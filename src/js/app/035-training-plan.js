@@ -486,6 +486,12 @@
           '<button type="button" data-speedmode="field"'+(smode==="field"?' class="active"':'')+'>⛳ Field</button>'+
           '<button type="button" data-speedmode="gym"'+(smode==="gym"?' class="active"':'')+'>🏋️ Gym</button>'+
         '</span></div>';
+      // Featured speed day is interactive like a lift day: set ilog so the
+      // finish + clear/reset bar below works (a speed session is logged via the
+      // player, but it still needs a reset), and drop the small right-aligned
+      // logFoot button — the full-width finish bar replaces it. Full-week view
+      // (interactive=false) keeps the compact logFoot per day.
+      if(interactive){ ilog = { week: curWeek(), day: d.name, sess: buildSession(d, curWeek()) }; }
       return '<div class="day speedday"><div class="day-head">'+d.name+' <span class="tag '+(d.tag)+'">'+labelFor(d.tag)+'</span></div>'+
         speedTestCardHtml()+
         toggle+
@@ -496,8 +502,8 @@
         '<div class="speed-why">'+p.speed.note+'</div>'+
         '<div class="equip-note" style="padding:10px 15px 8px;">'+noGear+'</div>'+
         '<div style="padding:0 15px 4px;"><button class="pl-start" data-startplayer="'+escAttr(d.name)+'" type="button"><span class="pls-go">›</span>'+
-          '<b>'+ffIcon("play",13)+' Start speed session</b><span class="pls-sub">Guided player — warm-up, max-intent drills, full rest</span></button></div>'+
-        logFoot(d.name)+'</div>';
+          '<b>'+(getSession(curWeek(),d.name)?'✓ Speed session done — replay it':ffIcon("play",13)+' Start speed session')+'</b><span class="pls-sub">Guided player — warm-up, max-intent drills, full rest</span></button></div>'+
+        (interactive ? '' : logFoot(d.name))+'</div>';
     }
     var rows = d.ex.map(function(row){
       var base = applySwapName(row[0]);
