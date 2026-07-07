@@ -507,7 +507,7 @@
           '<button class="pl-start" data-startplayer="'+escAttr(d.name)+'" type="button"><span class="pls-go">›</span>'+
             '<b>'+(spDone?'✓ Speed session done — replay it':((spWork?ffIcon("play",13)+' Resume':ffIcon("play",13)+' Start')+' speed session'))+'</b>'+
             '<span class="pls-sub">Guided player — warm-up, max-intent drills, full rest</span></button>'+
-          '<details class="prelift"'+(spWork?'':' open')+'><summary>🔥 Warm-up &amp; the why — do these first</summary><div class="prelift-body">'+
+          '<details class="prelift"><summary>🔥 Warm-up &amp; the why — do these first</summary><div class="prelift-body">'+
             toggle+warmupHtml("speed", false)+
             '<div class="speed-intro">'+s.intro+'</div>'+
             '<div class="speed101-wrap">'+speed101Html()+'</div>'+
@@ -569,7 +569,11 @@
         '<button class="pl-start" data-startplayer="'+escAttr(d.name)+'" type="button"><span class="pls-go">›</span>'+
           '<b>'+(plDone?'✓ Session finished — replay it':((hasWork?ffIcon("play",13)+' Resume':ffIcon("play",13)+' Start')+' workout'))+'</b>'+
           '<span class="pls-sub">Guided player — warm-up, prescribed loads, rest timer, recap</span></button>'+
-        '<details class="prelift"'+(hasWork?'':' open')+'><summary>🔥 Warm-up &amp; power primer — do these first</summary><div class="prelift-body">'+warmPrimer+'</div></details>'+
+        // Warm-up/primer starts COLLAPSED — it's prep, not the workout, and the
+        // guided player runs it for you anyway. One tap opens it; the exercise
+        // list stays the visible focus. (Was open-by-default; user wanted the
+        // whole Today card tighter.)
+        '<details class="prelift"><summary>🔥 Warm-up &amp; power primer — do these first</summary><div class="prelift-body">'+warmPrimer+'</div></details>'+
         body+'</div>';
     }
     var head = '<div class="day"><div class="day-head">'+d.name+' <span class="tag '+(d.tag==="Lift"?"":d.tag)+'">'+labelFor(d.tag)+'</span></div>'+warmPrimer;
