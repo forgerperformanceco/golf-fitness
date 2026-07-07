@@ -803,7 +803,7 @@
           : '<div class="hero-since solo">Baseline banked — your next logged drive starts the climb.</div>');
     } else {
       top = '<div class="hero-kick">⛳ Driver carry</div>'+
-        '<div class="hero-empty"><b>Add your driver distance</b><span>From a launch monitor, or just how far you hit it — log it below and watch it climb.</span></div>';
+        '<div class="hero-empty"><b>Add your driver distance</b><span>From a launch monitor, or just how far you hit it — hit <b>＋ Log</b> and watch it climb.</span></div>';
     }
     // The Octane subline is the SAME dynamic "biggest lever" read the Stats hub
     // uses — a coach line that changes with the data beats a slogan that never

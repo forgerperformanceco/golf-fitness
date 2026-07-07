@@ -1079,6 +1079,30 @@ must refocus the day via its week-strip chip. (Pre-existing quirk worth a
 future look: a typed-but-unfinished day loses the default focus once you
 leave the tab — the chip shows it, but "Resume" might deserve the focus.)
 
+## 50 · Stats 2.0 — one log door, finished
+
+**Method.** Full-page rich/sparse captures. Stats had already absorbed
+passes B (folds) + C (unlock strip) + receipts, so structure was sound
+(hub → ritual rows → open speed trend → headline rows → strip →
+leaderboard → coach). Two real findings — both violations of rules we
+set on other tabs:
+1. *Two log doors.* The in-page "Log today" card was a second copy of the
+   exact inputs the ＋ Log sheet carries (same `quickLogHtml`). Replaced
+   with a slim `qopen-row` ("📝 Log today — weight · 7-iron · driver")
+   that opens the sheet — one door, everywhere. (CSS gotcha: `.qlog-row`
+   was already the sheet form's class — the new row is `.qopen-row`.)
+2. *Copy pointed at furniture that moved.* Five "add it below" strings
+   (speed/weight empty states, both unlock-strip weight rows, the Home
+   hero empty state, the first-steps insight) now point at **＋ Log**;
+   the unlock weight rows deep-link via `data-qopen`.
+Plus the header's redundant sub-line removed.
+
+**Verified**: zero inputs left in `#progressBody`; the row opens the
+sheet (3 inputs); header sub gone; e2e + calm-stats suites green (their
+informational quickLog probes now read false, as designed). The PR-Wall
+"missing row" in the audit shot was the fullPage tab-bar paint band —
+DOM probe shows all 8 folds present.
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob

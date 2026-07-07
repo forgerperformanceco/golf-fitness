@@ -95,7 +95,7 @@
     // eye to scroll past this slot — real signals only, so the slot stays loud.
     if(!hasData)
       out.push({prio:40, sig:"firststeps", ic:"🌟", title:"Let's get your first data points",
-        body:"Log a workout on the <b>Train</b> tab and drop today's bodyweight + 7-iron speed below. Two data points and your trends — and your Octane — start climbing.", ask:null});
+        body:"Log a workout on the <b>Train</b> tab and drop today's bodyweight + 7-iron speed with <b>＋ Log</b>. Two data points and your trends — and your Octane — start climbing.", ask:null});
 
     return out.sort(function(a,b){ return b.prio-a.prio; });
   }

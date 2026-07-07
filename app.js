@@ -4583,7 +4583,7 @@
           : '<div class="hero-since solo">Baseline banked — your next logged drive starts the climb.</div>');
     } else {
       top = '<div class="hero-kick">⛳ Driver carry</div>'+
-        '<div class="hero-empty"><b>Add your driver distance</b><span>From a launch monitor, or just how far you hit it — log it below and watch it climb.</span></div>';
+        '<div class="hero-empty"><b>Add your driver distance</b><span>From a launch monitor, or just how far you hit it — hit <b>＋ Log</b> and watch it climb.</span></div>';
     }
     // The Octane subline is the SAME dynamic "biggest lever" read the Stats hub
     // uses — a coach line that changes with the data beats a slogan that never
@@ -4864,7 +4864,7 @@
     // eye to scroll past this slot — real signals only, so the slot stays loud.
     if(!hasData)
       out.push({prio:40, sig:"firststeps", ic:"🌟", title:"Let's get your first data points",
-        body:"Log a workout on the <b>Train</b> tab and drop today's bodyweight + 7-iron speed below. Two data points and your trends — and your Octane — start climbing.", ask:null});
+        body:"Log a workout on the <b>Train</b> tab and drop today's bodyweight + 7-iron speed with <b>＋ Log</b>. Two data points and your trends — and your Octane — start climbing.", ask:null});
 
     return out.sort(function(a,b){ return b.prio-a.prio; });
   }
@@ -6034,8 +6034,7 @@
     var sess=Object.keys(getLog()).length, lifts=bigLiftStats();
     var hasAny = sess>0 || spF.length>0 || wtF.length>0;
 
-    var html='<div class="prog-hd"><div class="prog-kick">⛳ The proof it’s working</div><h2>Your Progress</h2>'+
-      '<p>Speed, strength and consistency — tracked over time.</p></div>';
+    var html='<div class="prog-hd"><div class="prog-kick">⛳ The proof it’s working</div><h2>Your Progress</h2></div>';
     html += renderScoreCard();
     html += seasonMapHtml();
     html += scorecardHtml();
@@ -6049,7 +6048,7 @@
         { ic:'⚡', t:'Speed trend', s:'run the guided 7-iron test — your north star number', attr:' data-speedtest="1"' },
         { ic:'🏋️', t:'Strength + PR Wall', s:'log your first workout on the Train tab', attr:' data-goview="plan"' },
         { ic:'⛳', t:'Course receipts', s:'bank rounds — the gym-to-course proof builds here', attr:' data-roundlog="1"' },
-        { ic:'⚖️', t:'Bodyweight trend', s:'add today’s weight below — five seconds' });
+        { ic:'⚖️', t:'Bodyweight trend', s:'five seconds with ＋ Log', attr:' data-qopen="1"' });
     } else {
       // ---- PR Wall: the trophy case ----
       var prw=''; try{ prw=prWallHtml(); }catch(e){}
@@ -6067,7 +6066,7 @@
         (spNow!=null?'<span class="pf-num">'+spNow+' mph</span>':'')+(spF.length>=2?pcDelta(spNow-spBase," mph"):""),
         (spNow!=null?'<div class="pc-now">'+spNow+'<span>mph</span></div>':'<div class="pc-now muted">—</div>')+
         (spF.length>=2 ? pcLine(spF,"#16a34a","pcSpeed", spD, " mph")
-          : '<div class="pc-need">'+(spF.length===1?"One more entry and your speed trend appears.":"Add your 7-iron speed below to start the trend.")+'</div>')+
+          : '<div class="pc-need">'+(spF.length===1?"One more entry and your speed trend appears.":"Add a 7-iron speed with <b>＋ Log</b> to start the trend.")+'</div>')+
         (spF.length>=2&&spGain>0
           ? '<div class="pc-payoff">🎯 That’s roughly <b>+'+Math.round(spGain*YDS_PER_MPH)+' yards</b> of 7-iron carry since your baseline. <span>Speed is distance — ~2 yds per mph.</span></div>'
           : (spF.length>=2 ? '<div class="pc-payoff muted">Every <b>+1 mph</b> here is about <b>+2 yards</b> of carry. Keep the trend climbing.</div>' : ""))+
@@ -6096,7 +6095,7 @@
 
       // ---- Bodyweight ----
       var wtNow=wtF.length?wtF[wtF.length-1]:null, wtBase=wtF.length?wtF[0]:null;
-      if(wtNow==null) locked.push({ ic:'⚖️', t:'Bodyweight trend', s:'add today’s weight below — five seconds' });
+      if(wtNow==null) locked.push({ ic:'⚖️', t:'Bodyweight trend', s:'five seconds with ＋ Log', attr:' data-qopen="1"' });
       else html += pfCard('weight','⚖️ Bodyweight',
         '<span class="pf-num">'+wtNow+' lb</span>'+(wtF.length>=2?pcDelta(wtNow-wtBase," lb",true):""),
         '<div class="pc-now">'+wtNow+'<span>lb</span></div>'+
@@ -6113,8 +6112,12 @@
     }
     html += lockedStrip(locked);
 
-    // ---- Quick add (always available) ----
-    html += quickLogHtml('pr', 'Driver carry is your headline number; weight &amp; 7-iron speed feed your trends and <b>Octane</b>.');
+    // ---- Quick add: ONE log door (intuitive-pass rule). The ＋ Log sheet
+    // carries the actual inputs; this row just opens it from the page flow,
+    // replacing a second copy of the same form. ----
+    html += '<button type="button" class="pcard pf-closed qopen-row" data-qopen="1">'+
+      '<span class="pc-head"><span class="pc-t">📝 Log today — weight · 7-iron · driver</span>'+
+      '<span class="pf-side"><span class="pf-arr">›</span></span></span></button>';
 
     // ---- Leaderboard (opt-in, competitive) ----
     html += renderLeaderboardCard();
