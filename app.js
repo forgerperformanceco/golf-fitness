@@ -2037,9 +2037,9 @@
       chips: ["💪 Size + strength + speed every week", "🌊 Build → heavy → deload waves", "📈 Overload applied for you", "🏁 2-week peak to finish"],
       speed: {
         title: "Speed & Power",
-        note: "Why this order: a hard vertical jump + explosive throws are the strongest measured predictors of clubhead speed (two independent meta-analyses), so they lead while you're fresh. Overspeed swings have weaker, mostly short-term evidence \u2014 an optional add-on, not the main event. Your own driver + 7-iron trend is the real proof.",
+        note: "Jumps and throws are the strongest predictors of clubhead speed, so they lead. Overspeed swings are a lighter add-on. Your own speed trend is the real proof.",
         field: {
-          intro: "Power turns muscle into clubhead speed \u2014 the two biggest levers are a hard vertical jump and explosive throws. Do these FIRST, while you're fresh: max-intent, full rest, low reps so nothing slows down. Warm up first, ramp in over your first weeks, and train both sides.",
+          intro: "Jumps and throws turn muscle into clubhead speed. Do them first, fresh \u2014 max intent, full rest, low reps. Stop the moment a rep slows.",
           ex: [
             ["Countermovement jump", "4 \u00d7 3", "Dip and explode straight up \u2014 max height, land soft, full recovery between reps. (The #1 physical predictor of clubhead speed.)"],
             ["Rotational med-ball throw", "4 \u00d7 4 / side", "Rotate and release at max speed; reset every rep. Both sides."],
@@ -2051,7 +2051,7 @@
           ]
         },
         gym: {
-          intro: "Same power qualities, built with a barbell, dumbbells and a kettlebell \u2014 loaded so you can progress them. Explosive work first while you're fresh: light loads moved at MAX speed, full rest, low reps. If a rep slows down, the set's over. Warm up first, ramp in.",
+          intro: "Same power, loaded \u2014 light weight moved at max speed, full rest, low reps. Explosive work first, while fresh. If a rep slows, the set's done.",
           ex: [
             ["Trap-bar jump", "4 \u00d7 3", "Light load \u2014 explode straight off the ground, land soft, full recovery. (No trap bar? Dumbbell jump squat.)"],
             ["Landmine rotational throw", "4 \u00d7 4 / side", "Drive from the hips and rotate the bar across at max speed. (No landmine? Fast cable or band chop.)"],
@@ -2359,7 +2359,7 @@
     if(/Lower/.test(name)) return {move:"Box or squat jump", dose:"4 × 3", note:"Land soft, reset every rep."};
     return {move:"Box or squat jump", dose:"4 × 3", note:""};
   }
-  var PRIMER_NOTE = "New to jumps &amp; throws? Start low — 2 sets, low box — and add a set every couple of weeks. Stop the instant reps slow: power only counts when every rep is crisp.";
+  var PRIMER_NOTE = "New to jumps &amp; throws? Start with 2 sets and build up. Stop the moment reps slow — power only counts when crisp.";
   function warmupHtml(name, withPrimer, showNote){
     var h='<div class="wu"><div class="wu-h">🔥 Warm-up <span>· 5 min · tap to check off</span></div>';
     warmupList(name).forEach(function(m){
@@ -2402,10 +2402,10 @@
      Weeks 6 · 12 · 18 deload — one set less everywhere, ~60% loads prescribed.
      Weeks 19-20 peak — volume cut ~40-50%, loads stay heavy, speed work crisp. ---- */
   var WAVES = {
-    accumulate: { label:"Accumulate", ic:"🏗️", strap:"Volume phase — own every rep and build toward the top of each rep range. Hit the top on every set and the logger tees up the next jump." },
-    intensify:  { label:"Intensify",  ic:"🔥", strap:"Heavy phase — rep targets drop so the loads climb. Add weight over last week and keep every rep fast and crisp." },
-    deload:     { label:"Deload",     ic:"🪫", strap:"Planned recovery — one set less and ~60% of your usual loads (the logger pre-suggests them). Keep speed work crisp but submaximal. This is when the adaptation lands." },
-    peak:       { label:"Peak",       ic:"🏁", strap:"The final stretch — volume cut nearly in half, intensity stays heavy, speed work light and crisp. Shed the fatigue and go take your yards." }
+    accumulate: { label:"Accumulate", ic:"🏗️", strap:"Build phase — push reps to the top of each range; the logger tees up your next jump." },
+    intensify:  { label:"Intensify",  ic:"🔥", strap:"Heavy phase — reps drop, loads climb. Add weight, keep every rep fast." },
+    deload:     { label:"Deload",     ic:"🪫", strap:"Planned easy week — one set less, ~60% loads. Recovery is when the gains land." },
+    peak:       { label:"Peak",       ic:"🏁", strap:"Final stretch — volume halved, intensity heavy. Shed fatigue, take your yards." }
   };
   /* A "big event" date (club champs, member-guest, buddies trip) re-anchors the
      taper: the event week and the week before become Peak (volume cut, intensity
@@ -2491,7 +2491,7 @@
     if(d.type==="rest"){
       var rdone=restDone(curWeek(), dayKey(d));
       return '<div class="day'+(rdone?" rest-done":"")+'"><div class="day-head">'+d.name+' <span class="tag rest">Recover</span></div>'+
-        '<div class="restday">Active recovery: walk a casual 9, mobility flow, foam roll. Light is fine — but let the body rebuild. This is when muscle and speed are made.</div>'+
+        '<div class="restday">Walk a casual 9, stretch, foam roll. Recovery is when the gains land.</div>'+
         '<button class="rest-check'+(rdone?" done":"")+'" type="button" data-restday="'+escAttr(dayKey(d))+'">'+
           (rdone?"✓ Recovery logged — tap to undo":"Mark recovery done")+'</button></div>';
     }
@@ -2530,7 +2530,7 @@
               '<span class="sl-tx"><b>'+x.name+'</b><span>'+x.target+'</span></span>'+
               '<span class="sl-go">›</span></button>';
           }).join("")+
-          '<div class="sl-note">Tap a drill for its history. Cues, the field/gym toggle and full logging live in the <b>guided player</b>.</div></div>';
+          '<div class="sl-note">Tap a drill for its history. Cues &amp; logging live in the <b>player</b>.</div></div>';
         return '<div class="day-focus speedday">'+
           speedTestCardHtml()+
           '<button class="pl-start" data-startplayer="'+escAttr(d.name)+'" type="button"><span class="pls-go">›</span>'+
@@ -2591,7 +2591,7 @@
               '<span class="sl-tx"><b>'+x.name+'</b><span>'+x.target+'</span></span>'+
               '<span class="sl-go">›</span></button>';
           }).join("")+
-          '<div class="sl-note">Tap a lift for its full history. 🛈 why-it-works, ⇄ swaps and set logging live in the <b>guided player</b>.</div>'+
+          '<div class="sl-note">Tap a lift for its history. Swaps, cues &amp; logging live in the <b>player</b>.</div>'+
           '<button type="button" class="sl-manual" data-manuallog="1">⌨️ Prefer typing? Log manually here</button></div>';
       }
       return '<div class="day-focus">'+
@@ -2611,7 +2611,7 @@
       '<details class="prelift"><summary>🔥 Warm-up &amp; power primer — do these first</summary><div class="prelift-body">'+warmPrimer+'</div></details>';
     return head +
       '<table class="ex"><tr><th>Exercise</th><th style="text-align:right">Sets × Reps</th></tr>'+rows+'</table>'+
-      '<div class="romcue">Full range every rep — <b>control the lowering (~3 sec)</b>, own the lockout. That eccentric control builds muscle and armors the deceleration your downswing punishes. The range you train is the range you can swing with.</div>'+
+      '<div class="romcue">Full range, every rep — <b>control the lowering (~3 sec)</b>. It builds muscle and protects your swing.</div>'+
       logFoot(d.name)+'</div>';
   }
   // Short chip label for the week strip: "Squat", "Push", "Speed", "Hinge", "Pull", "Rest".
@@ -2922,8 +2922,11 @@
   }
   function logFoot(name){
     var done=!!getSession(curWeek(), name);
-    return '<div class="day-foot"><button class="logbtn'+(done?" logged":"")+'" data-logday="'+escAttr(name)+'">'+
-      (done?"✓ Logged — tap to edit":ffIcon("play",13)+" Log workout")+'</button></div>';
+    if(!done) return '<div class="day-foot"><button class="logbtn" data-logday="'+escAttr(name)+'">'+ffIcon("play",13)+' Log workout</button></div>';
+    // Logged: full-width edit button + a reset, so any logged day (Full-week or a
+    // non-featured day) can be cleared without hunting for the Today finish bar.
+    return '<div class="day-foot"><button class="logbtn logged" data-logday="'+escAttr(name)+'">✓ Logged — tap to edit</button>'+
+      '<button class="logbtn reset" data-clearday="'+escAttr(name)+'">↺ Clear / reset this workout</button></div>';
   }
 
   // ---- User lift swaps: pick a valid same-muscle replacement; it sticks in the plan ----
@@ -3429,9 +3432,9 @@
   function ffTomb(key){ var d=lsGet("ff_deleted",{}); if(!d||typeof d!=="object") d={}; d[key]=Date.now(); lsSet("ff_deleted",d); }
   // Clear the active day: wipe its week log + any matching history entry, and drop a tombstone
   // so the deletion holds through cloud sync (re-logging later re-creates it with a newer stamp).
-  function clearWorkout(){
-    if(!ilog) return;
-    var wk=ilog.week, day=ilog.day, L=getLog();
+  function clearWorkoutFor(wk, day){
+    if(wk==null || !day) return;
+    var L=getLog();
     if(L[wk+"|"+day]!==undefined){ delete L[wk+"|"+day]; lsSet("ff_log",L); }
     ffTomb("L:"+wk+"|"+day);
     var hist=lsGet("ff_history",[]);
@@ -3444,6 +3447,7 @@
     try{ if(typeof renderDash==="function") renderDash(); }catch(e){}
     ffToast("Workout cleared.");
   }
+  function clearWorkout(){ if(ilog) clearWorkoutFor(ilog.week, ilog.day); }
   function deleteHistory(id){
     var hist=lsGet("ff_history",[]); if(!Array.isArray(hist)) return;
     var kept=hist.filter(function(h){ return !(h&&h.id===id); });
@@ -6384,6 +6388,14 @@
       if(cw.getAttribute("data-armed")==="1"){ clearWorkout(); return; }   // second tap confirms
       cw.setAttribute("data-armed","1"); cw.textContent="Tap again to clear ✕"; cw.classList.add("arm");
       setTimeout(function(){ if(cw&&cw.isConnected){ cw.removeAttribute("data-armed"); cw.textContent="↺ Clear / reset this workout"; cw.classList.remove("arm"); } }, 3500);
+      return;
+    }
+    var cd=e.target.closest("[data-clearday]");                        // reset a specific logged day (Full-week / non-featured)
+    if(cd){
+      var cdn=cd.getAttribute("data-clearday");
+      if(cd.getAttribute("data-armed")==="1"){ clearWorkoutFor(curWeek(), cdn); return; }
+      cd.setAttribute("data-armed","1"); cd.textContent="Tap again to clear ✕"; cd.classList.add("arm");
+      setTimeout(function(){ if(cd&&cd.isConnected){ cd.removeAttribute("data-armed"); cd.textContent="↺ Clear / reset this workout"; cd.classList.remove("arm"); } }, 3500);
       return;
     }
     var wu=e.target.closest("[data-wu]");                              // tap a warm-up move to check it off

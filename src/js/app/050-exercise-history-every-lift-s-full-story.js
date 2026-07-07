@@ -197,9 +197,9 @@
   function ffTomb(key){ var d=lsGet("ff_deleted",{}); if(!d||typeof d!=="object") d={}; d[key]=Date.now(); lsSet("ff_deleted",d); }
   // Clear the active day: wipe its week log + any matching history entry, and drop a tombstone
   // so the deletion holds through cloud sync (re-logging later re-creates it with a newer stamp).
-  function clearWorkout(){
-    if(!ilog) return;
-    var wk=ilog.week, day=ilog.day, L=getLog();
+  function clearWorkoutFor(wk, day){
+    if(wk==null || !day) return;
+    var L=getLog();
     if(L[wk+"|"+day]!==undefined){ delete L[wk+"|"+day]; lsSet("ff_log",L); }
     ffTomb("L:"+wk+"|"+day);
     var hist=lsGet("ff_history",[]);
@@ -212,6 +212,7 @@
     try{ if(typeof renderDash==="function") renderDash(); }catch(e){}
     ffToast("Workout cleared.");
   }
+  function clearWorkout(){ if(ilog) clearWorkoutFor(ilog.week, ilog.day); }
   function deleteHistory(id){
     var hist=lsGet("ff_history",[]); if(!Array.isArray(hist)) return;
     var kept=hist.filter(function(h){ return !(h&&h.id===id); });

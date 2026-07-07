@@ -500,6 +500,14 @@
       setTimeout(function(){ if(cw&&cw.isConnected){ cw.removeAttribute("data-armed"); cw.textContent="↺ Clear / reset this workout"; cw.classList.remove("arm"); } }, 3500);
       return;
     }
+    var cd=e.target.closest("[data-clearday]");                        // reset a specific logged day (Full-week / non-featured)
+    if(cd){
+      var cdn=cd.getAttribute("data-clearday");
+      if(cd.getAttribute("data-armed")==="1"){ clearWorkoutFor(curWeek(), cdn); return; }
+      cd.setAttribute("data-armed","1"); cd.textContent="Tap again to clear ✕"; cd.classList.add("arm");
+      setTimeout(function(){ if(cd&&cd.isConnected){ cd.removeAttribute("data-armed"); cd.textContent="↺ Clear / reset this workout"; cd.classList.remove("arm"); } }, 3500);
+      return;
+    }
     var wu=e.target.closest("[data-wu]");                              // tap a warm-up move to check it off
     if(wu){ wu.classList.toggle("done"); return; }
     if(e.target.closest("#equipBar") && handleEquipClick(e)) return;   // equipment editor (in settings)
