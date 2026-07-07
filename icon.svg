@@ -11,7 +11,7 @@
     </radialGradient>
   </defs>
   <rect width="512" height="512" rx="112" fill="url(#bg)"/>
-  <!-- fairway sweep -->
+  <!-- swing sweep -->
   <path d="M0 360 Q256 300 512 360 L512 512 L0 512 Z" fill="#ffffff" opacity="0.06"/>
   <!-- flagstick -->
   <rect x="300" y="118" width="11" height="232" rx="5" fill="#f4f6f2"/>
