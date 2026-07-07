@@ -538,6 +538,16 @@
   .hero-ename { font:900 17px system-ui; letter-spacing:1px; color:#7ef0a8; text-transform:uppercase; }
   .hero-esub { font:600 12px/1.4 system-ui; color:#bfe3cd; margin-top:2px; }
   .hero-esub b { color:#fff; }
+  /* Hevy-style week strip: trained-day dots, today ringed. */
+  .hero-week { margin-top:13px; padding-top:11px; border-top:1px solid rgba(255,255,255,.10);
+    display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .hw-dots { display:flex; gap:7px; }
+  .hw-d { width:26px; height:26px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center;
+    font:800 11px system-ui; color:#8fb59d; background:rgba(255,255,255,.07); }
+  .hw-d.on { background:#7ef0a8; color:#0d2216; }
+  .hw-d.today { box-shadow:0 0 0 2px rgba(139,233,172,.55); }
+  .hw-n { font:700 12px system-ui; color:#9fbfab; white-space:nowrap; }
+  .hw-n b { color:#fff; font-family:'FF Numeral', system-ui, sans-serif; font-weight:600; font-size:14px; }
   .ffscore-bars { margin-top:15px; display:flex; flex-direction:column; gap:10px; }
   .ffp { display:flex; align-items:center; gap:12px; font-size:13px; }
   .ffp-label { width:112px; flex:0 0 auto; color:#dff3e7; }
@@ -2007,6 +2017,7 @@
   html:not([data-theme="light"]) .speed-callout ul{ color:#e0d2bf; }
   html:not([data-theme="light"]) .hero-mission .hm-fill{ background:linear-gradient(90deg,#2f9e5d,#274933); }
   html:not([data-theme="light"]) .hero-mission.hit .hm-fill{ background:#274934; }
+  html:not([data-theme="light"]) .hw-d.on{ background:#274934; color:#cae6d6; }
   html:not([data-theme="light"]) .ffp-fill{ background:linear-gradient(90deg,#3aae68,#274933); }
   html:not([data-theme="light"]) .wk-recap{ background:#1a1a1a; }
   html:not([data-theme="light"]) .adapt-btn{ background:#274934; color:#cae5d4; }
@@ -2283,6 +2294,7 @@
   html[data-theme="dark"] .speed-callout ul{ color:#e0d2bf; }
   html[data-theme="dark"] .hero-mission .hm-fill{ background:linear-gradient(90deg,#2f9e5d,#274933); }
   html[data-theme="dark"] .hero-mission.hit .hm-fill{ background:#274934; }
+  html[data-theme="dark"] .hw-d.on{ background:#274934; color:#cae6d6; }
   html[data-theme="dark"] .ffp-fill{ background:linear-gradient(90deg,#3aae68,#274933); }
   html[data-theme="dark"] .wk-recap{ background:#1a1a1a; }
   html[data-theme="dark"] .adapt-btn{ background:#274934; color:#cae5d4; }

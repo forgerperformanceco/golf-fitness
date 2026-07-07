@@ -58,32 +58,33 @@
     return { key:"install", cls:"tip-install", ic:"📲", t:"Keep FairwayFuel one tap away",
       b:"In your browser menu, tap <b>“Install app”</b> / <b>“Add to Home Screen.”</b> It works offline like a real app." };
   }
-  function showTipFor(view){
-    var host = document.getElementById("view-"+view); if(!host) return;
-    var old = host.querySelector(":scope > .tip"); if(old) old.remove();
-    var tip;
-    if(view==="dash"){
-      // Priority on Home: sign-in nudge (signed out) → install hint → generic home tip.
-      tip = !ffSignedIn() ? FF_TIP_SIGNIN : (ffInstallTip() || FF_TIPS.dash);
-    } else if(view==="account" && ffSignedIn()){
-      return;   // already signed in — the "sign in to unlock" tip would be wrong
-    } else {
-      tip = FF_TIPS[view];
-    }
-    if(!tip) return;
+  function ffTipHtml(tip){
+    if(!tip) return '';
     var seen = lsGet("ff_tips_seen", []);
-    if(seen.indexOf(tip.key) >= 0) return;
-    var el = document.createElement("div");
-    el.className = "tip" + (tip.cls ? " "+tip.cls : "");
-    el.setAttribute("data-tipkey", tip.key);
-    el.innerHTML = '<span class="tip-ic">'+tip.ic+'</span>'+
+    if(seen.indexOf(tip.key) >= 0) return '';
+    return '<div class="tip'+(tip.cls?' '+tip.cls:'')+'" data-tipkey="'+tip.key+'">'+
+      '<span class="tip-ic">'+tip.ic+'</span>'+
       '<div class="tip-tx"><div class="tip-t">'+tip.t+'</div><div class="tip-b">'+tip.b+'</div>'+
       (tip.cta ? '<button type="button" class="tip-cta" data-tipcta="'+(tip.ctaAction||'signin')+'">'+tip.cta+'</button>' : '')+
       '</div>'+
-      '<button type="button" class="tip-x" data-tipclose="'+tip.key+'" aria-label="Dismiss">×</button>';
-    var anchor = host.firstChild;
-    if(view==="dash"){ var hero=host.querySelector(".dash-hero"); if(hero && !hero.hidden) anchor = hero.nextSibling; }
-    host.insertBefore(el, anchor);
+      '<button type="button" class="tip-x" data-tipclose="'+tip.key+'" aria-label="Dismiss">×</button></div>';
+  }
+  // Home renders its own tip INSIDE the dash flow (below the next-up card) so
+  // the nudge never outranks the action — and re-renders keep it consistent.
+  function dashTipHtml(){
+    var tip = !ffSignedIn() ? FF_TIP_SIGNIN : (ffInstallTip() || FF_TIPS.dash);
+    return ffTipHtml(tip);
+  }
+  function showTipFor(view){
+    if(view==="dash") return;   // Home owns its tip inline (renderDash)
+    var host = document.getElementById("view-"+view); if(!host) return;
+    var old = host.querySelector(":scope > .tip"); if(old) old.remove();
+    if(view==="account" && ffSignedIn()) return;   // "sign in to unlock" would be wrong
+    var html = ffTipHtml(FF_TIPS[view]);
+    if(!html) return;
+    var el = document.createElement("div");
+    el.innerHTML = html;
+    host.insertBefore(el.firstChild, host.firstChild);
   }
   function ffSeeTip(key){ var s=lsGet("ff_tips_seen", []); if(s.indexOf(key)<0){ s.push(key); lsSet("ff_tips_seen", s); } }
   // One delegated handler for every tip's close button + the sign-in CTA.

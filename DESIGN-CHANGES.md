@@ -948,6 +948,41 @@ both the Account sheet and onboarding step 7 (wizard walked end-to-end).
 e2e suite green, zero page errors. Gotcha: player sets/hint only exist on
 LIFT stations — advance past the warm-up before asserting.
 
+## 46 · Home 2.0 — the benchmark pass (user: "full run through of the homepage")
+
+**Method.** Full-page captures of Home in fresh / active / dark states,
+evaluated against Hevy (action-first + week dots), Whoop (dynamic status
+line), Apple Fitness (glanceable rings), MFP. Findings → one rebuild.
+
+**Findings → fixes.**
+1. *Action buried* (nag + 270px hero above "Next up") → **order flip**:
+   next-up card first (the Hevy rule), hero second; tips render INSIDE the
+   dash flow below the action (`dashTipHtml()` — showTipFor no longer owns
+   dash; fixed a first-cut bug where host-level insertBefore with a
+   dashBody anchor threw and killed the tip, and a missing `</div>` that
+   swallowed the rest of Home into the tip).
+2. *Static hero copy* ("Your engine — lifting, fuel & speed work", same
+   every day; Whoop's line changes daily) → the hero Octane subline now
+   reuses `ffScoreSummary(r)` — the Stats hub's "biggest lever now" read.
+   Stale baseline line tightened to "Baseline banked — your next logged
+   drive starts the climb."
+3. *No glanceable week* (the "Week so far · 0 of 4 workouts" text row was
+   weak, and Monday-reset made it read like failure) → **Hevy-style week
+   strip in the hero**: Mon–Sun dots, filled = session finished that day
+   (ff_history by local midnight), ring = today, "N/freq this week".
+   `renderWeekRecap` no longer rendered (function kept).
+4. *Two advice cards could stack* (Your Focus + Metabolism check-in) →
+   ONE slot: `renderAdaptiveCard() || renderInsight()` — the due check-in
+   outranks the nudge.
+5. *Undated day* → timeline header now "Your Monday" (locale weekday).
+
+**Verified** (test-home2.mjs): child order next-up → tip → hero → advice →
+timeline → coach; advice cards ≤1; week-recap gone; 7 dots with filled
+count matching this week's history + today ringed + "1/4 this week"; hero
+subline is the dynamic lever; tip sits after the action; header carries the
+weekday. Non-dash tips re-verified on all four tabs; calm-home + e2e suites
+green; zero page errors.
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob
