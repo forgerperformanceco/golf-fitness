@@ -1103,6 +1103,21 @@ informational quickLog probes now read false, as designed). The PR-Wall
 "missing row" in the audit shot was the fullPage tab-bar paint band —
 DOM probe shows all 8 folds present.
 
+## 51 · You-tab check (user: "double check the You page just in case")
+
+**Audit result: healthy.** Live sync line, backup card, training setup,
+glossary/loop entries all in place from earlier passes. Two grammar nits:
+1. "⛳ Full access — unlocked" (read-once marketing) sat in slot #2,
+   outranking reminders/appearance/training setup on every visit → moved
+   to the bottom, above the feedback links.
+2. "Your training plan" was a mislabeled danger card (its only action is
+   the reset, but the title read like plan management — which is the
+   "Your training setup" card above) → renamed "↺ Start the plan over".
+
+**Verified**: card order (install → reminders → appearance → numbers →
+setup → mobility → backup → foods → start-over → show-me-around →
+full-access), reset button wired, zero page errors.
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob
