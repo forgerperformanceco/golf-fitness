@@ -5439,6 +5439,28 @@
     };
     inp.click();
   }
+  // Nuclear "get me the latest" escape hatch for installed PWAs that are stuck on
+  // an old cached build: drop every SW registration + every Cache Storage entry,
+  // then hard-reload. The page comes back fresh from the network and re-registers
+  // the current service worker. Belt-and-suspenders behind the automatic update
+  // path (network-first HTML + resume-time reg.update()).
+  function ffForceUpdate(){
+    var btn=$("acctForceUpdate"); if(btn){ btn.disabled=true; btn.textContent="Refreshing…"; }
+    function done(){ try{ location.reload(); }catch(e){ location.href=location.pathname; } }
+    var jobs=[];
+    try{
+      if("serviceWorker" in navigator){
+        jobs.push(navigator.serviceWorker.getRegistrations().then(function(rs){
+          return Promise.all((rs||[]).map(function(r){ return r.unregister(); })); }).catch(function(){}));
+      }
+      if(window.caches && caches.keys){
+        jobs.push(caches.keys().then(function(ks){
+          return Promise.all((ks||[]).map(function(k){ return caches.delete(k); })); }).catch(function(){}));
+      }
+    }catch(e){}
+    Promise.all(jobs).then(done, done);
+    setTimeout(done, 2500);   // never hang on a wedged SW
+  }
   // Reflect an Account-tab change onto the matching segmented control elsewhere
   // (the calculator / Train fold) so the two stay in sync without a reload.
   function ffSyncSeg(id, attr, val){ var s=$(id); if(!s) return;
@@ -5554,6 +5576,9 @@
     html+='<div class="acct-card"><div class="acct-head">🍽️ Your favorite foods</div>'+
       '<p class="acct-p">Tell us what you actually eat and your meal ideas + day plans get built around it. Set it once, tweak anytime.</p>'+
       '<button class="acct-btn ghost" id="acctFoods">Edit my foods</button></div>';
+    html+='<div class="acct-card"><div class="acct-head">🔄 App version</div>'+
+      '<p class="acct-p">You’re on build <b>'+lbEsc(window.FF_BUILD||"—")+'</b>. The app updates itself in the background, but if the home-screen version ever looks stuck on an old layout, force a clean reload — it clears the offline cache and pulls the newest build. Your data stays put.</p>'+
+      '<button class="acct-btn ghost" id="acctForceUpdate">↻ Force refresh to the latest</button></div>';
     html+='<div class="acct-card"><div class="acct-head">↺ Start the plan over</div>'+
       '<p class="acct-p">Clears your plan start date and logged workouts so the plan resets to week 1. Your bodyweight &amp; 7-iron history and your calculator stay put.</p>'+
       '<button class="acct-btn danger" id="acctResetPlan">↺ Reset plan</button></div>';
@@ -5629,6 +5654,7 @@
     var su=$("acctSetup"); if(su) su.onclick=function(){ startOnboarding(true); };
     var ex=$("acctExport"); if(ex) ex.onclick=function(){ ffExportData(); };
     var im=$("acctImport"); if(im) im.onclick=function(){ ffImportData(); };
+    var fu=$("acctForceUpdate"); if(fu) fu.onclick=function(){ ffForceUpdate(); };
     var af=$("acctFoods"); if(af) af.onclick=function(){ openFoodPrefs(); };
     var ai=$("acctInstall"); if(ai) ai.onclick=function(){ if(!ffPromptInstall()) alert("Use your browser menu → “Install app” / “Add to Home Screen.”"); };
     var nb=$("acctNotif"); if(nb) nb.onclick=function(){ nb.disabled=true; ffNotifToggle().then(function(){ renderAccount(); }); };
@@ -6951,8 +6977,19 @@
 if ('serviceWorker' in navigator && !window.Capacitor) {
   window.addEventListener('load', function () {
     navigator.serviceWorker.register('sw.js').then(function (reg) {
-      // Installed PWAs cache hard — check for a newer version on every launch.
-      try { reg.update(); } catch (e) {}
+      // Installed PWAs cache hard — check for a newer version on launch AND every
+      // time the app is brought back to the foreground. A home-screen PWA usually
+      // RESUMES (no fresh 'load') when reopened from the app switcher, so a
+      // load-only check would miss updates for days. visibilitychange/focus/
+      // pageshow cover resume; a new SW self-activates (skipWaiting) and the
+      // controllerchange handler below reloads once.
+      function ffUpd() { try { reg.update(); } catch (e) {} }
+      ffUpd();
+      document.addEventListener('visibilitychange', function () {
+        if (document.visibilityState === 'visible') ffUpd();
+      });
+      window.addEventListener('focus', ffUpd);
+      window.addEventListener('pageshow', function (e) { if (e.persisted) ffUpd(); });
     }).catch(function () {});
     // When a new service worker takes control, reload once so the app picks up the fresh
     // files automatically — but only if we were already controlled (an UPDATE, not the
