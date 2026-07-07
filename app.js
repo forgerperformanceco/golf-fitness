@@ -2548,7 +2548,7 @@
       return '<div class="day speedday"><div class="day-head">'+d.name+' <span class="tag '+(d.tag)+'">'+labelFor(d.tag)+'</span></div>'+
         speedTestCardHtml()+
         toggle+
-        warmupHtml("speed", false)+
+        '<details class="prelift"><summary>🔥 Warm-up — do these first</summary><div class="prelift-body">'+warmupHtml("speed", false)+'</div></details>'+
         '<div class="speed-intro">'+s.intro+'</div>'+
         '<div class="speed101-wrap">'+speed101Html()+'</div>'+
         '<table class="ex"><tr><th>Drill</th><th style="text-align:right">Sets × Reps</th></tr>'+srows+'</table>'+
@@ -2605,7 +2605,10 @@
         '<details class="prelift"><summary>🔥 Warm-up &amp; power primer — do these first</summary><div class="prelift-body">'+warmPrimer+'</div></details>'+
         body+'</div>';
     }
-    var head = '<div class="day"><div class="day-head">'+d.name+' <span class="tag '+(d.tag==="Lift"?"":d.tag)+'">'+labelFor(d.tag)+'</span></div>'+warmPrimer;
+    // Full-week (non-interactive) day: fold the warm-up too — otherwise every
+    // day in the week prints its whole checklist and the page runs for screens.
+    var head = '<div class="day"><div class="day-head">'+d.name+' <span class="tag '+(d.tag==="Lift"?"":d.tag)+'">'+labelFor(d.tag)+'</span></div>'+
+      '<details class="prelift"><summary>🔥 Warm-up &amp; power primer — do these first</summary><div class="prelift-body">'+warmPrimer+'</div></details>';
     return head +
       '<table class="ex"><tr><th>Exercise</th><th style="text-align:right">Sets × Reps</th></tr>'+rows+'</table>'+
       '<div class="romcue">Full range every rep — <b>control the lowering (~3 sec)</b>, own the lockout. That eccentric control builds muscle and armors the deceleration your downswing punishes. The range you train is the range you can swing with.</div>'+

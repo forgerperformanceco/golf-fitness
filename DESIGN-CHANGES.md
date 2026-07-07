@@ -1118,6 +1118,21 @@ glossary/loop entries all in place from earlier passes. Two grammar nits:
 setup → mobility → backup → foods → start-over → show-me-around →
 full-access), reset button wired, zero page errors.
 
+## 58 · Fold the Full-week warm-ups too (user: "collapse the daily warmups on this train page view")
+
+§56 folded the warm-up on the Today card, but the **Full week** view still
+printed every day's warm-up checklist inline — 4–5 expanded warm-ups down one
+scroll. Each non-interactive day card (lift + speed) now wraps its warm-up in
+the same collapsed `<details class="prelift">` fold as the Today card, so the
+week reads as a list of day headers with a one-tap "🔥 Warm-up …" row on each.
+Verified in test-train3.mjs: full-week has ≥4 day cards, every one has a
+`details.prelift`, none open by default, zero warm-ups inline outside a fold,
+log buttons intact.
+
+(Also confirmed with the user: the earlier "speed section never updated" was
+the stale-PWA cache from §57, not a code issue — the compact speed day was
+live all along, just not reaching the home-screen app.)
+
 ## 57 · PWA update reliability (user: "I'm refreshing the save-to-home version and it's not working")
 
 The installed (home-screen) PWA wasn't picking up new builds on refresh. Three
