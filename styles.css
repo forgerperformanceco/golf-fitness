@@ -1189,12 +1189,12 @@
   .sb-go2 { background:#7ef0a8; color:#0d2216; border:0; border-radius:9px; padding:9px 15px; font:800 13px system-ui; cursor:pointer; }
   /* Today vs Full-week view */
   .planview-seg { display:flex; gap:6px; background:#eef3ee; padding:4px; border-radius:11px; margin-bottom:12px; }
-  .planview-seg button { flex:1; border:0; background:transparent; padding:9px; border-radius:8px; font:700 13px system-ui; color:var(--muted); cursor:pointer; }
+  .planview-seg button { flex:1; min-height:44px; border:0; background:transparent; padding:9px; border-radius:8px; font:700 13px system-ui; color:var(--muted); cursor:pointer; }
   .planview-seg button.active { background:#fff; color:var(--green-700); box-shadow:0 1px 4px rgba(0,0,0,.08); }
   .planview-seg button:disabled { opacity:.4; cursor:default; }
   /* The full 7-day week at a glance (no horizontal scroll) — equal columns. */
   .weekstrip { display:grid; grid-template-columns:repeat(7, minmax(0, 1fr)); gap:3px; padding:1px 0 12px; margin-bottom:2px; }
-  .ws-chip { display:flex; flex-direction:column; align-items:center; gap:2px; border:1px solid var(--line); background:var(--paper);
+  .ws-chip { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; min-height:44px; border:1px solid var(--line); background:var(--paper);
     color:var(--ink); text-align:center; border-radius:10px; padding:7px 1px; cursor:pointer; overflow:hidden; min-width:0; }
   .ws-chip .ws-date { font:600 8.5px/1 system-ui; color:var(--muted); letter-spacing:-.2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
   .ws-chip .ws-name { font:800 10px/1 system-ui; letter-spacing:-.3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
@@ -1361,7 +1361,7 @@
     border-radius:12px; padding:13px; font:700 13.5px system-ui; cursor:pointer; }
   /* Full-width stacked buttons — a right-aligned half-width pill read as broken on mobile. */
   .day-foot { padding:11px 15px 13px; border-top:1px solid var(--line); display:flex; flex-direction:column; align-items:stretch; gap:8px; }
-  .logbtn { display:flex; justify-content:center; align-items:center; gap:6px; width:100%; border:none; cursor:pointer; font-weight:700; font-size:13px;
+  .logbtn { display:flex; justify-content:center; align-items:center; gap:6px; width:100%; min-height:44px; border:none; cursor:pointer; font-weight:700; font-size:13px;
     border-radius:10px; padding:12px 16px; background:var(--green-600); color:#fff; transition:all .15s; }
   .logbtn:hover { background:var(--green-700); }
   .logbtn.logged { background:#eef7f0; color:var(--green-700); border:1px solid #cfe9d8; }

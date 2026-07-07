@@ -1118,6 +1118,28 @@ glossary/loop entries all in place from earlier passes. Two grammar nits:
 setup → mobility → backup → foods → start-over → show-me-around →
 full-access), reset button wired, zero page errors.
 
+## 60 · Train-page bug sweep + tap targets (user: "you had me feeling crazy. Make sure you are checking for bugs along the build")
+
+Post-mortem on why the speed-day reset survived several rounds: my tests
+exercised the **Today** interactive path while the actual button lived in
+`logFoot` (Full-week / non-featured days) — green tests, real bug. Fix for the
+process, not just the symptom: a `scratchpad/audit-train.mjs` state-matrix sweep
+that drives the Train tab through **9 states × light/dark = 18** (not-started,
+today lift fresh/manual/logged, speed fresh/logged, deload week, full-week
+fresh/logged) and asserts hard invariants in each:
+- zero app/console errors (sandbox-only external-CDN failures filtered out),
+- no leaked `undefined` / `NaN` / `[object Object]` / unreplaced `{{V}}`,
+- every logged day exposes a reset (finish-bar clear OR `logFoot` reset),
+- no half-width `.logbtn` (ratio ≥ 0.8 of its `.day-foot`),
+- warm-up folds never `[open]` by default,
+- tap targets ≥ 44px.
+
+The sweep came back clean on the functional invariants (the §59 fixes hold in
+every state, both themes) and surfaced one real nit: the Today/Full-week toggle
+(33px), week-strip chips (37px) and log buttons (39px) were under the 44px
+mobile standard. Bumped `.planview-seg button`, `.ws-chip`, and `.logbtn` to
+`min-height:44px`. Re-run: 18/18 clean.
+
 ## 59 · Trim the Train prose + fix the logged-day button/reset everywhere (user: "shorten the words… speed day still doesn't have the reset button and the logged button is still half size")
 
 Two things.
