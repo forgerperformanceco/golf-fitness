@@ -1118,6 +1118,22 @@ glossary/loop entries all in place from earlier passes. Two grammar nits:
 setup → mobility → backup → foods → start-over → show-me-around →
 full-access), reset button wired, zero page errors.
 
+## 54 · Speed day parity (user: "Speed day is missing reset and the box is half sized")
+
+The §53 clear/reset fix landed on lift days but not the Speed & Power day —
+its `dayCardHtml` branch has always short-circuited before the interactive
+lift path, so it never set `ilog`. Result: the finish bar came up empty (no
+Finish, no Clear), and the day fell back to the small right-aligned
+`logFoot` "✓ Logged — tap to edit" pill — the "half-sized box." Now the
+featured (today/past) Speed day sets `ilog` from `buildSession` like a lift
+day, so the full-width **✓ Finish / ↺ Clear / reset** bar renders below it,
+and the compact `logFoot` is dropped when interactive (the Full-week view
+keeps its per-day log buttons). The player CTA now also reflects state
+("✓ Speed session done — replay it" once logged). Verified in
+test-train3.mjs (speed block): finish bar + clear present, no `.logbtn`
+half-box, two-tap clears the speed session, full-week still shows log
+buttons, zero page errors.
+
 ## 53 · Train fixes (user: "take out the stats… reset a workout… a future day starts to log it")
 
 Three reports from a day of real use on the Train tab:
