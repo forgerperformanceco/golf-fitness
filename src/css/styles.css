@@ -153,6 +153,7 @@
   .sl-manual{ display:block; width:100%; border:1.5px dashed var(--line); background:transparent;
     color:var(--green-700); border-radius:12px; padding:11px; font:800 13px system-ui; cursor:pointer; }
   .sl-manual.off{ margin-top:10px; color:var(--muted); }
+  .qopen-row{ width:100%; text-align:left; cursor:pointer; font:inherit; }
   .grid .card-full { grid-column: 1 / -1; }
 
   .card {
