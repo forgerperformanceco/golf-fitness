@@ -286,6 +286,7 @@
       goal:g,pct:g.pct, timing:timing, meal:meal, weekly:weekly });
     updateFoodTargets(proteinG, carbG, mealN);
     try{ renderFFMeals(); }catch(e){}
+    try{ renderFuelToday(); }catch(e){}
     try{ applyCalcCollapse(); }catch(e){}
     updatePlanCopy();                 // keep the Train-tab framing in step with the goal
     // Stash the computed targets so the AI coach can use the user's exact numbers.
@@ -1203,19 +1204,27 @@
 
     var adjNow=lsGet("ff_kcal_adj",0);
     var html="";
+    // Prose diet (same rule as Home): the numbers lead, one compact scale line
+    // stays visible, and the education (full weekly-target band + goal note)
+    // lives inside the "How this is calculated" fold.
+    var scaleLine = r.weekly
+      ? (r.weekly.gain?'▲':'▼')+' Scale target: <b>'+r.weekly.lo+'–'+r.weekly.hi+' lb/wk</b> · judge the weekly average'
+      : 'Scale target: <b>hold flat</b> — in-season maintenance';
     html+='<div class="result-hero">'+
       '<div class="kcal">'+round(totalK)+' <small>kcal/day</small></div>'+
       '<div class="goal-label">'+r.goal.label+' &middot; '+pctTxt+'</div>'+
-      '<div class="tdee-line">Maintenance (TDEE): <b>'+round5(r.tdee)+' kcal</b> &nbsp;·&nbsp; Goal target: <b>'+round5(r.target)+' kcal</b> ('+deltaTxt+')</div>'+
+      '<div class="tdee-line">'+ffTerm('tdee','Maintenance (TDEE)')+': <b>'+round5(r.tdee)+' kcal</b> &nbsp;·&nbsp; Goal target: <b>'+round5(r.target)+' kcal</b> ('+deltaTxt+')</div>'+
       (adjNow!==0 ? '<div class="tuned-note">📊 Tuned <b>'+(adjNow>0?'+':'')+adjNow+' kcal</b> from your actual weight trend</div>' : '')+
       '</div>';
-    html+=targetBand(r.weekly,r.goal);
     html+='<div class="macros">'+
       macroCard("p","Protein",r.proteinG,r.proteinKcal,pPct)+
       macroCard("c","Carbs",r.carbG,r.carbKcal,cPct)+
       macroCard("f","Fat",r.fatG,r.fatKcal,fPct)+'</div>';
-    html+='<div class="golf-note"><b>⛳ '+r.goal.label+':</b> '+r.goal.note+'</div>';
-    html+='<details class="fold"><summary>How this is calculated</summary><div class="fold-body breakdown"><table>'+
+    html+='<div class="golf-note slim">'+scaleLine+'</div>';
+    html+='<details class="fold"><summary>How this is calculated — and how fast the scale should move</summary><div class="fold-body breakdown">'+
+      targetBand(r.weekly,r.goal)+
+      '<div class="golf-note"><b>⛳ '+r.goal.label+':</b> '+r.goal.note+'</div>'+
+      '<table>'+
       tr("BMR (Mifflin–St Jeor)",round5(r.bmr)+" kcal")+
       tr("Activity multiplier","×"+r.activity+" ("+ACTIVITY_LABELS[String(r.activity)]+")")+
       tr("TDEE / Maintenance",round5(r.tdee)+" kcal")+

@@ -123,6 +123,24 @@
   /* Single centered column everywhere — a collapsed inputs card next to the tall plan
      left the desktop layout lopsided, so the Fuel view now stacks like the rest of the app. */
   .grid { display: grid; grid-template-columns: 1fr; gap: 16px; align-items: start; }
+  /* Fuel "Today" strip — the daily answer, above the reference cards. */
+  .ftoday{ background:var(--paper); border:1px solid var(--line); border-radius:16px; padding:10px 12px;
+    margin:0 0 14px; box-shadow:0 1px 3px rgba(12,40,24,.04); }
+  .ftoday.done{ display:flex; align-items:center; gap:11px; padding:14px 15px;
+    background:#eef7f0; border-color:#cfe9d8; }
+  .ft-next{ display:flex; align-items:center; gap:11px; width:100%; text-align:left; background:none;
+    border:0; padding:6px 4px; cursor:pointer; font:inherit; }
+  .ft-ic{ font-size:20px; flex:0 0 auto; }
+  .ft-tx{ flex:1; min-width:0; }
+  .ft-tx b{ display:block; font-size:15px; color:var(--ink); letter-spacing:-.01em; }
+  .ft-tx span{ display:block; font-size:12.5px; color:var(--muted); margin-top:1px; }
+  .ft-chk{ flex:0 0 auto; width:34px; height:34px; border-radius:50%; display:inline-flex; align-items:center;
+    justify-content:center; border:2px solid #cfe9d8; color:var(--green-700); font-weight:800; font-size:15px; }
+  .ft-next:active .ft-chk{ background:#eef7f0; }
+  .ft-rem{ display:flex; align-items:center; justify-content:space-between; gap:10px; border-top:1px solid var(--line);
+    margin-top:7px; padding:8px 4px 2px; font-size:12.5px; color:var(--muted); }
+  .ft-rem b{ color:var(--green-800); font-family:'FF Numeral', system-ui, sans-serif; font-weight:600; font-size:14px; }
+  .golf-note.slim{ font-size:12.8px; padding:9px 12px; }
   .grid .card-full { grid-column: 1 / -1; }
 
   .card {
@@ -1929,6 +1947,9 @@
   html:not([data-theme="light"]) .kicker{ background:#142417; border:1px solid #25422e; }
   html:not([data-theme="light"]) .brand-kicker .ball{ background:radial-gradient(circle at 35% 30%, #1a1a1a, #212d21); }
   html:not([data-theme="light"]) .tabs button.active{ background:#1a1a1a; }
+  html:not([data-theme="light"]) .ftoday.done{ background:#142417; border-color:#274531; }
+  html:not([data-theme="light"]) .ft-chk{ border:2px solid #274531; }
+  html:not([data-theme="light"]) .ft-next:active .ft-chk{ background:#142417; }
   html:not([data-theme="light"]) label.field > span.lbl{ color:#caded2; }
   html:not([data-theme="light"]) input[type="number"], html:not([data-theme="light"]) input[type="text"], html:not([data-theme="light"]) input[type="date"], html:not([data-theme="light"]) input[type="time"], html:not([data-theme="light"]) select{ background:#141f14; }
   html:not([data-theme="light"]) .seg{ background:#182518; }
@@ -2206,6 +2227,9 @@
   html[data-theme="dark"] .kicker{ background:#142417; border:1px solid #25422e; }
   html[data-theme="dark"] .brand-kicker .ball{ background:radial-gradient(circle at 35% 30%, #1a1a1a, #212d21); }
   html[data-theme="dark"] .tabs button.active{ background:#1a1a1a; }
+  html[data-theme="dark"] .ftoday.done{ background:#142417; border-color:#274531; }
+  html[data-theme="dark"] .ft-chk{ border:2px solid #274531; }
+  html[data-theme="dark"] .ft-next:active .ft-chk{ background:#142417; }
   html[data-theme="dark"] label.field > span.lbl{ color:#caded2; }
   html[data-theme="dark"] input[type="number"], html[data-theme="dark"] input[type="text"], html[data-theme="dark"] input[type="date"], html[data-theme="dark"] input[type="time"], html[data-theme="dark"] select{ background:#141f14; }
   html[data-theme="dark"] .seg{ background:#182518; }

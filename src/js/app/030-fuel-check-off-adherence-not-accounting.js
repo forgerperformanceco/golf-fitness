@@ -53,6 +53,39 @@
     try{ calc(); }catch(e){}
     try{ renderDash(); }catch(e){}
     try{ if($("view-progress") && $("view-progress").classList.contains("active")) renderProgress(); }catch(e){}
+    try{ renderFuelToday(); }catch(e){}
+  }
+  /* ----- The Fuel "Today" strip: the daily answer, first -----
+     MFP leads with calories remaining; we lead with the next unchecked meal
+     (one-tap check-off), the fueled count, and the protein/carbs still owed —
+     summed live from the unchecked schedule slots. A fully banked day gets the
+     reward state. Lives at the top of the Fuel tab; the plan and meal cards
+     below stay the reference. */
+  function renderFuelToday(){
+    var el=$("fuelToday"); if(!el) return;
+    var t=lsGet("ff_targets",null);
+    if(!t || !t.kcal || typeof ffSchedule==="undefined" || !ffSchedule || !ffSchedule.length){ el.innerHTML=""; return; }
+    var fd=fuelDay(ffISO())||{ m:{} };
+    var n=ffSchedule.length, done=0, next=null, ni=-1, remP=0, remC=0;
+    ffSchedule.forEach(function(sl,i){
+      if(fd.m && fd.m[i]){ done++; return; }
+      if(!next){ next=sl; ni=i; }
+      remP+=(sl.p||0); remC+=(sl.c||0);
+    });
+    if(!next){
+      el.innerHTML='<div class="ftoday done"><span class="ft-ic">✅</span>'+
+        '<span class="ft-tx"><b>Fuel day banked</b><span>All '+n+' meals checked — the scale does the judging now.</span></span></div>';
+      return;
+    }
+    var time=(next.t!=null)?fmtMin(Math.round(next.t*60)):"";
+    var macro=(next.p?next.p+"P":"")+(next.c?((next.p?" · ":"")+next.c+"C"):"");
+    el.innerHTML='<div class="ftoday">'+
+      '<button type="button" class="ft-next" data-fuelmeal="'+ni+'" data-fuelval="a">'+
+        '<span class="ft-ic">🍽️</span><span class="ft-tx"><b>Next: '+next.label+(time?' · '+time:'')+'</b>'+
+        '<span>'+(macro?macro+' — ':'')+'tap when eaten</span></span><span class="ft-chk">✓</span></button>'+
+      '<div class="ft-rem"><span><b>'+done+'</b>/'+n+' fueled</span>'+
+        '<span>still to eat: <b>'+remP+'</b>P · <b>'+remC+'</b>C</span></div>'+
+      '</div>';
   }
   // Every check-off surface routes through one listener.
   document.addEventListener("click", function(e){

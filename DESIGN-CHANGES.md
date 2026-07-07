@@ -1010,6 +1010,40 @@ insight + snoozing the check-in → hero picks the lever line back up on the
 same render; "stacking the work" never renders; footer `<details>` closed
 by default with the one-line summary. Suites green.
 
+## 48 · Fuel 2.0 — the benchmark pass (same concepts as Home)
+
+**Method.** Full-page captures (fresh/active/prefs) vs MFP/MacroFactor.
+(Audit-harness gotcha burned an hour: a seed function that CALLS another
+seed function breaks inside `addInitScript` — Playwright serializes only
+the outer function, the closure reference throws, the page silently gets
+NO seed. The "bug" in the first capture was a genuinely fresh user with
+the onboarding wizard painted at the top of a fullPage shot. Seeds must
+be self-contained.)
+
+**Findings → fixes.**
+1. *The daily answer was at 65% scroll* ("1 of 5 down…" inside the Meals
+   card; MFP leads with calories remaining) → **Today strip** at the top
+   of Fuel (`#fuelToday`, `renderFuelToday()` in 030, refreshed from
+   fuelRefresh + calc): the next unchecked meal with its time and macros
+   as a one-tap check-off, fueled count, and **remaining P/C summed live
+   from the unchecked schedule slots**. All meals banked → "Fuel day
+   banked" reward state.
+2. *Set-once outranked touch-daily* → section order is now Plan → Meals →
+   food ideas → **Your Numbers last** (template reorder; `.grid` is
+   single-column everywhere so no desktop impact). Profile card's
+   redundant sub-line removed.
+3. *Three explainer paragraphs between the numbers* → the weekly-target
+   band and the goal note moved INSIDE the "How this is calculated — and
+   how fast the scale should move" fold; one compact scale line stays
+   visible ("▲ Scale target: 0.5–0.9 lb/wk · judge the weekly average").
+   "Maintenance (TDEE)" is now a glossary term (new `tdee` entry).
+
+**Verified** (test-fuel2.mjs): strip shows next meal + time, remaining
+175P/320C matches unchecked slots and decrements on tap (→110P/245C),
+banking all 5 flips to the done state; section order asserted; band+note
+in the closed fold with the slim line + tdee term visible; legacy fuel
+suites green (test-fuel's timeline probe updated for calm-pass slim rows).
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob
