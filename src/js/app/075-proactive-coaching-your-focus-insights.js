@@ -91,10 +91,9 @@
       }
     });
 
-    if(hasData)
-      out.push({prio:8, sig:"keepgoing:"+sessions.length+":"+(lastSpeed||0), ic:"📈", title:"You're stacking the work",
-        body:"<b>"+sessions.length+"</b> workout"+(sessions.length===1?"":"s")+" logged"+(lastSpeed?(" · 7-iron at <b>"+lastSpeed+" mph</b>"):"")+". The system works when the inputs are consistent — keep logging bodyweight, speed and sessions, and the trends do the rest.", ask:null});
-    else
+    // No filler card. A "keep going" pat-on-the-back every quiet day trains the
+    // eye to scroll past this slot — real signals only, so the slot stays loud.
+    if(!hasData)
       out.push({prio:40, sig:"firststeps", ic:"🌟", title:"Let's get your first data points",
         body:"Log a workout on the <b>Train</b> tab and drop today's bodyweight + 7-iron speed below. Two data points and your trends — and your Octane — start climbing.", ask:null});
 
@@ -265,8 +264,11 @@
     // the metabolism check-in outranks the focus nudge when it's due.
     var html = nextUpCard();         // the ONE thing to do right now
     try{ html += dashTipHtml(); }catch(e){}   // one-time nudge, never above the action
-    html += renderHeroCard();        // where you stand: carry + Octane + the week strip
-    html += (renderAdaptiveCard() || renderInsight());
+    // One coaching voice at a time: when an advice card is showing, the hero's
+    // lever line steps down to a quiet tag; otherwise the hero carries the coaching.
+    var advice = renderAdaptiveCard() || renderInsight();
+    html += renderHeroCard(!!advice);
+    html += advice;
     html += timelineHtml();          // the day, in time order
     html += '<button class="dash-ai" data-ask="read"><span class="dai-ic">💬</span>'+
       '<span class="dai-tx"><b>Coach’s read</b><span>A quick AI take on your numbers &amp; what to focus on</span></span>'+

@@ -983,6 +983,33 @@ subline is the dynamic lever; tip sits after the action; header carries the
 weekday. Non-dash tips re-verified on all four tabs; calm-home + e2e suites
 green; zero page errors.
 
+## 47 · One coaching voice (user: "is anything too much?")
+
+**Finding.** After Home 2.0, three coaching surfaces could speak at once:
+the hero's lever line, the advice card, and the Coach's read button. Plus
+a filler insight ("You're stacking the work", prio 8) rendered on quiet
+days — wallpaper that trains the eye to skip the slot.
+
+**What.**
+- **Filler insight removed.** The advice slot now renders real signals only
+  (PRs, stalls, streak risk, check-ins, re-engagement); quiet days show no
+  card. The no-data "first steps" card stays (it's actionable).
+- **One voice rule.** `renderDash` computes the advice card first and passes
+  `muted` into `renderHeroCard`: advice showing → hero subline steps down to
+  "Your engine — tap for the full breakdown."; no advice → the hero carries
+  the dynamic lever line. Exactly one piece of coaching per screen, always.
+- **Footer folded.** The five-line methodology/disclaimer paragraph is now a
+  one-line native `<details>` ("Evidence-based starting points — not medical
+  advice. How it's calculated ›") with the full text a tap away.
+
+Deliberately kept: sign-in tip (one-time), round suggestion row (slim, and
+it's the golf identity), Coach's read (the AI door).
+
+**Verified** (test-home2.mjs): advice present → muted tag; dismissing every
+insight + snoozing the check-in → hero picks the lever line back up on the
+same render; "stacking the work" never renders; footer `<details>` closed
+by default with the one-line summary. Suites green.
+
 ## Cross-cutting notes / recorded follow-ups
 
 - `ff_speedtest` and `ff_mobility` were added to the cloud-sync `KEYS` blob
