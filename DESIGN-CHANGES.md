@@ -1118,6 +1118,18 @@ glossary/loop entries all in place from earlier passes. Two grammar nits:
 setup → mobility → backup → foods → start-over → show-me-around →
 full-access), reset button wired, zero page errors.
 
+## 56 · Warm-up collapsed by default on every Today card (user: "it's the whole train day… I thought we collapsed a little more")
+
+The warm-up & power primer `<details>` opened by default (since §36 —
+"do these first, easy to miss"). It's the single biggest block on the Today
+card, and it's prep, not the workout — the guided player runs it for you
+anyway. Now it starts **collapsed** on both lift and speed days: one
+"🔥 Warm-up & power primer — do these first ▾" row, one tap to open. The
+exercise list is now the visible focus directly under the Start button.
+Lift Today card ≈ 674px (7 exercises visible, warm-up folded) vs the taller
+open-warm-up version. Verified in test-train3.mjs (warm-up present but not
+`[open]`, exercise rows still visible, speed day same).
+
 ## 55 · Speed day compaction (user: "I thought the train day / the workout was more collapsed")
 
 Train 2.0 (§36) made lift days compact — a tight drill list with the warm-up
