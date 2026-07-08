@@ -1118,6 +1118,33 @@ glossary/loop entries all in place from earlier passes. Two grammar nits:
 setup → mobility → backup → foods → start-over → show-me-around →
 full-access), reset button wired, zero page errors.
 
+## 66 · Scroll-preservation audit: every other section checked, all clean
+
+Follow-up to §65 ("evaluate any other sections this might be possible on"):
+a Playwright audit (audit-scroll.mjs) drives every in-place interaction that
+triggers a re-render and asserts the scroll position survives, on both the
+window-scrolled views and the overlays with their own scrollable bodies:
+
+- Home: meal check-off in the timeline
+- Fuel: meal ✓, "show the numbers" toggle, day-rating chip
+- Stats: fold open AND fold close (`data-pftoggle` → full renderProgress)
+- Train: equipment preset chip (settings fold → renderPhase), speed-day
+  Field/Gym seg
+- Round: holes + transport chips (→ renderGameDay)
+- Account: goal-yards / frequency / workout-time / theme chips
+  (→ renderAccount)
+- Inline logger modal: set check-off (re-renders `#logBody`)
+- Workout-history sheet: deleting a row deep in a 15-entry list
+  (re-renders `#swapBody`)
+
+**Result: 16/16 keep the exact scroll position; zero page errors.** The
+player (§65) was the only surface that force-reset scroll — the main views
+replace innerHTML of a child container while the WINDOW is the scroller, so
+the browser preserves position, and the sheets re-render the same scroll
+node in place. The two remaining `scrollTop = 0` sites in the code are both
+intentional navigations (tab switch in setView, day switch in the Fuel week
+sheet). No code changes needed.
+
 ## 65 · Player: steppers no longer scroll you back to the top (user report)
 
 "Adding a rep during a workout makes the screen go back to the top of the
