@@ -426,6 +426,16 @@ publishable key + VAPID public key ship client.
 6. **HealthKit / Health Connect** — auto-pull bodyweight; strong native-only upgrade.
 7. **Pressure-test the Speed & Power day** (selection, volume, overspeed protocol) —
    the day with the most direct clubhead-speed transfer.
+8. **Phase-2 entity structure: Wyoming holding LLC** owning both operating
+   companies (Forger Performance + Long Game Labs/Yardsmith). Wyoming is right
+   for a passive holdco (no TX foreign registration, members off public record,
+   strongest charging-order protection at the personal-creditor layer) even
+   though it was wrong for the operating LLC. Retrofittable any time by
+   assigning membership interests up — no re-formation. Trigger: when either
+   business holds real assets/profit (mid five figures) or peptide regulatory
+   exposure grows. Discipline that makes it work: separate banking, no
+   commingling, holdco never guarantees opco debts, holdco stays passive.
+   Optional upgrade then: holdco owns the trademarks, licenses to the opcos.
 
 ---
 
