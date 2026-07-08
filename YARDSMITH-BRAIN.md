@@ -411,13 +411,12 @@ publishable key + VAPID public key ship client.
 
 ## 10. Open threads / next actions
 
-1. **Finish the domain cutover** — `yardsmith.golf` is purchased and every repo
-   URL/asset is migrated. Remaining: (a) DNS A records at the registrar →
-   GitHub Pages IPs, (b) flip the `CNAME` file (the cutover switch), (c) set a
-   permanent redirect on fairwayfuel.app → https://yardsmith.golf at its
-   registrar, (d) Supabase Auth → URL Configuration: Site URL + redirect list →
-   yardsmith.golf, (e) re-paste the sign-in email template. Then file the
-   YARDSMITH trademark in Classes 9/41/42.
+1. **Domain cutover: DONE (Jul 2026).** yardsmith.golf serves the site (DNS →
+   GitHub Pages, CNAME flipped); fairwayfuel.app 301-redirects (wildcard, at
+   Porkbun); Supabase Site URL/redirects + magic-link template updated; Resend
+   verified on yardsmith.golf and the SMTP sender moved to signin@yardsmith.golf.
+   fairwayfuel.app's DNS keeps its old Resend records harmlessly. Remaining
+   one-liner: file the YARDSMITH trademark in Classes 9/41/42.
 2. **Decide the Play Console account type** (Personal vs Organization) — see §7.
    The current gating decision for the Android launch.
 3. **Ship Android** — first build on Windows, internal testing → (20-tester closed
