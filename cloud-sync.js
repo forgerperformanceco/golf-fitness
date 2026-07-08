@@ -200,6 +200,7 @@
     if (!user || pushing) return;
     if (snapshot() === lastSnapshot) return;
     pushing = true;
+    lastPushAt = Date.now();
     try {
       for (var attempt = 0; attempt < 3; attempt++) {
         var snap = snapshot();     // re-read each attempt: a conflict merge rewrites local state
@@ -605,16 +606,23 @@
   // Push promptly after the app changes data (debounced) so a completed workout lands
   // in the cloud almost immediately instead of waiting for the next poll. push() itself
   // no-ops when nothing actually changed, so coalescing many edits into one is cheap.
-  var changeTimer = null;
+  // Coalesce bursts: mid-workout logging fires ff-data-changed on every typed
+  // set, and each push writes the ENTIRE blob — the backend's main per-user
+  // cost. Automatic pushes now land at most every ~12s (rapid edits fold into
+  // one write); the pagehide/visibility flushes below stay immediate, so
+  // backgrounding the app never loses the tail.
+  var changeTimer = null, lastPushAt = 0, PUSH_MIN_MS = 12000;
   function pushSoon() {
     if (!user) return;
     if (changeTimer) clearTimeout(changeTimer);
-    changeTimer = setTimeout(function () { changeTimer = null; push(); }, 1200);
+    var wait = Math.max(1200, PUSH_MIN_MS - (Date.now() - lastPushAt));
+    changeTimer = setTimeout(function () { changeTimer = null; push(); }, wait);
   }
   window.addEventListener("ff-data-changed", pushSoon);
 
-  // Safety net: poll for changes while signed in, and flush on the way out.
-  setInterval(function () { if (user) push(); }, 8000);
+  // Safety net only — real changes arrive via ff-data-changed, so this just
+  // catches anything that slipped past the event (30s is plenty).
+  setInterval(function () { if (user) push(); }, 30000);
   window.addEventListener("pagehide", function () { if (user) push(); });
   document.addEventListener("visibilitychange", function () {
     if (document.visibilityState === "hidden" && user) push();
