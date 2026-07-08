@@ -9,6 +9,9 @@ deeper doc when there is one.
 > purchased Jul 2026; fairwayfuel.app redirects); free, no paywall; Supabase
 > backend wired but billing + AI coach gated off pending launch; native Android
 > project ready to build; iOS via cloud build; app-store accounts not yet created.
+> **Texas LLC filed via Northwest Registered Agent (Jul 2026)** — awaiting SOS
+> confirmation (~2 weeks); on approval: EIN → business bank → Form 503 assumed
+> name "Yardsmith" ($25) → D-U-N-S → store enrollments as an Organization.
 > **The web app is now a modular `src/` codebase with a build step** (see §3) —
 > the committed root files are generated build outputs. Service worker cache is
 > **content-hash stamped** (no manual version bumps).
@@ -417,10 +420,12 @@ publishable key + VAPID public key ship client.
    verified on yardsmith.golf and the SMTP sender moved to signin@yardsmith.golf.
    fairwayfuel.app's DNS keeps its old Resend records harmlessly. Remaining
    one-liner: file the YARDSMITH trademark in Classes 9/41/42.
-2. **Decide the Play Console account type** (Personal vs Organization) — see §7.
-   The current gating decision for the Android launch.
-3. **Ship Android** — first build on Windows, internal testing → (20-tester closed
-   test if Personal) → production.
+2. **Play Console account type: RESOLVED — Organization.** The Texas LLC (+
+   D-U-N-S once issued) unlocks Organization accounts on BOTH stores: branded
+   seller name, and no 20-tester/14-day closed-testing gate on Play. Enroll
+   both under the LLC when the SOS confirmation + D-U-N-S land.
+3. **Ship Android** — first build on Windows, internal testing → production
+   (no closed-testing gate under an Organization account).
 4. **iOS via Codemagic** — after Android, or in parallel.
 5. **Before monetizing:** Play Billing compliance + move hosting to Cloudflare Pages.
 6. **HealthKit / Health Connect** — auto-pull bodyweight; strong native-only upgrade.
