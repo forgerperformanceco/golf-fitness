@@ -212,8 +212,14 @@
       '<div class="pl-dots">'+player.stations.map(function(s,i){
         return '<span class="pl-dot'+(i===player.st?' cur':(i<player.st||plStationDone(i)?' done':''))+'"></span>'; }).join("")+'</div>';
     $("plTop").innerHTML=head;
-    $("plBody").innerHTML=plStationHtml();
-    $("plBody").scrollTop=0;
+    var body=$("plBody");
+    // Start each STATION at the top, but keep the scroll position on in-place
+    // re-renders (rep/weight steppers, set check-offs, fold toggles) — a tap
+    // mid-list must not throw the user back to the top.
+    var keep=(player.renderedSt===player.st)?body.scrollTop:0;
+    body.innerHTML=plStationHtml();
+    body.scrollTop=keep;
+    player.renderedSt=player.st;
     $("plPrev").disabled=player.st===0;
     $("plNext").textContent = (player.stations[player.st].type==="recap") ? "✓ Finish workout" : "Next ›";
     // PR moment: the first time this session's recap shows a PR, make it feel like one.
