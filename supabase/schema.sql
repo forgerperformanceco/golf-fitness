@@ -119,7 +119,15 @@ grant select on public.profiles_history to authenticated;
 create or replace function public.snapshot_profile_data()
 returns trigger language plpgsql security definer set search_path = public as $$
 begin
-  if new.data is distinct from old.data then
+  -- Throttled to one snapshot per 10 minutes per user: an active workout pushes
+  -- a changed blob every ~12s, and snapshotting each one would 10x the write
+  -- volume for zero recovery value ("restore from 12 seconds ago" is useless,
+  -- "restore from 10 minutes ago" is the point). The 10 kept snapshots then
+  -- span hours of active use instead of two minutes.
+  if new.data is distinct from old.data
+     and not exists (select 1 from public.profiles_history
+                     where user_id = old.id
+                       and saved_at > now() - interval '10 minutes') then
     insert into public.profiles_history (user_id, rev, data) values (old.id, old.rev, old.data);
     delete from public.profiles_history
       where user_id = old.id

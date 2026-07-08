@@ -5331,15 +5331,25 @@
     }
     return out;
   }
-  function ffPushSubscribe(){
+  function ffPushSubscribe(force){
     return navigator.serviceWorker.ready.then(function(reg){
       return reg.pushManager.subscribe({ userVisibleOnly:true, applicationServerKey:ffB64ToU8(window.FF.pushKey) });
     }).then(function(sub){
       var j=sub.toJSON();
       var tz="UTC"; try{ tz=Intl.DateTimeFormat().resolvedOptions().timeZone||"UTC"; }catch(e){}
-      return window.FF.pushSave({
-        endpoint:j.endpoint, p256dh:j.keys.p256dh, auth:j.keys.auth,
-        tz:tz, hour:FF_SLOT_HOUR[state.workout]||17, week:ffPushWeek()
+      var row={ endpoint:j.endpoint, p256dh:j.keys.p256dh, auth:j.keys.auth,
+        tz:tz, hour:FF_SLOT_HOUR[state.workout]||17, week:ffPushWeek() };
+      // The schedule's content only changes once a calendar day (or when the
+      // training slot/plan moves) — skip the upsert when it's byte-identical
+      // to the last successful upload, so the routine on-open resync stops
+      // writing a row on every single open. The date rollover busts the
+      // signature daily; an explicit toggle passes force=true so a row the
+      // server dropped is always re-created.
+      var sig=JSON.stringify(row);
+      if(!force){ try{ if(localStorage.getItem("ff_push_sig")===sig) return { ok:true }; }catch(e){} }
+      return Promise.resolve(window.FF.pushSave(row)).then(function(r){
+        if(r && r.ok){ try{ localStorage.setItem("ff_push_sig", sig); }catch(e){} }
+        return r;
       });
     }).then(function(r){
       if(r && r.ok){ lsSet("ff_push_on", true); return true; }
@@ -5348,6 +5358,7 @@
   }
   function ffPushUnsubscribe(){
     lsSet("ff_push_on", false);
+    try{ localStorage.removeItem("ff_push_sig"); }catch(e){}   // next subscribe must write
     if(!("serviceWorker" in navigator)) return Promise.resolve();
     return navigator.serviceWorker.ready.then(function(reg){
       return reg.pushManager.getSubscription();
@@ -5373,7 +5384,7 @@
       if(ffPushCapable()){
         // Real push when the backend is up; if the subscribe fails for any
         // reason, the local best-effort path still covers open-tab reminders.
-        return ffPushSubscribe().catch(function(){ return false; }).then(function(ok){
+        return ffPushSubscribe(true).catch(function(){ return false; }).then(function(ok){
           if(!ok) ffWebNotifCheck();
           return true;
         });

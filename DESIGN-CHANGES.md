@@ -1118,6 +1118,45 @@ glossary/loop entries all in place from earlier passes. Two grammar nits:
 setup → mobility → backup → foods → start-over → show-me-around →
 full-access), reset button wired, zero page errors.
 
+## 63 · Backend scale (DB review PR C): write-amplification cuts
+
+Three functional changes that cut the backend's per-user write volume — the
+cost that actually grows with usage in the blob-sync model.
+
+**1. Client push cadence (cloud-sync, pin v=110 → v=111).** Every push writes
+the ENTIRE blob; the old cadence was a 1.2s debounce + an 8s poll, so a
+mid-workout logging session produced a full-blob write every few seconds per
+user. Automatic pushes now coalesce to at most one per ~12s (`PUSH_MIN_MS`;
+`pushSoon` schedules the trailing edge), and the safety poll widened 8s → 30s
+(real changes arrive via `ff-data-changed`; the poll is only a net). The
+pagehide/visibility-hidden flushes stay immediate, so backgrounding the app
+never loses the tail — the crash-loss window grows from ~1.2s to ~12s, the
+same class as before. **~8× fewer writes** during active logging.
+
+**2. Server history churn (schema.sql).** §62's `profiles_history` trigger
+snapshotted on every data change — at logging cadence that meant a blob-sized
+insert + prune per push. Now throttled to **one snapshot per 10 minutes per
+user**: same recovery power ("restore from 10 minutes ago" is the point;
+"from 12 seconds ago" is noise), and the 10 kept snapshots now span hours of
+active use instead of two minutes. ~99% fewer history writes.
+
+**3. push_subs resync (080).** The 7-day reminder schedule was re-upserted on
+every app open + every ff-auth, though its content only changes once a
+calendar day (or when the training slot/plan moves). `ffPushSubscribe` now
+hashes the payload (`ff_push_sig`, device-local) and skips the upsert when
+byte-identical to the last successful upload. The date rollover busts the
+signature daily; the explicit reminders toggle passes `force=true` (a
+server-dropped row is always re-created); unsubscribe clears the signature.
+Cuts push_subs writes from per-open to ~per-day per device.
+
+**Verified**: test-sync.mjs S6 (login push arms the throttle; burst edits
+produce ZERO writes inside the window; pagehide flushes immediately with the
+latest value; a deferred edit lands on its own after the window); new
+test-pushsig.mjs (stubbed SW/pushSave, real `ffPushResync` in-page: first
+resync writes + stores the signature, repeat resyncs are skipped, changing
+the training hour via the real Account control writes again with the new
+hour, zero page errors); migrate/home/force-update suites green.
+
 ## 62 · Data hygiene (DB review PR B): ISO identity + migrations + recovery + constraints
 
 Second half of the structural database review.
