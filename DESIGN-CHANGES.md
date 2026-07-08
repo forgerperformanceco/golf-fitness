@@ -1118,6 +1118,24 @@ glossary/loop entries all in place from earlier passes. Two grammar nits:
 setup → mobility → backup → foods → start-over → show-me-around →
 full-access), reset button wired, zero page errors.
 
+## 65 · Player: steppers no longer scroll you back to the top (user report)
+
+"Adding a rep during a workout makes the screen go back to the top of the
+page annoyingly." Root cause: `plRender()` force-set `plBody.scrollTop = 0`
+on EVERY re-render — correct when moving between stations, wrong for the
+in-place updates (rep/weight steppers, set check-offs, warm-up toggles, why
+folds) that also re-render. On a lift with enough sets to overflow the
+screen, tapping ＋ next to set 4 threw you back to the top every time.
+
+Fix: `plRender` remembers which station it last drew (`player.renderedSt`);
+same station → the scroll position is captured before the innerHTML swap and
+restored after, different station → top, as before.
+
+**Verified** (new test-plscroll.mjs, short viewport so the station
+overflows): rep step, weight step, and set check-off all keep scroll (180 →
+180); Next and Back both land at the top; full test-player.mjs suite still
+green; zero page errors.
+
 ## 64 · UI code health (PR D): storage cache, dead code, lazy SDK, minified builds
 
 Coding-standpoint pass on the front end (same evaluation the backend got):
