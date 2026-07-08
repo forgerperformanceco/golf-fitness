@@ -1118,6 +1118,50 @@ glossary/loop entries all in place from earlier passes. Two grammar nits:
 setup → mobility → backup → foods → start-over → show-me-around →
 full-access), reset button wired, zero page errors.
 
+## 61 · Sync integrity (DB review PR A): rev-guarded pushes + merge registry
+
+Structural review of the data layer found two ways the sync engine could
+silently lose data as multi-device use grows; both fixed here.
+
+**1. Every push is now a compare-and-swap, not a blind overwrite.**
+`profiles` gains a `rev bigint` (schema.sql — re-apply in the Supabase SQL
+editor). `push()` does `UPDATE … SET rev = seen+1 WHERE id = uid AND rev =
+seen`; zero rows updated means another device moved the cloud first, so the
+client pulls that blob, runs the SAME union merge as login, and retries (≤3
+attempts, `pushing` guard intact). Before this, merging only happened at
+login — two open devices blind-upserted whole blobs over each other every 8s.
+Legacy fallback: if the project's schema lacks `rev` (PGRST "column" error →
+`isMissingRev`), the client drops to the old upsert path so sync keeps working
+until schema.sql is re-applied.
+
+**2. Merge registry — additive keys can't silently miss their union.**
+`mergeBlob`'s if/else chain became a `MERGE` map: any ff_* key holding
+accumulated history declares its union there; unlisted keys are settings
+(cloud wins on conflict). This fixed four keys that had drifted into
+cloud-wins despite being additive — a round/meal-check/speed-test/mobility
+logged on one device could vanish at the next login merge:
+- `ff_rounds` → `unionSeries` by `id` (cap 60, chronological)
+- `ff_speedtest` → `unionSeries` by `ts` (cap 60)
+- `ff_mobility` → `unionSeries` by `ts` (cap 40)
+- `ff_fuel` → `unionFuel`: per-ISO-day, newer `ts` record wins (meal-detail
+  vs day-rating are exclusive modes, so field-merging could resurrect
+  deliberately cleared meals), 95-day retention preserved.
+
+cloud-sync.js pin bumped v=108 → v=109 (template + SW precache).
+
+**Verified** (scratchpad/test-sync.mjs — runs the real cloud-sync.js in a vm
+sandbox against a mock Supabase): login merge keeps both devices' rounds +
+speed test + mobility + fuel days while settings stay cloud-wins; a concurrent
+push CAS-conflicts, pulls, merges and lands with BOTH devices' new rounds and
+the other device's settings change (rev advances 1→3, zero blind upserts);
+tombstoned sessions/history stay deleted through the registry merge; a
+no-rev schema falls back to legacy upsert and still unions. App-boot smoke
+(Home + Stats suites) green.
+
+**User action**: re-run `supabase/schema.sql` in the Supabase SQL editor
+(adds the `rev` column — same 2-minute process as before). The app works
+either way; the CAS guard activates once the column exists.
+
 ## 60 · Train-page bug sweep + tap targets (user: "you had me feeling crazy. Make sure you are checking for bugs along the build")
 
 Post-mortem on why the speed-day reset survived several rounds: my tests

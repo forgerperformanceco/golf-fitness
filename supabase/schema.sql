@@ -35,6 +35,16 @@ comment on table  public.profiles is 'Per-user sync blob + subscription/entitlem
 comment on column public.profiles.data is 'Synced app state: fairwayfuel, ff_week, ff_log, ff_body.';
 comment on column public.profiles.subscription_status is 'free|trialing|active|past_due|canceled — webhook-written only.';
 
+-- ── Sync integrity: optimistic-concurrency revision counter ──────────────────
+-- Every client push is a compare-and-swap: UPDATE ... SET rev = :seen + 1
+-- WHERE id = :uid AND rev = :seen. Zero rows updated = another device moved the
+-- cloud first → the client pulls, merges, and retries. This is what stops two
+-- open devices from silently overwriting each other's blobs between logins.
+-- (Clients built before this column fall back to the old blind upsert until
+-- this schema is applied — the app keeps working either way.)
+alter table public.profiles add column if not exists rev bigint not null default 0;
+comment on column public.profiles.rev is 'Blob revision — compare-and-swap guard for client pushes.';
+
 -- ── Row-level security ───────────────────────────────────────────────────────
 alter table public.profiles enable row level security;
 
