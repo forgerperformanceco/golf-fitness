@@ -71,3 +71,23 @@ All state is localStorage `ff_*` keys; `lsGet`/`lsSet` (in
 `src/js/app/020-persistence…`) dispatch `ff-data-changed`, which
 `cloud-sync.js` listens to for Supabase blob sync. Adding a new `ff_*` key that
 should roam? Add it to `KEYS` in `cloud-sync.js` and bump its `?v=` pin.
+
+## Parallel sessions (multiple Claude chats on this repo)
+
+The owner often runs more than one session against `main` at once. Git's
+non-fast-forward rejection is the safety net — respect it:
+
+- **Never force-push.** If `git push` is rejected, `git fetch origin main`,
+  `git rebase origin/main`, resolve, **rebuild** (`node scripts/build.mjs`),
+  then push. Never `--force` / `--force-with-lease` around a rejection.
+- **Conflicts in generated outputs** (`index.html`, `app.js`, `styles.css`,
+  `sw.js`, `www/`) are never resolved by hand: take either side, then rebuild —
+  the build regenerates truth from `src/`.
+- **Push early, push small.** Long-lived local work is what makes rebases hurt.
+- **Record decisions in `YARDSMITH-BRAIN.md`** (product/strategy) or
+  `DESIGN-CHANGES.md` (design/UX) — the repo docs are the only memory shared
+  between sessions. A decision that lives only in one chat doesn't exist for
+  the other.
+- Branding note: the app is **Yardsmith** (renamed from FairwayFuel Jul 2026 —
+  rationale in `YARDSMITH-BRAIN.md`). The localStorage profile key stays
+  `"fairwayfuel"` and `ff_*` keys keep their names — never rename stored keys.
