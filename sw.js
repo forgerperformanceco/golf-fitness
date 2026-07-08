@@ -2,15 +2,15 @@
 /* Yardsmith service worker — offline-first for the single-page app.
    CACHE is stamped with the build's content hash by scripts/build.mjs, so a new
    build invalidates old caches automatically — no manual version bumps. */
-var CACHE = 'yardsmith-6e20315bd7';
+var CACHE = 'yardsmith-e9febd8a35';
 var ASSETS = [
   './',
   './index.html',
-  './styles.css?v=6e20315bd7',
+  './styles.css?v=e9febd8a35',
   './fonts/ffnum.woff2',
-  './app.js?v=6e20315bd7',
+  './app.js?v=e9febd8a35',
   './privacy.html',
-  './cloud-sync.js?v=109',
+  './cloud-sync.js?v=110',
   './coach.js?v=88',
   './manifest.webmanifest',
   './logo-dark-mark.png',

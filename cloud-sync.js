@@ -106,6 +106,8 @@
       try {
         var rec = Object.assign({ user_id: user.id, opted_in: true, updated_at: new Date().toISOString() }, row);
         var r = await sb.from("leaderboard").upsert(rec, { onConflict: "user_id" });
+        if (r.error && /handle_unique|duplicate key/i.test(r.error.message || ""))
+          return { error: "that handle is taken — pick another" };
         return r.error ? { error: r.error.message } : { ok: true };
       } catch (e) { return { error: String(e) }; }
     },
@@ -292,17 +294,36 @@
     Object.keys(local).forEach(function (k) { if (!(k in out) || local[k] > out[k]) out[k] = local[k]; });
     return out;
   }
+  // Canonical per-day key for a body entry: the schema-v1 `iso` field when
+  // present, else the locale `date` string parsed down to ISO, else the raw
+  // string. Two devices in different locales write different `date` strings
+  // for the same day — keying on the raw string duplicated the day, and
+  // localeCompare sorted "Apr 30" before "Feb 1" (alphabetical, not time).
+  function bodyKey(e) {
+    if (e.iso) return e.iso;
+    var t = Date.parse(e.date || "");
+    if (!isNaN(t)) {
+      var d = new Date(t), m = d.getMonth() + 1, dd = d.getDate();
+      return d.getFullYear() + "-" + (m < 10 ? "0" : "") + m + "-" + (dd < 10 ? "0" : "") + dd;
+    }
+    return String(e.date || "");
+  }
   function unionBody(local, cloud) {
     local = Array.isArray(local) ? local : [];
     cloud = Array.isArray(cloud) ? cloud : [];
     var byDate = {}, loose = [];
     cloud.concat(local).forEach(function (e) {           // local last → its fields win
       if (!e) return;
-      if (e.date) byDate[e.date] = Object.assign({}, byDate[e.date], e);
-      else loose.push(e);
+      if (!e.date && !e.iso) { loose.push(e); return; }
+      var k = bodyKey(e);
+      byDate[k] = Object.assign({}, byDate[k], e);
+      if (!byDate[k].iso && /^\d{4}-\d{2}-\d{2}$/.test(k)) byDate[k].iso = k;   // backfill canonical identity
     });
     var out = Object.keys(byDate).map(function (k) { return byDate[k]; });
-    out.sort(function (a, b) { return String(a.date || "").localeCompare(String(b.date || "")); });
+    out.sort(function (a, b) {                            // ISO keys sort chronologically
+      var ka = bodyKey(a), kb = bodyKey(b);
+      return ka < kb ? -1 : (ka > kb ? 1 : 0);
+    });
     return out.concat(loose);
   }
   function unionHistory(local, cloud) {

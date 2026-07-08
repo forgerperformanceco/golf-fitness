@@ -95,6 +95,63 @@ create trigger profiles_touch_updated_at
   before update on public.profiles
   for each row execute function public.touch_updated_at();
 
+-- ── Recovery: keep the last 10 blob revisions per user ───────────────────────
+-- If a bad merge or client bug ever writes a corrupted blob, it propagates to
+-- every device — this table is the undo. The trigger snapshots the PREVIOUS
+-- blob on every data change and prunes beyond 10. Restore = copy a row's data
+-- back into profiles.data (SQL editor). Clients can read their own history;
+-- only the trigger (owner, bypasses RLS) writes it.
+create table if not exists public.profiles_history (
+  id       bigint generated always as identity primary key,
+  user_id  uuid not null references auth.users (id) on delete cascade,
+  rev      bigint,
+  data     jsonb not null,
+  saved_at timestamptz not null default now()
+);
+create index if not exists profiles_history_user_idx on public.profiles_history (user_id, id desc);
+alter table public.profiles_history enable row level security;
+drop policy if exists "profiles_history_select_own" on public.profiles_history;
+create policy "profiles_history_select_own"
+  on public.profiles_history for select
+  using (auth.uid() = user_id);
+grant select on public.profiles_history to authenticated;
+
+create or replace function public.snapshot_profile_data()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if new.data is distinct from old.data then
+    insert into public.profiles_history (user_id, rev, data) values (old.id, old.rev, old.data);
+    delete from public.profiles_history
+      where user_id = old.id
+        and id not in (select id from public.profiles_history
+                       where user_id = old.id order by id desc limit 10);
+  end if;
+  return new;
+end;
+$$;
+drop trigger if exists profiles_snapshot on public.profiles;
+create trigger profiles_snapshot
+  before update on public.profiles
+  for each row execute function public.snapshot_profile_data();
+
+-- ── Size guard: a runaway blob can't wedge sync ──────────────────────────────
+-- The blob should live in the tens of KB; 1MB means a client bug (or abuse).
+-- Reject it loudly instead of storing it — the client surfaces the error in
+-- the Account tab's sync-health line.
+create or replace function public.guard_profile_size()
+returns trigger language plpgsql as $$
+begin
+  if pg_column_size(new.data) > 1048576 then
+    raise exception 'sync blob exceeds 1MB — refusing to store';
+  end if;
+  return new;
+end;
+$$;
+drop trigger if exists profiles_size_guard on public.profiles;
+create trigger profiles_size_guard
+  before insert or update on public.profiles
+  for each row execute function public.guard_profile_size();
+
 -- ── Auto-create a profile row when a user signs up ───────────────────────────
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer set search_path = public as $$
@@ -149,6 +206,20 @@ create table if not exists public.leaderboard (
 -- stamped with that week's Monday so stale rows rank as zero the following week).
 alter table public.leaderboard add column if not exists week_sessions int;
 alter table public.leaderboard add column if not exists week_start date;
+
+-- Handle hygiene: sane length at the DB level, and no duplicate handles —
+-- two users showing as the same name on a public board is an impersonation
+-- vector. Wrapped so pre-existing duplicates (if any) don't abort the script;
+-- resolve them manually, then re-run.
+alter table public.leaderboard drop constraint if exists leaderboard_handle_len;
+alter table public.leaderboard add constraint leaderboard_handle_len
+  check (char_length(handle) between 2 and 20);
+do $$ begin
+  create unique index if not exists leaderboard_handle_unique
+    on public.leaderboard (lower(handle));
+exception when others then
+  raise notice 'leaderboard_handle_unique not created (existing duplicates?): %', sqlerrm;
+end $$;
 
 alter table public.leaderboard enable row level security;
 
@@ -273,6 +344,13 @@ grant select, insert, update, delete on public.push_subs to authenticated;
 --         'Authorization', 'Bearer <ANON_KEY>',
 --         'x-cron-secret', '<PUSH_CRON_SECRET>'),
 --       body := '{}'::jsonb);
+--   $cron$);
+--
+--   -- Housekeeping: drop subscriptions whose device hasn't opened the app in
+--   -- 90+ days (the schedule is refreshed on every open, so a stale updated_at
+--   -- means the browser/subscription is gone; the sender also prunes 404/410s).
+--   select cron.schedule('ff-push-prune', '15 3 * * 0', $cron$
+--     delete from public.push_subs where updated_at < now() - interval '90 days';
 --   $cron$);
 --
 -- (kept commented so `supabase db push` never fails on projects without pg_cron)
