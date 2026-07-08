@@ -1,7 +1,35 @@
   /* ===================== WORKOUT LOGGER ===================== */
-  function lsGet(k,def){ try{ var v=JSON.parse(localStorage.getItem(k)); return v==null?def:v; }catch(e){ return def; } }
+  /* Storage access — the ONE way to touch ff_* state. lsGet memoizes the
+     parsed value (a Stats render used to JSON.parse ff_log/ff_body/ff_history
+     ~90 times); every write path invalidates: lsSet/lsRemove here, cloud-sync
+     merges via the ff-external-write event, other tabs via the storage event.
+     Callers may mutate a returned object ONLY when they lsSet it back in the
+     same tick (the codebase's existing convention — audited; a mutation left
+     unsaved was already a bug before the cache). */
+  var __ls;   // lazily created: module 005 (migrations) calls lsGet before this file's statements run
+  function lsGet(k,def){
+    if (!__ls) __ls = {};
+    var c = __ls[k];
+    if (!c){
+      var v = null;
+      try{ v = JSON.parse(localStorage.getItem(k)); }catch(e){ v = null; }
+      c = __ls[k] = { v: v };
+    }
+    return c.v == null ? def : c.v;
+  }
   function lsSet(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){}
+    if (!__ls) __ls = {};
+    __ls[k] = { v: v };
     try{ window.dispatchEvent(new Event("ff-data-changed")); }catch(e){} }   // nudge cloud-sync to push promptly
+  function lsRemove(k){ try{ localStorage.removeItem(k); }catch(e){}
+    if (__ls) delete __ls[k];
+    try{ window.dispatchEvent(new Event("ff-data-changed")); }catch(e){} }
+  // cloud-sync rewrites keys wholesale after a merge; another tab can too.
+  window.addEventListener("ff-external-write", function(){ __ls = {}; });
+  window.addEventListener("storage", function(e){
+    if(!e || !e.key) { __ls = {}; return; }
+    if(e.key === "fairwayfuel" || e.key.indexOf("ff_") === 0) delete __ls[e.key];
+  });
 
   // Day labels changed when back squat → leg press (the day-name is the log key). Re-key any
   // workouts logged under the old labels so completed-workout history survives the rename.
@@ -105,7 +133,7 @@
   // cloud-sync merge would resurrect the old season's log from the server.
   function resetPlanFull(){
     try{ Object.keys(getLog()).forEach(function(k){ ffTomb("L:"+k); }); }catch(e){}
-    ["ff_start","ff_log","ff_week","ff_planview"].forEach(function(k){ try{ localStorage.removeItem(k); }catch(e){} });
+    ["ff_start","ff_log","ff_week","ff_planview"].forEach(lsRemove);
     try{ window.dispatchEvent(new Event("ff-data-changed")); }catch(e){}
     focusDay=null;
     renderPhase();

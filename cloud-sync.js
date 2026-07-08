@@ -19,12 +19,49 @@
   // ff_start = the plan's start date (so the calendar/week follows you across devices).
   var KEYS = ["fairwayfuel", "ff_week", "ff_log", "ff_body", "ff_start", "ff_planview", "ff_swaps", "ff_onboarded", "ff_handle", "ff_kcal_adj", "ff_lastcheckin", "ff_gameday", "ff_foodprefs", "ff_insights_seen", "ff_region", "ff_zip", "ff_tips_seen", "ff_history", "ff_deleted", "ff_rest", "ff_goalyds", "ff_speedtest", "ff_mobility", "ff_event", "ff_fuel", "ff_rounds"];
 
-  // Disabled until configured, or if the Supabase SDK didn't load (e.g. offline).
-  if (!SUPABASE_URL || !SUPABASE_ANON || !window.supabase) return;
+  // Disabled until configured.
+  if (!SUPABASE_URL || !SUPABASE_ANON) return;
 
-  var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
-    auth: { persistSession: true, detectSessionInUrl: true, autoRefreshToken: true }
-  });
+  // ---- Lazy SDK ----
+  // The Supabase SDK (~40KB gz from the CDN) used to load on EVERY page view.
+  // Signed-out visitors never need it, so it now loads only when something
+  // actually requires the client: a stored session (sb-* auth token), a
+  // magic-link redirect landing in the URL, a sign-in tap, or a leaderboard
+  // read. Everything funnels through ensureSb(); `sb` is null until then.
+  var sb = null, sbInit = null;
+  function hasSession() {
+    try {
+      for (var i = 0; i < localStorage.length; i++) {
+        var k = localStorage.key(i);
+        if (k && k.indexOf("sb-") === 0 && k.indexOf("auth-token") !== -1) return true;
+      }
+    } catch (e) {}
+    return false;
+  }
+  function hasAuthRedirect() {   // magic-link lands with tokens in the URL — must init to consume them
+    try { return /access_token=|refresh_token=|type=magiclink|code=/.test(location.hash + location.search); }
+    catch (e) { return false; }
+  }
+  function loadSdk() {
+    return new Promise(function (resolve, reject) {
+      if (window.supabase) return resolve();
+      var sc = document.createElement("script");
+      sc.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
+      sc.onload = function () { window.supabase ? resolve() : reject(new Error("sdk missing after load")); };
+      sc.onerror = function () { reject(new Error("sdk load failed")); };
+      document.head.appendChild(sc);
+    });
+  }
+  function ensureSb() {
+    if (sbInit) return sbInit;
+    sbInit = loadSdk().then(function () {
+      sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
+        auth: { persistSession: true, detectSessionInUrl: true, autoRefreshToken: true }
+      });
+      sb.auth.onAuthStateChange(onAuth);
+    }).catch(function (e) { sbInit = null; throw e; });   // a failed load retries next call
+    return sbInit;
+  }
 
   // Expose a tiny auth surface so other modules (e.g. coach.js) can call our
   // backend with the user's JWT. We never expose the service-role key here —
@@ -34,11 +71,15 @@
   window.FF.anonKey = SUPABASE_ANON;
   window.FF.user = null;
   window.FF.getAccessToken = async function () {
-    try { var r = await sb.auth.getSession(); return (r.data.session && r.data.session.access_token) || null; }
+    if (!sbInit && !hasSession()) return null;   // signed out → no token, no SDK download
+    try { await ensureSb(); var r = await sb.auth.getSession(); return (r.data.session && r.data.session.access_token) || null; }
     catch (e) { return null; }
   };
-  window.FF.signIn = function () { try { openModal(); } catch (e) {} };
-  window.FF.signOut = function () { try { sb.auth.signOut(); } catch (e) {} };
+  window.FF.signIn = function () {
+    ensureSb().then(function () { try { openModal(); } catch (e) {} })
+      .catch(function () { alert("Couldn\u2019t reach the sign-in service \u2014 check your connection and try again."); });
+  };
+  window.FF.signOut = function () { if (sb) try { sb.auth.signOut(); } catch (e) {} };
 
   // Permanently delete the account + all synced data (App Store requirement).
   // Server-side deletion (auth user + cascaded rows) happens in the
@@ -69,9 +110,10 @@
           if (k === "fairwayfuel" || k.indexOf("ff_") === 0) drop.push(k);
         }
         drop.forEach(function (k) { localStorage.removeItem(k); });
+        window.dispatchEvent(new Event("ff-external-write"));
       } catch (e) {}
       try { sessionStorage.removeItem("ff_synced_once"); } catch (e) {}
-      try { await sb.auth.signOut(); } catch (e) {}
+      try { if (sb) await sb.auth.signOut(); } catch (e) {}
       user = null; window.FF.user = null;
       return { ok: true };
     } catch (e) { return { error: String(e) }; }
@@ -87,6 +129,7 @@
               : board === "week" ? "week_sessions"
               : "score";
       try {
+        await ensureSb();
         var r = await sb.from("leaderboard")
           .select("handle,score,speed,streak,sessions,goal,speed_gain,week_sessions,week_start")
           .eq("opted_in", true).not(col, "is", null)
@@ -97,6 +140,7 @@
     getMine: async function () {
       if (!user) return null;
       try {
+        await ensureSb();
         var r = await sb.from("leaderboard").select("*").eq("user_id", user.id).maybeSingle();
         return r.data || null;
       } catch (e) { return null; }
@@ -104,6 +148,7 @@
     publish: async function (row) {
       if (!user) return { error: "not signed in" };
       try {
+        await ensureSb();
         var rec = Object.assign({ user_id: user.id, opted_in: true, updated_at: new Date().toISOString() }, row);
         var r = await sb.from("leaderboard").upsert(rec, { onConflict: "user_id" });
         if (r.error && /handle_unique|duplicate key/i.test(r.error.message || ""))
@@ -113,7 +158,7 @@
     },
     leave: async function () {
       if (!user) return;
-      try { await sb.from("leaderboard").delete().eq("user_id", user.id); } catch (e) {}
+      try { await ensureSb(); await sb.from("leaderboard").delete().eq("user_id", user.id); } catch (e) {}
     }
   };
 
@@ -129,6 +174,7 @@
   window.FF.pushSave = async function (row) {
     if (!user) return { error: "not-signed-in" };
     try {
+      await ensureSb();
       var rec = Object.assign({ user_id: user.id }, row);
       var r = await sb.from("push_subs").upsert(rec, { onConflict: "endpoint" });
       return r.error ? { error: r.error.message } : { ok: true };
@@ -136,7 +182,7 @@
   };
   window.FF.pushRemove = async function (endpoint) {
     if (!user || !endpoint) return;
-    try { await sb.from("push_subs").delete().eq("endpoint", endpoint); } catch (e) {}
+    try { await ensureSb(); await sb.from("push_subs").delete().eq("endpoint", endpoint); } catch (e) {}
   };
 
   var user = null;
@@ -186,6 +232,9 @@
       KEYS.forEach(function (k) {
         if (blob[k] != null) localStorage.setItem(k, JSON.stringify(blob[k]));
       });
+      // The app memoizes parsed reads (lsGet cache) — tell it these keys just
+      // changed underneath it, or a post-merge render could show stale data.
+      window.dispatchEvent(new Event("ff-external-write"));
     } catch (e) {}
   }
 
@@ -573,8 +622,8 @@
   function closeModal() { if (modal) { modal.remove(); modal = null; } }
 
   function onPillClick() {
-    if (user) { if (confirm("Sign out of Yardsmith on this device?")) sb.auth.signOut(); }
-    else openModal();
+    if (user) { if (confirm("Sign out of Yardsmith on this device?")) window.FF.signOut(); }
+    else window.FF.signIn();
   }
 
   function mount() {
@@ -593,7 +642,7 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mount);
   else mount();
 
-  sb.auth.onAuthStateChange(function (event, session) {
+  function onAuth(event, session) {
     user = session && session.user;
     window.FF.user = user;
     renderPill();
@@ -601,7 +650,11 @@
     // Let coach.js (and anything else) react to login/logout.
     try { window.dispatchEvent(new CustomEvent("ff-auth", { detail: { user: user } })); } catch (e) {}
     if (event === "SIGNED_IN" && user) syncOnLogin();
-  });
+  }
+  // Boot: only wake the SDK when there's something for it to do — a stored
+  // session to restore, or magic-link tokens in the URL to consume. A fresh
+  // signed-out visitor downloads nothing.
+  if (hasSession() || hasAuthRedirect()) ensureSb().catch(function () {});
 
   // Push promptly after the app changes data (debounced) so a completed workout lands
   // in the cloud almost immediately instead of waiting for the next poll. push() itself

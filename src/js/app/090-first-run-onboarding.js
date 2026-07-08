@@ -251,7 +251,7 @@
   restore();      // bring back the user's saved inputs/equipment/tab
   var sharedLink = applyShareParams();   // a shared ?link= overrides local state so friends see your numbers
   // Returning users (and shared-link viewers) start with the calculator collapsed to a summary.
-  calcCollapsed = !sharedLink && !FF_FRESH && !!localStorage.getItem("ff_targets");
+  calcCollapsed = !sharedLink && !FF_FRESH && lsGet("ff_targets", null) != null;
   calc();
   try{ applyCalcCollapse(); }catch(e){}
   var cs=$("calcSummary"); if(cs) cs.addEventListener("click", function(e){
@@ -260,7 +260,7 @@
   // Returning users have the brand in the top bar already — drop the big dashboard hero so
   // the Score leads. New users (no targets yet) keep it as the first-impression header.
   var dh=document.querySelector(".dash-hero");
-  if(dh && !FF_FRESH && localStorage.getItem("ff_targets")) dh.hidden=true;
+  if(dh && !FF_FRESH && lsGet("ff_targets", null) != null) dh.hidden=true;
   renderEquip();
   renderPhase();
   renderDash();         // home overview (default landing tab)

@@ -154,9 +154,9 @@
       // signature daily; an explicit toggle passes force=true so a row the
       // server dropped is always re-created.
       var sig=JSON.stringify(row);
-      if(!force){ try{ if(localStorage.getItem("ff_push_sig")===sig) return { ok:true }; }catch(e){} }
+      if(!force && lsGet("ff_push_sig", null)===sig) return Promise.resolve({ ok:true });
       return Promise.resolve(window.FF.pushSave(row)).then(function(r){
-        if(r && r.ok){ try{ localStorage.setItem("ff_push_sig", sig); }catch(e){} }
+        if(r && r.ok) lsSet("ff_push_sig", sig);
         return r;
       });
     }).then(function(r){
@@ -166,7 +166,7 @@
   }
   function ffPushUnsubscribe(){
     lsSet("ff_push_on", false);
-    try{ localStorage.removeItem("ff_push_sig"); }catch(e){}   // next subscribe must write
+    lsRemove("ff_push_sig");   // next subscribe must write
     if(!("serviceWorker" in navigator)) return Promise.resolve();
     return navigator.serviceWorker.ready.then(function(reg){
       return reg.pushManager.getSubscription();
@@ -316,6 +316,7 @@
           if(k!=="fairwayfuel" && k.indexOf("ff_")!==0) return;
           try{ localStorage.setItem(k, JSON.stringify(data[k])); }catch(e){}
         });
+        try{ window.dispatchEvent(new Event("ff-external-write")); }catch(e){}   // bust the lsGet cache (raw writes above)
         try{ window.dispatchEvent(new Event("ff-data-changed")); }catch(e){}
         alert("Backup restored ✓");
         location.reload();
@@ -546,15 +547,13 @@
     var nbw=$("acctNotifWeb"); if(nbw) nbw.onclick=function(){ nbw.disabled=true; ffWebNotifToggle().then(function(){ renderAccount(); }); };
     function evSave(){
       var d=($("acctEvDate")||{}).value||"", n=($("acctEvName")||{}).value||"";
-      if(!d){ try{ localStorage.removeItem("ff_event"); }catch(_){} }
+      if(!d) lsRemove("ff_event");
       else lsSet("ff_event", { date:d, name:n.trim() });
-      try{ window.dispatchEvent(new Event("ff-data-changed")); }catch(_){}
       renderAccount(); try{ renderPhase(); }catch(_){} try{ renderDash(); }catch(_){}
     }
     var evd=$("acctEvDate"); if(evd) evd.onchange=evSave;
     var evn=$("acctEvName"); if(evn) evn.onchange=evSave;
-    var evc=$("acctEvClear"); if(evc) evc.onclick=function(){ try{ localStorage.removeItem("ff_event"); }catch(_){}
-      try{ window.dispatchEvent(new Event("ff-data-changed")); }catch(_){}
+    var evc=$("acctEvClear"); if(evc) evc.onclick=function(){ lsRemove("ff_event");
       renderAccount(); try{ renderPhase(); }catch(_){} try{ renderDash(); }catch(_){} };
     var th=$("acctTheme"); if(th) th.onclick=function(ev){
       var b=ev.target.closest("[data-th]"); if(!b) return;
