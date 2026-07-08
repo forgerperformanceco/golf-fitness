@@ -1118,6 +1118,44 @@ glossary/loop entries all in place from earlier passes. Two grammar nits:
 setup → mobility → backup → foods → start-over → show-me-around →
 full-access), reset button wired, zero page errors.
 
+## 67 · Type pass: legibility floor + one scale (user: "Audit for font consistency and clarity overall — fix it all")
+
+The audit found one body font used consistently (system stack + FF Numeral
+for hero numbers, all with fallbacks) but **42 distinct font sizes** — 13 of
+them inside the visually-indistinguishable 11–13.5px band — plus text down
+to 8.5px, weights 800 AND 900 both in heavy use, and letter-spacing mixing
+px and em units. Three fixes, all shipped together:
+
+**1. Legibility floor.** Words never render below 11px; numeric/badge
+micro-labels (week-strip dates, "YOU" pill, swapped badge, bar-chart
+numbers, option tags) get a 10.5px floor. Raised: week-strip dates
+8.5 → 10.5 and names 10 → 11 (the strip you glance at daily), Account
+setup explainers 10.4 → 11 (`.acct-set-lbl small` had no size — browser
+0.8em default), Fuel meal timing tags 10.5 → 11, inline-logger column
+headers 10.5 → 11, set-sheet labels 10.5 → 11, swap badge 9 → 10.5,
+done-pill hint 10.5 → 11, uppercase kickers (`.insight-kick`, `.wu-h`,
+`.ob-sumv .k`) 10.5 → 11, onboarding feature notes 10 → 11, `.seteq-label
+small` explicit 11. Week strip re-fit: chip gap 3 → 2px, side padding
+dropped, date spacing −.3px so "Mon 13" renders unclipped at the new size.
+
+**2. Band collapse.** The 11–13.5px pile-up (11.5/11.6/11.8/12.2/12.3/
+12.5/12.6/12.8/13.2 among them) collapsed to **11 / 12 / 13 / 13.5** —
+verified first that those values never appear outside font declarations.
+Rendered screens now use a clean ladder (Round and Account: 9 sizes,
+was 11; every screen's small-text band is exactly 11/12/13/13.5).
+
+**3. Weight + tracking consolidation.** All `font-weight:900` → 800 (the
+system font renders them near-identically; the few 900s still measured
+come from the browser's `b { font-weight: bolder }` inside 800 parents —
+inherent, not stylesheet). Uppercase-label letter-spacing unified to two
+em tiers: .05em (badges/labels) and .09em (kickers) — was seven px values.
+
+**Verified**: rendered type audit (audit-type.mjs) across all 6 views +
+player: zero words under 11px, band exactly 11/12/13/13.5 everywhere;
+before/after full-page screenshots eyeballed (no wraps, no clips, week
+strip fits all 7 chips); full battery green — home2/train3/stats3/fuel2,
+audit-train 18/18, audit-scroll 16/16, plscroll, contrast audit zero fails.
+
 ## 66 · Scroll-preservation audit: every other section checked, all clean
 
 Follow-up to §65 ("evaluate any other sections this might be possible on"):

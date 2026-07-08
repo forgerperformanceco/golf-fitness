@@ -266,7 +266,7 @@
     r.innerHTML='<div class="pl-top" id="plTop"></div>'+
       '<div class="pl-body" id="plBody"></div>'+
       '<div class="pl-restbar" id="plRestBar" hidden><div class="pl-rest-in">'+
-        '<span class="pl-rest-time">0:00</span><span class="pl-rest-lb" style="font-size:12.5px;color:#9fc4ac;">Rest</span>'+
+        '<span class="pl-rest-time">0:00</span><span class="pl-rest-lb" style="font-size:13px;color:#9fc4ac;">Rest</span>'+
         '<span class="pl-rest-track"><span class="pl-rest-fill" style="width:0%"></span></span>'+
         '<button class="pl-rest-skip" data-plskiprest="1" type="button">Skip</button></div></div>'+
       '<div class="pl-nav"><button class="pl-prev" id="plPrev" data-plprev="1" type="button">‹ Back</button>'+
