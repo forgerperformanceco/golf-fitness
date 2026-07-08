@@ -139,7 +139,16 @@
 
   var user = null;
   var lastSnapshot = null;   // JSON of the last state we know matches the cloud
+  var lastRev = null;        // profiles.rev we last saw (null = not read yet)
+  var revMode = true;        // false → the project's schema predates the rev column: legacy blind upsert
   var pushing = false;
+
+  // Supabase/PostgREST error for a column the schema doesn't have yet — the
+  // signal to fall back to the pre-rev sync path until schema.sql is re-applied.
+  function isMissingRev(err) {
+    var m = String((err && err.message) || "").toLowerCase();
+    return m.indexOf("rev") !== -1 && (m.indexOf("column") !== -1 || m.indexOf("schema") !== -1);
+  }
 
   // ---- Sync health (device-local, surfaced in the Account tab) ----
   // Every push/pull outcome lands in ff_sync_status so a persistently failing
@@ -179,17 +188,60 @@
   }
 
   // ---- Cloud read/write ----
+  // Every push is a compare-and-swap on profiles.rev: it only lands if the cloud
+  // still holds the revision this device last saw. Zero rows updated = another
+  // device moved the cloud first → pull its blob, MERGE (same union rules as
+  // login), and retry with the merged state. This is what stops two open devices
+  // from silently overwriting each other between logins — before this guard,
+  // whichever device pushed last erased the other's changes wholesale.
   async function push() {
     if (!user || pushing) return;
-    var snap = snapshot();
-    if (snap === lastSnapshot) return;
+    if (snapshot() === lastSnapshot) return;
     pushing = true;
     try {
-      var res = await sb.from("profiles").upsert({
-        id: user.id, data: JSON.parse(snap), updated_at: new Date().toISOString()
-      });
-      if (!res.error) { lastSnapshot = snap; noteSync(true); }
-      else noteSync(false, res.error);
+      for (var attempt = 0; attempt < 3; attempt++) {
+        var snap = snapshot();     // re-read each attempt: a conflict merge rewrites local state
+
+        if (!revMode) {            // schema not migrated yet → the old blind upsert (pre-rev behavior)
+          var res = await sb.from("profiles").upsert({
+            id: user.id, data: JSON.parse(snap), updated_at: new Date().toISOString()
+          });
+          if (!res.error) { lastSnapshot = snap; noteSync(true); }
+          else noteSync(false, res.error);
+          break;
+        }
+
+        if (lastRev == null) {     // pushed before login-sync read the rev → read it now
+          var pre = await sb.from("profiles").select("rev").eq("id", user.id).maybeSingle();
+          if (pre.error) { if (isMissingRev(pre.error)) { revMode = false; continue; } noteSync(false, pre.error); break; }
+          if (!pre.data) {         // no row yet (very old account / trigger raced) → seed one
+            var ins = await sb.from("profiles").insert({ id: user.id, data: JSON.parse(snap), rev: 1 }).select("rev");
+            if (!ins.error) { lastRev = 1; lastSnapshot = snap; noteSync(true); break; }
+            if (isMissingRev(ins.error)) { revMode = false; continue; }
+            continue;              // row appeared concurrently → retry via the guarded path
+          }
+          lastRev = pre.data.rev || 0;
+        }
+
+        var base = lastRev;
+        var r = await sb.from("profiles")
+          .update({ data: JSON.parse(snap), rev: base + 1, updated_at: new Date().toISOString() })
+          .eq("id", user.id).eq("rev", base)
+          .select("rev");
+        if (r.error) {
+          if (isMissingRev(r.error)) { revMode = false; continue; }
+          noteSync(false, r.error); break;
+        }
+        if (r.data && r.data.length) { lastRev = base + 1; lastSnapshot = snap; noteSync(true); break; }
+
+        // Conflict: pull the newer cloud blob, merge additively, retry with the result.
+        var cur = await sb.from("profiles").select("data,rev").eq("id", user.id).maybeSingle();
+        if (cur.error || !cur.data) { noteSync(false, (cur && cur.error) || new Error("conflict re-read failed")); break; }
+        var localObj; try { localObj = JSON.parse(snapshot()); } catch (e) { localObj = {}; }
+        writeBlob(JSON.stringify(mergeBlob(localObj, cur.data.data || {})));
+        lastRev = cur.data.rev || 0;
+        if (attempt === 2) noteSync(false, new Error("sync conflict persisted — will retry"));
+      }
     } catch (e) { noteSync(false, e); }
     pushing = false;
   }
@@ -266,15 +318,61 @@
     out.sort(function (a, b) { return (b.ts || 0) - (a.ts || 0); });
     return out;
   }
+  // Generic additive series: array of timestamped entries — union by key, newer
+  // `ts` wins a collision (local wins ties), chronological order (oldest first,
+  // matching the app's append order), capped to the app's own retention limit.
+  function unionSeries(local, cloud, keyFn, cap) {
+    local = Array.isArray(local) ? local : [];
+    cloud = Array.isArray(cloud) ? cloud : [];
+    var byK = {};
+    cloud.concat(local).forEach(function (e) {
+      if (!e) return;
+      var k = String(keyFn(e));
+      if (!byK[k] || (e.ts || 0) >= (byK[k].ts || 0)) byK[k] = e;
+    });
+    var out = Object.keys(byK).map(function (k) { return byK[k]; });
+    out.sort(function (a, b) { return (a.ts || 0) - (b.ts || 0); });
+    if (cap && out.length > cap) out = out.slice(out.length - cap);
+    return out;
+  }
+  // Fuel check-offs: { "YYYY-MM-DD": {m:{}, rating, n, ts} } — per-day record,
+  // the newer day-record wins (meal detail vs day rating are exclusive modes, so
+  // field-merging two same-day records could resurrect deliberately cleared
+  // meals). Keeps the app's 95-day retention (ISO keys sort chronologically).
+  function unionFuel(local, cloud) {
+    local = (local && typeof local === "object") ? local : {};
+    cloud = (cloud && typeof cloud === "object") ? cloud : {};
+    var out = {};
+    Object.keys(cloud).forEach(function (k) { out[k] = cloud[k]; });
+    Object.keys(local).forEach(function (k) {
+      var a = local[k], b = out[k];
+      if (!b || ((a && a.ts) || 0) >= ((b && b.ts) || 0)) out[k] = a;
+    });
+    var keys = Object.keys(out);
+    if (keys.length > 95) { keys.sort(); keys.slice(0, keys.length - 95).forEach(function (k) { delete out[k]; }); }
+    return out;
+  }
+  // ---- Merge registry ----
+  // Every ADDITIVE key (history the user accumulates) must declare its union
+  // here; keys without an entry are settings and take the cloud value on
+  // conflict. Adding a new ff_* history key? Add its merge here in the same PR —
+  // a missed entry means cross-device data loss for that key.
+  var MERGE = {
+    ff_log:       unionLog,
+    ff_body:      unionBody,
+    ff_history:   unionHistory,
+    ff_rest:      unionDeleted,                                                            // check-offs: latest ts per day wins
+    ff_rounds:    function (l, c) { return unionSeries(l, c, function (e) { return e.id || e.ts; }, 60); },
+    ff_speedtest: function (l, c) { return unionSeries(l, c, function (e) { return e.ts; }, 60); },
+    ff_mobility:  function (l, c) { return unionSeries(l, c, function (e) { return e.ts; }, 40); },
+    ff_fuel:      unionFuel
+  };
   function mergeBlob(local, cloud) {
     local = local || {}; cloud = cloud || {};
     var out = {};
     KEYS.forEach(function (k) {
-      if (k === "ff_log") out[k] = unionLog(local[k], cloud[k]);
-      else if (k === "ff_body") out[k] = unionBody(local[k], cloud[k]);
-      else if (k === "ff_history") out[k] = unionHistory(local[k], cloud[k]);
-      else if (k === "ff_rest") out[k] = unionDeleted(local[k], cloud[k]);   // rest check-offs: latest ts per day wins
-      else if (cloud[k] !== undefined) out[k] = cloud[k];   // unchanged behavior for the rest
+      if (MERGE[k]) out[k] = MERGE[k](local[k], cloud[k]);
+      else if (cloud[k] !== undefined) out[k] = cloud[k];   // settings: cloud wins on conflict
       else if (local[k] !== undefined) out[k] = local[k];
     });
     Object.keys(local).forEach(function (k) { if (out[k] === undefined) out[k] = local[k]; });
@@ -302,10 +400,15 @@
   async function syncOnLogin() {
     var row;
     try {
-      var r = await sb.from("profiles").select("data").eq("id", user.id).maybeSingle();
+      var r = await sb.from("profiles").select("data,rev").eq("id", user.id).maybeSingle();
+      if (r.error && isMissingRev(r.error)) {   // schema not migrated yet → pre-rev select
+        revMode = false;
+        r = await sb.from("profiles").select("data").eq("id", user.id).maybeSingle();
+      }
       if (r.error) { noteSync(false, r.error); return; }
       row = r.data;
     } catch (e) { noteSync(false, e); return; }
+    lastRev = row ? (row.rev || 0) : null;
 
     if (!row || row.data == null) {            // first login anywhere → seed from local
       lastSnapshot = null; await push();
