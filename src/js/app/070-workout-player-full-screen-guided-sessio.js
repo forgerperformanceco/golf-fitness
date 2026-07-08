@@ -753,9 +753,14 @@
   function logBodyEntry(wv, sv, dv){
     wv=(wv||"").trim(); sv=(sv||"").trim(); dv=(dv||"").trim();
     if(!wv && !sv && !dv) return false;
-    var body=lsGet("ff_body",[]), today=todayStr(), row=null;
-    for(var bi=body.length-1;bi>=0;bi--){ if(body[bi] && body[bi].date===today){ row=body[bi]; break; } }
-    if(!row){ row={ date:today }; body.push(row); }
+    // Identity is the ISO day (locale-proof, sorts chronologically, dedupes in
+    // sync merges); the locale `date` string is display-only. Match on iso
+    // first, raw date as fallback for any pre-migration straggler.
+    var body=lsGet("ff_body",[]), today=todayStr(), iso=ffISO(), row=null;
+    for(var bi=body.length-1;bi>=0;bi--){ var e=body[bi];
+      if(e && (e.iso===iso || (!e.iso && e.date===today))){ row=e; break; } }
+    if(!row){ row={ date:today, iso:iso, ts:Date.now() }; body.push(row); }
+    if(!row.iso){ row.iso=iso; row.ts=row.ts||Date.now(); }
     if(wv!=="") row.w=wv; if(sv!=="") row.s=sv; if(dv!=="") row.d=dv;
     lsSet("ff_body", body);
     return true;
@@ -948,7 +953,7 @@
      change to the goal's intended rate and suggest a calorie nudge (into carbs). */
   function weightTrend(){
     var now=Date.now();
-    var pts=lsGet("ff_body",[]).map(function(e){ return { t:new Date(e.date).getTime(), w:parseFloat(e.w) }; })
+    var pts=lsGet("ff_body",[]).map(function(e){ return { t:(e.ts || new Date(e.date).getTime()), w:parseFloat(e.w) }; })
       .filter(function(p){ return !isNaN(p.w) && !isNaN(p.t) && (now-p.t)<=32*864e5; })
       .sort(function(a,b){ return a.t-b.t; });
     if(pts.length<2) return null;

@@ -1118,6 +1118,59 @@ glossary/loop entries all in place from earlier passes. Two grammar nits:
 setup → mobility → backup → foods → start-over → show-me-around →
 full-access), reset button wired, zero page errors.
 
+## 62 · Data hygiene (DB review PR B): ISO identity + migrations + recovery + constraints
+
+Second half of the structural database review.
+
+**1. Locale-proof identity for body entries.** `ff_body` rows were keyed by
+`toLocaleDateString()` strings — different per device language (duplicate days
+after a merge) and alphabetically sorted ("Apr 30" before "Feb 1"). Now:
+- New `src/js/app/005-migrations.js`: a device-local `ff_schema` version + a
+  run-once ladder at boot. v1 backfills `iso` (YYYY-MM-DD) + `ts` onto every
+  parseable legacy row (unparseable rows are left untouched; array order
+  preserved). Every future shape change gets a rung here instead of scattered
+  defensive parsing.
+- `logBodyEntry` writes `iso` + `ts` from birth and matches today's row by
+  `iso` (raw-date fallback for pre-migration stragglers).
+- cloud-sync `unionBody` keys on `bodyKey()` = `iso` → parsed-date-ISO → raw
+  string, backfills `iso` on merged output (so a not-yet-migrated device's
+  rows normalize during merge instead of duplicating), and sorts by the ISO
+  key — **chronological**, not alphabetical. Pin v=109 → v=110.
+- Fixed the latent readers: `thisWeekStats` compared locale dates to an ISO
+  week-start string ("Jul 8, 2026" >= "2026-07-06" is alphabetically ALWAYS
+  true — the week deltas never showed); now compares `iso`. `weekCard`
+  weigh-ins + `weightTrend` prefer `e.ts`.
+
+**2. Train reset-path mismatch.** "Restart from week 1" (Plan & settings)
+called `resetPlan()` — cleared only the start date, so the "restarted" plan
+resurfaced weeks 1–20 of the old season's `ff_log` as already-logged days. It
+now runs `resetPlanFull()` (same as the You tab), and `resetPlanFull` first
+**tombstones every wiped session** — without that, the next cloud merge
+resurrected the old log from the server. Permanent `ff_history` untouched.
+`resetPlan()` deleted (no callers).
+
+**3. Recovery + guardrails (schema.sql — re-apply in the SQL editor):**
+- `profiles_history`: a trigger snapshots the previous blob on every data
+  change and prunes to the last 10 per user — the "restore from Tuesday"
+  lever if a bad merge/bug ever writes a corrupted blob. RLS: own-row read;
+  writes only via the trigger.
+- `profiles_size_guard`: rejects blobs > 1MB (a runaway client can't wedge
+  sync; the error surfaces in the Account sync-health line).
+- Leaderboard: `char_length(handle) between 2 and 20` + unique index on
+  `lower(handle)` (impersonation guard; wrapped in a DO block so existing
+  dupes don't abort the script). Client maps the 23505 to "that handle is
+  taken — pick another."
+- push_subs housekeeping: commented weekly pg_cron prune of subscriptions
+  untouched for 90+ days.
+
+**Verified**: test-sync.mjs S5 (same-day legacy + iso rows merge to ONE entry
+keeping both sides' fields, legacy rows get iso backfilled, order is
+chronological); new test-migrate.mjs (16 checks: ladder stamps ff_schema=1,
+backfills iso/ts, preserves unparseable rows + order + display strings, charts
+render, ＋ Log writes iso/ts and re-logging today updates the same row; Train
+reset clears the log, tombstones every key, keeps history, shows the start
+card; zero page errors). Stats/Home/Train suites re-run green.
+
 ## 61 · Sync integrity (DB review PR A): rev-guarded pushes + merge registry
 
 Structural review of the data layer found two ways the sync engine could

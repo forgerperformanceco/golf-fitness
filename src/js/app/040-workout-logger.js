@@ -100,10 +100,13 @@
     lsSet("ff_start", d.toISOString());
     renderPhase(); if(typeof renderDash==="function") renderDash();
   }
-  function resetPlan(){ try{ localStorage.removeItem("ff_start"); }catch(e){} renderPhase(); if(typeof renderDash==="function") renderDash(); }
-  // Full plan reset: start date + logged workouts (keeps body/speed history + calculator).
+  // Full plan reset: start date + logged workouts (keeps body/speed history +
+  // calculator). Tombstone every wiped session FIRST — without them the next
+  // cloud-sync merge would resurrect the old season's log from the server.
   function resetPlanFull(){
+    try{ Object.keys(getLog()).forEach(function(k){ ffTomb("L:"+k); }); }catch(e){}
     ["ff_start","ff_log","ff_week","ff_planview"].forEach(function(k){ try{ localStorage.removeItem(k); }catch(e){} });
+    try{ window.dispatchEvent(new Event("ff-data-changed")); }catch(e){}
     focusDay=null;
     renderPhase();
     if(typeof renderDash==="function") renderDash();

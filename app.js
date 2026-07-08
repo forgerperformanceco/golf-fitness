@@ -5,6 +5,48 @@
 /* ────────── js/app/005-core-boot.js ────────── */
 
 
+/* ────────── js/app/005-migrations.js ────────── */
+  /* ===================== DATA MIGRATIONS — the ff_schema ladder =====================
+     One device-local version number (ff_schema, deliberately NOT synced — each
+     device migrates its own copy) and a run-once ladder that upgrades stored
+     shapes at boot. Every future change to a persisted ff_* shape gets a new
+     rung here instead of defensive parsing scattered through the app — so a
+     user returning after months on an old blob upgrades cleanly, in order.
+     Runs before any module reads state (file 005; function decls hoist, so
+     lsGet/lsSet/ffISO from later modules are already callable). */
+  var FF_SCHEMA = 1;
+  function ffMigrate(){
+    var v = lsGet("ff_schema", 0) | 0;
+    if (v >= FF_SCHEMA) return;
+
+    if (v < 1) {
+      // v1 · Locale-proof identity for bodyweight/speed entries.
+      // ff_body rows were keyed by toLocaleDateString() strings ("Jul 8, 2026"),
+      // which (a) differ between devices set to different languages — duplicate
+      // days after a sync merge — and (b) sort alphabetically, not by time.
+      // Give every parseable entry a canonical `iso` (YYYY-MM-DD) + `ts`; the
+      // pretty `date` string stays for display. Unparseable entries are left
+      // as-is (the sync merge falls back to the raw string for those).
+      var body = lsGet("ff_body", null);
+      if (Array.isArray(body)) {
+        var changed = false;
+        body.forEach(function(e){
+          if (!e || e.iso) return;
+          var t = Date.parse(e.date || "");
+          if (!isNaN(t)) {
+            e.iso = ffISO(new Date(t));
+            if (e.ts == null) e.ts = t;
+            changed = true;
+          }
+        });
+        if (changed) lsSet("ff_body", body);
+      }
+    }
+
+    lsSet("ff_schema", FF_SCHEMA);
+  }
+  try { ffMigrate(); } catch(e){}
+
 /* ────────── js/app/006-icons.js ────────── */
   /* ===================== ICONS — inline SVG chrome iconography ===================== */
   // One consistent 2px-stroke set replaces OS emoji in the app CHROME (tab bar,
@@ -2887,10 +2929,13 @@
     lsSet("ff_start", d.toISOString());
     renderPhase(); if(typeof renderDash==="function") renderDash();
   }
-  function resetPlan(){ try{ localStorage.removeItem("ff_start"); }catch(e){} renderPhase(); if(typeof renderDash==="function") renderDash(); }
-  // Full plan reset: start date + logged workouts (keeps body/speed history + calculator).
+  // Full plan reset: start date + logged workouts (keeps body/speed history +
+  // calculator). Tombstone every wiped session FIRST — without them the next
+  // cloud-sync merge would resurrect the old season's log from the server.
   function resetPlanFull(){
+    try{ Object.keys(getLog()).forEach(function(k){ ffTomb("L:"+k); }); }catch(e){}
     ["ff_start","ff_log","ff_week","ff_planview"].forEach(function(k){ try{ localStorage.removeItem(k); }catch(e){} });
+    try{ window.dispatchEvent(new Event("ff-data-changed")); }catch(e){}
     focusDay=null;
     renderPhase();
     if(typeof renderDash==="function") renderDash();
@@ -4619,9 +4664,14 @@
   function logBodyEntry(wv, sv, dv){
     wv=(wv||"").trim(); sv=(sv||"").trim(); dv=(dv||"").trim();
     if(!wv && !sv && !dv) return false;
-    var body=lsGet("ff_body",[]), today=todayStr(), row=null;
-    for(var bi=body.length-1;bi>=0;bi--){ if(body[bi] && body[bi].date===today){ row=body[bi]; break; } }
-    if(!row){ row={ date:today }; body.push(row); }
+    // Identity is the ISO day (locale-proof, sorts chronologically, dedupes in
+    // sync merges); the locale `date` string is display-only. Match on iso
+    // first, raw date as fallback for any pre-migration straggler.
+    var body=lsGet("ff_body",[]), today=todayStr(), iso=ffISO(), row=null;
+    for(var bi=body.length-1;bi>=0;bi--){ var e=body[bi];
+      if(e && (e.iso===iso || (!e.iso && e.date===today))){ row=e; break; } }
+    if(!row){ row={ date:today, iso:iso, ts:Date.now() }; body.push(row); }
+    if(!row.iso){ row.iso=iso; row.ts=row.ts||Date.now(); }
     if(wv!=="") row.w=wv; if(sv!=="") row.s=sv; if(dv!=="") row.d=dv;
     lsSet("ff_body", body);
     return true;
@@ -4814,7 +4864,7 @@
      change to the goal's intended rate and suggest a calorie nudge (into carbs). */
   function weightTrend(){
     var now=Date.now();
-    var pts=lsGet("ff_body",[]).map(function(e){ return { t:new Date(e.date).getTime(), w:parseFloat(e.w) }; })
+    var pts=lsGet("ff_body",[]).map(function(e){ return { t:(e.ts || new Date(e.date).getTime()), w:parseFloat(e.w) }; })
       .filter(function(p){ return !isNaN(p.w) && !isNaN(p.t) && (now-p.t)<=32*864e5; })
       .sort(function(a,b){ return a.t-b.t; });
     if(pts.length<2) return null;
@@ -6070,7 +6120,7 @@
     var hist=lsGet("ff_history",[]).filter(function(h){ return h && (h.ts||0)>=ws; });
     var vol=hist.reduce(function(a,h){ return a+(h.volume||0); },0);
     var weighs=lsGet("ff_body",[]).filter(function(e){ if(!e || !e.w) return false;
-      var t=new Date(e.date).getTime(); return !isNaN(t) && t>=ws; }).length;
+      var t=e.ts || new Date(e.date).getTime(); return !isNaN(t) && t>=ws; }).length;
     var stw=speedTests().filter(function(t){ return (t.ts||0)>=ws; });
     var fOn=0, fLog=0, dws=weekStartDateCal(), today=new Date();
     for(var i=0;i<7;i++){
@@ -6262,7 +6312,11 @@
     var body=lsGet("ff_body",[]), spdIn=[], wtIn=[], spdPrev=null, wtPrev=null;
     body.forEach(function(e){
       if(!e || !e.date) return;
-      var inWk = e.date>=wsStr;
+      // iso (YYYY-MM-DD, from the schema-v1 migration) compares correctly
+      // against the ISO week start; the old locale `date` string never did —
+      // "Jul 8, 2026" >= "2026-07-06" is alphabetically ALWAYS true, so
+      // every entry counted as this week and the deltas never showed.
+      var inWk = (e.iso || "") >= wsStr;
       var s=parseFloat(e.s), w=parseFloat(e.w);
       if(!isNaN(s)){ if(inWk) spdIn.push(s); else spdPrev=s; }
       if(!isNaN(w)){ if(inWk) wtIn.push(w); else wtPrev=w; }
@@ -6418,7 +6472,12 @@
       startPlanAtWeek(n||1); return; }
     if(e.target.closest("[data-jump]")){ var j=$("sbJump"); if(j) j.hidden=!j.hidden; return; }
     if(e.target.closest("[data-wkadjust]")){ var a=$("wkAdjRow"); if(a) a.hidden=!a.hidden; return; }
-    if(e.target.closest("[data-reset]")){ if(confirm("Restart the plan from week 1?")) resetPlan(); return; }
+    if(e.target.closest("[data-reset]")){
+      // Full reset, same as the You tab — clearing only the start date left the
+      // old season's ff_log keyed at weeks 1-20, so a "restarted" plan showed
+      // every day already logged. History/bodyweight/7-iron trends survive.
+      if(confirm("Restart from week 1? This clears the plan start date and this season's logged workouts — your history, bodyweight and 7-iron trends stay.")) resetPlanFull();
+      return; }
     var pv=e.target.closest("[data-planview]");
     if(pv && !pv.disabled){ lsSet("ff_planview", pv.getAttribute("data-planview")); focusDay=null; renderPhase(); return; }
     var spm=e.target.closest("[data-speedmode]");

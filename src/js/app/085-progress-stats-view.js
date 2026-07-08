@@ -171,7 +171,7 @@
     var hist=lsGet("ff_history",[]).filter(function(h){ return h && (h.ts||0)>=ws; });
     var vol=hist.reduce(function(a,h){ return a+(h.volume||0); },0);
     var weighs=lsGet("ff_body",[]).filter(function(e){ if(!e || !e.w) return false;
-      var t=new Date(e.date).getTime(); return !isNaN(t) && t>=ws; }).length;
+      var t=e.ts || new Date(e.date).getTime(); return !isNaN(t) && t>=ws; }).length;
     var stw=speedTests().filter(function(t){ return (t.ts||0)>=ws; });
     var fOn=0, fLog=0, dws=weekStartDateCal(), today=new Date();
     for(var i=0;i<7;i++){
@@ -363,7 +363,11 @@
     var body=lsGet("ff_body",[]), spdIn=[], wtIn=[], spdPrev=null, wtPrev=null;
     body.forEach(function(e){
       if(!e || !e.date) return;
-      var inWk = e.date>=wsStr;
+      // iso (YYYY-MM-DD, from the schema-v1 migration) compares correctly
+      // against the ISO week start; the old locale `date` string never did —
+      // "Jul 8, 2026" >= "2026-07-06" is alphabetically ALWAYS true, so
+      // every entry counted as this week and the deltas never showed.
+      var inWk = (e.iso || "") >= wsStr;
       var s=parseFloat(e.s), w=parseFloat(e.w);
       if(!isNaN(s)){ if(inWk) spdIn.push(s); else spdPrev=s; }
       if(!isNaN(w)){ if(inWk) wtIn.push(w); else wtPrev=w; }
@@ -519,7 +523,12 @@
       startPlanAtWeek(n||1); return; }
     if(e.target.closest("[data-jump]")){ var j=$("sbJump"); if(j) j.hidden=!j.hidden; return; }
     if(e.target.closest("[data-wkadjust]")){ var a=$("wkAdjRow"); if(a) a.hidden=!a.hidden; return; }
-    if(e.target.closest("[data-reset]")){ if(confirm("Restart the plan from week 1?")) resetPlan(); return; }
+    if(e.target.closest("[data-reset]")){
+      // Full reset, same as the You tab — clearing only the start date left the
+      // old season's ff_log keyed at weeks 1-20, so a "restarted" plan showed
+      // every day already logged. History/bodyweight/7-iron trends survive.
+      if(confirm("Restart from week 1? This clears the plan start date and this season's logged workouts — your history, bodyweight and 7-iron trends stay.")) resetPlanFull();
+      return; }
     var pv=e.target.closest("[data-planview]");
     if(pv && !pv.disabled){ lsSet("ff_planview", pv.getAttribute("data-planview")); focusDay=null; renderPhase(); return; }
     var spm=e.target.closest("[data-speedmode]");
