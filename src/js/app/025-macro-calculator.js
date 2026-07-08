@@ -125,7 +125,7 @@
     if(row){ row.classList.toggle("open"); }
   });
   $("resetBtn").addEventListener("click", function(){
-    try { localStorage.removeItem("fairwayfuel"); } catch(e){}
+    lsRemove("fairwayfuel");
     location.href = location.origin + location.pathname;   // drop any share params too
   });
 
@@ -291,10 +291,10 @@
     updatePlanCopy();                 // keep the Train-tab framing in step with the goal
     // Stash the computed targets so the AI coach can use the user's exact numbers.
     try {
-      localStorage.setItem("ff_targets", JSON.stringify({
+      lsSet("ff_targets", {
         goal: g.label, kcal: Math.round(target/5)*5, proteinG: proteinG, carbG: carbG, fatG: fatG,
         mealN: mealN, tdee: Math.round(tdee)
-      }));
+      });
     } catch(e){}
     persist();
   }

@@ -376,19 +376,6 @@
       spd:(spdIn.length && spdPrev!=null) ? Math.round((spdIn[spdIn.length-1]-spdPrev)*10)/10 : null,
       wt:(wtIn.length && wtPrev!=null) ? Math.round((wtIn[wtIn.length-1]-wtPrev)*10)/10 : null };
   }
-  function renderWeekRecap(){
-    // No data at all yet → nothing to recap; Home's next-up card is the guide.
-    if(!Object.keys(getLog()).length && !lsGet("ff_body",[]).length) return '';
-    var s=thisWeekStats(), freq=(typeof planState!=="undefined" && planState.freq)||4;
-    var bits=['<b>'+s.sessions+'</b> of '+freq+' workouts'];
-    if(s.spd!=null) bits.push('7-iron <b>'+(s.spd>=0?'+':'')+s.spd+' mph</b>');
-    if(s.wt!=null) bits.push('weight <b>'+(s.wt>=0?'+':'')+s.wt+' lb</b>');
-    return '<button class="pcard wk-recap" data-goview="progress">'+
-      '<span class="wr-t">📊 Week so far</span>'+
-      '<span class="wr-b">'+bits.join(' · ')+'</span>'+
-      '<span class="wr-cta">Leaderboard ›</span></button>';
-  }
-
   var lbBoard = "score";
   function lbReady(){ return !!(window.FF && window.FF.leaderboard); }
   function lbSignedIn(){ return !!(window.FF && window.FF.user); }
@@ -772,12 +759,6 @@
   // Progress tab quick-add: log weight + speed straight from the Stats screen.
   var pb=$("progressBody");
   if(pb) pb.addEventListener("click", function(e){
-    if(e.target.id==="prAdd"){
-      if(!logBodyEntry($("prBody")&&$("prBody").value, $("prSpeed")&&$("prSpeed").value, $("prDrive")&&$("prDrive").value)) return;
-      try{ sessionStorage.removeItem("ff_lb_pub"); }catch(e2){}   // new data → republish to board
-      renderProgress();
-      return;
-    }
     var pil=e.target.closest("[data-pillar]");
     if(pil){ var pk=pil.getAttribute("data-pillar"); openPillar=(openPillar===pk)?null:pk; renderProgress(); return; }
     if(e.target.closest("[data-scshare]")){ shareScorecard(); return; }

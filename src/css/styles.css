@@ -600,41 +600,6 @@
   .ffp.locked .ffp-fill { background:rgba(255,255,255,.14); box-shadow:none; }
 
   /* ===== Dashboard ===== */
-  .dash-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:11px; }
-  .wk-recap { display:flex; align-items:center; gap:10px; width:100%; margin-top:11px; padding:13px 15px;
-    background:#fff; border:1px solid var(--line); border-radius:16px; cursor:pointer; text-align:left; }
-  .wk-recap .wr-t { font:800 12px system-ui; color:var(--green-800); white-space:nowrap; }
-  .wk-recap .wr-b { flex:1; font:600 12.5px system-ui; color:var(--muted); }
-  .wk-recap .wr-b b { color:var(--ink); }
-  .wk-recap .wr-cta { font:700 12px system-ui; color:var(--green-600); white-space:nowrap; }
-  .dtile { display:flex; flex-direction:column; align-items:flex-start; gap:3px; text-align:left;
-    background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:14px 13px;
-    box-shadow:var(--shadow); cursor:pointer; transition:transform .12s, box-shadow .12s; }
-  .dtile:active { transform:translateY(1px); }
-  .dt-ic { font-size:20px; line-height:1; }
-  .dt-label { font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; margin-top:5px; }
-  .dt-big { font-size:16px; font-weight:700; color:var(--ink); line-height:1.15; }
-  .dt-big b { color:var(--green-700); }
-  .dt-big .dt-go { color:var(--green-600); font-weight:800; }
-  .dt-sub { font-size:12px; color:var(--muted); line-height:1.3; }
-  @media(max-width:520px){ .dash-grid{ grid-template-columns:1fr; }
-    .dtile{ flex-direction:row; align-items:center; flex-wrap:wrap; gap:4px 10px; padding:13px 15px; }
-    .dt-ic{ font-size:22px; } .dt-label{ flex:1; margin:0; order:1; }
-    .dt-big{ order:2; width:100%; font-size:17px; } .dt-sub{ order:3; width:100%; } }
-  .dash-log { margin-top:13px; background:var(--paper); border:1px solid var(--line); border-radius:14px;
-    padding:14px 15px; box-shadow:var(--shadow); }
-  .dash-log .dl-head { font-size:13px; font-weight:800; color:var(--green-800); margin-bottom:9px; }
-  .dash-log .dl-row { display:flex; gap:8px; }
-  .dash-log .dl-row input { flex:1; min-width:0; border:1.5px solid var(--line); border-radius:10px;
-    padding:11px 12px; font-size:15px; }
-  .dash-log .dl-row button { flex:0 0 auto; background:#11643a; color:#fff; border:0; border-radius:10px;
-    padding:0 20px; font:700 14px system-ui; cursor:pointer; }
-  .dash-log .dl-row button:active { transform:translateY(1px); }
-  .dash-log .dl-add { width:100%; margin-top:8px; background:#11643a; color:#fff; border:0; border-radius:10px;
-    padding:12px; font:700 14.5px system-ui; cursor:pointer; }
-  .dash-log .dl-add:active { transform:translateY(1px); }
-  .dash-log .dl-hint { font-size:12.5px; color:var(--muted); margin-top:8px; line-height:1.4; }
-  .dash-log .dl-hint b { color:var(--green-700); }
 
   /* Adaptive nutrition check-in card */
   .adapt { margin-top:13px; background:linear-gradient(160deg,#0f2417,#14532d); color:#eafff1; border-radius:16px; padding:16px 17px; box-shadow:0 8px 24px rgba(8,40,22,.2); }
@@ -2078,7 +2043,6 @@
   html:not([data-theme="light"]) .hero-mission.hit .hm-fill{ background:#274934; }
   html:not([data-theme="light"]) .hw-d.on{ background:#274934; color:#cae6d6; }
   html:not([data-theme="light"]) .ffp-fill{ background:linear-gradient(90deg,#3aae68,#274933); }
-  html:not([data-theme="light"]) .wk-recap{ background:#1a1a1a; }
   html:not([data-theme="light"]) .adapt-btn{ background:#274934; color:#cae5d4; }
   html:not([data-theme="light"]) .gd-controls{ background:#1a1a1a; }
   html:not([data-theme="light"]) .gd-seg-btn{ background:#141f14; }
@@ -2359,7 +2323,6 @@
   html[data-theme="dark"] .hero-mission.hit .hm-fill{ background:#274934; }
   html[data-theme="dark"] .hw-d.on{ background:#274934; color:#cae6d6; }
   html[data-theme="dark"] .ffp-fill{ background:linear-gradient(90deg,#3aae68,#274933); }
-  html[data-theme="dark"] .wk-recap{ background:#1a1a1a; }
   html[data-theme="dark"] .adapt-btn{ background:#274934; color:#cae5d4; }
   html[data-theme="dark"] .gd-controls{ background:#1a1a1a; }
   html[data-theme="dark"] .gd-seg-btn{ background:#141f14; }

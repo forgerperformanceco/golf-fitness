@@ -1118,6 +1118,55 @@ glossary/loop entries all in place from earlier passes. Two grammar nits:
 setup → mobility → backup → foods → start-over → show-me-around →
 full-access), reset button wired, zero page errors.
 
+## 64 · UI code health (PR D): storage cache, dead code, lazy SDK, minified builds
+
+Coding-standpoint pass on the front end (same evaluation the backend got):
+four changes that make the shipped code smaller, boot faster, and every
+interaction cheaper — zero visual/behavior change.
+
+**1. Memoized storage layer (040).** `lsGet` used to hit
+`localStorage.getItem` + `JSON.parse` on EVERY call — renders re-parsed the
+same multi-hundred-KB blobs dozens of times. `lsGet`/`lsSet`/`lsRemove` now
+sit on a per-key parsed-value cache; direct `localStorage.*`/`JSON.parse`
+call sites across the modules were converted to the helpers so the cache is
+the single path. Invalidation: `lsSet`/`lsRemove` update in place; a new
+`ff-external-write` window event (dispatched by cloud-sync's `writeBlob`/
+`deleteAccount` and by `ffImportData`) drops the whole cache; the cross-tab
+`storage` event drops the affected key. The cache is lazily initialized
+because module 005 (migrations) calls `lsGet` before 040's statements run.
+
+**2. Dead code removed.** `renderWeekRecap` + its `prAdd` handler branch and
+`dTile` (all unreachable since Home 2.0 / Stats 3.0) deleted, along with
+their orphaned CSS families (`.dash-grid`, `.wk-recap`/`.wr-*`,
+`.dtile`/`.dt-*`, `.dash-log`/`.dl-*` — zero references).
+
+**3. Lazy Supabase SDK (cloud-sync v=111 → v=112).** The 130KB SDK was a
+render-blocking CDN `<script>` for every visitor, signed in or not. The tag
+is gone from the template; cloud-sync now loads it on demand (`loadSdk` →
+memoized `ensureSb`, which retries on failure) — at boot only when a session
+token or a magic-link redirect is present, otherwise on the first tap of
+Sign in / leaderboard / push. Signed-out visitors never fetch it.
+
+**4. Minified builds (scripts/build.mjs + esbuild devDependency).** src/
+stays readable; the committed outputs are now minified (`target: es2017`).
+The content hash is computed over the MINIFIED bytes, so even an esbuild
+upgrade busts the cache correctly. app.js 468KB → 312KB (gz 148KB → 102KB),
+styles.css 190KB → 158KB (gz 35KB → 29KB); sw.js minified too.
+
+**Measured (profile-ui.mjs, same seeded heavy account):** boot
+DOMContentLoaded **826ms → 97ms**; JSON.parse calls at DCL **266 → 23**
+(0.4MB re-parsed → ~0); tab → Stats **41ms/90 parses → 35ms/2**; every other
+interaction (fold toggle, tab switches, meal check-off) now re-parses **0**
+bytes.
+
+**Verified**: full battery against the minified build — test-sync (25 checks
+incl. new S0: signed-out boot never touches the SDK, sign-in loads it),
+test-pushsig, test-migrate (16), test-train3, test-stats3, test-forceupdate,
+test-home2, test-hype, test-fuel2, audit-train (18/18 states). Two test-only
+fixes: harness direct-`localStorage` writes now dispatch `ff-external-write`
+(the cache working as designed), and sync tests await the async-wired auth
+callback.
+
 ## 63 · Backend scale (DB review PR C): write-amplification cuts
 
 Three functional changes that cut the backend's per-user write volume — the

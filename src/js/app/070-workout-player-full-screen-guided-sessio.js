@@ -28,7 +28,7 @@
     plRender();
     $("playerRoot").hidden=false;
     document.body.style.overflow="hidden";
-    try{ localStorage.removeItem("ff_pl_paused"); }catch(e){}
+    lsRemove("ff_pl_paused");
     plPauseSync();
   }
   function plClose(){
@@ -44,7 +44,7 @@
       if(hasWork && !sess.finishedAt){
         sess.activeMs=(sess.activeMs||0)+Math.max(0, Date.now()-started);
         try{ saveSession(player.week, player.dayName, sess); }catch(e){}
-        try{ localStorage.setItem("ff_pl_paused", JSON.stringify({ day:player.dayName, week:player.week })); }catch(e){}
+        lsSet("ff_pl_paused", { day:player.dayName, week:player.week });
       }
     }
     player=null;
@@ -227,7 +227,7 @@
     plSave();
     player.sess.finishedAt=todayStr();
     saveSession(player.week, player.dayName, player.sess);
-    try{ localStorage.removeItem("ff_pl_paused"); }catch(e){}
+    lsRemove("ff_pl_paused");
     pushHistory(player.week, player.dayName, player.sess);
     try{ ffMilestones(); }catch(e){}
     focusDay=player.dayName;
@@ -407,12 +407,12 @@
     var hist=lsGet("ff_history",[])||[];
     var n=hist.length, vol=0;
     hist.forEach(function(h){ vol+=(h.volume||0); });
-    var seen={}; try{ seen=JSON.parse(localStorage.getItem("ff_milestones"))||{}; }catch(e){}
+    var seen=lsGet("ff_milestones", {});
     var msg=null;
     FF_MS_SESS.forEach(function(t){ if(n>=t && (seen.s||0)<t){ seen.s=t; msg="🏆 "+t+" sessions banked — that's a habit, not a phase."; } });
     FF_MS_VOL.forEach(function(t){ if(vol>=t && (seen.v||0)<t){ seen.v=t; msg="🏋️ "+t.toLocaleString()+" lb moved lifetime — you've lifted a house."; } });
     if(msg){
-      try{ localStorage.setItem("ff_milestones", JSON.stringify(seen)); }catch(e){}
+      lsSet("ff_milestones", seen);
       setTimeout(function(){ try{ ffCelebrate(); ffTick([30,50,30]); }catch(e){} ffToast(msg); }, 600);
     }
   }
@@ -546,12 +546,12 @@
       bar=document.createElement("button");
       bar.id="plPauseBar"; bar.type="button"; bar.className="pl-pausebar"; bar.hidden=true;
       bar.addEventListener("click", function(){
-        var st=null; try{ st=JSON.parse(localStorage.getItem("ff_pl_paused")); }catch(e){}
+        var st=lsGet("ff_pl_paused", null);
         if(st && st.day) startPlayer(st.day);
       });
       document.body.appendChild(bar);
     }
-    var st=null; try{ st=JSON.parse(localStorage.getItem("ff_pl_paused")); }catch(e){}
+    var st=lsGet("ff_pl_paused", null);
     var show=false, doneSets=0;
     if(st && st.day && (!player)){
       var sess=getSession(st.week||curWeek(), st.day);
@@ -560,7 +560,7 @@
         var allDone=sess.ex.length && sess.ex.every(function(x){ return (x.sets||[]).length && x.sets.every(function(s2){ return s2.done; }); });
         show=!allDone;
       }
-      if(!show){ try{ localStorage.removeItem("ff_pl_paused"); }catch(e){} }
+      if(!show){ lsRemove("ff_pl_paused"); }
     }
     if(show){
       bar.innerHTML='<span class="pl-pb-ic">⏸</span><span class="pl-pb-tx"><b>Workout paused</b> — '+
@@ -767,8 +767,8 @@
   }
   function saveScoreSnapshot(r){
     // Stash the Octane score + pillars so the AI coach can explain & coach toward it.
-    try { localStorage.setItem("ff_score", JSON.stringify({ score:r.score,
-      pillars:r.parts.map(function(p){ return { name:p.label, pts:p.pts, max:p.max, have:p.have, detail:p.detail }; }) })); } catch(e){}
+    try { lsSet("ff_score", { score:r.score,
+      pillars:r.parts.map(function(p){ return { name:p.label, pts:p.pts, max:p.max, have:p.have, detail:p.detail }; }) }); } catch(e){}
   }
   // Dashboard hero: driver carry + gain up top, the Octane engine gauge underneath.
   function goalYds(){ var g=parseInt(lsGet("ff_goalyds",0),10); return (g>0)?g:null; }
@@ -941,12 +941,6 @@
       (hint?'<div class="qlog-hint">'+hint+'</div>':'')+
       '</div>';
   }
-  function dTile(icon, label, big, sub, goview){
-    return '<button class="dtile" data-goview="'+goview+'"><span class="dt-ic">'+icon+'</span>'+
-      '<span class="dt-label">'+label+'</span><span class="dt-big">'+big+'</span>'+
-      '<span class="dt-sub">'+sub+'</span></button>';
-  }
-
   /* ----- Adaptive nutrition: tune calories to the real weight trend -----
      MacroFactor-style: the calculator is a starting guess; the scale is the
      true metabolism meter. Every ~10 days we compare the measured weekly weight
