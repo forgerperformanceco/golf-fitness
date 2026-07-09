@@ -311,6 +311,17 @@ stores; we're a URL). Shipping the app matters more than more docs.
 - **Trust** — visible sync health + one-tap backup export/restore; **in-app
   account deletion**; PWA update reliability (no-store HTML, resume-time checks,
   force-refresh escape hatch); refresh returns to Home.
+- **Speed-day pressure-test (2026-07-09)** — the day already matches the Brennan
+  2024 effect-size ranking (jump 0.82 → throws 0.67 → ground force → overspeed
+  adjunct; flexibility/balance correctly omitted). Two changes shipped, both their
+  own commit + verification: **S5** — the Player showed a hypertrophy "RIR 2–3" cue
+  on max-intent `🌀` rotational throws, now "max intent · full rest" via a shared
+  `isBallistic()` predicate (copy-only, dose byte-identical; DESIGN-CHANGES §70);
+  **S1** — FIELD mode reordered so Overhead med-ball slam precedes Lateral bound,
+  grouping the 0.67-tier throws/slams before ground-force work (pure reorder,
+  wave-identical; §71). **Rejected: S2** (grow/change the overspeed ramp — fenced
+  by §9, already an honest adjunct) and **S3** (add jump/throw volume — already
+  inside the §10.2/§10.3 envelope). Thread 7 closed.
 
 **Rejected (deliberately):**
 - **Macro *tracking*** (barcode calorie logging) — commodity; we build *toward
@@ -429,8 +440,13 @@ publishable key + VAPID public key ship client.
 4. **iOS via Codemagic** — after Android, or in parallel.
 5. **Before monetizing:** Play Billing compliance + move hosting to Cloudflare Pages.
 6. **HealthKit / Health Connect** — auto-pull bodyweight; strong native-only upgrade.
-7. **Pressure-test the Speed & Power day** (selection, volume, overspeed protocol) —
-   the day with the most direct clubhead-speed transfer.
+7. ~~**Pressure-test the Speed & Power day**~~ **DONE 2026-07-09.** Evidence
+   mapping showed the day already matches the Brennan 2024 ranking. Shipped **S5**
+   (Player effort-note fix, §70) and **S1** (FIELD reorder — slam before bound,
+   §71); reviewed and **rejected S2** (overspeed ramp — fenced by §9) and **S3**
+   (jump/throw volume — already inside the §10.2/§10.3 envelope). S4 (speed-test
+   signal quality) and S6 (copy polish) remain available as future passes but were
+   out of scope here. See decisions log (§6).
 8. **Phase-2 entity structure: Wyoming holding LLC** owning both operating
    companies (Forger Performance + Long Game Labs/Yardsmith). Wyoming is right
    for a passive holdco (no TX foreign registration, members off public record,

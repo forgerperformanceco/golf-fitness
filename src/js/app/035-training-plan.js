@@ -15,8 +15,8 @@
             ["Countermovement jump", "4 \u00d7 3", "Dip and explode straight up \u2014 max height, land soft, full recovery between reps. (The #1 physical predictor of clubhead speed.)"],
             ["Rotational med-ball throw", "4 \u00d7 4 / side", "Rotate and release at max speed; reset every rep. Both sides."],
             ["Seated chest throw", "3 \u00d7 4", "Sit on the floor, explosive chest pass \u2014 pure upper-body pop, no legs."],
-            ["Lateral bound", "3 \u00d7 4 / side", "Explosive side-to-side \u2014 the downswing weight shift."],
             ["Overhead med-ball slam", "3 \u00d7 4", "Full overhead reach, slam hard \u2014 total-body vertical power."],
+            ["Lateral bound", "3 \u00d7 4 / side", "Explosive side-to-side \u2014 the downswing weight shift."],
             ["Ground-force footwork", "3 \u00d7 5 / side", "Lead-foot push \u2014 drive into the ground from the top of the swing."],
             ["Overspeed swings", "3 \u00d7 5", "Light stick (or your driver flipped) at MAX intent, both sides, full rest. Structured ramp: 2\u00d75 your first two weeks \u2192 3\u00d75 \u2192 4\u00d75 as you adapt; deload weeks drop back to 2\u00d75. Modest evidence \u2014 the add-on, not the main event."]
           ]
@@ -357,6 +357,15 @@
     if(/Jump|Bound|Slam|Chest Pass|Throw|Toss|\bClean\b|Overspeed|Footwork|Swing|Broad|Plyo|^Speed\s/i.test(n)) return "⚡";
     if(/Back Squat|Front Squat|Leg Press|Hack Squat|Bench Press|Deadlift|Overhead Press|Pull-up|Romanian/i.test(n)) return "🏋️";
     return "💪";
+  }
+  // Max-intent ballistic work: every ⚡ power drill, PLUS the rotational THROWS/CHOPS/
+  // PUNCHES/SLAMS that classify 🌀 (rotation is tagged before power in purposeFor, so a
+  // "Rotational med-ball throw" reads 🌀 not ⚡). These want a "max intent · full rest"
+  // cue. It deliberately excludes the OTHER 🌀 names — anti-rotation/iso core (Pallof,
+  // Russian Twist, bare Rotation) and Single-Arm accessories (rows, curls, flys) — which
+  // are RIR-graded strength/hypertrophy work and keep their effortNote.
+  function isBallistic(n){
+    return purposeFor(n)==="⚡" || /Throw|Toss|Slam|Chest Pass|\bChop\b|Punch/i.test(n);
   }
   // Build vs Retain: derived from the macro goal. Build = full volume (gaining).
   // Retain = trim ONE set off hypertrophy accessories (💪 only) to fit lower recovery
