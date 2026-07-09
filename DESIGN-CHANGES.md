@@ -1118,6 +1118,50 @@ glossary/loop entries all in place from earlier passes. Two grammar nits:
 setup → mobility → backup → foods → start-over → show-me-around →
 full-access), reset button wired, zero page errors.
 
+## 70 · Speed-day pressure-test: Player effort note for rotational throws (open thread 7, S5)
+
+Pressure-tested the Speed & Power day (drill selection, volume, overspeed
+protocol) against the evidence base — YARDSMITH-BRAIN open thread 7. **Finding:
+the day already matches the Brennan 2024 effect-size ranking** — both modes lead
+with the jump (zr 0.82, the strongest CHS correlate; CMJ is the best jump
+variant per Wells 2018), carry both throw variants (rotational + seated/chest,
+per Read 2013 / Turner 2016), keep reps low, demote overspeed to a last-slot
+honestly-framed adjunct, and correctly omit flexibility (−0.04) and balance
+(−0.06). No drill is unaccounted for and no ballistic dose is over-trimmed at
+peak (the 6932f28 wave invariants still hold).
+
+**The one defect (S5):** the Workout Player's dim effort note special-cased only
+`⚡` (`070:171`), so the three max-intent `🌀` rotational throws — Rotational
+med-ball throw, Landmine rotational throw, Cable lateral chop — fell through to
+`effortNote()` and rendered **"RIR 2–3 · rest 2–3 min"**, a *hypertrophy grind*
+cue on max-intent power work. That contradicts CLUBHEAD-SPEED-REFERENCE §10.3
+("full rest between efforts") and the day's own framing. Their **dose** was
+already protected by 6932f28; this was the un-fixed *copy* tail of that same
+incident.
+
+**Fix (copy-only, zero dose change):** added a shared `isBallistic(name)` helper
+next to `purposeFor` (`035`) — true for every `⚡` drill PLUS the rotational
+`🌀` names carrying an explosive verb (Throw/Toss/Slam/Chest Pass/Chop/Punch).
+The Player note now keys off `isBallistic(x.name)` instead of `purposeFor(...)==="⚡"`.
+Deliberately narrower than "⚡ or 🌀": the `🌀` bucket also holds anti-rotation /
+iso core (Pallof, Russian Twist, bare Rotation) and ~15 Single-Arm accessories
+(rows, curls, flys) which are RIR-graded strength work — those keep their
+`effortNote`. The new predicate is a strict *superset* of the old one, so the
+change is monotonic: no station can flip max-intent → graded.
+
+**Verified**:
+- Dose gate (`dump-speed-day.mjs`): output byte-identical to the recorded
+  baseline; ALL INVARIANTS PASS (A–E) — confirms copy-only, zero dose drift.
+- Classification unit cases: 34/34 — the 3 speed-day `🌀` throws + all `⚡`
+  drills → ballistic; Pallof/Iso-hold/Russian Twist/Single-Arm accessories/bare
+  Rotation → graded; strength/hypertrophy → graded; `Landmine Press` trap → graded.
+- Rendered Player at weeks 1/4/19 (accumulate/intensify/peak): all 6 gym-mode
+  drills — including Landmine rotational throw and Cable lateral chop — read
+  "max intent · full rest"; zero pageerrors; no leaked undefined/NaN/`{{V}}`.
+- `audit-train.mjs`: 18/18 clean.
+- Build deterministic: only `035`, `070` and their generated outputs changed;
+  `styles.css` untouched; no `?v=` pin touched (no stored-key or sync change).
+
 ## 69 · Distance moves log yards, not reps (user request)
 
 "Things that need distance logged instead ask for reps." Loaded carries carry

@@ -311,6 +311,13 @@ stores; we're a URL). Shipping the app matters more than more docs.
 - **Trust** — visible sync health + one-tap backup export/restore; **in-app
   account deletion**; PWA update reliability (no-store HTML, resume-time checks,
   force-refresh escape hatch); refresh returns to Home.
+- **Speed-day pressure-test (2026-07-09)** — the day already matches the Brennan
+  2024 effect-size ranking (jump 0.82 → throws 0.67 → ground force → overspeed
+  adjunct; flexibility/balance correctly omitted). One defect fixed: the Player
+  showed a hypertrophy "RIR 2–3" cue on max-intent `🌀` rotational throws — now
+  "max intent · full rest" via a shared `isBallistic()` predicate (copy-only,
+  dose byte-identical; DESIGN-CHANGES §70). Reorder/volume/overspeed-dose changes
+  (S1–S3) still under review — thread 7 narrowed, not closed.
 
 **Rejected (deliberately):**
 - **Macro *tracking*** (barcode calorie logging) — commodity; we build *toward
@@ -430,7 +437,12 @@ publishable key + VAPID public key ship client.
 5. **Before monetizing:** Play Billing compliance + move hosting to Cloudflare Pages.
 6. **HealthKit / Health Connect** — auto-pull bodyweight; strong native-only upgrade.
 7. **Pressure-test the Speed & Power day** (selection, volume, overspeed protocol) —
-   the day with the most direct clubhead-speed transfer.
+   the day with the most direct clubhead-speed transfer. **Narrowed 2026-07-09:**
+   evidence mapping done — the day matches the Brennan 2024 ranking; the S5 Player
+   effort-note defect is fixed (DESIGN-CHANGES §70). Still open for owner decision:
+   **S1** drill reorder/replacement, **S2** overspeed ramp dose, **S3** jump/throw
+   volume — each needs its own derivation + separate commit (see the speed-day
+   campaign skill's Phase-2 menu). S4 (speed-test signal) and S6 (copy) untouched.
 8. **Phase-2 entity structure: Wyoming holding LLC** owning both operating
    companies (Forger Performance + Long Game Labs/Yardsmith). Wyoming is right
    for a passive holdco (no TX foreign registration, members off public record,

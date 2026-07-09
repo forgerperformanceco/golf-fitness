@@ -358,6 +358,15 @@
     if(/Back Squat|Front Squat|Leg Press|Hack Squat|Bench Press|Deadlift|Overhead Press|Pull-up|Romanian/i.test(n)) return "🏋️";
     return "💪";
   }
+  // Max-intent ballistic work: every ⚡ power drill, PLUS the rotational THROWS/CHOPS/
+  // PUNCHES/SLAMS that classify 🌀 (rotation is tagged before power in purposeFor, so a
+  // "Rotational med-ball throw" reads 🌀 not ⚡). These want a "max intent · full rest"
+  // cue. It deliberately excludes the OTHER 🌀 names — anti-rotation/iso core (Pallof,
+  // Russian Twist, bare Rotation) and Single-Arm accessories (rows, curls, flys) — which
+  // are RIR-graded strength/hypertrophy work and keep their effortNote.
+  function isBallistic(n){
+    return purposeFor(n)==="⚡" || /Throw|Toss|Slam|Chest Pass|\bChop\b|Punch/i.test(n);
+  }
   // Build vs Retain: derived from the macro goal. Build = full volume (gaining).
   // Retain = trim ONE set off hypertrophy accessories (💪 only) to fit lower recovery
   // in maintenance / a deficit, while heavy strength, power, rotation and ALL speed work
