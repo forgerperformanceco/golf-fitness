@@ -1,0 +1,24 @@
+# Speed & Power day — current prescription baseline
+# source: src/js/app/035-training-plan.js · goal=leanbulk (Build) · no ff_event · no swaps
+# wave per week: wk1=accumulate · wk4=intensify · wk6=deload · wk9=accumulate · wk12=deload · wk19=peak
+
+## FIELD mode (7 drills)
+| drill                     | class | authored     | wk1          | wk4          | wk6          | wk9          | wk12         | wk19         |
+| Countermovement jump      | ⚡     | 4 × 3        | 4 × 3        | 4 × 3        | 3 × 3        | 4 × 3        | 3 × 3        | 3 × 3        |
+| Rotational med-ball throw | 🌀    | 4 × 4 / side | 4 × 4 / side | 4 × 4 / side | 3 × 4 / side | 4 × 4 / side | 3 × 4 / side | 3 × 4 / side |
+| Seated chest throw        | ⚡     | 3 × 4        | 3 × 4        | 3 × 4        | 2 × 4        | 3 × 4        | 2 × 4        | 2 × 4        |
+| Lateral bound             | ⚡     | 3 × 4 / side | 3 × 4 / side | 3 × 4 / side | 2 × 4 / side | 3 × 4 / side | 2 × 4 / side | 2 × 4 / side |
+| Overhead med-ball slam    | ⚡     | 3 × 4        | 3 × 4        | 3 × 4        | 2 × 4        | 3 × 4        | 2 × 4        | 2 × 4        |
+| Ground-force footwork     | ⚡     | 3 × 5 / side | 3 × 5 / side | 3 × 5 / side | 2 × 5 / side | 3 × 5 / side | 2 × 5 / side | 2 × 5 / side |
+| Overspeed swings          | ⚡ramp | 3 × 5        | 2 × 5        | 3 × 5        | 2 × 5        | 4 × 5        | 2 × 5        | 2 × 5        |
+
+## GYM mode (6 drills)
+| drill                     | class | authored     | wk1          | wk4          | wk6          | wk9          | wk12         | wk19         |
+| Trap-bar jump             | ⚡     | 4 × 3        | 4 × 3        | 4 × 3        | 3 × 3        | 4 × 3        | 3 × 3        | 3 × 3        |
+| Landmine rotational throw | 🌀    | 4 × 4 / side | 4 × 4 / side | 4 × 4 / side | 3 × 4 / side | 4 × 4 / side | 3 × 4 / side | 3 × 4 / side |
+| Speed bench press         | ⚡     | 4 × 4        | 4 × 4        | 4 × 4        | 3 × 4        | 4 × 4        | 3 × 4        | 3 × 4        |
+| Kettlebell swing          | ⚡     | 3 × 6        | 3 × 6        | 3 × 6        | 2 × 6        | 3 × 6        | 2 × 6        | 2 × 6        |
+| Cable lateral chop        | 🌀    | 3 × 4 / side | 3 × 4 / side | 3 × 4 / side | 2 × 4 / side | 3 × 4 / side | 2 × 4 / side | 2 × 4 / side |
+| Overspeed swings          | ⚡ramp | 3 × 5        | 2 × 5        | 3 × 5        | 2 × 5        | 4 × 5        | 2 × 5        | 2 × 5        |
+
+ALL INVARIANTS PASS (A no-💪 · B hold at accumulate/intensify · C -1 set at deload/peak · D overspeed ramp · E retain no-op)

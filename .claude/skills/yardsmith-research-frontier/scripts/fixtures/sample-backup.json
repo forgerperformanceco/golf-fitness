@@ -1,0 +1,68 @@
+{
+  "app": "Yardsmith",
+  "kind": "backup",
+  "version": 1,
+  "exported": "2026-07-08T14:00:00.000Z",
+  "data": {
+    "fairwayfuel": { "sex": "male", "goal": "leanbulk", "age": 34, "weight": 185, "freq": 5 },
+    "ff_start": "2026-05-11",
+    "ff_log": {
+      "1|Day 3 — Speed & Power": {
+        "date": "5/13/2026", "_ts": 1778673600000,
+        "ex": [
+          { "name": "Countermovement jump", "orig": "Countermovement jump", "target": "4 × 3",
+            "sets": [{ "w": "", "r": "3", "done": true }, { "w": "", "r": "3", "done": true }] },
+          { "name": "Overspeed swings", "orig": "Overspeed swings", "target": "2 × 5",
+            "sets": [{ "w": "", "r": "5", "done": true }, { "w": "", "r": "5", "done": true }] }
+        ]
+      },
+      "3|Day 3 — Speed & Power": {
+        "date": "5/27/2026", "_ts": 1779883200000,
+        "ex": [
+          { "name": "Overspeed swings", "orig": "Overspeed swings", "target": "3 × 5",
+            "sets": [{ "w": "", "r": "5", "done": true }, { "w": "", "r": "5", "done": true }, { "w": "", "r": "4", "done": true }] }
+        ]
+      },
+      "3|Day 1 — Lower Body (Squat focus)": {
+        "date": "5/25/2026", "_ts": 1779710400000,
+        "ex": [
+          { "name": "Back Squat", "orig": "Back Squat", "target": "4 × 6–8",
+            "sets": [{ "w": "225", "r": "8", "done": true }, { "w": "225", "r": "8", "done": true }, { "w": "225", "r": "7", "done": true }] }
+        ]
+      },
+      "6|Day 3 — Speed & Power": {
+        "date": "6/17/2026", "_ts": 1781697600000,
+        "ex": [
+          { "name": "Overspeed swings", "orig": "Overspeed swings", "target": "2 × 5",
+            "sets": [{ "w": "", "r": "5", "done": true }, { "w": "", "r": "", "done": false }] }
+        ]
+      },
+      "6|Day 1 — Lower Body (Squat focus)": {
+        "date": "6/15/2026", "_ts": 1781524800000,
+        "ex": [
+          { "name": "Back Squat", "orig": "Back Squat", "target": "4 × 6–8",
+            "sets": [{ "w": "245", "r": "6", "done": true }, { "w": "245", "r": "6", "done": true }] }
+        ]
+      }
+    },
+    "ff_speedtest": [
+      { "ts": 1778587200000, "date": "5/12/2026", "week": 1, "swings": ["76", "77.5", "77"], "best": 77.5 },
+      { "ts": 1779796800000, "date": "5/26/2026", "week": 3, "swings": ["77", "78", "78.5"], "best": 78.5 },
+      { "ts": 1781006400000, "date": "6/9/2026", "week": 5, "swings": ["79", "78.5", "80"], "best": 80 }
+    ],
+    "ff_body": [
+      { "date": "5/12/2026", "iso": "2026-05-12", "ts": 1778587200000, "w": 185, "s": 77.5, "d": 240 },
+      { "date": "5/26/2026", "iso": "2026-05-26", "ts": 1779796800000, "w": 186.5, "s": 78.5 },
+      { "date": "6/9/2026", "iso": "2026-06-09", "ts": 1781006400000, "w": 188, "s": 80, "d": 248 }
+    ],
+    "ff_fuel": {
+      "2026-06-08": { "m": { "0": "a", "1": "a", "2": "c", "3": "a" }, "rating": null, "n": 4, "ts": 1780920000000 },
+      "2026-06-09": { "m": {}, "rating": "on", "n": 4, "ts": 1781006400000 },
+      "2026-06-10": { "m": {}, "rating": "off", "n": 4, "ts": 1781092800000 }
+    },
+    "ff_rounds": [
+      { "id": "r1781179200000", "ts": 1781179200000, "date": "6/11/2026", "score": 86, "drive": 252, "driving": "bomb", "energy": "strong" },
+      { "id": "r1781784000000", "ts": 1781784000000, "date": "6/18/2026", "score": 89, "drive": 244, "driving": "norm", "energy": "faded" }
+    ]
+  }
+}
