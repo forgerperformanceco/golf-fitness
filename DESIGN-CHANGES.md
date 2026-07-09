@@ -1118,6 +1118,36 @@ glossary/loop entries all in place from earlier passes. Two grammar nits:
 setup → mobility → backup → foods → start-over → show-me-around →
 full-access), reset button wired, zero page errors.
 
+## 69 · Distance moves log yards, not reps (user request)
+
+"Things that need distance logged instead ask for reps." Loaded carries carry
+a distance target ("Farmer Carry — 3 × 40 yd"), but all three loggers labeled
+the second set field "reps" and gave no seed, so the field read as nonsense.
+
+New shared signal in 040 keyed off the authored target string — the SAME
+`/yd/` test the wave engine already uses to skip rep bumps (035 waveAdjust),
+so display and prescription can't drift: `isDistEx(target)`,
+`repWord(target)` ("yards" | "reps"), `repSeed(target)` (the target distance).
+Applied to every logging surface:
+
+- **Player** (070): the second stepper's placeholder reads "yards" for a
+  carry, "reps" otherwise; the stepper already seeds from `× 40`, so ± works.
+- **Inline logger** (045): the `LBS / REPS` column header becomes `LBS /
+  YARDS`; the field seeds the prescribed distance when there's no prior.
+- **Modal logger** (040): the `Weight / Reps` header becomes `Weight /
+  Yards`; placeholder seeds the distance.
+
+Detection is by target, not exercise name, so it needs no classifier change
+(architecture weak-point #1) and auto-covers any future "X yd" target plus
+carry swaps that keep the slot's distance target. Storage is unchanged — the
+yardage lives in the same `r` slot; carries are already excluded from e1RM/PR
+math (`bigLiftStats` KEY regex omits "Carry"), so no bogus strength PRs.
+
+**Verified**: player shows "reps" on the hinge day's lifts and "yards" on
+Farmer Carry; inline + modal headers read YARDS/Yards only for the carry
+(seed 40); train3, player, exercise-history, 18-state audit all green, zero
+page errors.
+
 ## 68 · Hinge day starts with leg curls (user request)
 
 "I'd like the hinge day to start with leg curls instead of end." Day 4 —

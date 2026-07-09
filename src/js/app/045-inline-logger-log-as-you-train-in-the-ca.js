@@ -29,7 +29,7 @@
           '<span class="il-sn">'+(si+1)+'</span>'+
           '<button class="il-prev" data-x="'+xi+'" data-s="'+si+'" data-prevfill="1"'+(pw?'':' disabled')+'>'+prev+'</button>'+
           '<input class="il-in" type="number" inputmode="decimal" placeholder="'+escAttr(sug!=null?sug:(pw||""))+'" value="'+(st.w||"")+'" data-x="'+xi+'" data-s="'+si+'" data-f="w"/>'+
-          '<input class="il-in" type="number" inputmode="numeric" placeholder="'+escAttr(pr||"")+'" value="'+(st.r||"")+'" data-x="'+xi+'" data-s="'+si+'" data-f="r"/>'+
+          '<input class="il-in" type="number" inputmode="numeric" placeholder="'+escAttr(pr!=null?pr:(isDistEx(x.target)?repSeed(x.target):""))+'" value="'+(st.r||"")+'" data-x="'+xi+'" data-s="'+si+'" data-f="r"/>'+
           '<button class="il-check'+(st.done?" on":"")+'" data-x="'+xi+'" data-s="'+si+'" data-idone="1" aria-label="set done">✓</button></div>'+
           (pm?'<div class="il-plates">🏋️ '+pm+'</div>':'');
       });
@@ -45,7 +45,7 @@
           '</div></div>'+
         '<div class="il-sub">'+x.target+rx+'</div>'+
         '<div class="il-why-box"'+(openWhy[xi]?"":" hidden")+'>'+whyHtml(x.name)+'</div>'+
-        '<div class="il-cols"><span>SET</span><span>PREVIOUS</span><span>LBS</span><span>REPS</span><span></span></div>'+
+        '<div class="il-cols"><span>SET</span><span>PREVIOUS</span><span>LBS</span><span>'+repWord(x.target).toUpperCase()+'</span><span></span></div>'+
         setsHtml+
         '<button class="il-add" data-x="'+xi+'" data-iadd="1">＋ Add set</button></div>';
     });
