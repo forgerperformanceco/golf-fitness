@@ -336,10 +336,15 @@ stores; we're a URL). Shipping the app matters more than more docs.
   cable chop; Push-day Cable Wood-chop; Hinge/Quads Pallof Press; Pull-day
   Single-Arm Row + primer throw), and slow anti-rotation "brake" work is a
   durability lever, not a speed lever (muscle-capacity zr 0.17, trivial), so a
-  fifth rotation touch would be redundant padding. The name "Pull + Rotate"
-  slightly overpromises vs the session body (rotation rides on the primer), but
-  a rename was left optional — not worth a change. *Don't revive the "pull day
-  needs its own rotation move" idea.*
+  fifth rotation touch would be redundant padding. *Don't revive the "pull day
+  needs its own rotation move" idea.* **Shipped copy-only fix:** since the
+  rotation rides on the primer (not the main list), the day was **renamed
+  "Upper (Pull + Rotate)" → "Upper (Pull)"** in both splits to stop the name
+  overpromising. The day name is the `ff_log` session key (`week|name`), so the
+  rename was paired with a `migrateDayNames()` entry (040-workout-logger.js) —
+  the same idempotent re-key mechanism used for the earlier Squat→Quads rename —
+  so already-logged pull sessions carry over. Primer/warm-up routing is
+  unaffected (both match `/Pull|Rotate/`, still triggered by "Pull").
 
 **Rejected (deliberately):**
 - **Macro *tracking*** (barcode calorie logging) — commodity; we build *toward
@@ -479,9 +484,10 @@ publishable key + VAPID public key ship client.
    + Rotate)" against the evidence base; day is sound as-is. Rotation is already
    covered across the week (Speed-day throws/chop, Push wood-chop, Hinge/Quads
    Pallof, Pull primer throw), so a dedicated in-session rotation move was
-   reviewed and **rejected** as redundant and non-CHS. No code change shipped;
-   decision recorded in §6. Optional future copy tweak only: rename to "Upper
-   (Pull)" if the name's "Rotate" reads as an overpromise.
+   reviewed and **rejected** as redundant and non-CHS. Shipped one copy-only
+   fix: renamed the day **"Upper (Pull + Rotate)" → "Upper (Pull)"** (with a
+   `migrateDayNames()` re-key so logged sessions survive), since the rotation is
+   the primer, not the main list. Decision recorded in §6.
 
 ---
 

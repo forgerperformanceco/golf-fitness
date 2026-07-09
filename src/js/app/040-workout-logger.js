@@ -38,7 +38,9 @@
   function migrateDayNames(){
     var rename = {
       "Day 1 — Lower (Squat)": "Day 1 — Lower (Quads)",
-      "Day 1 — Lower (Squat & Hinge)": "Day 1 — Lower (Quads & Hinge)"
+      "Day 1 — Lower (Squat & Hinge)": "Day 1 — Lower (Quads & Hinge)",
+      "Day 5 — Upper (Pull + Rotate)": "Day 5 — Upper (Pull)",
+      "Day 4 — Upper (Pull + Rotate)": "Day 4 — Upper (Pull)"
     };
     function filledSets(s){ var n=0; if(s&&s.ex) s.ex.forEach(function(x){ (x.sets||[]).forEach(function(st){ if(st&&(st.w||st.r||st.done)) n++; }); }); return n; }
     try {
