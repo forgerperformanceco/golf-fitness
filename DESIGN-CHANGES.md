@@ -1118,6 +1118,20 @@ glossary/loop entries all in place from earlier passes. Two grammar nits:
 setup → mobility → backup → foods → start-over → show-me-around →
 full-access), reset button wired, zero page errors.
 
+## 68 · Hinge day starts with leg curls (user request)
+
+"I'd like the hinge day to start with leg curls instead of end." Day 4 —
+Lower (Hinge + Power) on the 5-day plan now opens with Seated Leg Curl
+3 × 12, then Deadlift, Hip Thrust, Bulgarian Split Squat, Pallof Press,
+Farmer Carry. Order-only change — targets, swaps, and per-lift history all
+key off the exercise name, so past logs and prescriptions carry over
+untouched. In-progress sessions keep the order they started with; the new
+order applies from the next fresh session.
+
+**Verified**: Train list renders Seated Leg Curl first on the focused hinge
+day; the guided player's first lift station is Seated Leg Curl; train3 /
+18-state audit / full player suite all green, zero page errors.
+
 ## 67 · Type pass: legibility floor + one scale (user: "Audit for font consistency and clarity overall — fix it all")
 
 The audit found one body font used consistently (system stack + FF Numeral

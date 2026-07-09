@@ -45,8 +45,8 @@
         { name:"Rest / Play 18", tag:"rest", type:"rest" },
         { name:"Day 3 \u2014 Speed & Power", tag:"speed", type:"speed" },
         { name:"Day 4 \u2014 Lower (Hinge + Power)", tag:"Lift", ex:[
-          ["Deadlift","4 \u00d7 4 (heavy \u00b7 fast up)"],["Hip Thrust","4 \u00d7 8"],
-          ["Bulgarian Split Squat","3 \u00d7 8 / leg"],["Seated Leg Curl","3 \u00d7 12"],["Pallof Press","3 \u00d7 12 / side"],["Farmer Carry","3 \u00d7 40 yd"]
+          ["Seated Leg Curl","3 \u00d7 12"],["Deadlift","4 \u00d7 4 (heavy \u00b7 fast up)"],["Hip Thrust","4 \u00d7 8"],
+          ["Bulgarian Split Squat","3 \u00d7 8 / leg"],["Pallof Press","3 \u00d7 12 / side"],["Farmer Carry","3 \u00d7 40 yd"]
         ]},
         { name:"Day 5 \u2014 Upper (Pull + Rotate)", tag:"Lift", ex:[
           ["Weighted Pull-up","4 \u00d7 6 (fast up)"],["Chest-Supported Row","4 \u00d7 8"],["Lat Pulldown","3 \u00d7 12"],["Single-Arm DB Row","3 \u00d7 8 / side"],
