@@ -1118,6 +1118,39 @@ glossary/loop entries all in place from earlier passes. Two grammar nits:
 setup → mobility → backup → foods → start-over → show-me-around →
 full-access), reset button wired, zero page errors.
 
+## 71 · Speed-day pressure-test: FIELD drill order tightened to the zr ranking (open thread 7, S1)
+
+Follow-up to §70's pressure-test. Owner chose candidate **S1** (drill reorder)
+after the exploration; **S2** (overspeed ramp dose) and **S3** (jump/throw
+volume) were reviewed and explicitly declined — the ramp is already an honestly
+framed adjunct and the doses already sit inside the §10.2/§10.3 envelope, so
+neither permitted an evidence-mandated change.
+
+**Change:** in FIELD mode, moved **Overhead med-ball slam** ahead of **Lateral
+bound** (slot 5 → 4). The slam is a med-ball throw — the 0.67 upper-body/
+total-body explosive tier (Brennan 2024) — while Lateral bound is a lateral
+plyometric nearer the lower ground-force tier (~0.47). Grouping all three
+throws/slams before the ground-force drills makes the day's order
+non-strictly follow the zr ranking (jump 0.82 → throws/UB-explosive 0.67 →
+ground force → overspeed). GYM mode was already ordered correctly and is
+unchanged. Both throw variants stay present; overspeed stays last. Pure reorder
+— no rename, both drills classify `⚡`, so every wave prescription is identical.
+
+The prior order deliberately *alternated* upper/lower to distribute fatigue;
+the owner's call was to prioritize strict evidence-grouping over alternation.
+
+**Verified**:
+- Dose gate (`dump-speed-day.mjs`): FIELD table now reads CMJ → Rot throw →
+  Seated chest throw → **Overhead med-ball slam** → **Lateral bound** →
+  Ground-force footwork → Overspeed; every per-drill dose unchanged across
+  wk 1/4/6/9/12/19; ALL INVARIANTS PASS (order-independent A–E). GYM table
+  byte-identical.
+- Rendered FIELD Player at weeks 1/4/19: station sequence equals the expected
+  post-reorder order, overspeed last, zero pageerrors.
+- `audit-train.mjs`: 18/18 clean (gym-mode states unaffected).
+- Build deterministic: only `035` + generated outputs changed; `styles.css`
+  untouched; no `?v=` pin, no stored-key change.
+
 ## 70 · Speed-day pressure-test: Player effort note for rotational throws (open thread 7, S5)
 
 Pressure-tested the Speed & Power day (drill selection, volume, overspeed
