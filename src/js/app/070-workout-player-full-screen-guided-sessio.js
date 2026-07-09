@@ -132,7 +132,7 @@
         var wVal=s2.w||"", rVal=s2.r||"";
         var cw=plCarry(x.sets, si, "w"), cr=plCarry(x.sets, si, "r");
         var wPh=cw!=null?cw:(presc!=null?presc:(pw||"lbs"));
-        var rPh=cr!=null?cr:(pr||"reps");
+        var rPh=cr!=null?cr:(pr||repWord(x.target));
         var pm=(isBarbell(x.name)&&s2.w)?platesFor(s2.w):"";
         return '<div class="pl-set'+(s2.done?" done":"")+'" data-plsetrow="'+si+'">'+
           '<div class="pl-set-head"><span>SET '+(si+1)+'</span><span>last: '+(pw?(pw+' × '+(pr||'–')):'–')+'</span></div>'+

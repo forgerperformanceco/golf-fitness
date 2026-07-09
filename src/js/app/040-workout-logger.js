@@ -162,6 +162,14 @@
     return best;
   }
   function topReps(t){ var m=String(t).match(/[×x]\s*(\d+)/); return m?parseInt(m[1],10):null; }
+  // A movement measured by DISTANCE, not reps — its authored target reads
+  // "3 × 40 yd" (loaded carries). The set's second slot then logs YARDS, so the
+  // loggers relabel the "reps" column and seed the prescribed distance. Same
+  // /yd/ signal the wave engine keys on to skip rep bumps (035 waveAdjust) —
+  // keep them in step so display and prescription never drift.
+  function isDistEx(t){ return /\byd\b|yards?\b/i.test(t||""); }
+  function repWord(t){ return isDistEx(t) ? "yards" : "reps"; }   // lower-case unit
+  function repSeed(t){ var n=topReps(t); return n!=null ? String(n) : ""; }
   function incFor(name){ return /Squat|Deadlift|Hinge|Lunge|Hip Thrust|Leg Press|Romanian|Swing|Carry/i.test(name) ? "5–10 lb" : "2.5–5 lb"; }
   // Single smallest sensible jump for the one-tap "add weight" nudge (progress by LOAD,
   // holding reps/sets) — big lower-body compounds jump 5 lb, everything else 2.5 lb.
@@ -276,11 +284,12 @@
         if(d) ref='<div class="logx-last">Last week: '+d+'</div>';
       }
       var hasLastW = !!(lx && lx.sets.some(function(st){return st.w;}));
+      var dist=isDistEx(x.target);
       html+='<div class="logx"><div class="logx-name">'+x.name+'</div><div class="logx-target">Target: '+x.target+'</div>'+ref+
-        '<div class="setlabels"><div>Set</div><div>Weight</div><div>Reps</div><div></div></div>';
+        '<div class="setlabels"><div>Set</div><div>Weight</div><div>'+(dist?"Yards":"Reps")+'</div><div></div></div>';
       x.sets.forEach(function(st, si){
         var lsW = (lx && lx.sets[si] && lx.sets[si].w) ? lx.sets[si].w : "–";
-        var lsR = (lx && lx.sets[si] && lx.sets[si].r) ? lx.sets[si].r : "–";
+        var lsR = (lx && lx.sets[si] && lx.sets[si].r) ? lx.sets[si].r : (dist ? repSeed(x.target) : "–");
         html+='<div class="setrow'+(st.done?" is-done":"")+'">'+
           '<div class="snum">'+(si+1)+'</div>'+
           '<input type="number" inputmode="decimal" placeholder="'+escAttr(lsW)+'" value="'+(st.w||"")+'" data-x="'+xi+'" data-s="'+si+'" data-f="w" />'+
