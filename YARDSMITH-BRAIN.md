@@ -322,6 +322,24 @@ stores; we're a URL). Shipping the app matters more than more docs.
   wave-identical; §71). **Rejected: S2** (grow/change the overspeed ramp — fenced
   by §9, already an honest adjunct) and **S3** (add jump/throw volume — already
   inside the §10.2/§10.3 envelope). Thread 7 closed.
+- **Pull-day pressure-test (2026-07-09)** — reviewed "Upper (Pull + Rotate)"
+  against the evidence base and left the program **unchanged**. Findings: the
+  day's back/arm volume (~14 pull sets, vertical 7 ≈ horizontal 7) sits inside
+  the 10–20 sets/muscle/week band and mirrors the Push day (22 vs 23 sets); the
+  "fast up" Weighted Pull-up correctly classifies 🏋️ (an intent cue, not a
+  ballistic protocol — right to take the strength prescription, unlike the
+  speed-day `^Speed` lifts); the rotational-throw **power primer** that opens the
+  day already delivers the only rotation with a real CHS effect size (throw
+  velocity zr 0.67). **Considered and rejected: adding a dedicated in-session
+  rotation move** (a Pallof/chop swap for the wrist-curl slot) — rotation is
+  already covered across the week (Speed-day rotational + landmine throws and
+  cable chop; Push-day Cable Wood-chop; Hinge/Quads Pallof Press; Pull-day
+  Single-Arm Row + primer throw), and slow anti-rotation "brake" work is a
+  durability lever, not a speed lever (muscle-capacity zr 0.17, trivial), so a
+  fifth rotation touch would be redundant padding. The name "Pull + Rotate"
+  slightly overpromises vs the session body (rotation rides on the primer), but
+  a rename was left optional — not worth a change. *Don't revive the "pull day
+  needs its own rotation move" idea.*
 
 **Rejected (deliberately):**
 - **Macro *tracking*** (barcode calorie logging) — commodity; we build *toward
@@ -457,6 +475,13 @@ publishable key + VAPID public key ship client.
    exposure grows. Discipline that makes it work: separate banking, no
    commingling, holdco never guarantees opco debts, holdco stays passive.
    Optional upgrade then: holdco owns the trademarks, licenses to the opcos.
+9. ~~**Pressure-test the pull day**~~ **DONE 2026-07-09.** Reviewed "Upper (Pull
+   + Rotate)" against the evidence base; day is sound as-is. Rotation is already
+   covered across the week (Speed-day throws/chop, Push wood-chop, Hinge/Quads
+   Pallof, Pull primer throw), so a dedicated in-session rotation move was
+   reviewed and **rejected** as redundant and non-CHS. No code change shipped;
+   decision recorded in §6. Optional future copy tweak only: rename to "Upper
+   (Pull)" if the name's "Rotate" reads as an overpromise.
 
 ---
 
