@@ -9,9 +9,10 @@ deeper doc when there is one.
 > purchased Jul 2026; fairwayfuel.app redirects); free, no paywall; Supabase
 > backend wired but billing + AI coach gated off pending launch; native Android
 > project ready to build; iOS via cloud build; app-store accounts not yet created.
-> **Texas LLC filed via Northwest Registered Agent (Jul 2026)** — awaiting SOS
-> confirmation (~2 weeks); on approval: EIN → business bank → Form 503 assumed
-> name "Yardsmith" ($25) → D-U-N-S → store enrollments as an Organization.
+> **Entity: Long Game Labs LLC (Texas, approved Jul 2026)** via Northwest
+> Registered Agent, doing business as **Yardsmith**. Next chain: Form 503
+> assumed-name "Yardsmith" ($25) → EIN (irs.gov, free) → business bank →
+> D-U-N-S → store enrollments as an Organization under Long Game Labs LLC.
 > **The web app is now a modular `src/` codebase with a build step** (see §3) —
 > the committed root files are generated build outputs. Service worker cache is
 > **content-hash stamped** (no manual version bumps).
