@@ -292,7 +292,7 @@
       preTime: formatTime(preMerged ? preMeal.time : preT), postTime: formatTime(postT),
       trainTime: formatTime(slot.anchor), fasted: state.workout==="morning", note: g.timing
     };
-    var meal = { n: mealN, recommended: MEALS_REC[state.goal], slot: slot.label, schedule: schedule };
+    var meal = { n: mealN, recommended: MEALS_REC[state.goal], slot: slot.label, rest: restToday, schedule: schedule };
     ffSchedule = schedule;   // today's meal slots — the fuel check-off logs against these
     lastMealPlan = { meal: meal, timing: timing };   // stash for the unified Meals card
 

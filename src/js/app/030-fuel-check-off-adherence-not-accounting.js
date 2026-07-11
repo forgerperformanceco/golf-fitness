@@ -179,7 +179,7 @@
        '<span class="meal-pick"><span class="meal-pick-lbl">meals/day</span><span class="seg meal-seg">'+opts+'</span></span></div>';
     h+='<div class="meals-body">';
     h+=fuelSummaryHtml(m);
-    h+='<div class="sched-title">'+ffIcon("calendar",14)+' Your day &mdash; <b>'+m.n+' meals</b> <span class="rec">('+recTxt+')</span>, portioned for a <b>'+m.slot+'</b> workout</div>';
+    h+='<div class="sched-title">'+ffIcon("calendar",14)+' Your day &mdash; <b>'+m.n+' meals</b> <span class="rec">('+recTxt+')</span>'+(m.rest?', portioned evenly &mdash; <b>rest day</b>':', portioned for a <b>'+m.slot+'</b> workout')+'</div>';
     h+='<div class="sched">'+rows+'</div>';
     h+='<div class="meal-foot">Tap any meal for a food example · times are guides — shift the day to fit your schedule.</div>';
     h+='</div></div>';

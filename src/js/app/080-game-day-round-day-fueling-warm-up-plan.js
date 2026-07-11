@@ -39,7 +39,7 @@
     html+=gdCard("During","🥤","On the course","<b>Every ~3 holes:</b> a few sips of water + a bite of fast carb (dates, fruit, chews) — don’t wait until you’re hungry or thirsty.<br><b>Hydration:</b> ~1 bottle (16–20 oz) every 6 holes; more when it’s hot — add electrolytes.");
     html+=gdCard(fmtMin(T+dur/2),"🥪","At the turn (hole "+Math.round(g.holes/2)+")","A real snack — ½ turkey sandwich, jerky + fruit, or a protein bar (~20–30g carbs + protein). This is what keeps your "+(g.holes===9?"finish":"back nine")+" strong.");
     html+=gdCard(fmtMin(T+dur),"🏁","Finish","Strong all "+g.holes+". Nice.");
-    html+=gdCard(fmtMin(T+dur+30),"💪","Refuel + log","Within ~45 min: protein + carbs (your post-workout meal works great). Then log your round — and a 7-iron speed test if you hit a launch monitor.");
+    html+=gdCard(fmtMin(T+dur+30),"💪","Refuel + log","Within ~45 min: a solid protein + carb meal — a round is real work, refuel it. Then log your round — and a 7-iron speed test if you hit a launch monitor.");
     html+='</div>';
     html+='<div class="gd-pack"><div class="gd-pack-h">🎒 Pack list</div><ul>'+
       '<li>'+(g.holes===18?"2–3":"1–2")+' bottles of water (+ electrolytes if hot)</li>'+
