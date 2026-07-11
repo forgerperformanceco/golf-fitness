@@ -187,6 +187,13 @@
   }
 
   function timingBlock(t){
+    // Rest day: no workout to time carbs around — one even-split note, no windows.
+    if(t.rest){
+      return '<div class="timing"><div class="timing-head"><span>🕒 Carb Timing</span>'+
+        '<span class="when">Rest day</span></div>'+
+        '<div class="timing-foot">No workout today — spread your <b>'+t.dayCarbs+'g carbs</b> '+
+        'evenly across your meals. '+t.note+'</div></div>';
+    }
     var preTip = t.fasted
       ? "Fasted? Take it as you start, or prioritize the post-workout meal."
       : "Fast carbs ~60–90 min before (oats, banana, rice).";

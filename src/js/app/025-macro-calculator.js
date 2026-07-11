@@ -214,6 +214,18 @@
     var slot=WORKOUT_SLOTS[state.workout];
     var mealN = state.meals || MEALS_REC[state.goal];
     var postT = slot.anchor + 1.5, preT = slot.anchor - 1.5;
+    // Is TODAY a training day? On a rest day there's no workout to fuel around,
+    // so the pre-workout snack and the post-workout carb/low-fat emphasis are
+    // dropped and the day's macros spread evenly across the meals. (Guarded:
+    // before a plan is started dayOfPlan()/stripDays() are unavailable → treat
+    // as a training day, the prior behavior.)
+    var restToday=false;
+    try{
+      var _sd=(typeof stripDays==="function")?stripDays():null;
+      var _dop=(typeof dayOfPlan==="function")?dayOfPlan():0;
+      var _td=_sd && _dop ? _sd[_dop-1] : null;
+      restToday=!!(_td && _td.type==="rest");
+    }catch(e){}
     var FIRST = 7.5, LAST = 20.0;                 // eating window 7:30 AM – 8:00 PM
 
     var meals = [];
@@ -221,9 +233,12 @@
       meals.push({ time: mealN===1 ? 12.5 : FIRST + mi*(LAST-FIRST)/(mealN-1), isPost:false });
     }
     // The meal nearest the post-workout window becomes the post-workout meal.
-    var ni=0, best=99; meals.forEach(function(m,i){ var d=Math.abs(m.time-postT); if(d<best){best=d;ni=i;} });
-    meals[ni].time = postT; meals[ni].isPost = true;
-    meals.sort(function(a,b){ return a.time-b.time; });
+    // (Rest day: no workout window — leave every meal a plain meal.)
+    if(!restToday){
+      var ni=0, best=99; meals.forEach(function(m,i){ var d=Math.abs(m.time-postT); if(d<best){best=d;ni=i;} });
+      meals[ni].time = postT; meals[ni].isPost = true;
+      meals.sort(function(a,b){ return a.time-b.time; });
+    }
 
     // Name meals: first = Breakfast, last = Dinner, one midday Lunch, the rest Snacks.
     var lunchUsed=false;
@@ -235,10 +250,11 @@
     });
     // Pre-workout: if a meal already sits within ~45 min of the pre window, that meal IS
     // your pre-workout fuel; otherwise add a small separate pre-workout snack.
+    // (Rest day: no pre-workout window — skip the pre snack and the pre flag.)
     var preIdx=0, preDist=99;
     meals.forEach(function(m,i){ var d=Math.abs(m.time-preT); if(d<preDist){ preDist=d; preIdx=i; } });
-    var preMerged = preDist<=0.75 && !meals[preIdx].isPost;
-    if(preMerged) meals[preIdx].isPreMeal=true;
+    var preMerged = restToday || (preDist<=0.75 && !meals[preIdx].isPost);
+    if(preMerged && !restToday) meals[preIdx].isPreMeal=true;
     // Relative weights — dinner biggest, breakfast carries more fat (eggs), snacks light.
     var ROLEW = {
       Breakfast:{p:0.95,c:1.05,f:1.25}, Lunch:{p:1.05,c:1.00,f:1.00},
@@ -271,7 +287,7 @@
 
     var preCarbs = preMerged ? preMeal.c : pre.c;
     var timing={
-      slot: slot.label,
+      slot: slot.label, rest: restToday, dayCarbs: carbG,
       preG: preCarbs, postG: postMeal.c, restG: Math.max(0, carbG - preCarbs - postMeal.c),
       preTime: formatTime(preMerged ? preMeal.time : preT), postTime: formatTime(postT),
       trainTime: formatTime(slot.anchor), fasted: state.workout==="morning", note: g.timing
@@ -778,11 +794,24 @@
   // (breakfast foods at breakfast; the biggest, fastest carbs around training).
   function ffPlanDay(p,t,roll){
     var n=Math.max(1,Math.min(6,t.m||4)), names=ffMealNames(n);
-    var postIdx = n>=4 ? n-2 : (n-1);                         // the carb-loaded "around training" meal
+    // Rest day: no workout, so no "around training" carb-loaded meal and no
+    // pre-workout snack — the example day is just evenly-built meals. Detected
+    // off today's schedule (rest days carry no isPost slot) with a plan-day
+    // fallback; before a plan exists it stays a training day (prior behavior).
+    var restDay=false;
+    try{
+      if(typeof ffSchedule!=="undefined" && ffSchedule && ffSchedule.length){
+        restDay = !ffSchedule.some(function(sl){ return sl.isPost || sl.isPre || sl.kind==="pre"; });
+      } else {
+        var _sd=(typeof stripDays==="function")?stripDays():null, _dop=(typeof dayOfPlan==="function")?dayOfPlan():0;
+        var _td=_sd && _dop ? _sd[_dop-1] : null; restDay=!!(_td && _td.type==="rest");
+      }
+    }catch(e){}
+    var postIdx = restDay ? -1 : (n>=4 ? n-2 : (n-1));        // the carb-loaded "around training" meal
     // Anchor the recovery meal to the ACTUAL post-workout slot from today's
     // schedule — morning lifters recover at breakfast, evening lifters at dinner —
     // instead of a fixed position in the meal list.
-    try{
+    if(!restDay) try{
       if(typeof ffSchedule!=="undefined" && ffSchedule){
         var postLbl=null; ffSchedule.forEach(function(sl){ if(sl.isPost) postLbl=sl.label; });
         if(postLbl){ var gi=names.indexOf(postLbl); if(gi>=0) postIdx=gi; }
@@ -795,7 +824,7 @@
     // Whole-food servings round up, so fixed per-meal aims drift OVER; here each meal aims at
     // what's left ÷ meals remaining, the last meal absorbs the remainder, and a meal with the
     // carb budget already spent gets no forced carb. ~30g of carbs is held back for the pre snack.
-    var pLeft=t.p, fLeft=(t.f||60), preReserve=(n>=3?30:0), cLeft=Math.max(0,t.c-preReserve), wLeft=wsum;
+    var pLeft=t.p, fLeft=(t.f||60), preReserve=(n>=3 && postIdx>=0?30:0), cLeft=Math.max(0,t.c-preReserve), wLeft=wsum;
     // Pass 1 — protein + carbs per meal (each carries its own natural fat)
     for(var j=0;j<n;j++){
       var isPost=(j===postIdx), mealsLeft=n-j, ctx=ffMealCtx(names[j]);
