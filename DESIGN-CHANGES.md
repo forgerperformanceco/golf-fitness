@@ -1118,6 +1118,41 @@ glossary/loop entries all in place from earlier passes. Two grammar nits:
 setup → mobility → backup → foods → start-over → show-me-around →
 full-access), reset button wired, zero page errors.
 
+## 74 · Golf day counts + Train agrees with Home on rest days (owner decision)
+
+Follow-up to the rest/golf-day audit. Owner picked: (1b) wire a logged round
+to satisfy the day, (2) make the Train tab feature today's rest, (3) leave
+Octane a pure training index (no change).
+
+**A logged round IS today's activity (075).** On a "Rest / Play 18" day, a
+round logged today now satisfies the day: `restDoneToday` folds in
+`roundToday()`, so the day banks via round + meals + weigh-in (the "✓ Day
+banked" pill). The Home hero acknowledges it — "Round in the books ⛳ · 18
+played is your day" instead of nudging recovery — and the redundant "Active
+recovery" row is suppressed when a round exists (the "Round banked ✓" row
+already stands in). Recovery-only rest days are unchanged.
+
+**Train agrees with Home on what "today" is (035).** The Train featured card
+defaulted to `nextWorkout()`, which skips rest days — so on a rest day Home
+said "Recover today" while Train foregrounded the next workout (sometimes a
+future "Coming up" preview). Now, on a rest day with no explicit focus, the
+featured card is TODAY (the recovery card); the next workout stays one
+strip-tap away. Workout days and explicit focus are unchanged.
+
+**Octane unchanged** — recovery/rounds still don't feed the score (owner kept
+it a pure training-output index).
+
+Not done (declined this round): full round-day fueling replacing the rest
+meal plan, and a tee-time notification — Game Day stays the manual round
+planner.
+
+**Verified** (test-golfday.mjs, isolated contexts): rest + round → Home hero
+"Round in the books", recovery row gone; round + weigh + meals → "Day banked";
+rest + no round unchanged (recovery hero + row); Train features "Rest / Play
+18" with the Mark-recovery button and no Coming-up preview; training day still
+shows its workout hero. home2/today/train3/round/restfuel/weighin/stats3 green,
+audit-train 18/18, zero page errors.
+
 ## 73 · Weigh-in is scale-only + two rest-day copy contradictions (user report + audit)
 
 **Morning weigh-in shouldn't ask for swing stats.** The Home "Morning weigh-in"

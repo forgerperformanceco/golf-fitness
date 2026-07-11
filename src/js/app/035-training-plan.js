@@ -634,7 +634,13 @@
     var retain=trainRetain(), mode=planViewMode(), wd=weekDoneCount();
     // Focus is tracked by dayKey (not name) so the two identically-named rest days
     // don't both resolve/highlight as the focused day.
-    var featName=(focusDay && shown.some(function(d){return dayKey(d)===focusDay;}))?focusDay:nextWorkout();
+    // On a rest day with no explicit focus, feature TODAY (the recovery card) so
+    // the Train tab agrees with Home about "what is today" — the next workout is
+    // still one strip-tap away. Any workout day (or an explicit focusDay) unchanged.
+    var _dop=dayOfPlan(), _todayD=_dop?stripDays()[_dop-1]:null;
+    var featName=(focusDay && shown.some(function(d){return dayKey(d)===focusDay;}))
+      ? focusDay
+      : ((_todayD && _todayD.type==="rest") ? dayKey(_todayD) : nextWorkout());
     var featured=null; shown.forEach(function(d){ if(dayKey(d)===featName) featured=d; });
     if(!featured) featured=shown[0];
     var featKey=dayKey(featured);
