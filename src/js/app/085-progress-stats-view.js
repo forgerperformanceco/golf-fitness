@@ -697,7 +697,16 @@
     var sheet=document.createElement("div");
     sheet.className="qsheet"; sheet.id="qSheet"; sheet.hidden=true;
     document.body.appendChild(sheet);
-    function openSheet(){
+    function openSheet(weighOnly){
+      // Weigh-in mode: the "Morning weigh-in" row wants JUST the scale — no
+      // swing-stat fields, no action rows. The FAB (full "Log anything") keeps
+      // everything.
+      if(weighOnly){
+        sheet.innerHTML='<div class="qsheet-card"><div class="qsheet-grab"></div>'+
+          quickLogHtml("q","Same scale, same time — feeds your weight trend & Octane.", true)+
+          '</div>';
+        sheet.hidden=false; document.body.style.overflow="hidden"; return;
+      }
       var d=(typeof todaySlot==="function")?todaySlot():null;
       var train=d && d.type!=="rest" && planStart();
       // The one missing log verb was meals — surface the NEXT unchecked one so
@@ -724,7 +733,11 @@
       sheet.hidden=false; document.body.style.overflow="hidden";
     }
     function closeSheet(){ sheet.hidden=true; document.body.style.overflow=""; }
-    fab.addEventListener("click", openSheet);
+    fab.addEventListener("click", function(){ openSheet(false); });
+    // The Home "Morning weigh-in" row opens the scale-only variant.
+    document.addEventListener("click", function(e){
+      if(e.target.closest("[data-weighin]")) openSheet(true);
+    });
     sheet.addEventListener("click", function(e){
       if(e.target===sheet){ closeSheet(); return; }
       if(e.target.id==="qAdd"){

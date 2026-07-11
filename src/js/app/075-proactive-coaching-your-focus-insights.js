@@ -201,7 +201,7 @@
     var entries=[];
     entries.push(entry(7*60,"AM","⚖️","Morning weigh-in",
       weighed?("Logged — "+row.w+" lb ✓"):"Same scale, same time — feeds your trend & Octane",
-      { done:weighed, attr:' data-qopen="1"' }));
+      { done:weighed, attr:' data-weighin="1"' }));
     if(train){
       entries.push(entry(hour*60, fmtMin(hour*60),"🏋️",d.name.replace(/^Day \d+ — /,""),
         trained?"Done — banked to history":(WAVES[waveFor(curWeek())].label+" week · guided player"),

@@ -1118,6 +1118,36 @@ glossary/loop entries all in place from earlier passes. Two grammar nits:
 setup → mobility → backup → foods → start-over → show-me-around →
 full-access), reset button wired, zero page errors.
 
+## 73 · Weigh-in is scale-only + two rest-day copy contradictions (user report + audit)
+
+**Morning weigh-in shouldn't ask for swing stats.** The Home "Morning weigh-in"
+row opened the full "Log anything" sheet — weight PLUS 7-iron mph, driver yds,
+and speed-test/round/mobility action rows. Now it opens a scale-only variant:
+`quickLogHtml(prefix, hint, weightOnly)` (070) renders just the Weight field
+when `weightOnly`, and the weigh-in row (`data-weighin`, 075) opens
+`openSheet(true)` (085) — header "⚖️ Morning weigh-in", one input, no action
+rows. The FAB's full "Log anything" sheet is unchanged (all three fields).
+`logBodyEntry` already writes only non-empty fields, so it stores weight alone.
+
+**Two rest-day copy contradictions found in a full rest/golf-day audit:**
+- Fuel meal card (`030`) read "…portioned for a **Morning** workout" on rest
+  days — directly under the "Rest day — no workout" timing block. Now
+  rest-aware: "portioned evenly — **rest day**" (drives off `meal.rest`, new
+  flag on the meal object in 025).
+- Game Day refuel step (`080`) said "your **post-workout meal** works great",
+  referencing a meal the rest-day Fuel tab says doesn't exist. Reworded to "a
+  round is real work, refuel it" — accurate in a round context.
+
+**Verified**: tapping Morning weigh-in opens a one-field scale sheet, saves
+weight-only, FAB still shows all three; rest-day meal card reads "rest day",
+training day still "Morning workout"; home2/fuel2/stats3/restfuel/weighin
+suites green, zero page errors.
+
+(A broader audit of rest-day / golf-playing-day consistency across all
+sections surfaced deeper product questions — Game Day being decoupled from the
+"Rest / Play 18" plan day, whether recovery/rounds should earn Octane — which
+are being taken to the owner as a decision rather than changed unilaterally.)
+
 ## 72 · No pre-workout meal on rest days (user report)
 
 "You're showing pre-workout meal on off days and it prob shouldn't be a

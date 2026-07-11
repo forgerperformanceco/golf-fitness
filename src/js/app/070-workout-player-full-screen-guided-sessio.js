@@ -936,12 +936,15 @@
   }
   // One shared "Log today" block — identical fields, styling and behavior on
   // Home and Stats (the third copy in the old Train fold was dead code, removed).
-  function quickLogHtml(prefix, hint){
-    return '<div class="qlog"><div class="qlog-h">📈 Log today</div>'+
+  // weightOnly: a morning weigh-in is JUST the scale — no 7-iron / driver fields,
+  // so a daily weigh-in never reads as a swing-stats prompt.
+  function quickLogHtml(prefix, hint, weightOnly){
+    return '<div class="qlog"><div class="qlog-h">'+(weightOnly?'⚖️ Morning weigh-in':'📈 Log today')+'</div>'+
       '<div class="qlog-row">'+
         '<input id="'+prefix+'Body" type="number" inputmode="decimal" placeholder="Weight (lb)" />'+
-        '<input id="'+prefix+'Speed" type="number" inputmode="decimal" placeholder="7-iron mph" />'+
-        '<input id="'+prefix+'Drive" type="number" inputmode="decimal" placeholder="Driver yds" />'+
+        (weightOnly?'':
+          '<input id="'+prefix+'Speed" type="number" inputmode="decimal" placeholder="7-iron mph" />'+
+          '<input id="'+prefix+'Drive" type="number" inputmode="decimal" placeholder="Driver yds" />')+
       '</div>'+
       '<button id="'+prefix+'Add" class="qlog-add" type="button">Add</button>'+
       (hint?'<div class="qlog-hint">'+hint+'</div>':'')+
