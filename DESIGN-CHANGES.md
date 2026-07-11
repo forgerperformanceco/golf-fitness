@@ -1118,6 +1118,40 @@ glossary/loop entries all in place from earlier passes. Two grammar nits:
 setup → mobility → backup → foods → start-over → show-me-around →
 full-access), reset button wired, zero page errors.
 
+## 72 · No pre-workout meal on rest days (user report)
+
+"You're showing pre-workout meal on off days and it prob shouldn't be a
+thing." The meal schedule `calc()` builds was workout-anchored every day: it
+added a pre-workout snack (or flagged a meal "pre-workout") and a
+post-workout carb-loaded meal regardless of whether today was a training day.
+On a rest day that framing is wrong — there's no workout to fuel around.
+
+`calc()` (025) now detects whether TODAY is a rest day (off `stripDays()` /
+`dayOfPlan()`, guarded so a not-yet-started plan stays a training day). On a
+rest day:
+- no separate pre-workout snack and no `isPreMeal` flag — the "🍚 Pre-workout"
+  row disappears from the Home timeline (075) and the Fuel schedule list (030);
+- no post-workout emphasis (`isPost` unset) — no "post-workout · biggest carb
+  meal" tag, and the day's carbs/fat spread EVENLY across meals instead of
+  spiking one;
+- the Carb-Timing fold (030 `timingBlock`) renders a rest-day note ("No
+  workout today — spread your Ng carbs evenly") instead of the pre/post
+  windows;
+- the example-day menu (`ffPlanDay`) drops the around-training meal and its
+  30 g pre-snack reserve.
+
+Also: `ffRefreshForNewDay` (090) now re-runs `calc()` on the date-change
+re-render, so a lift→rest rollover rebuilds the schedule instead of the
+timeline showing yesterday's pre/post until the Fuel tab is next opened.
+Macros are conserved (dropping the pre feed just redistributes its carbs);
+`ff_fuel` check-off indices still line up because Home and Fuel render the
+same `ffSchedule`.
+
+**Verified**: rest days (plan day 3 and 5) show no pre-workout on Home or
+Fuel and a "Rest day" timing note; training days (day 1, day 2) keep the
+pre-workout meal; fuel/fuel2/home2/tlmeals/carry/today suites green, zero
+page errors.
+
 ## 71 · Speed-day pressure-test: FIELD drill order tightened to the zr ranking (open thread 7, S1)
 
 Follow-up to §70's pressure-test. Owner chose candidate **S1** (drill reorder)

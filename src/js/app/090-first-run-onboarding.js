@@ -276,6 +276,7 @@
       var now = todayStr();
       if(now === ffLastDay) return;   // same day — nothing to roll over
       ffLastDay = now;
+      try{ calc(); }catch(_){}          // rebuild macros + meal schedule for the new day (rest vs train)
       renderPhase();
       if(typeof renderDash==="function") renderDash();
       try{ ffNotifReschedule(); }catch(_){}   // reminders follow the new week/day
