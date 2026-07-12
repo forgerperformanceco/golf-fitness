@@ -140,10 +140,14 @@
         '<div class="nu-kick">Next up · 3 minutes</div><div class="nu-title">🧭 Mobility screen</div>'+
         '<div class="nu-sub">Trunk · hips · deep squat — completes your Octane and tunes your warm-ups.</div></button>';
     if(d && d.type==="rest"){
-      var doneR=restDone(wk, dayKey(d));
+      // A logged round IS today's activity — it satisfies the rest/"Play 18" day
+      // and the card acknowledges the golf instead of nudging recovery.
+      var rtd=(typeof roundToday==="function")?roundToday():null;
+      var doneR=restDone(wk, dayKey(d)) || !!rtd;
       return '<button type="button" class="nu-card rest" data-nurest="'+escAttr(dayKey(d))+'"><span class="nu-go">'+(doneR?'✓':'›')+'</span>'+
-        '<div class="nu-kick">Next up · Recovery day</div><div class="nu-title">'+(doneR?'Recovery banked ✓':'🌱 Recover on purpose')+'</div>'+
-        '<div class="nu-sub">'+(doneR?'Growth happens today. See you tomorrow.':'Walk a casual 9, mobility flow, foam roll — tap to log it.')+'</div></button>';
+        '<div class="nu-kick">Next up · '+(rtd?'Play day':'Recovery day')+'</div>'+
+        '<div class="nu-title">'+(rtd?'Round in the books ⛳':(doneR?'Recovery banked ✓':'🌱 Recover on purpose'))+'</div>'+
+        '<div class="nu-sub">'+(rtd?'Nice — 18 played is your day. Eat, recover, back at it tomorrow.':(doneR?'Growth happens today. See you tomorrow.':'Walk a casual 9, mobility flow, foam roll — tap to log it.'))+'</div></button>';
     }
     return '<button type="button" class="nu-card rest" data-goview="plan"><span class="nu-go">›</span>'+
       '<div class="nu-kick">Next up</div><div class="nu-title">Today is banked ✓</div>'+
@@ -161,7 +165,10 @@
     var weighed=!!(row && row.w);
     var d=todaySlot(), train=d && d.type!=="rest";
     var sess=train?getSession(curWeek(), d.name):null, trained=!!(sess && sess.finishedAt);
-    var restDoneToday=(d && d.type==="rest")?restDone(curWeek(), dayKey(d)):false;
+    // A round logged today counts as the rest/"Play 18" day's activity — it
+    // satisfies the day (banked pill) and stands in for the recovery check-off.
+    var roundedToday=(typeof roundToday==="function")?roundToday():null;
+    var restDoneToday=(d && d.type==="rest")?(restDone(curWeek(), dayKey(d)) || !!roundedToday):false;
     // The full card (used for exactly ONE row — the next thing to do) and the
     // slim row (everything else). Same tap targets and data- attributes either
     // way; the calm pass only changes how much ink each row gets.
@@ -206,7 +213,9 @@
       entries.push(entry(hour*60, fmtMin(hour*60),"🏋️",d.name.replace(/^Day \d+ — /,""),
         trained?"Done — banked to history":(WAVES[waveFor(curWeek())].label+" week · guided player"),
         { attr:' data-startplayer="'+escAttr(d.name)+'"', done:trained }));
-    } else if(d){
+    } else if(d && !roundedToday){
+      // Skip the recovery row when a round is logged — the "Round banked ✓" row
+      // below already stands in as today's activity.
       entries.push(entry(12*60, fmtMin(12*60),"🌱","Active recovery",
         restDoneToday?"Recovery logged":"Walk 9, mobility flow, foam roll — growth day",
         { attr:' data-nurest="'+escAttr(dayKey(d))+'"', done:restDoneToday }));
