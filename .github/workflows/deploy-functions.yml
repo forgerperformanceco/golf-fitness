@@ -1,10 +1,11 @@
-name: Deploy Supabase (migrations + functions)
+name: Deploy Supabase Functions
 
 on:
   push:
     branches: [main]
     paths:
-      - 'supabase/**'
+      - 'supabase/functions/**'
+      - 'supabase/config.toml'
       - '.github/workflows/deploy-functions.yml'
   workflow_dispatch:
 
@@ -20,23 +21,15 @@ jobs:
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
-      - name: Require deployment secrets
+      - name: Require deployment token
         run: |
           if [ -z "${{ secrets.SUPABASE_ACCESS_TOKEN }}" ]; then
             echo "::error::Missing repo secret SUPABASE_ACCESS_TOKEN"; exit 1
-          fi
-          if [ -z "${{ secrets.SUPABASE_DB_PASSWORD }}" ]; then
-            echo "::error::Missing repo secret SUPABASE_DB_PASSWORD"; exit 1
           fi
 
       - uses: supabase/setup-cli@46f7f98c7f948ad727d22c1e67fab04c223a0520 # v3
         with:
           version: 2.81.3
-
-      - name: Apply pending database migrations
-        run: |
-          supabase link --project-ref "$PROJECT_REF" --password "${{ secrets.SUPABASE_DB_PASSWORD }}"
-          supabase db push --linked --include-all --password "${{ secrets.SUPABASE_DB_PASSWORD }}"
 
       - name: Update Anthropic secret when supplied
         env:
@@ -51,6 +44,3 @@ jobs:
           for fn in delete-account ai-coach paddle-webhook push-daily; do
             supabase functions deploy "$fn" --project-ref "$PROJECT_REF"
           done
-
-      - name: Verify migration history
-        run: supabase migration list --linked --password "${{ secrets.SUPABASE_DB_PASSWORD }}"
