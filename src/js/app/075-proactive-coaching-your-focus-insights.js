@@ -269,16 +269,21 @@
   });
   function renderDash(){
     var el=$("dashBody"); if(!el) return;
-    // Action first (the Hevy rule), status second, ONE advice card ever —
-    // the metabolism check-in outranks the focus nudge when it's due.
-    var html = nextUpCard();         // the ONE thing to do right now
-    try{ html += dashTipHtml(); }catch(e){}   // one-time nudge, never above the action
+    // Home is a command center, not a feed: one dominant action first. The day's
+    // checklist and the deeper progress/coaching layer stay available on demand.
+    var html = '<section class="today-command" aria-label="Today">'+
+      '<div class="today-command-label">'+ffIcon("compass",14)+' Today</div>'+
+      nextUpCard()+'</section>';
+    var timeline=timelineHtml();
+    if(timeline){
+      html += '<details class="home-fold home-day"><summary><span><b>Today’s schedule</b><small>Meals, training and check-ins</small></span><i>View</i></summary>'+timeline+'</details>';
+    }
     // One coaching voice at a time: when an advice card is showing, the hero's
     // lever line steps down to a quiet tag; otherwise the hero carries the coaching.
     var advice = renderAdaptiveCard() || renderInsight();
-    html += renderHeroCard(!!advice);
-    html += advice;
-    html += timelineHtml();          // the day, in time order
+    html += '<details class="home-fold home-progress"><summary><span><b>Your progress</b><small>Octane, distance and current focus</small></span><i>View</i></summary>'+
+      '<div class="home-fold-body">'+renderHeroCard(!!advice)+advice+'</div></details>';
+    try{ html += dashTipHtml(); }catch(e){}   // education stays below the daily job
     html += '<button class="dash-ai" data-ask="read"><span class="dai-ic">💬</span>'+
       '<span class="dai-tx"><b>Coach’s read</b><span>A quick AI take on your numbers &amp; what to focus on</span></span>'+
       '<span class="dai-go">›</span></button>';

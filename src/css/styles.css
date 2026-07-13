@@ -73,6 +73,11 @@
   .dash-hero .hook { font:800 clamp(24px,7vw,34px)/1.05 system-ui; letter-spacing:-.8px; color:#fff; margin:0 0 13px; }
   .dash-hero .hook .em { color:#7ef0a8; }
   .dash-hero .tagline { font-size: 13.5px; line-height:1.5; color: #b6dfc6; max-width: 440px; margin:0 auto; }
+  @media(max-width:760px){
+    /* On phones onboarding already does the brand job. Home is a daily tool, so
+       the first viewport belongs to the user's next action, not a billboard. */
+    #view-dash .dash-hero{ display:none; }
+  }
 
   /* golf "kicker" label above card titles */
   .kicker {
@@ -1582,6 +1587,29 @@
   .nu-card.alt .nu-sub{ color:#a9cfe4; }
   .nu-go{ position:absolute; right:15px; top:50%; transform:translateY(-50%); font-size:26px; color:#8be9ac; }
   .nu-card.alt .nu-go{ color:#8ec8e8; }
+  .today-command{ margin:0 0 14px; }
+  .today-command-label{ display:flex; align-items:center; gap:7px; margin:0 3px 8px;
+    color:var(--green-700); font:800 12px system-ui; letter-spacing:.11em; text-transform:uppercase; }
+  .today-command .nu-card{ margin-bottom:0; padding-top:20px; padding-bottom:20px; }
+  .today-command .nu-title{ font-size:23px; }
+  .home-fold{ margin:0 0 11px; border:1px solid var(--line); border-radius:14px; background:var(--card);
+    box-shadow:var(--shadow-sm); overflow:hidden; }
+  .home-fold > summary{ list-style:none; display:flex; align-items:center; gap:12px; min-height:66px;
+    padding:13px 15px; cursor:pointer; color:var(--green-800); }
+  .home-fold > summary::-webkit-details-marker{ display:none; }
+  .home-fold > summary span{ min-width:0; flex:1; display:flex; flex-direction:column; gap:2px; }
+  .home-fold > summary b{ font:800 15px system-ui; }
+  .home-fold > summary small{ color:var(--muted); font:600 12.5px/1.35 system-ui; }
+  .home-fold > summary i{ color:var(--green-700); font:800 11px system-ui; letter-spacing:.07em;
+    text-transform:uppercase; font-style:normal; }
+  .home-fold > summary i::after{ content:"  ›"; font-size:16px; }
+  .home-fold[open] > summary{ border-bottom:1px solid var(--line); }
+  .home-fold[open] > summary i{ font-size:0; }
+  .home-fold[open] > summary i::before{ content:"Hide"; font:800 11px system-ui; }
+  .home-fold[open] > summary i::after{ content:"  ⌄"; }
+  .home-fold .tl{ margin:0; padding:14px 13px 15px 6px; }
+  .home-fold-body{ padding:14px; }
+  .home-fold-body > :last-child{ margin-bottom:0; }
   .tl{ margin:2px 0 14px; }
   .tl-h{ font-size:12px; font-weight:800; letter-spacing:.09em; text-transform:uppercase; color:var(--muted); margin:0 2px 8px;
     display:flex; align-items:center; justify-content:space-between; gap:8px; }
