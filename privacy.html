@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'self'" />
+<meta name="referrer" content="no-referrer" />
 <meta name="theme-color" content="#0b3d22" />
 <title>Privacy — Yardsmith</title>
 <meta name="robots" content="index, follow" />
@@ -34,7 +36,7 @@
 <body>
 <header><div class="in">
   <a class="back" href="./">‹ Back to Yardsmith</a>
-  <div class="brand">Fairway<em>Fuel</em></div>
+  <div class="brand">Yard<em>smith</em></div>
 </div></header>
 <main>
   <h1>Privacy Policy</h1>
@@ -57,11 +59,18 @@
           and to identify your account.</li>
       <li><b>A backup of your app data</b> (the same inputs and logs above) so your progress
           follows you across devices.</li>
-      <li><b>Leaderboard entry</b> — only if you choose to join: a display name/handle and your
-          Yardsmith Score. You can leave the leaderboard at any time.</li>
+      <li><b>Leaderboard entry</b> — only if you choose to join: a display name/handle,
+          Yardsmith Score, speed and speed gain, streak, session counts, goal category,
+          and current-week activity. You can leave the leaderboard at any time.</li>
+      <li><b>Push-reminder subscription</b> — only if you enable reminders: your push endpoint,
+          device public/authentication keys, timezone, preferred hour, and a seven-day message schedule.</li>
+      <li><b>Recovery snapshots</b> — up to ten prior versions of your synced app-data backup,
+          retained so accidental corruption can be recovered.</li>
     </ul>
     <p>Sign-in and cloud storage are handled by <a href="https://supabase.com/privacy" rel="noopener" target="_blank">Supabase</a>,
        our backend provider.</p>
+    <p>Recovery snapshots roll forward as you use the app (only the latest ten are kept).
+       Inactive push subscriptions are scheduled for deletion after 90 days.</p>
   </div>
 
   <div class="card">
@@ -77,15 +86,18 @@
     <ul>
       <li>We don't sell or rent your personal data — ever.</li>
       <li>We don't run third-party advertising trackers.</li>
-      <li>We don't ask for payment info (the app is free).</li>
+      <li>The current early-access app is free. If paid plans are introduced, payment details
+          will be handled by the payment provider; Yardsmith will retain subscription status
+          and provider/customer identifiers, not full card details.</li>
     </ul>
   </div>
 
   <div class="card">
     <h2>Deleting your data</h2>
     <p>On your device: clearing the app's site data (or your browser data) removes the local copy.
-       For your cloud account and any leaderboard entry, email us and we'll delete everything tied
-       to your account.</p>
+       When signed in, use <b>You → Delete account</b> to permanently delete the authentication
+       account, synced profile, recovery history, leaderboard entry, and push subscriptions.
+       You may also email us if you cannot access the app.</p>
   </div>
 
   <div class="card">

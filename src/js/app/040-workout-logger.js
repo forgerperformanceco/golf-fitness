@@ -53,7 +53,7 @@
       if(changed) lsSet("ff_log", out);
     } catch(e){}
   }
-  function escAttr(s){ return String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;"); }
+  function escAttr(s){ return ffAttr(s); }
   // The plan runs off a START DATE: once you start, it auto-knows your week. No dropdown.
   function planStart(){ return lsGet("ff_start", null); }
   // Whole CALENDAR days from the plan's start day to today. Both ends are normalized to
@@ -285,7 +285,7 @@
       }
       var hasLastW = !!(lx && lx.sets.some(function(st){return st.w;}));
       var dist=isDistEx(x.target);
-      html+='<div class="logx"><div class="logx-name">'+x.name+'</div><div class="logx-target">Target: '+x.target+'</div>'+ref+
+      html+='<div class="logx"><div class="logx-name">'+ffEsc(x.name)+'</div><div class="logx-target">Target: '+ffEsc(x.target)+'</div>'+ref+
         '<div class="setlabels"><div>Set</div><div>Weight</div><div>'+(dist?"Yards":"Reps")+'</div><div></div></div>';
       x.sets.forEach(function(st, si){
         var lsW = (lx && lx.sets[si] && lx.sets[si].w) ? lx.sets[si].w : "–";

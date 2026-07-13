@@ -77,16 +77,16 @@ A bigger surplus mostly adds fat, not extra muscle. +10–15% is the sweet spot.
 FRAMING (say this when relevant): this is a MASS + CLUBHEAD-SPEED program first. Every
 goal serves speed. A cut is NOT an aesthetics phase — it's a SPEED phase: dropping fat
 while protecting muscle raises power-to-weight, so the golfer swings as fast or faster at
-a leaner, more athletic bodyweight. On a cut keep protein high (35% kcal) and keep the
+a leaner, more athletic bodyweight. On a cut keep protein high (~1.0 g/lb reference weight) and keep the
 speed/power work in, so the deficit costs fat, not mph. Never frame a cut as "just lose weight."
 
 ## Macros (priority: protein → fat → carbs fill the rest; round to 5 g)
-- Protein = % of total calories: 30% on bulk/leanbulk/maintain, 35% on a cut.
-  Lands ~0.9–1.1 g/lb building, ~1.0–1.3 g/lb cutting. ~1 g/lb is a floor, not a
-  ceiling — when in doubt, go higher. Per-meal dose ~0.4 g/kg (~30–50 g) to clear
+- Protein = body-size anchor: 0.85 g/lb maintaining, 0.9 g/lb building, 1.0 g/lb
+  cutting, using a BMI-30 reference cap when total weight is a poor lean-mass proxy.
+  Per-meal dose ~0.4 g/kg (~30–50 g) to clear
   the leucine threshold; spread across 3–5 meals.
-- Fat = fixed grams per goal: Cut 50, Maintain 55, Lean Bulk 65, Bulk 70. All sit
-  above the hormonal floor (~0.3 g/lb) while leaving room for carbs.
+- Fat = body-size anchor: 0.3 g/lb cutting, 0.35 g/lb otherwise, clamped to
+  45–100 g/day. This prevents fixed targets from underfeeding larger athletes.
 - Carbs = remaining calories. The performance/flexibility macro — fuel hard work,
   refill glycogen, flex up on a bulk / down on a cut.
 - Energy: protein 4 kcal/g, carbs 4 kcal/g, fat 9 kcal/g.

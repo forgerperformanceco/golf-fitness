@@ -16,7 +16,7 @@
      PUSH_CRON_SECRET   — shared secret the cron job sends as x-cron-secret
    (SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY are injected automatically.)
    ============================================================================ */
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2.110.2";
 import webpush from "npm:web-push@3.6.7";
 
 type SubRow = {

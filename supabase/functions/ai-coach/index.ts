@@ -16,8 +16,8 @@
 //   supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
 // ============================================================================
 
-import Anthropic from "npm:@anthropic-ai/sdk";
-import { createClient } from "npm:@supabase/supabase-js@^2";
+import Anthropic from "npm:@anthropic-ai/sdk@0.111.0";
+import { createClient } from "npm:@supabase/supabase-js@2.110.2";
 import { corsFor, preflight, json } from "../_shared/cors.ts";
 import { COACH_KNOWLEDGE } from "../_shared/knowledge.ts";
 
@@ -27,6 +27,10 @@ const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY")!;
 const MODEL = Deno.env.get("AI_COACH_MODEL") ?? "claude-opus-4-8";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const MAX_BODY_BYTES = 32_768;
+const MAX_MESSAGE_CHARS = 2_000;
+const MAX_HISTORY_CHARS = 4_000;
 
 const anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
 
@@ -53,14 +57,55 @@ Deno.serve(async (req) => {
   const { data: { user }, error: authErr } = await supabase.auth.getUser();
   if (authErr || !user) return json(req, { error: "Invalid session" }, 401);
 
+  // Atomic, server-side quota. The service role is used only for this restricted
+  // RPC; its key never leaves the function.
+  const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+  const { data: quotaRows, error: quotaErr } = await admin.rpc("consume_ai_coach_quota", {
+    p_user_id: user.id,
+  });
+  if (quotaErr) return json(req, { error: "quota_unavailable" }, 503);
+  const quota = Array.isArray(quotaRows) ? quotaRows[0] : quotaRows;
+  if (!quota?.allowed) {
+    return new Response(JSON.stringify({
+      error: "rate_limited",
+      message: quota?.daily_remaining === 0
+        ? "Daily coach limit reached. Try again tomorrow."
+        : "Too many coach requests. Take a breath and try again shortly.",
+    }), {
+      status: 429,
+      headers: {
+        ...corsFor(req),
+        "Content-Type": "application/json",
+        "Retry-After": String(quota?.retry_after_seconds || 60),
+      },
+    });
+  }
+
   // ── 2. Access: open to all signed-in users (no paywall during early access) ─
   // The cost gate is intentionally removed for now — any logged-in golfer gets
   // the full coach. To re-introduce paid tiers later, gate on is_subscribed here.
 
   // ── 3. Build the prompt ──────────────────────────────────────────────────
+  const declaredLength = Number(req.headers.get("content-length") || "0");
+  if (declaredLength > MAX_BODY_BYTES) return json(req, { error: "Request too large" }, 413);
+  let raw = "";
+  try { raw = await req.text(); } catch { return json(req, { error: "Bad request" }, 400); }
+  if (new TextEncoder().encode(raw).byteLength > MAX_BODY_BYTES) {
+    return json(req, { error: "Request too large" }, 413);
+  }
   let body: CoachRequest;
-  try { body = await req.json(); } catch { return json(req, { error: "Bad JSON" }, 400); }
-  if (!body.message?.trim()) return json(req, { error: "Empty message" }, 400);
+  try { body = JSON.parse(raw); } catch { return json(req, { error: "Bad JSON" }, 400); }
+  if (!body || typeof body !== "object" || typeof body.message !== "string") {
+    return json(req, { error: "Invalid request" }, 400);
+  }
+  body.message = body.message.trim();
+  if (!body.message) return json(req, { error: "Empty message" }, 400);
+  if (body.message.length > MAX_MESSAGE_CHARS) return json(req, { error: "Message too long" }, 400);
+  const cleanHistory = Array.isArray(body.history) ? body.history.slice(-8).filter((m) =>
+    m && (m.role === "user" || m.role === "assistant") && typeof m.content === "string"
+  ).map((m) => ({ role: m.role, content: m.content.slice(0, MAX_HISTORY_CHARS) })) : [];
 
   // The big knowledge base is a CACHED system block — written to Anthropic's
   // prompt cache once, then read at ~0.1x cost on every later message.
@@ -82,7 +127,7 @@ Deno.serve(async (req) => {
     JSON.stringify(ctx, null, 2);
 
   const messages: Anthropic.MessageParam[] = [
-    ...(body.history ?? []).slice(-8).map((m) => ({ role: m.role, content: m.content })),
+    ...cleanHistory,
     { role: "user", content: `${contextBlock}\n\nQUESTION: ${body.message.trim()}` },
   ];
 

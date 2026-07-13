@@ -37,7 +37,7 @@
         ? ' · <button class="il-up" data-deloadfill="'+xi+'" title="Fill every set with ~60% of last time’s top weight">🪫 fill deload loads — tap</button>'
         : (ready ? ' · <button class="il-up" data-bumpfill="'+xi+'" title="Fill last time’s weight + '+incNum(x.name)+' lb">↑ add '+incNum(x.name)+' lb — tap to fill</button>' : '');
       html+='<div class="il-ex">'+
-        '<div class="il-exhead"><span class="il-name">'+ffPurposeIc(x.name)+' '+x.name+'</span>'+
+        '<div class="il-exhead"><span class="il-name">'+ffPurposeIc(x.name)+' '+ffEsc(x.name)+'</span>'+
           '<div class="il-acts">'+
             '<button class="il-why'+(openWhy[xi]?" on":"")+'" data-why="'+xi+'" aria-label="Why this lift builds speed">🛈 Why</button>'+
             '<button class="il-why" data-exhist="'+escAttr(x.name)+'" aria-label="Lift history">📊</button>'+

@@ -25,10 +25,11 @@ import { transformSync } from "esbuild";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SRC = join(ROOT, "src");
+const lf = (s) => s.replace(/\r\n?/g, "\n");
 
 function partFiles(dir) {
   return readdirSync(join(SRC, dir)).filter(f => f.endsWith(".js")).sort()
-    .map(f => ({ name: `${dir}/${f}`, code: readFileSync(join(SRC, dir, f), "utf8") }));
+    .map(f => ({ name: `${dir}/${f}`, code: lf(readFileSync(join(SRC, dir, f), "utf8")) }));
 }
 
 // Minify the shipped outputs — src/ stays the readable source of truth; a
@@ -55,10 +56,10 @@ function build() {
 
   const css =
     `/* GENERATED (minified) by scripts/build.mjs — edit src/css/styles.css, not this file. */\n` +
-    minCss(readFileSync(join(SRC, "css/styles.css"), "utf8"));
+    minCss(lf(readFileSync(join(SRC, "css/styles.css"), "utf8")));
 
-  const tpl = readFileSync(join(SRC, "index.template.html"), "utf8");
-  const swTpl = readFileSync(join(SRC, "sw.template.js"), "utf8");
+  const tpl = lf(readFileSync(join(SRC, "index.template.html"), "utf8"));
+  const swTpl = lf(readFileSync(join(SRC, "sw.template.js"), "utf8"));
 
   // Content hash across the SHIPPED bytes → automatic cache busting. Hashing
   // the minified output (not the source) matters: an esbuild upgrade that
