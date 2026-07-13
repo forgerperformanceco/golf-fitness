@@ -29,6 +29,11 @@
   // magic-link redirect landing in the URL, a sign-in tap, or a leaderboard
   // read. Everything funnels through ensureSb(); `sb` is null until then.
   var sb = null, sbInit = null;
+  function escHtml(value) {
+    return String(value == null ? "" : value)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
   function hasSession() {
     try {
       for (var i = 0; i < localStorage.length; i++) {
@@ -46,7 +51,10 @@
     return new Promise(function (resolve, reject) {
       if (window.supabase) return resolve();
       var sc = document.createElement("script");
-      sc.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
+      sc.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.2/dist/umd/supabase.min.js";
+      sc.integrity = "sha384-sgcvElP/LlNRtORGYFLO/9K/bENcpJK19HgvqslWXog6d8f/Va4TpltGiBlGntCM";
+      sc.crossOrigin = "anonymous";
+      sc.referrerPolicy = "no-referrer";
       sc.onload = function () { window.supabase ? resolve() : reject(new Error("sdk missing after load")); };
       sc.onerror = function () { reject(new Error("sdk load failed")); };
       document.head.appendChild(sc);
@@ -546,7 +554,7 @@
     if (user) {
       var name = (user.email || "account").split("@")[0];
       pill.className = "ff-pill in";
-      pill.innerHTML = "☁ " + name + " · Sign out";
+      pill.innerHTML = "☁ " + escHtml(name) + " · Sign out";
     } else {
       pill.className = "ff-pill";
       pill.innerHTML = "☁ Sign in to save";
@@ -588,7 +596,7 @@
         // reliable path for an installed iPhone app (the email link opens Safari, a separate
         // login). The link still works too for anyone who prefers it.
         stage = "code";
-        sub.innerHTML = 'We emailed <b>' + v + '</b>. Type the <b>code</b> below to sign in right here — or tap the link in the email.';
+        sub.innerHTML = 'We emailed <b>' + escHtml(v) + '</b>. Type the <b>code</b> below to sign in right here — or tap the link in the email.';
         email.setAttribute("readonly", "readonly");
         code.style.display = "block";
         go.textContent = "Verify & sign in";

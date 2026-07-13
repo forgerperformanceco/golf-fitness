@@ -395,9 +395,13 @@
     return { score:r.score, speed:speed, speed_gain:gain,
       sessions:Object.keys(getLog()).length, streak:lbStreak(),
       week_sessions:thisWeekStats().sessions, week_start:weekStartStr(),
-      goal:(lsGet("ff_targets",null)||{}).goal || state.goal };
+      goal:state.goal };
   }
-  function lbGoalTag(g){ return (GOALS[g] && GOALS[g].label) || ""; }
+  function lbGoalTag(g){
+    if(GOALS[g]) return GOALS[g].label;
+    var key=Object.keys(GOALS).find(function(k){ return GOALS[k].label===g; });
+    return key ? GOALS[key].label : "";
+  }
   function lbWeekSessions(r){ return (r.week_start===weekStartStr()) ? (r.week_sessions||0) : 0; }
   function lbVal(r){
     if(lbBoard==="speed")  return r.speed!=null  ? r.speed+" mph" : "—";

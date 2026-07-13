@@ -512,7 +512,7 @@
         var spList = '<div class="sess-list">'+ilog.sess.ex.map(function(x){
             return '<button type="button" class="sl-row" data-exhist="'+escAttr(x.name)+'">'+
               '<span class="sl-ic">'+ffPurposeIc(x.name)+'</span>'+
-              '<span class="sl-tx"><b>'+x.name+'</b><span>'+x.target+'</span></span>'+
+              '<span class="sl-tx"><b>'+ffEsc(x.name)+'</b><span>'+ffEsc(x.target)+'</span></span>'+
               '<span class="sl-go">›</span></button>';
           }).join("")+
           '<div class="sl-note">Tap a drill for its history. Cues &amp; logging live in the <b>player</b>.</div></div>';
@@ -573,7 +573,7 @@
         body='<div class="sess-list">'+ilog.sess.ex.map(function(x){
             return '<button type="button" class="sl-row" data-exhist="'+escAttr(x.name)+'">'+
               '<span class="sl-ic">'+ffPurposeIc(x.name)+'</span>'+
-              '<span class="sl-tx"><b>'+x.name+'</b><span>'+x.target+'</span></span>'+
+              '<span class="sl-tx"><b>'+ffEsc(x.name)+'</b><span>'+ffEsc(x.target)+'</span></span>'+
               '<span class="sl-go">›</span></button>';
           }).join("")+
           '<div class="sl-note">Tap a lift for its history. Swaps, cues &amp; logging live in the <b>player</b>.</div>'+

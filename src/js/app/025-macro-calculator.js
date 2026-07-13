@@ -6,19 +6,19 @@
   var MEALS_REC = { leanbulk: 4, bulk: 5, maintain: 4, cut: 3 };
 
   var GOALS = {
-    leanbulk: { label: "Lean Bulk", pct: 0.10, proteinPct: 0.30, fatG: 65, weekly:[0.0025,0.005],
+    leanbulk: { label: "Lean Bulk", pct: 0.10, proteinPerLb: 0.9, fatPerLb: 0.35, weekly:[0.0025,0.005],
       preFrac: 0.25, postFrac: 0.30,
       timing: "Post-workout is your <b>build window</b> — keep it the biggest carb feeding of the day.",
       note: "A clean surplus builds <b>quality mass and force</b> — the lean, fast body out-drives the heavy one." },
-    bulk: { label: "Bulk", pct: 0.20, proteinPct: 0.30, fatG: 70, weekly:[0.005,0.0075],
+    bulk: { label: "Bulk", pct: 0.20, proteinPerLb: 0.9, fatPerLb: 0.35, weekly:[0.005,0.0075],
       preFrac: 0.25, postFrac: 0.35,
       timing: "<b>Load post-workout hard</b> — your biggest glycogen-refill and growth window.",
       note: "Aggressive surplus for <b>max strength &amp; speed</b>. High protein, high carb, plenty of fat. Quality food, not a dirty bulk." },
-    maintain: { label: "In-Season Maintain", pct: 0.0, proteinPct: 0.30, fatG: 55, weekly:null,
+    maintain: { label: "In-Season Maintain", pct: 0.0, proteinPerLb: 0.85, fatPerLb: 0.35, weekly:null,
       preFrac: 0.25, postFrac: 0.25,
       timing: "Split carbs <b>evenly around training</b>, and save some to fuel your round.",
       note: "Hold your build and <b>steady energy across a 4–5 hour round</b>. Don't slash carbs on tournament weeks." },
-    cut: { label: "Lean Out", pct: -0.20, proteinPct: 0.35, fatG: 50, weekly:[-0.01,-0.005],
+    cut: { label: "Lean Out", pct: -0.20, proteinPerLb: 1.0, fatPerLb: 0.30, weekly:[-0.01,-0.005],
       preFrac: 0.30, postFrac: 0.35,
       timing: "<b>Concentrate limited carbs around the workout</b>; stay lower the rest of the day.",
       note: "A cut here is <b>in service of speed</b>: a high-protein deficit that protects muscle while you drop fat, so you <b>keep or gain clubhead speed</b> at a lighter, more powerful bodyweight. Don't crash — that costs muscle and speed." }
@@ -198,17 +198,15 @@
         loMo:f1(m[0]*4), hiMo:f1(m[1]*4) };
     }
 
-    // Protein = % of calories; fat = fixed grams per goal; carbs fill the rest. All rounded to 5 g.
-    var proteinG=round5(target*g.proteinPct/4);
-    var fatG=g.fatG;
+    // Protein/fat scale with body size; carbs fill the remaining calories.
     // Adaptive nudge from the metabolism check-in (weight-trend tuning) — flows
-    // into carbs, since protein and fat are fixed.
+    // into carbs, leaving the body-size protein/fat anchors stable.
     var kcalAdj = lsGet("ff_kcal_adj", 0);
-    target += kcalAdj;
-    var proteinKcal=proteinG*4, fatKcal=fatG*9;
-    var carbKcal=target - proteinKcal - fatKcal, carbG=round5(carbKcal/4);
-    if(carbG<0){ carbG=0; }
-    carbKcal=carbG*4;
+    var macro=ffMacroTargets({ weightLb:weightLb, heightCm:heightCm, targetKcal:target, kcalAdj:kcalAdj,
+      proteinPerLb:g.proteinPerLb, fatPerLb:g.fatPerLb });
+    target=macro.target;
+    var proteinG=macro.proteinG, fatG=macro.fatG, carbG=macro.carbG;
+    var proteinKcal=macro.proteinKcal, fatKcal=macro.fatKcal, carbKcal=macro.carbKcal;
 
     // ---- Meal plan + nutrient timing: one weighted distribution across the whole day ----
     var slot=WORKOUT_SLOTS[state.workout];
@@ -1259,8 +1257,8 @@
       tr("TDEE / Maintenance",round5(r.tdee)+" kcal")+
       tr("Goal adjustment",deltaTxt)+
       tr("Daily target",round5(r.target)+" kcal")+
-      tr("Protein",Math.round(r.goal.proteinPct*100)+"% of calories ("+r.proteinG+" g)")+
-      tr("Fat","set target ("+r.fatG+" g)")+
+      tr("Protein",r.goal.proteinPerLb.toFixed(2).replace(/0$/,'')+" g/lb reference weight ("+r.proteinG+" g)")+
+      tr("Fat",r.goal.fatPerLb.toFixed(2).replace(/0$/,'')+" g/lb reference weight ("+r.fatG+" g)")+
       tr("Carbs","the rest ("+r.carbG+" g)")+
       '</table></div></details>';
     $("results").innerHTML=html;

@@ -17,9 +17,11 @@
 //   supabase secrets set PADDLE_WEBHOOK_SECRET=pdl_ntfset_...
 // ============================================================================
 
-import { createClient } from "npm:@supabase/supabase-js@^2";
+import { createClient } from "npm:@supabase/supabase-js@2.110.2";
 
 const WEBHOOK_SECRET = Deno.env.get("PADDLE_WEBHOOK_SECRET")!;
+const SIGNATURE_TOLERANCE_SECONDS = 300;
+const MAX_BODY_BYTES = 262_144;
 
 // Service-role client: bypasses RLS so it can write billing columns.
 const admin = createClient(
@@ -45,6 +47,10 @@ async function verify(rawBody: string, sigHeader: string | null): Promise<boolea
   }
   const ts = parts["ts"], h1 = parts["h1"];
   if (!ts || !h1) return false;
+  const tsSeconds = Number(ts);
+  if (!Number.isFinite(tsSeconds) || Math.abs(Math.floor(Date.now() / 1000) - tsSeconds) > SIGNATURE_TOLERANCE_SECONDS) {
+    return false;
+  }
   const key = await crypto.subtle.importKey(
     "raw", new TextEncoder().encode(WEBHOOK_SECRET),
     { name: "HMAC", hash: "SHA-256" }, false, ["sign"],
@@ -55,29 +61,37 @@ async function verify(rawBody: string, sigHeader: string | null): Promise<boolea
 }
 
 // Map a Paddle subscription event onto our profiles columns.
-async function applySubscription(data: any, canceled: boolean) {
+async function applySubscription(event: any, canceled: boolean) {
+  const data = event?.data;
   const userId = data?.custom_data?.user_id as string | undefined;
-  const fields: Record<string, unknown> = {
-    billing_provider: "paddle",
-    billing_customer_id: data?.customer_id ?? null,
-    billing_subscription_id: data?.id ?? null,
-    subscription_status: canceled ? "canceled" : (data?.status ?? "active"),
-    plan: data?.items?.[0]?.price?.id ?? null,
-    current_period_end: data?.current_billing_period?.ends_at ?? null,
-    trial_ends_at: data?.items?.[0]?.trial_dates?.ends_at ?? null,
-  };
-
-  let q = admin.from("profiles").update(fields);
-  if (userId) q = q.eq("id", userId);
-  else if (data?.customer_id) q = q.eq("billing_customer_id", data.customer_id);
-  else { console.error("paddle webhook: no user_id or customer_id to match"); return; }
-
-  const { error } = await q;
-  if (error) console.error("profiles update failed:", error.message);
+  const eventId = event?.event_id;
+  const occurredAt = event?.occurred_at;
+  if (!eventId || !occurredAt || (!userId && !data?.customer_id)) {
+    throw new Error("paddle event is missing identity or ordering fields");
+  }
+  const { data: result, error } = await admin.rpc("apply_paddle_subscription", {
+    p_event_id: eventId,
+    p_occurred_at: occurredAt,
+    p_user_id: userId ?? null,
+    p_customer_id: data?.customer_id ?? null,
+    p_subscription_id: data?.id ?? null,
+    p_status: canceled ? "canceled" : (data?.status ?? "active"),
+    p_plan: data?.items?.[0]?.price?.id ?? null,
+    p_period_end: data?.current_billing_period?.ends_at ?? null,
+    p_trial_end: data?.items?.[0]?.trial_dates?.ends_at ?? null,
+  });
+  if (error) throw new Error(`subscription apply failed: ${error.message}`);
+  return result;
 }
 
 Deno.serve(async (req) => {
+  if (req.method !== "POST") return new Response("POST only", { status: 405 });
+  const declaredLength = Number(req.headers.get("content-length") || "0");
+  if (declaredLength > MAX_BODY_BYTES) return new Response("payload too large", { status: 413 });
   const raw = await req.text();
+  if (new TextEncoder().encode(raw).byteLength > MAX_BODY_BYTES) {
+    return new Response("payload too large", { status: 413 });
+  }
   if (!(await verify(raw, req.headers.get("Paddle-Signature")))) {
     return new Response("invalid signature", { status: 400 });
   }
@@ -91,11 +105,11 @@ Deno.serve(async (req) => {
       case "subscription.activated":
       case "subscription.updated":
       case "subscription.resumed":
-        await applySubscription(event.data, false);
+        await applySubscription(event, false);
         break;
       case "subscription.canceled":
       case "subscription.paused":
-        await applySubscription(event.data, true);
+        await applySubscription(event, true);
         break;
       default:
         // Acknowledge unhandled events so Paddle stops retrying.

@@ -397,6 +397,7 @@
   .share-btn:active { transform:translateY(1px); }
   .share-btn.done { background:#1f9d52; }
   .share-hint { font-size:13px; color:var(--muted); margin:8px 2px 0; }
+  .minor-note { margin:-6px 0 16px; color:var(--muted); font-size:12px; line-height:1.4; }
 
   /* ---- Training plan ---- */
   .plan-intro { margin-bottom: 22px; }
@@ -1402,14 +1403,14 @@
     }
     .mobile-tabbar button .ic { font-size: 19px; line-height: 1; }
     .mobile-tabbar button.active { color: var(--green-700); background: #eef7f0; }
-    body { padding-bottom: 62px; }
-    .wrap { padding-bottom: 24px; }
+    body { padding-bottom: 110px; }
+    .wrap { padding-bottom: 72px; }
     .tabs { display: none; }            /* replaced by the bottom bar on phones */
   }
 
   /* ===== Phone polish: bigger tap targets ===== */
   @media (max-width: 600px) {
-    .wrap { padding: 16px 14px 70px; }
+    .wrap { padding: 16px 14px 118px; }
     .appbar-in { height: 52px; padding: 0 15px; }
     .wordmark { font-size: 18px; }
     .card { padding: 20px 16px 22px; border-radius: 16px; }
@@ -1654,12 +1655,12 @@
   body.ff-plpaused .ff-fab{ bottom:calc(126px + env(safe-area-inset-bottom)); }
   @media (min-width:761px){ body.ff-plpaused .ff-fab{ bottom:74px; } }
   /* Labeled, not a mystery circle: the one log door. */
-  .ff-fab{ position:fixed; right:16px; bottom:calc(76px + env(safe-area-inset-bottom)); z-index:45;
-    display:inline-flex; align-items:center; gap:6px; height:54px; padding:0 20px 0 16px; border-radius:999px;
+  .ff-fab{ position:fixed; right:10px; bottom:calc(76px + env(safe-area-inset-bottom)); z-index:45;
+    display:inline-flex; align-items:center; gap:5px; height:46px; padding:0 15px 0 13px; border-radius:999px;
     border:0; cursor:pointer;
-    background:linear-gradient(150deg,#22b45e,#11643a); color:#fff; font-size:26px; line-height:1; font-weight:600;
+    background:linear-gradient(150deg,#22b45e,#11643a); color:#fff; font-size:22px; line-height:1; font-weight:600;
     box-shadow:0 8px 22px rgba(10,80,40,.42); }
-  .ff-fab-lbl{ font:800 15px system-ui; letter-spacing:.01em; }
+  .ff-fab-lbl{ font:800 13px system-ui; letter-spacing:.01em; }
   .ff-fab:active{ transform:scale(.94); }
   @media (min-width:761px){ .ff-fab{ bottom:24px; } }
   .qsheet{ position:fixed; inset:0; z-index:210; background:rgba(8,20,13,.55); display:flex; align-items:flex-end; }

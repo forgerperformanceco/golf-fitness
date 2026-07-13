@@ -94,7 +94,7 @@
   var whyId=0;
   function exNameCell(pe, name, extra){
     var id="why"+(whyId++);
-    return { cell:'<td><button class="exwhy-btn" type="button" data-whyrow="'+id+'" aria-expanded="false">'+pe+name+(extra||"")+' <span class="exwhy-i">ⓘ</span></button></td>',
+    return { cell:'<td><button class="exwhy-btn" type="button" data-whyrow="'+id+'" aria-expanded="false">'+pe+ffEsc(name)+(extra||"")+' <span class="exwhy-i">ⓘ</span></button></td>',
              row:'<tr class="exwhy-row" id="'+id+'" hidden><td colspan="2"><div class="exwhy-panel">'+whyHtml(name,false)+'</div></td></tr>' };
   }
   function renderILog(){ var el=$("ilogBox"); if(el && ilog) el.innerHTML=ilogBodyHtml(); renderFinishBar(); }
@@ -140,14 +140,14 @@
     swapCtx=null; swapFromPlayer=false; addFromPlayer=false; }
   // Add a whole new lift to today's session — browse the full database, searchable.
   function addLiftGroupsHtml(filter){
-    var raw=(filter||"").trim(), f=raw.toLowerCase();
+    var raw=String(filter||"").replace(/[\u0000-\u001f\u007f]/g,"").trim().slice(0,60), f=raw.toLowerCase();
     var html="";
     // Offer the typed name as a custom lift when it isn't already an exact library match.
     if(raw){
       var exact=false;
       EX_GROUP_ORDER.forEach(function(g){ EXERCISE_DB[g].forEach(function(o){ if(o.toLowerCase()===f) exact=true; }); });
       if(!exact){
-        var disp=raw.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+        var disp=ffEsc(raw);
         html+='<button class="swap-opt add-custom" data-addcustom="'+escAttr(raw)+'">➕ Add “'+disp+'” as a custom lift</button>';
       }
     }
@@ -260,7 +260,7 @@
       var nm=String(h.day||"").replace(/Days? [\d–-]+ — /,"").replace(/Day \d+ — /,"");
       var detail=(h.ex||[]).filter(function(x){ return x.sets && x.sets.length; }).map(function(x){
         var sets=x.sets.map(function(s){ return (s.w&&s.r)?(s.w+'×'+s.r):(s.w?s.w+' lb':(s.r?s.r+' reps':'✓')); }).join('  ·  ');
-        return '<div class="hist-ex"><span class="hex-name">'+escAttr(x.name)+'</span><span class="hex-sets">'+sets+'</span></div>';
+        return '<div class="hist-ex"><span class="hex-name">'+ffEsc(x.name)+'</span><span class="hex-sets">'+ffEsc(sets)+'</span></div>';
       }).join("") || '<div class="hist-ex"><span class="hex-name" style="color:var(--muted)">No set details saved for this one.</span></div>';
       return '<div class="hist-row" data-histtoggle="'+escAttr(h.id)+'">'+
         '<div class="hist-top"><span class="hist-day"><span class="hist-chev">›</span> '+escAttr(nm)+'</span>'+

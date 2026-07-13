@@ -302,6 +302,7 @@
     inp.type="file"; inp.accept=".json,application/json";
     inp.onchange=function(){
       var f=inp.files&&inp.files[0]; if(!f) return;
+      if(f.size>2*1024*1024){ alert("That backup is too large (2 MB maximum)."); return; }
       var rd=new FileReader();
       rd.onload=function(){
         var obj=null; try{ obj=JSON.parse(rd.result); }catch(e){}
@@ -362,8 +363,8 @@
     var html='';
     if(user){
       var email=user.email||'your account', initial=(email[0]||'⛳').toUpperCase();
-      html+='<div class="acct-card hero"><div class="acct-id"><div class="acct-ava">'+initial+'</div>'+
-        '<div class="acct-idtext"><div class="acct-email">'+email+'</div>'+
+      html+='<div class="acct-card hero"><div class="acct-id"><div class="acct-ava">'+ffEsc(initial)+'</div>'+
+        '<div class="acct-idtext"><div class="acct-email">'+ffEsc(email)+'</div>'+
         ffSyncLine()+'</div></div>'+
         '<button class="acct-btn ghost" id="acctSignOut">Sign out</button></div>';
     } else {

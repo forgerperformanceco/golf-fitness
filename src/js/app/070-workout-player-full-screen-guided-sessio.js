@@ -166,7 +166,7 @@
           '<br><button type="button" class="pl-howto" data-plhowto="'+escAttr(x.name)+'">'+ffIcon("play",12)+' How to do it · muscles &amp; form</button></div>'
         : '';
       return '<div class="pl-skick">Lift '+(st.xi+1)+' of '+player.sess.ex.length+'</div>'+
-        '<div class="pl-exname">'+ffPurposeIc(x.name,17)+' '+x.name+'</div>'+
+        '<div class="pl-exname">'+ffPurposeIc(x.name,17)+' '+ffEsc(x.name)+'</div>'+
         '<span class="pl-target">'+x.target+'</span>'+
         '<span class="pl-target dim">'+(isBallistic(x.name)?"max intent · full rest":effortNote(x.target))+'</span>'+
         '<div class="pl-presc">'+prescLine+'</div>'+

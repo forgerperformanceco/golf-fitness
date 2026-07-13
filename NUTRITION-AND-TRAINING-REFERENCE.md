@@ -99,24 +99,21 @@ Yardsmith sets macros in a fixed priority order: **protein → fat → carbs fil
 rest.** This is the standard physique-athlete approach.
 
 ### The app's rules (user-tuned)
-1. **Protein = a percentage of total calories** — **30%** on Lean Bulk / Bulk / Maintain,
-   **35%** on a cut. See [§4](#4-protein-the-master-nutrient).
-2. **Fat = a fixed gram target per goal** — **Cut 50 g · Maintain 55 g · Lean Bulk 65 g ·
-   Bulk 70 g.** A set number, not a percentage, so it stays predictable across bodyweights.
+1. **Protein scales with reference body weight** — **0.85 g/lb** maintaining,
+   **0.9 g/lb** building, and **1.0 g/lb** on a cut. See [§4](#4-protein-the-master-nutrient).
+2. **Fat scales with reference body weight** — **0.3 g/lb** on a cut and **0.35 g/lb**
+   otherwise, clamped to 45–100 g/day.
 3. **Carbs fill the remaining calories**, then everything is **distributed across the day**
    (bigger dinner, low-fat post-workout meal — see [§6](#6-meal-frequency--per-meal-distribution)).
 4. **Every number is rounded to the nearest 5 g** (and calories to the nearest 5) so the
    targets are clean and easy to hit — 200 g protein, not 197.
 
 ### Why this works
-- **Protein as a % of calories** scales with the whole plan: a bigger eater training harder
-  automatically gets more protein, and the **35% on a cut** pushes protein up exactly when
-  muscle is most at risk (deficit). For typical golfers this lands around **0.9–1.1 g/lb**
-  building and **1.0–1.3 g/lb** cutting — right where the evidence wants it (see §4).
-- **Fat as fixed grams** keeps it from creeping too high or dropping too low. The targets
-  (50/55/65/70 g) all sit **above the hormonal/health floor** (~0.3 g/lb or ~20% of calories
-  for most people) while leaving plenty of room for carbs. Fat steps **up as you eat more**
-  (bulk) and **down on a cut**, where those calories are better spent on protein and carbs.
+- **Protein tied to body size** avoids the excessive prescriptions that percentage-of-calorie
+  formulas create for high-calorie athletes. The cut target rises modestly when muscle is
+  most at risk (see §4).
+- **Fat tied to body size** avoids a fixed target being too low for a large athlete or too
+  high for a small athlete, while the clamp keeps the output practical.
 - **Carbs last** because they're the "performance and flexibility" macro — they fuel
   high-intensity work, refill muscle glycogen, and are easiest to flex up (bulk) or down
   (cut) without touching the protein/fat that protect muscle and hormones.
@@ -124,8 +121,8 @@ rest.** This is the standard physique-athlete approach.
 ### Standard evidence-based ranges (for context)
 | Macro | Common range | Notes |
 |---|---|---|
-| Protein | 30–35% kcal (≈0.7–1.0+ g/lb / 1.6–2.2 g/kg) | Higher % on a cut |
-| Fat | ≥0.3 g/lb (≈20–35% kcal) | App uses 50–70 g fixed — above the floor |
+| Protein | ≈0.7–1.0 g/lb / 1.6–2.2 g/kg | Higher end on a cut |
+| Fat | ≥0.3 g/lb (often ≈20–35% kcal) | App clamps to 45–100 g/day |
 | Carbs | Remainder | 3–5 g/kg general; 5–8+ g/kg for high-volume training |
 
 Calorie values: **protein 4 kcal/g, carbs 4 kcal/g, fat 9 kcal/g.**
@@ -148,21 +145,20 @@ overshooting the "optimal" number costs nothing but a little money.
 - **ISSN** position stand: 1.4–2.0 g/kg supports most athletes; for **fat loss, intakes
   >3.0 g/kg** are supported in lean, resistance-trained individuals.
 
-**What Yardsmith uses** (protein as a **% of total calories**, rounded to 5 g):
+**What Yardsmith uses** (protein per pound of reference weight, rounded to 5 g):
 
-| Goal | Protein (% kcal) |
+| Goal | Protein target |
 |---|---|
-| In-Season Maintain | **30%** |
-| Lean Bulk | **30%** |
-| Bulk | **30%** |
-| Cut / Lean Out | **35%** |
+| In-Season Maintain | **0.85 g/lb** |
+| Lean Bulk | **0.9 g/lb** |
+| Bulk | **0.9 g/lb** |
+| Cut / Lean Out | **1.0 g/lb** |
 
-Because protein scales with total calories, it ticks **up on a bulk** (more food, more
-training to support) and the **35% on a cut** drives it **highest exactly when muscle is
-most at risk**. In practice this lands most golfers around **0.9–1.1 g/lb** building and
-**1.0–1.3 g/lb** cutting — squarely inside the evidence above.
+The reference weight is capped at the body weight corresponding to BMI 30 when needed,
+because total weight becomes a poor proxy for lean mass at extremes. A cut uses the high
+end of the general evidence-based range because muscle retention matters more in a deficit.
 
-- **~1 g/lb is the floor, not the ceiling.** Total daily intake is what matters most;
+- **~1 g/lb is a practical upper anchor for most users, not a mandatory floor.** Total daily intake is what matters most;
   hitting the number every day beats perfect timing.
 - **Per-meal dose:** muscle protein synthesis is maximized by roughly **0.4 g/kg per
   meal** (~0.18 g/lb, ≈30–50 g for most people) — enough to clear the "leucine
@@ -402,20 +398,21 @@ So this file fully documents the data behind Yardsmith.
 ### Macro logic (per day)
 ```
 target_kcal = TDEE × (1 + calorie_adj)
-protein_g   = round5( target_kcal × protein_pct / 4 )   // % of calories, per goal
-fat_g       = fat_target_g                              // fixed grams, per goal
+reference_lb = min(bodyweight_lb, BMI-30 weight at the user's height)
+protein_g   = round5( reference_lb × protein_per_lb )
+fat_g       = round5( clamp(reference_lb × fat_per_lb, 45, 100) )
 carb_kcal   = target_kcal − (protein_g × 4) − (fat_g × 9)
 carb_g      = round5( carb_kcal / 4 )                   // fills the rest (never below 0)
 ```
 `round5(n)` = round to the nearest multiple of 5. Calories are also shown rounded to 5.
 
 ### Per-goal settings
-| Goal | Calorie adj | Protein (% kcal) | Fat (fixed g) | Weekly target | Post-WO carb wt | Rec. meals |
+| Goal | Calorie adj | Protein (g/lb ref.) | Fat (g/lb ref.) | Weekly target | Post-WO carb wt | Rec. meals |
 |---|---|---|---|---|---|---|
-| Lean Bulk | +10% | 30% | 65 g | **+0.25–0.5%/wk** | 1.60 | 4 |
-| Bulk | +20% | 30% | 70 g | **+0.5–0.75%/wk** | 1.60 | 5 |
-| Maintain | ±0% | 30% | 55 g | hold (±0) | 1.60 | 4 |
-| Cut / Lean Out | −20% | 35% | 50 g | **−1 to −0.5%/wk** | 1.60 | 3 |
+| Lean Bulk | +10% | 0.90 | 0.35 | **+0.25–0.5%/wk** | 1.60 | 4 |
+| Bulk | +20% | 0.90 | 0.35 | **+0.5–0.75%/wk** | 1.60 | 5 |
+| Maintain | ±0% | 0.85 | 0.35 | hold (±0) | 1.60 | 4 |
+| Cut / Lean Out | −20% | 1.00 | 0.30 | **−1 to −0.5%/wk** | 1.60 | 3 |
 
 > **Weekly target** is a % of bodyweight per week, shown in the app as a live lb/week band
 > (e.g. a 175 lb lean-bulker sees ≈ +0.4–0.9 lb/week). Carbs — including pre/post-workout —

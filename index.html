@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://tbwmckmyzoxzhpqlomsp.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'" />
+<meta name="referrer" content="no-referrer" />
 <meta name="theme-color" content="#0b3d22" />
 <meta name="color-scheme" content="light dark" />
 <script>try{var ffT=JSON.parse(localStorage.getItem("ff_theme"));if(ffT==="light"||ffT==="dark")document.documentElement.setAttribute("data-theme",ffT);}catch(e){}</script>
@@ -44,7 +46,7 @@
 <link rel="apple-touch-startup-image" media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash/apple-splash-750x1334.png" />
 <link rel="apple-touch-startup-image" media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash/apple-splash-640x1136.png" />
 <link rel="preload" href="fonts/ffnum.woff2" as="font" type="font/woff2" crossorigin />
-<link rel="stylesheet" href="styles.css?v=ba163819e0" />
+<link rel="stylesheet" href="styles.css?v=9cb0007750" />
 </head>
 <body>
   <header class="appbar">
@@ -203,6 +205,7 @@
             <input type="number" id="weight" min="60" max="500" value="180" />
           </label>
         </div>
+        <p class="minor-note">Under 18? Use these estimates with a parent or guardian and a qualified sports professional.</p>
 
         <label class="field">
           <span class="lbl">Height <span class="unit-suffix">ft / in</span></span>
@@ -359,8 +362,8 @@
   </footer>
 </div>
 
-<script>window.FF_BUILD="ba163819e0";</script>
-<script src="app.js?v=ba163819e0"></script>
+<script>window.FF_BUILD="9cb0007750";</script>
+<script src="app.js?v=9cb0007750"></script>
 <!-- Login lives in the Account tab, so cloud-sync should skip its floating pill. -->
 <script>window.FF_ACCOUNT_TAB = true;</script>
 <!-- Cloud login + progress sync. The Supabase SDK itself is LAZY-LOADED by

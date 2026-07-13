@@ -19,6 +19,15 @@
     calendar: '<rect x="4" y="5.5" width="16" height="15" rx="2"/><path d="M8 3.5v4M16 3.5v4M4 10.5h16"/>',
     flame: '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3 1.072-2.143 2.224-3.095 4-4 0 4.5 6 5.5 6 10a6 6 0 0 1-12 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>',
   };
+
+  // Context-correct escaping for any user/cloud supplied value rendered into
+  // generated markup. Prefer textContent when constructing nodes directly.
+  function ffEsc(value){
+    return String(value==null?"":value)
+      .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+  }
+  function ffAttr(value){ return ffEsc(value); }
   function ffIcon(name, size, cls){
     var d=FF_ICONS[name]; if(!d) return "";
     var s=size||16;

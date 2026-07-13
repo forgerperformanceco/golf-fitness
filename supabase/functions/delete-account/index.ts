@@ -23,7 +23,7 @@
 //  SUPABASE_SERVICE_ROLE_KEY are provided to every function by default.)
 // ============================================================================
 
-import { createClient } from "npm:@supabase/supabase-js@^2";
+import { createClient } from "npm:@supabase/supabase-js@2.110.2";
 import { preflight, json } from "../_shared/cors.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;

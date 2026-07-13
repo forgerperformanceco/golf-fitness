@@ -172,10 +172,16 @@
       if (res.status === 402) {
         var j = await res.json().catch(function () { return {}; });
         typing.classList.remove("bot"); typing.classList.add("note");
-        typing.innerHTML = j.message || "The coach is temporarily unavailable — try again shortly.";
+        typing.textContent = j.message || "The coach is temporarily unavailable — try again shortly.";
         busy = false; return;
       }
       if (res.status === 401) { typing.textContent = "Please sign in again (You tab)."; busy = false; return; }
+      if (res.status === 429) {
+        var limited = await res.json().catch(function () { return {}; });
+        typing.classList.remove("bot"); typing.classList.add("note");
+        typing.textContent = limited.message || "Coach limit reached — try again shortly.";
+        busy = false; return;
+      }
       if (!res.ok || !res.body) {
         var errBody = "";
         try { errBody = (await res.text()).slice(0, 160); } catch (e) {}
@@ -223,6 +229,7 @@
     sheet = wrap.querySelector(".ffc-sheet");
     log = wrap.querySelector(".ffc-log");
     input = wrap.querySelector("textarea");
+    input.maxLength = 2000;
     sendBtn = wrap.querySelector(".ffc-send");
     wrap.querySelector(".ffc-x").addEventListener("click", close);
     wrap.addEventListener("click", function (e) { if (e.target === wrap) close(); });
