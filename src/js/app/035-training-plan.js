@@ -367,6 +367,17 @@
   function isBallistic(n){
     return purposeFor(n)==="⚡" || /Throw|Toss|Slam|Chest Pass|\bChop\b|Punch/i.test(n);
   }
+  // A drill loaded by BODYWEIGHT only — box/broad/squat/tuck jumps, bounds,
+  // depth/drop jumps, plyo push-ups, pogos, skaters. Logged by reps (height ×
+  // intent), never a weight, so the loggers drop the load field and the
+  // prescription copy. Anything explicitly loaded is excluded (trap-bar,
+  // dumbbell/DB, barbell/bar, kettlebell/KB, weighted, med-ball, sled, band) —
+  // so a Trap-bar jump or KB swing keeps its weight field.
+  function isBodyweightEx(n){
+    n=n||"";
+    if(/Trap-?bar|Dumbbell|\bDB\b|Barbell|\bBar\b|Kettlebell|\bKB\b|Weighted|Med-?ball|Medicine|Landmine|Cable|Band|Sled/i.test(n)) return false;
+    return /\bJump\b|\bBound\b|Plyo|Pogo|\bHop\b|Skater|Broad/i.test(n);
+  }
   // Build vs Retain: derived from the macro goal. Build = full volume (gaining).
   // Retain = trim ONE set off hypertrophy accessories (💪 only) to fit lower recovery
   // in maintenance / a deficit, while heavy strength, power, rotation and ALL speed work

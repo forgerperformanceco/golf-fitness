@@ -1118,6 +1118,34 @@ glossary/loop entries all in place from earlier passes. Two grammar nits:
 setup → mobility → backup → foods → start-over → show-me-around →
 full-access), reset button wired, zero page errors.
 
+## 75 · Bodyweight jumps stop asking for a weight (user report)
+
+"Box jumps have weight?" A box jump (and the field-mode lead, Countermovement
+jump) rendered a weight stepper + the strength-lift prescription copy — "find a
+weight you can own with 2 reps in reserve," a grind cue that also contradicted
+the "max intent · full rest" chip right above it.
+
+New `isBodyweightEx(name)` classifier (035, beside `isBallistic`): true for
+bodyweight jumps/bounds/plyos (`\bJump\b|\bBound\b|Plyo|Pogo|\bHop\b|
+Skater|Broad`), explicitly EXCLUDING anything loaded (Trap-?bar, Dumbbell/DB,
+Barbell/Bar, Kettlebell/KB, Weighted, Med-?ball, Landmine, Cable, Band, Sled).
+So Countermovement/Box/Broad/Squat jumps and Lateral Bounds drop the load
+field; Trap-bar jump, KB swing, med-ball throws and every barbell lift keep it.
+
+Applied to all three loggers: the load slot becomes a static **BW** chip
+(dashed, muted) instead of a weight input/stepper — player (`.pl-bw`), inline
+(`.il-bw`, column LBS→LOAD), modal (`.setbw`, column Weight→Load). The player's
+prescription line for a bodyweight drill now reads "⚡ Bodyweight — every rep
+max height, land soft, full rest. Log the reps." No weight, no RIR grind cue.
+Reps stepper + ✓ stay; only reps are logged (jumps never fed e1RM/volume
+anyway — `bigLiftStats`' KEY regex excludes them — so no data-model change).
+
+**Verified**: field-mode player Lift 1 (Countermovement jump) shows the BW
+chip, no weight stepper, rep stepper intact, bodyweight prescription; gym-mode
+Lift 1 (Trap-bar jump, loaded) still shows the weight stepper; classifier
+spot-checked across 18 drill names (jumps→BW, everything loaded→weight);
+audit-train 18/18, player/train3/carry/scroll/contrast green, zero page errors.
+
 ## 74 · Golf day counts + Train agrees with Home on rest days (owner decision)
 
 Follow-up to the rest/golf-day audit. Owner picked: (1b) wire a logged round
