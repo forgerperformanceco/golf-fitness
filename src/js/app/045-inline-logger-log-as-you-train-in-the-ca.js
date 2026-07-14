@@ -16,19 +16,21 @@
       var lx=null; if(last) last.ex.forEach(function(e){ if(e.name===x.name) lx=e; });
       var ready=progressReady(lx, x.target);
       var hasLastW=!!(lx && lx.sets.some(function(st){ return st.w; }));
+      var bw=isBodyweightEx(x.name);   // box/broad/squat jumps etc. — no weight field
       var setsHtml="";
       x.sets.forEach(function(st, si){
         tot++; if(st.done) done++;
         var pw=(lx&&lx.sets[si]&&lx.sets[si].w)?lx.sets[si].w:null, pr=(lx&&lx.sets[si]&&lx.sets[si].r)?lx.sets[si].r:null;
-        var prev = pw ? (pw+' × '+(pr||'–')) : '–';
+        var prev = bw ? (pr?(pr+' reps'):'–') : (pw ? (pw+' × '+(pr||'–')) : '–');
         // Prescribed load leads: the weight placeholder shows what to lift TODAY
         // (deload ~60%, progression-ready last + one jump); PREVIOUS keeps the raw history.
         var sug=prescribeW(pw, x.name, ready, wv);
-        var pm=(isBarbell(x.name)&&st.w)?platesFor(st.w):"";
+        var pm=(!bw&&isBarbell(x.name)&&st.w)?platesFor(st.w):"";
         setsHtml+='<div class="il-set'+(st.done?" done":"")+'">'+
           '<span class="il-sn">'+(si+1)+'</span>'+
-          '<button class="il-prev" data-x="'+xi+'" data-s="'+si+'" data-prevfill="1"'+(pw?'':' disabled')+'>'+prev+'</button>'+
-          '<input class="il-in" type="number" inputmode="decimal" placeholder="'+escAttr(sug!=null?sug:(pw||""))+'" value="'+(st.w||"")+'" data-x="'+xi+'" data-s="'+si+'" data-f="w"/>'+
+          '<button class="il-prev" data-x="'+xi+'" data-s="'+si+'" data-prevfill="1"'+((pw||(bw&&pr))?'':' disabled')+'>'+prev+'</button>'+
+          (bw ? '<span class="il-in il-bw" aria-label="bodyweight">BW</span>'
+              : '<input class="il-in" type="number" inputmode="decimal" placeholder="'+escAttr(sug!=null?sug:(pw||""))+'" value="'+(st.w||"")+'" data-x="'+xi+'" data-s="'+si+'" data-f="w"/>')+
           '<input class="il-in" type="number" inputmode="numeric" placeholder="'+escAttr(pr!=null?pr:(isDistEx(x.target)?repSeed(x.target):""))+'" value="'+(st.r||"")+'" data-x="'+xi+'" data-s="'+si+'" data-f="r"/>'+
           '<button class="il-check'+(st.done?" on":"")+'" data-x="'+xi+'" data-s="'+si+'" data-idone="1" aria-label="set done">✓</button></div>'+
           (pm?'<div class="il-plates">🏋️ '+pm+'</div>':'');
@@ -45,7 +47,7 @@
           '</div></div>'+
         '<div class="il-sub">'+x.target+rx+'</div>'+
         '<div class="il-why-box"'+(openWhy[xi]?"":" hidden")+'>'+whyHtml(x.name)+'</div>'+
-        '<div class="il-cols"><span>SET</span><span>PREVIOUS</span><span>LBS</span><span>'+repWord(x.target).toUpperCase()+'</span><span></span></div>'+
+        '<div class="il-cols"><span>SET</span><span>PREVIOUS</span><span>'+(bw?'LOAD':'LBS')+'</span><span>'+repWord(x.target).toUpperCase()+'</span><span></span></div>'+
         setsHtml+
         '<button class="il-add" data-x="'+xi+'" data-iadd="1">＋ Add set</button></div>';
     });

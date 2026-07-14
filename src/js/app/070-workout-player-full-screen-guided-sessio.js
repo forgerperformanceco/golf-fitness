@@ -127,19 +127,25 @@
         for(var k=si-1;k>=0;k--){ if(sets[k] && sets[k][f]) return sets[k][f]; }
         return null;
       }
+      var bw=isBodyweightEx(x.name);   // box/broad/squat jumps etc. — no weight field
       var setsHtml=x.sets.map(function(s2, si){
         var pw=(lx&&lx.sets[si]&&lx.sets[si].w)?lx.sets[si].w:null, pr=(lx&&lx.sets[si]&&lx.sets[si].r)?lx.sets[si].r:null;
         var wVal=s2.w||"", rVal=s2.r||"";
         var cw=plCarry(x.sets, si, "w"), cr=plCarry(x.sets, si, "r");
         var wPh=cw!=null?cw:(presc!=null?presc:(pw||"lbs"));
         var rPh=cr!=null?cr:(pr||repWord(x.target));
-        var pm=(isBarbell(x.name)&&s2.w)?platesFor(s2.w):"";
-        return '<div class="pl-set'+(s2.done?" done":"")+'" data-plsetrow="'+si+'">'+
-          '<div class="pl-set-head"><span>SET '+(si+1)+'</span><span>last: '+(pw?(pw+' × '+(pr||'–')):'–')+'</span></div>'+
-          '<div class="pl-set-row">'+
-            '<div class="pl-stp"><button type="button" data-plstep="w" data-dir="-1" data-si="'+si+'">−</button>'+
+        var pm=(!bw&&isBarbell(x.name)&&s2.w)?platesFor(s2.w):"";
+        // Bodyweight drills: the load slot becomes a static "BW" chip (no weight
+        // to enter), only reps are logged. Everything else keeps the ± stepper.
+        var wCell=bw
+          ? '<div class="pl-bw" aria-label="bodyweight">BW</div>'
+          : '<div class="pl-stp"><button type="button" data-plstep="w" data-dir="-1" data-si="'+si+'">−</button>'+
               '<input class="pl-in" type="number" inputmode="decimal" placeholder="'+escAttr(wPh)+'" value="'+escAttr(wVal)+'" data-plf="w" data-si="'+si+'"/>'+
-              '<button type="button" data-plstep="w" data-dir="1" data-si="'+si+'">＋</button></div>'+
+              '<button type="button" data-plstep="w" data-dir="1" data-si="'+si+'">＋</button></div>';
+        return '<div class="pl-set'+(s2.done?" done":"")+'" data-plsetrow="'+si+'">'+
+          '<div class="pl-set-head"><span>SET '+(si+1)+'</span><span>last: '+(bw?(pr?(pr+' reps'):'–'):(pw?(pw+' × '+(pr||'–')):'–'))+'</span></div>'+
+          '<div class="pl-set-row">'+
+            wCell+
             '<div class="pl-stp reps"><button type="button" data-plstep="r" data-dir="-1" data-si="'+si+'">−</button>'+
               '<input class="pl-in" type="number" inputmode="numeric" placeholder="'+escAttr(rPh)+'" value="'+escAttr(rVal)+'" data-plf="r" data-si="'+si+'"/>'+
               '<button type="button" data-plstep="r" data-dir="1" data-si="'+si+'">＋</button></div>'+
@@ -152,9 +158,11 @@
         (lsGet("ff_hint_press",false)?'':'<span class="pl-setops-hint">✋ hold a set to remove it · hold the name to reorder</span>')+'</div>';
       var livePr=(player.prHit && player.prHit[x.name])
         ? '<div class="pl-livepr">🚀 e1RM PR — <b>'+Math.round(player.prHit[x.name])+'</b> lb</div>' : '';
-      var prescLine = presc!=null
-        ? (wv==="deload" ? '🪫 Deload — today: <b>'+presc+' lb</b> (~60% of last week)' : '📈 Progression earned — today: <b>'+presc+' lb</b>')
-        : (topLast ? 'Last time’s top: <b>'+topLast+' lb</b> — beat the reps, then the load follows.' : 'First time — find a weight you can own with 2 reps in reserve.');
+      var prescLine = bw
+        ? '⚡ <b>Bodyweight</b> — every rep max height, land soft, full rest. Log the reps.'
+        : (presc!=null
+          ? (wv==="deload" ? '🪫 Deload — today: <b>'+presc+' lb</b> (~60% of last week)' : '📈 Progression earned — today: <b>'+presc+' lb</b>')
+          : (topLast ? 'Last time’s top: <b>'+topLast+' lb</b> — beat the reps, then the load follows.' : 'First time — find a weight you can own with 2 reps in reserve.'));
       var whyOpen=!!(player.whyOpen && player.whyOpen[st.xi]);
       var acts='<div class="pl-acts">'+
         '<button type="button" class="'+(whyOpen?'on':'')+'" data-plwhy="'+st.xi+'">'+ffIcon("info",13)+' Why</button>'+

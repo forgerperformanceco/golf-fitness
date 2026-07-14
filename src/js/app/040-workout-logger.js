@@ -284,15 +284,16 @@
         if(d) ref='<div class="logx-last">Last week: '+d+'</div>';
       }
       var hasLastW = !!(lx && lx.sets.some(function(st){return st.w;}));
-      var dist=isDistEx(x.target);
+      var dist=isDistEx(x.target), bw=isBodyweightEx(x.name);
       html+='<div class="logx"><div class="logx-name">'+ffEsc(x.name)+'</div><div class="logx-target">Target: '+ffEsc(x.target)+'</div>'+ref+
-        '<div class="setlabels"><div>Set</div><div>Weight</div><div>'+(dist?"Yards":"Reps")+'</div><div></div></div>';
+        '<div class="setlabels"><div>Set</div><div>'+(bw?"Load":"Weight")+'</div><div>'+(dist?"Yards":"Reps")+'</div><div></div></div>';
       x.sets.forEach(function(st, si){
         var lsW = (lx && lx.sets[si] && lx.sets[si].w) ? lx.sets[si].w : "–";
         var lsR = (lx && lx.sets[si] && lx.sets[si].r) ? lx.sets[si].r : (dist ? repSeed(x.target) : "–");
         html+='<div class="setrow'+(st.done?" is-done":"")+'">'+
           '<div class="snum">'+(si+1)+'</div>'+
-          '<input type="number" inputmode="decimal" placeholder="'+escAttr(lsW)+'" value="'+(st.w||"")+'" data-x="'+xi+'" data-s="'+si+'" data-f="w" />'+
+          (bw ? '<div class="setbw" aria-label="bodyweight">BW</div>'
+              : '<input type="number" inputmode="decimal" placeholder="'+escAttr(lsW)+'" value="'+(st.w||"")+'" data-x="'+xi+'" data-s="'+si+'" data-f="w" />')+
           '<input type="number" inputmode="numeric" placeholder="'+escAttr(lsR)+'" value="'+(st.r||"")+'" data-x="'+xi+'" data-s="'+si+'" data-f="r" />'+
           '<button class="donebtn'+(st.done?" on":"")+'" data-x="'+xi+'" data-s="'+si+'" data-done="1" aria-label="set done">✓</button></div>';
       });
