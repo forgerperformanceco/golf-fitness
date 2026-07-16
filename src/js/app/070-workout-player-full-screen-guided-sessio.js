@@ -176,7 +176,7 @@
       return '<div class="pl-skick">Lift '+(st.xi+1)+' of '+player.sess.ex.length+'</div>'+
         '<div class="pl-exname">'+ffPurposeIc(x.name,17)+' '+ffEsc(x.name)+'</div>'+
         '<span class="pl-target">'+x.target+'</span>'+
-        '<span class="pl-target dim">'+(isBallistic(x.name)?"max intent · full rest":effortNote(x.target))+'</span>'+
+        '<span class="pl-target dim">'+(isBallistic(x.name)?"max intent · full rest":effortNote(x.target, x.name))+'</span>'+
         '<div class="pl-presc">'+prescLine+'</div>'+
         '<div class="pl-cue">⚡ '+cue+'</div>'+
         acts+whyBox+livePr+

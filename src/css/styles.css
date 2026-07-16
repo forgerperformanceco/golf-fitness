@@ -473,7 +473,7 @@
   .exnote { font-size:13px; color:var(--muted); margin-top:2px; line-height:1.35; }
   .warm { padding:9px 15px; font-size:12px; color:#5a6b60; background:#f6faf5; border-bottom:1px solid var(--line); line-height:1.45; }
   .warm b { color:var(--green-800); }
-  table.ex td.sets .effort { font-size:11px; font-weight:600; color:var(--muted); margin-top:3px; letter-spacing:.02em; white-space:nowrap; }
+  table.ex td.sets .effort { font-size:11px; font-weight:600; color:var(--muted); margin-top:3px; letter-spacing:.02em; line-height:1.35; }
   .deload-banner { background:#eef3ff; border:1px solid #cfdbf2; color:#2c3e66; border-radius:12px; padding:11px 14px; font-size:13px; line-height:1.45; margin-bottom:14px; }
   .deload-banner b { color:#1f2f57; }
   /* Future-day preview note — themes off tokens so no hand-pinned dark variant. */
