@@ -288,13 +288,20 @@
 
 
   function activeDays(){ var p=PHASES[planState.phase]; return planState.freq===4 ? p.days4 : p.days5; }
-  function effortNote(t){
+  function effortNote(t, name){
     t=String(t);
     if(/yd/.test(t)) return "heavy · rest ~90s";
     if(/explosive|jump/i.test(t)) return "max intent · full rest";
-    if(/heavy/i.test(t)) return "RIR 2 · rest 2–3 min";
+    if(/heavy/i.test(t)) return "RIR 2 · rest 2–3 min";   // heavy compounds keep RIR in any goal
     var m=t.match(/[×x]\s*(\d+)/), reps=m?parseInt(m[1],10):10;
     if(reps<=6) return "RIR 2–3 · rest 2–3 min";
+    // On a bulk / lean bulk the HYPERTROPHY ACCESSORY work (💪 only) cashes in the
+    // surplus — train it close to failure, last set all the way. Heavy compounds
+    // (above) hold RIR 2; power/speed never go to failure (the caller shows
+    // "max intent · full rest" for ballistic drills). Cut/maintain keep a rep back.
+    var bulk=(typeof state!=="undefined" && (state.goal==="bulk" || state.goal==="leanbulk"));
+    if(bulk && name && typeof purposeFor==="function" && purposeFor(name)==="💪")
+      return "RIR 0–1 · last set to failure · rest ~90s";
     if(reps>=13) return "RIR 1 · rest ~75s";
     return "RIR 1–2 · rest ~90s";
   }
@@ -557,7 +564,7 @@
     var rows = d.ex.map(function(row){
       var base = applySwapName(row[0]);
       var r = resolveEx(base, row[1]);
-      var eff = '<div class="effort">'+effortNote(row[1])+'</div>';
+      var eff = '<div class="effort">'+effortNote(row[1], base)+'</div>';
       var pe = ffPurposeIc(base)+' ';
       var us = base!==row[0] ? ' <span class="swap-badge">⇄ your swap</span>' : '';
       if(r.status==="ok"){ var c=exNameCell(pe, base, us); return '<tr>'+c.cell+'<td class="sets">'+effTarget(row[1],base,curWeek())+eff+'</td></tr>'+c.row; }

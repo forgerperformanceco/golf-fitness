@@ -1118,6 +1118,38 @@ glossary/loop entries all in place from earlier passes. Two grammar nits:
 setup → mobility → backup → foods → start-over → show-me-around →
 full-access), reset button wired, zero page errors.
 
+## 76 · RIR is goal-aware — bulk pushes the accessory work to failure (owner: "during a bulk you don't leave RIR")
+
+Owner's point, taken with the evidence-based nuance: on a bulk the surplus
+supports training the HYPERTROPHY ACCESSORY work close to failure (Refalo 2023
+— closer-to-failure sets edge out for size, and the extra fatigue only bites
+when you can't recover from it). But "no RIR" isn't right for the whole day —
+heavy compounds still leave RIR 2 (technique/tweak risk, it's a force stimulus)
+and power/speed drills never go to failure ("stop when a rep slows"), which is
+load-bearing for the clubhead-speed outcome.
+
+`effortNote(t, name)` (035) now takes the exercise name and keys off goal +
+purpose class:
+- Goal **bulk / lean bulk** AND `purposeFor(name)==="💪"` (mass accessory) →
+  **"RIR 0–1 · last set to failure · rest ~90s"** (last set, not every set —
+  captures the stimulus without frying the session).
+- Heavy compounds (🏋️, or any "heavy"/≤6-rep target) → RIR 2 / 2–3, unchanged.
+- Power/speed (⚡ ballistic) → the player already shows "max intent · full
+  rest"; unaffected.
+- **Cut / maintain** → unchanged (RIR 1–2 / 1), a rep kept back to manage
+  fatigue in a deficit.
+
+Threaded the name through both call sites (Train card `effortNote(row[1],
+base)`, player `effortNote(x.target, x.name)`); `.effort` chip drops
+`white-space:nowrap` so the longer bulk string wraps cleanly.
+
+**Verified**: on BULK, accessories (leg ext, calf raise, incline DB press, hip
+thrust, lunges) read "last set to failure" while heavy compounds (deadlift,
+bench, OHP, leg press) and anti-rotation core (Pallof) keep their RIR; on CUT
+every lift keeps a rep back; audit-train 18/18, player/train3/contrast green,
+zero page errors. (audit-type's only <11px hits are the intentional 10.5px
+week-strip date labels from §67 — unchanged here.)
+
 ## 75 · Bodyweight jumps stop asking for a weight (user report)
 
 "Box jumps have weight?" A box jump (and the field-mode lead, Countermovement
