@@ -1118,6 +1118,27 @@ glossary/loop entries all in place from earlier passes. Two grammar nits:
 setup → mobility → backup → foods → start-over → show-me-around →
 full-access), reset button wired, zero page errors.
 
+## 77 · Resume returns to where you left off (user: "when you resume a workout it should go to where you left off")
+
+The player already paused cleanly — banking active time and surfacing the
+resume bar — but on resume it used a "first unfinished lift" heuristic, which
+sent you back to a lift you'd deliberately skipped and lost your warm-up/primer
+position entirely. Now `plClose` stamps `ff_pl_paused` with `st:player.st` (the
+exact station index), and `startPlayer` restores that station when the paused
+blob matches this same day+week and `st` is still in range. The first-unfinished
+scan stays as a fallback for any session that has logged data but no saved
+station (older paused blobs, or work seeded from another surface).
+
+**Why station index, not lift index**: "where you left off" includes the
+warm-up and power-primer stations, not just lifts — a lift-only cursor couldn't
+represent them, and would still fight the user on skipped lifts.
+
+**Verified** (Playwright): started a Lower day, advanced to the 3rd lift with
+the first two left unfinished, logged a set, exited. Paused blob carried
+`st:4`; resume landed on "Hip Thrust" (the left-off station) rather than
+"Romanian Deadlift" (the first lift the old heuristic jumped to).
+test-pause / test-player regressions still green; zero page errors.
+
 ## 76 · RIR is goal-aware — bulk pushes the accessory work to failure (owner: "during a bulk you don't leave RIR")
 
 Owner's point, taken with the evidence-based nuance: on a bulk the surplus

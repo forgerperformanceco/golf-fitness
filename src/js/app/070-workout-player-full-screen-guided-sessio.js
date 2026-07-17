@@ -17,9 +17,18 @@
     player={ day:day, dayName:day.name, week:week, sess:sess, stations:stations, st:0,
              wuDone:{}, prDone:false, prevBest:prevBest, startedAt:Date.now(),
              octBefore:(ffScore().score||0) };
-    // Mid-workout resume: if any set already has data, land on the first unfinished lift.
+    // Mid-workout resume: return to the exact station you left off on. plClose
+    // stamps ff_pl_paused with the station index — honor it when it's for this
+    // same day+week and still in range. Otherwise fall back to landing on the
+    // first unfinished lift (covers sessions with data but no saved station).
     var hasAny=sess.ex.some(function(x){ return x.sets.some(function(s){ return s.w||s.r||s.done; }); });
-    if(hasAny){
+    var paused=lsGet("ff_pl_paused", null);
+    var restored=false;
+    if(paused && paused.day===day.name && paused.week===week &&
+       typeof paused.st==="number" && paused.st>=0 && paused.st<stations.length){
+      player.st=paused.st; restored=true;
+    }
+    if(!restored && hasAny){
       for(var i=0;i<sess.ex.length;i++){
         if(!sess.ex[i].sets.every(function(s){ return s.done; })){ player.st=plLiftBase(day)+i; break; }
       }
@@ -44,7 +53,7 @@
       if(hasWork && !sess.finishedAt){
         sess.activeMs=(sess.activeMs||0)+Math.max(0, Date.now()-started);
         try{ saveSession(player.week, player.dayName, sess); }catch(e){}
-        lsSet("ff_pl_paused", { day:player.dayName, week:player.week });
+        lsSet("ff_pl_paused", { day:player.dayName, week:player.week, st:player.st });
       }
     }
     player=null;
