@@ -8,7 +8,7 @@
     dash:    { key:"dash",  ic:"🏠", t:"This is your home base",
       b:"Your daily <b>Octane score</b>, a coach's read, and quick tiles into every part of the app live here. Tap any tile to dive in." },
     calc:    { key:"calc",  ic:"🍽️", t:"Fuel — your meals & macros",
-      b:"Set your numbers once, then tap <b>“Build my day”</b> for a full day of meals and a shopping list built around your favorite foods." },
+      b:"Start with your <b>next meal</b>, bank it in one tap, and use the live numbers to see exactly what remains. Your full day and food options stay right below." },
     plan:    { key:"plan",  ic:"🏋️", t:"Train — your 20-week speed plan",
       b:"Each session starts with the <b>warm-up + daily power</b> work (the amber box) — don't skip it, that's where clubhead speed is made." },
     progress:{ key:"prog",  ic:"📈", t:"Stats — track it to grow it",

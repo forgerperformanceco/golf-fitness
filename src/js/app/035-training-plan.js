@@ -624,6 +624,15 @@
     var after=(d.name.split("—")[1]||d.name).trim();
     return after.split(/[ &/]/)[0];
   }
+  function sessionMinutes(d){
+    if(!d || d.type==="rest") return 10;
+    var rows=d.type==="speed" ? ((PHASES[planState.phase].speed[speedMode()]||{}).ex||[]) : (d.ex||[]);
+    var sets=0;
+    rows.forEach(function(row){ sets+=parseInt(String(row[1]||"").match(/^\d+/),10)||3; });
+    // Five-minute warm-up plus work/rest and short transitions; round to a useful
+    // planning number instead of pretending a workout can be timed to the minute.
+    return Math.max(20,Math.min(90,Math.round((5+sets*2.25)/5)*5));
+  }
   var focusDay=null;   // which day the Today view is showing (null = auto = next un-logged)
   function planViewMode(){ return planStart() ? lsGet("ff_planview","today") : "week"; }
 
@@ -638,9 +647,9 @@
 
     if(!started){
       // Before the plan starts: the brochure (static) shows, plus this start card.
-      html+='<div class="startbar"><div class="sb-top"><b>'+ffIcon("play",13)+' Start your 20-week plan</b>'+
-        '<span>Most people start on a Monday — but jump in any day. It tracks your week from here, no fiddling.</span></div>'+
-        '<button class="sb-go" data-startweek="1">Start the plan today</button>'+
+      html+='<div class="startbar"><div class="sb-eyebrow">YOUR NEXT MOVE</div><div class="sb-top"><b>'+ffIcon("play",13)+' Your first workout is ready</b>'+
+        '<span>Start on any day. Yardsmith maps the week, guides every set and remembers exactly where you stop.</span></div>'+
+        '<button class="sb-go" data-startweek="1">Start my plan</button>'+
         '<div class="sb-alt">Already mid-plan? <button class="sb-link" data-jump="1">Pick your current week ▾</button></div>'+
         '<div class="sb-jump" id="sbJump" hidden><select id="weekSel" aria-label="Current week">'+
           (function(){ var o=""; for(var wi=1;wi<=20;wi++) o+='<option value="'+wi+'">Week '+wi+'</option>'; return o; })()+
@@ -668,10 +677,22 @@
     html+='<div class="lift-hero"><div class="lh-l">'+
       '<div class="lh-week">WEEK '+wk+' / 20 · '+WAVES[waveFor(wk)].ic+' '+WAVES[waveFor(wk)].label.toUpperCase()+(goalYds()?' · MISSION +'+goalYds()+' YDS':'')+'</div>'+
       '<h2 class="lh-name">'+heroName+'</h2>'+
-      '<div class="lh-sub">'+(mode==="today"?('Day '+dayOfPlan()+' of your week'):'Browsing the full week')+
+      '<div class="lh-sub">'+(mode==="today"?('About '+sessionMinutes(featured)+' min <span class="lh-dot">·</span> Day '+dayOfPlan()+' of your week'):'Browsing the full week')+
         (wd.total?(' <span class="lh-dot">·</span> '+(wd.done>=wd.total?'<b class="lh-done">week complete ✓</b>':'<b class="lh-done">'+wd.done+' of '+wd.total+' done</b>')):'')+'</div>'+
       '<div class="lh-prog"><span style="width:'+Math.max(5,Math.round(wk/20*100))+'%"></span></div></div>'+
       '<span class="lh-mode '+(retain?"retain":"build")+'">'+(retain?"Retain":"Build")+'</span></div>';
+
+    if(mode==="today"){
+      if(featured.type==="rest"){
+        var heroRestDone=restDone(wk,featKey);
+        html+='<button type="button" class="train-today-cta recovery'+(heroRestDone?' done':'')+'" data-restday="'+escAttr(featKey)+'">'+
+          '<span><small>TODAY’S ACTION · 10 MIN</small><b>'+(heroRestDone?'Recovery banked ✓':'Start recovery')+'</b></span><i>›</i></button>';
+      } else if(!isFutureDay(featured.name)){
+        var heroSession=getSession(wk,featured.name), heroFinished=!!(heroSession&&heroSession.finishedAt);
+        html+='<button type="button" class="train-today-cta" data-startplayer="'+escAttr(featured.name)+'">'+
+          '<span><small>TODAY’S WORKOUT · ~'+sessionMinutes(featured)+' MIN</small><b>'+(heroFinished?'Replay finished session':(heroSession?'Resume workout':'Start workout'))+'</b></span><i>›</i></button>';
+      }
+    }
 
     html+='<div class="planview-seg"><button data-planview="today"'+(mode==="today"?' class="active"':'')+'>Today</button>'+
       '<button data-planview="week"'+(mode==="week"?' class="active"':'')+'>Full week</button></div>';

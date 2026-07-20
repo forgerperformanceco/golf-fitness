@@ -989,10 +989,6 @@
     if(!t){ if(card) card.hidden=true; el.innerHTML=""; return; }
     if(card) card.hidden=false;
     var p=ffPrefs(), hasPrefs=ffHasPrefs(p), html="";
-    // 1. Carb timing around training — "when to eat" sits right above "what to eat".
-    // The pre/post carb block is the daily ACTIONABLE — it stays expanded.
-    // The example menu below is reference material — it folds.
-    if(lastMealPlan && lastMealPlan.timing){ try{ html+=timingBlock(lastMealPlan.timing); }catch(e){} }
     if(!hasPrefs){
       // 2a. The generic per-meal split (the schedule the calculator builds) + an upgrade nudge.
       if(lastMealPlan && lastMealPlan.meal){ try{ html+=mealBlock(lastMealPlan.meal); }catch(e){} }
@@ -1058,6 +1054,11 @@
       html+='<div class="meal-foot">Macro-complete — protein, carbs <b>and</b> fat all targeted. Portions are starting points; faster carbs cluster around training.</div>';
       html+='</div></details>';
       html+='</div></div>';
+    }
+    // Timing is useful context, but the next meal and today's meal plan are the
+    // primary jobs. Keep the sports-nutrition detail one tap away below them.
+    if(lastMealPlan && lastMealPlan.timing){
+      try{ html+='<details class="fold fuel-timing-fold"><summary>⚡ Carb timing around training <span>View windows</span></summary><div class="fold-body">'+timingBlock(lastMealPlan.timing)+'</div></details>'; }catch(e){}
     }
     el.innerHTML=html;
     if(!ffMealsBound && card){
@@ -1206,7 +1207,7 @@
   /* ----- Collapse the calculator into a compact "Your numbers" summary once it's set.
      The inputs rarely change after setup, so returning users see a one-line summary they
      tap to edit — keeping the Fuel page focused on targets + meals. ----- */
-  var calcCollapsed = false;
+  var calcCollapsed = true;
   function calcSummaryHtml(t){
     function v(id){ return $(id)?($(id).value||"").trim():""; }
     var w=v("weight"), a=v("age"), hf=v("heightFt"), hin=v("heightIn");
@@ -1230,6 +1231,8 @@
     var deltaTxt = deltaKcal===0?"±0 kcal/day":(deltaKcal>0?"+"+deltaKcal+" kcal/day":deltaKcal+" kcal/day");
 
     var adjNow=lsGet("ff_kcal_adj",0);
+    var targetSummary=$("fuelTargetSummary");
+    if(targetSummary) targetSummary.innerHTML='<b>'+round(totalK).toLocaleString()+'</b> kcal <span>·</span> '+r.proteinG+'P <span>·</span> '+r.carbG+'C <span>·</span> '+r.fatG+'F';
     var html="";
     // Prose diet (same rule as Home): the numbers lead, one compact scale line
     // stays visible, and the education (full weekly-target band + goal note)

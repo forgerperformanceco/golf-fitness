@@ -127,23 +127,60 @@
   /* Single centered column everywhere — a collapsed inputs card next to the tall plan
      left the desktop layout lopsided, so the Fuel view now stacks like the rest of the app. */
   .grid { display: grid; grid-template-columns: 1fr; gap: 16px; align-items: start; }
-  /* Fuel "Today" strip — the daily answer, above the reference cards. */
-  .ftoday{ background:var(--paper); border:1px solid var(--line); border-radius:16px; padding:10px 12px;
-    margin:0 0 14px; box-shadow:0 1px 3px rgba(12,40,24,.04); }
-  .ftoday.done{ display:flex; align-items:center; gap:11px; padding:14px 15px;
-    background:#eef7f0; border-color:#cfe9d8; }
-  .ft-next{ display:flex; align-items:center; gap:11px; width:100%; text-align:left; background:none;
-    border:0; padding:6px 4px; cursor:pointer; font:inherit; }
-  .ft-ic{ font-size:20px; flex:0 0 auto; }
+  /* Fuel opens as a daily command card: next decision first, targets second. */
+  .ftoday{ color:#eafff1; background:radial-gradient(130% 150% at 6% -20%,#1d5a36 0%,#0e2c1c 58%,#091d13 100%);
+    border:1px solid rgba(255,255,255,.07); border-radius:20px; padding:16px; margin:0 0 14px;
+    box-shadow:0 14px 32px rgba(8,40,22,.24); overflow:hidden; }
+  .ft-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px;
+    color:#b9d9c5; font-size:11px; font-weight:750; }
+  .ft-kicker{ display:block; color:#82e5a6 !important; font-size:10px !important; font-weight:850 !important;
+    letter-spacing:.13em; margin:0 0 4px !important; }
+  .ft-next{ display:flex; align-items:center; gap:12px; width:100%; text-align:left; color:inherit;
+    background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); border-radius:15px;
+    padding:13px; cursor:pointer; font:inherit; -webkit-tap-highlight-color:transparent; }
+  .ft-next:active{ transform:translateY(1px); background:rgba(255,255,255,.1); }
+  .ft-ic{ font-size:24px; flex:0 0 auto; }
   .ft-tx{ flex:1; min-width:0; }
-  .ft-tx b{ display:block; font-size:15px; color:var(--ink); letter-spacing:-.01em; }
-  .ft-tx span{ display:block; font-size:13px; color:var(--muted); margin-top:1px; }
-  .ft-chk{ flex:0 0 auto; width:34px; height:34px; border-radius:50%; display:inline-flex; align-items:center;
-    justify-content:center; border:2px solid #cfe9d8; color:var(--green-700); font-weight:800; font-size:15px; }
-  .ft-next:active .ft-chk{ background:#eef7f0; }
-  .ft-rem{ display:flex; align-items:center; justify-content:space-between; gap:10px; border-top:1px solid var(--line);
-    margin-top:7px; padding:8px 4px 2px; font-size:13px; color:var(--muted); }
-  .ft-rem b{ color:var(--green-800); font-family:'FF Numeral', system-ui, sans-serif; font-weight:600; font-size:14px; }
+  .ft-tx b{ display:block; font-size:16px; color:#fff; letter-spacing:-.02em; }
+  .ft-tx span{ display:block; font-size:12px; color:#b9d9c5; margin-top:3px; }
+  .ft-bank{ flex:0 0 auto; display:flex; align-items:center; gap:7px; color:#bff4d1; font-size:11px; font-weight:800; }
+  .ft-chk{ width:34px; height:34px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center;
+    border:1.5px solid rgba(126,240,168,.55); background:rgba(126,240,168,.11); color:#7ef0a8;
+    font-style:normal; font-weight:900; font-size:15px; }
+  .ft-progress{ height:4px; margin:13px 1px 12px; overflow:hidden; border-radius:99px; background:rgba(255,255,255,.12); }
+  .ft-progress i{ display:block; height:100%; border-radius:99px; background:linear-gradient(90deg,#35d879,#7ef0a8); }
+  .ft-rem-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
+  .ft-rem-grid span{ min-width:0; padding:0 6px; border-right:1px solid rgba(255,255,255,.1); }
+  .ft-rem-grid span:last-child{ border-right:0; }
+  .ft-rem-grid b{ display:block; color:#fff; font:700 16px/1.15 'FF Numeral',system-ui,sans-serif; }
+  .ft-rem-grid small{ display:block; margin-top:3px; color:#9fc4ad; font-size:9.5px; text-transform:uppercase; letter-spacing:.04em; }
+  .ft-plan-link{ width:100%; margin-top:13px; padding:8px 2px 0; border:0; border-top:1px solid rgba(255,255,255,.09);
+    background:none; color:#9ee8b9; text-align:left; font:750 12px system-ui; cursor:pointer; }
+  .ft-plan-link span{ float:right; font-size:17px; line-height:.7; }
+  .ftoday.done{ display:flex; align-items:center; gap:12px; padding:17px; background:linear-gradient(145deg,#123c25,#0b2818); }
+  .ftoday.done .ft-tx b{ font-size:17px; }
+  .ftoday.done .ft-plan-link{ width:auto; margin:0 0 0 auto; padding:9px 0 9px 12px; border:0; white-space:nowrap; }
+
+  /* Progressive disclosure: live meals, then targets, then reference/configuration. */
+  .fuel-meals-card{ order:1; }
+  .fuel-targets{ order:2; padding:0; overflow:hidden; }
+  .fuel-food-guide{ order:3; }
+  .fuel-details-card{ order:4; }
+  .fuel-targets-summary{ display:flex; align-items:center; gap:13px; padding:17px 18px; cursor:pointer; list-style:none; }
+  .fuel-targets-summary::-webkit-details-marker{ display:none; }
+  .fuel-targets-copy{ flex:1; min-width:0; }
+  .fuel-targets-copy .kicker{ display:block; margin:0 0 3px; }
+  .fuel-targets-copy b{ display:block; font-size:15px; color:var(--ink); }
+  .fuel-targets-macros{ flex:0 1 auto; color:var(--muted); font-size:12px; text-align:right; white-space:nowrap; }
+  .fuel-targets-macros b{ color:var(--green-800); font-size:14px; }
+  .fuel-targets-macros span{ opacity:.45; }
+  .fuel-targets-chevron{ color:var(--green-700); font-size:19px; transition:transform .18s; }
+  .fuel-targets[open] .fuel-targets-chevron{ transform:rotate(180deg); }
+  .fuel-targets-body{ border-top:1px solid var(--line); padding:20px 22px 24px; }
+  .fuel-timing-fold{ margin-top:14px; }
+  .fuel-timing-fold > summary{ display:flex; justify-content:space-between; gap:12px; }
+  .fuel-timing-fold > summary span{ color:var(--muted); font-size:11px; font-weight:650; }
+  .fuel-timing-fold .timing{ margin:0; border:0; box-shadow:none; }
   .golf-note.slim{ font-size:13px; padding:9px 12px; }
   /* Train Today: compact session list (the player logs; the spreadsheet is opt-in). */
   .sess-list{ margin-top:10px; }
@@ -406,6 +443,17 @@
 
   /* ---- Training plan ---- */
   .plan-intro { margin-bottom: 22px; }
+  .train-method{ margin:2px 0 16px; border:1px solid var(--line); border-radius:15px; overflow:hidden; background:var(--paper); }
+  .train-method > summary{ display:flex; align-items:center; gap:12px; padding:15px; cursor:pointer; list-style:none; }
+  .train-method > summary::-webkit-details-marker{ display:none; }
+  .train-method-ic{ display:flex; align-items:center; justify-content:center; width:38px; height:38px; flex:0 0 auto;
+    border-radius:12px; background:#e9f7ee; font-size:18px; }
+  .train-method > summary > span:nth-child(2){ flex:1; min-width:0; }
+  .train-method > summary .kicker{ display:block; margin:0 0 3px; }
+  .train-method > summary b{ display:block; color:var(--ink); font-size:14px; line-height:1.25; }
+  .train-method-go{ color:var(--green-700); font-size:19px; transition:transform .18s; }
+  .train-method[open] .train-method-go{ transform:rotate(180deg); }
+  .train-method-body{ padding:4px 15px 15px; border-top:1px solid var(--line); }
   .plan-intro .lead {
     font-size: 15px; color: #2b3a30; line-height: 1.55; margin: 0 0 16px;
   }
@@ -1143,7 +1191,8 @@
     background:#f3f7f3; border:1px solid var(--line); border-radius:11px; }
   .wk-adjrow select { flex:1; min-width:120px; padding:9px 10px; }
   /* Calendar start card (before the plan is started) */
-  .startbar { background:linear-gradient(160deg,#0f2417,#14532d); color:#eafff1; border-radius:14px; padding:16px; margin-bottom:14px; }
+  .startbar { background:radial-gradient(130% 145% at 5% -20%,#1b5734,#0f2c1c 62%,#091d13); color:#eafff1; border-radius:18px; padding:19px; margin-bottom:14px; box-shadow:0 12px 28px rgba(8,40,22,.22); }
+  .startbar .sb-eyebrow{ margin-bottom:6px; color:#7ef0a8; font-size:10px; font-weight:850; letter-spacing:.13em; }
   .startbar .sb-top { display:flex; flex-direction:column; gap:4px; margin-bottom:12px; }
   .startbar .sb-top b { font-size:16px; color:#fff; }
   .startbar .sb-top span { font-size:13px; color:#bfe6cd; line-height:1.45; }
@@ -1275,6 +1324,9 @@
   #view-plan .plan-intro { order:0; }
   #view-plan #phaseDetail { order:1; }
   #view-plan .tracker-fold { order:3; }
+  #view-plan:not(.started) #phaseDetail { order:0; margin-top:0; }
+  #view-plan:not(.started) .plan-intro { order:1; }
+  #view-plan:not(.started) .tracker-fold { order:2; }
   #view-plan.started .plan-intro { display:none; }
   /* Once training, the brochure nutrition fold is redundant with the Fuel tab. */
   #view-plan.started .tracker-fold { display:none; }
@@ -1298,6 +1350,18 @@
   .lift-hero .lh-mode { flex:0 0 auto; font-size:12px; font-weight:800; padding:6px 12px; border-radius:999px; }
   .lift-hero .lh-mode.build { background:rgba(126,240,168,.16); color:#7ef0a8; }
   .lift-hero .lh-mode.retain { background:rgba(255,196,120,.16); color:#ffce8a; }
+  .train-today-cta{ display:flex; align-items:center; justify-content:space-between; gap:16px; width:100%;
+    margin:-2px 0 12px; padding:14px 16px; border:0; border-radius:15px; cursor:pointer; text-align:left;
+    color:#0b2b18; background:linear-gradient(115deg,#74eda0,#a7f5c2); box-shadow:0 8px 20px rgba(34,197,94,.2); }
+  .train-today-cta span{ min-width:0; }
+  .train-today-cta small{ display:block; color:#276b40; font-size:9.5px; font-weight:850; letter-spacing:.1em; margin-bottom:3px; }
+  .train-today-cta b{ display:block; font-size:17px; letter-spacing:-.02em; }
+  .train-today-cta i{ font:400 27px/1 system-ui; font-style:normal; }
+  .train-today-cta:active{ transform:translateY(1px); }
+  .train-today-cta.recovery{ background:linear-gradient(115deg,#dff1e5,#f0f8f2); color:var(--green-800); border:1px solid #cbe3d2; box-shadow:none; }
+  .train-today-cta.recovery.done{ opacity:.72; }
+  /* The bright hero action owns Today; don't repeat a second Start card below the week strip. */
+  .day-focus > .pl-start{ display:none; }
   .settings-body { padding-top:8px; }
   .settings-body .set-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:13px; }
   .settings-body .set-lbl { font-size:13px; color:var(--ink); font-weight:600; }
@@ -1421,6 +1485,19 @@
     .appbar-in { height: 52px; padding: 0 15px; }
     .wordmark { font-size: 18px; }
     .card { padding: 20px 16px 22px; border-radius: 16px; }
+    .card.fuel-targets{ padding:0; }
+    .fuel-targets-summary{ gap:9px; padding:15px 14px; }
+    .fuel-targets-copy b{ font-size:13px; }
+    .fuel-targets-macros{ font-size:10.5px; }
+    .fuel-targets-macros b{ font-size:12px; }
+    .fuel-targets-body{ padding:18px 15px 21px; }
+    .ftoday{ padding:14px; }
+    .ft-bank{ font-size:0; }
+    .ft-rem-grid{ gap:2px; }
+    .ft-rem-grid span{ padding:0 5px; }
+    .ft-rem-grid b{ font-size:14px; }
+    .ft-rem-grid small{ font-size:8.5px; }
+    .startbar{ padding:17px; }
     .seg button { padding: 12px 8px; min-height: 44px; }       /* ≥44px tap target */
     .goal { padding: 14px; }
     .eq-chip { padding: 10px 14px; }
@@ -1965,7 +2042,6 @@
   @media (prefers-reduced-motion: reduce){
     *, *::before, *::after{ animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
   }
-
   /* ===== GENERATED-DARK: auto dark theme — edit scripts/gen-dark-theme.py, not this block ===== */
   @media (prefers-color-scheme: dark){
   html:not([data-theme="light"]){ --paper:#0d1712; --card:#141f18; --ink:#e4efe6; --muted:#96ab9d; --line:#28402f; --green-800:#a5dcb8; --green-700:#7ccd9c; --sand:#332c18; --sand-dark:#584c28; --shadow:0 12px 34px rgba(0,0,0,.45); --shadow-sm:0 2px 8px rgba(0,0,0,.35); color-scheme:dark; }
@@ -1977,9 +2053,7 @@
   html:not([data-theme="light"]) .kicker{ background:#142417; border:1px solid #25422e; }
   html:not([data-theme="light"]) .brand-kicker .ball{ background:radial-gradient(circle at 35% 30%, #1a1a1a, #212d21); }
   html:not([data-theme="light"]) .tabs button.active{ background:#1a1a1a; }
-  html:not([data-theme="light"]) .ftoday.done{ background:#142417; border-color:#274531; }
-  html:not([data-theme="light"]) .ft-chk{ border:2px solid #274531; }
-  html:not([data-theme="light"]) .ft-next:active .ft-chk{ background:#142417; }
+  html:not([data-theme="light"]) .ft-progress i{ background:linear-gradient(90deg,#35d879,#274934); }
   html:not([data-theme="light"]) label.field > span.lbl{ color:#caded2; }
   html:not([data-theme="light"]) input[type="number"], html:not([data-theme="light"]) input[type="text"], html:not([data-theme="light"]) input[type="date"], html:not([data-theme="light"]) input[type="time"], html:not([data-theme="light"]) select{ background:#141f14; }
   html:not([data-theme="light"]) .seg{ background:#182518; }
@@ -2034,6 +2108,7 @@
   html:not([data-theme="light"]) .eq-chip.on{ background:linear-gradient(180deg,#122116,#1a1a1a); }
   html:not([data-theme="light"]) .mach-sub{ border-left:2px solid #293b29; }
   html:not([data-theme="light"]) table.ex tr.swap td.exname .swap-badge{ background:#16291c; }
+  html:not([data-theme="light"]) .train-method-ic{ background:#14261b; }
   html:not([data-theme="light"]) .plan-intro .lead{ color:#cddad2; }
   html:not([data-theme="light"]) .plan-phase{ background:#142417; border:1px solid #274531; }
   html:not([data-theme="light"]) .pillar{ background:#1a1a1a; }
@@ -2157,6 +2232,9 @@
   html:not([data-theme="light"]) .wu-row.done{ background:#152018; }
   html:not([data-theme="light"]) .wu-note.caution{ color:#e0d6be; background:#252014; border:1px solid #484129; }
   html:not([data-theme="light"]) .lift-hero .lh-prog > span{ background:linear-gradient(90deg,#34d27b,#274934); }
+  html:not([data-theme="light"]) .train-today-cta{ color:#c9e5d5; background:linear-gradient(115deg,#274934,#203c2a); }
+  html:not([data-theme="light"]) .train-today-cta small{ color:#c0e1cc; }
+  html:not([data-theme="light"]) .train-today-cta.recovery{ background:linear-gradient(115deg,#172b1e,#132317); border:1px solid #284731; }
   html:not([data-theme="light"]) .swap-card{ background:#141f14; }
   html:not([data-theme="light"]) .swap-opt{ background:#1a1a1a; }
   html:not([data-theme="light"]) .swap-opt.cur{ background:#142417; }
@@ -2257,9 +2335,7 @@
   html[data-theme="dark"] .kicker{ background:#142417; border:1px solid #25422e; }
   html[data-theme="dark"] .brand-kicker .ball{ background:radial-gradient(circle at 35% 30%, #1a1a1a, #212d21); }
   html[data-theme="dark"] .tabs button.active{ background:#1a1a1a; }
-  html[data-theme="dark"] .ftoday.done{ background:#142417; border-color:#274531; }
-  html[data-theme="dark"] .ft-chk{ border:2px solid #274531; }
-  html[data-theme="dark"] .ft-next:active .ft-chk{ background:#142417; }
+  html[data-theme="dark"] .ft-progress i{ background:linear-gradient(90deg,#35d879,#274934); }
   html[data-theme="dark"] label.field > span.lbl{ color:#caded2; }
   html[data-theme="dark"] input[type="number"], html[data-theme="dark"] input[type="text"], html[data-theme="dark"] input[type="date"], html[data-theme="dark"] input[type="time"], html[data-theme="dark"] select{ background:#141f14; }
   html[data-theme="dark"] .seg{ background:#182518; }
@@ -2314,6 +2390,7 @@
   html[data-theme="dark"] .eq-chip.on{ background:linear-gradient(180deg,#122116,#1a1a1a); }
   html[data-theme="dark"] .mach-sub{ border-left:2px solid #293b29; }
   html[data-theme="dark"] table.ex tr.swap td.exname .swap-badge{ background:#16291c; }
+  html[data-theme="dark"] .train-method-ic{ background:#14261b; }
   html[data-theme="dark"] .plan-intro .lead{ color:#cddad2; }
   html[data-theme="dark"] .plan-phase{ background:#142417; border:1px solid #274531; }
   html[data-theme="dark"] .pillar{ background:#1a1a1a; }
@@ -2437,6 +2514,9 @@
   html[data-theme="dark"] .wu-row.done{ background:#152018; }
   html[data-theme="dark"] .wu-note.caution{ color:#e0d6be; background:#252014; border:1px solid #484129; }
   html[data-theme="dark"] .lift-hero .lh-prog > span{ background:linear-gradient(90deg,#34d27b,#274934); }
+  html[data-theme="dark"] .train-today-cta{ color:#c9e5d5; background:linear-gradient(115deg,#274934,#203c2a); }
+  html[data-theme="dark"] .train-today-cta small{ color:#c0e1cc; }
+  html[data-theme="dark"] .train-today-cta.recovery{ background:linear-gradient(115deg,#172b1e,#132317); border:1px solid #284731; }
   html[data-theme="dark"] .swap-card{ background:#141f14; }
   html[data-theme="dark"] .swap-opt{ background:#1a1a1a; }
   html[data-theme="dark"] .swap-opt.cur{ background:#142417; }
