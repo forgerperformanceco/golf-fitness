@@ -46,7 +46,7 @@
 <link rel="apple-touch-startup-image" media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash/apple-splash-750x1334.png" />
 <link rel="apple-touch-startup-image" media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash/apple-splash-640x1136.png" />
 <link rel="preload" href="fonts/ffnum.woff2" as="font" type="font/woff2" crossorigin />
-<link rel="stylesheet" href="styles.css?v=927b69df92" />
+<link rel="stylesheet" href="styles.css?v=ebdf233218" />
 </head>
 <body>
   <header class="appbar">
@@ -83,18 +83,23 @@
     <div id="fuelToday"></div>
     <div class="grid">
 
-      <section class="card" aria-label="Your plan">
-        <div class="kicker">⛳ Your Game Plan</div>
-        <h2>Your Yardsmith Plan</h2>
-        <p class="sub">Calculated live as you type.</p>
-        <div id="results"></div>
-      </section>
+      <details class="card fuel-targets" id="fuelTargetsFold">
+        <summary class="fuel-targets-summary">
+          <span class="fuel-targets-copy"><span class="kicker">⛳ Daily targets</span><b>Your nutrition game plan</b></span>
+          <span id="fuelTargetSummary" class="fuel-targets-macros">Calculated live</span>
+          <span class="fuel-targets-chevron" aria-hidden="true">⌄</span>
+        </summary>
+        <div class="fuel-targets-body">
+          <p class="sub">Your complete calorie and macro targets, calculated from your goal.</p>
+          <div id="results"></div>
+        </div>
+      </details>
 
-      <section class="card" id="ffMealsCard" aria-label="Your meals" hidden>
+      <section class="card fuel-meals-card" id="ffMealsCard" aria-label="Your meals" hidden>
         <div id="ffMeals" class="ffm"></div>
       </section>
 
-      <section class="card card-full">
+      <section class="card card-full fuel-food-guide">
         <details class="fold foodfold">
           <summary>🍽️ What do I eat to hit these numbers?</summary>
           <div class="fold-body">
@@ -181,7 +186,7 @@
         </details>
       </section>
 
-      <section class="card" aria-label="Your details">
+      <section class="card fuel-details-card" aria-label="Your details">
         <div class="kicker">⛳ On the Tee</div>
         <h2>Your Numbers</h2>
         <div id="calcSummary" class="calc-sum" hidden></div>
@@ -275,22 +280,27 @@
   <!-- ============ VIEW 2: TRAINING PLAN ============ -->
   <div class="view" id="view-plan">
     <section class="card">
-      <div class="plan-intro">
-        <div class="kicker">⛳ Range Session</div>
-        <h2>The 20-Week Speed Blueprint</h2>
-        <div class="plan-phase" id="planPhase"></div>
-        <p class="lead" id="planLead">
-          <b>Add lean muscle</b> and turn it into <b>clubhead speed</b> — one consistent week, all 20 weeks.
-        </p>
-        <div class="pillars">
-          <div class="pillar"><div class="ico">🏗️</div><div><h3>Build the Mass</h3>
-            <p>Heavy, <b>low-rep</b> work on the big lifts — dense, powerful muscle, not just size.</p></div></div>
-          <div class="pillar"><div class="ico">⚡</div><div><h3>Make it Fast</h3>
-            <p>Drive every rep up <b>explosively</b> + plyos for <b>rate of force development</b>.</p></div></div>
-          <div class="pillar"><div class="ico">🌀</div><div><h3>Ground Force &amp; Rotate</h3>
-            <p>Footwork, throws and overspeed swings transfer power into the club.</p></div></div>
+      <details class="plan-intro train-method">
+        <summary>
+          <span class="train-method-ic">⚡</span>
+          <span><span class="kicker">The system</span><b>How the 20-week blueprint builds speed</b></span>
+          <span class="train-method-go" aria-hidden="true">⌄</span>
+        </summary>
+        <div class="train-method-body">
+          <div class="plan-phase" id="planPhase"></div>
+          <p class="lead" id="planLead">
+            <b>Add lean muscle</b> and turn it into <b>clubhead speed</b> — one consistent week, all 20 weeks.
+          </p>
+          <div class="pillars">
+            <div class="pillar"><div class="ico">🏗️</div><div><h3>Build the Mass</h3>
+              <p>Heavy, <b>low-rep</b> work on the big lifts — dense, powerful muscle, not just size.</p></div></div>
+            <div class="pillar"><div class="ico">⚡</div><div><h3>Make it Fast</h3>
+              <p>Drive every rep up <b>explosively</b> + plyos for <b>rate of force development</b>.</p></div></div>
+            <div class="pillar"><div class="ico">🌀</div><div><h3>Ground Force &amp; Rotate</h3>
+              <p>Footwork, throws and overspeed swings transfer power into the club.</p></div></div>
+          </div>
         </div>
-      </div>
+      </details>
 
       <div class="phase-detail" id="phaseDetail"></div>
 
@@ -362,8 +372,8 @@
   </footer>
 </div>
 
-<script>window.FF_BUILD="927b69df92";</script>
-<script src="app.js?v=927b69df92"></script>
+<script>window.FF_BUILD="ebdf233218";</script>
+<script src="app.js?v=ebdf233218"></script>
 <!-- Login lives in the Account tab, so cloud-sync should skip its floating pill. -->
 <script>window.FF_ACCOUNT_TAB = true;</script>
 <!-- Cloud login + progress sync. The Supabase SDK itself is LAZY-LOADED by

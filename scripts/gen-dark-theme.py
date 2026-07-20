@@ -147,7 +147,8 @@ def prefix_sel(sel, wrapper):
     return ', '.join(out)
 
 def main():
-    src = open(PATH).read()
+    with open(PATH, encoding='utf-8') as fh:
+        src = fh.read()
     css = src
     # never re-process our own generated block
     if MARK_A in css:
@@ -183,7 +184,8 @@ def main():
         src = re.sub(re.escape(MARK_A) + r'.*?' + re.escape(MARK_B) + r'\n?', block, src, flags=re.S)
     else:
         src = src.rstrip() + '\n' + block
-    open(PATH, 'w').write(src)
+    with open(PATH, 'w', encoding='utf-8', newline='\n') as fh:
+        fh.write(src)
     print(f'dark theme: {len(all_top)} rules x2 variants, {sum(len(v) for v in medias.values())} media-scoped')
 
 if __name__ == '__main__':

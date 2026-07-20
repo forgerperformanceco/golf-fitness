@@ -66,31 +66,41 @@
     var t=lsGet("ff_targets",null);
     if(!t || !t.kcal || typeof ffSchedule==="undefined" || !ffSchedule || !ffSchedule.length){ el.innerHTML=""; return; }
     var fd=fuelDay(ffISO())||{ m:{} };
-    var n=ffSchedule.length, done=0, next=null, ni=-1, remP=0, remC=0;
+    var n=ffSchedule.length, done=0, next=null, ni=-1, remP=0, remC=0, remF=0, remK=0;
     ffSchedule.forEach(function(sl,i){
       if(fd.m && fd.m[i]){ done++; return; }
       if(!next){ next=sl; ni=i; }
-      remP+=(sl.p||0); remC+=(sl.c||0);
+      remP+=(sl.p||0); remC+=(sl.c||0); remF+=(sl.f||0);
+      remK+=(sl.p||0)*4+(sl.c||0)*4+(sl.f||0)*9;
     });
     if(!next){
       el.innerHTML='<div class="ftoday done"><span class="ft-ic">✅</span>'+
-        '<span class="ft-tx"><b>Fuel day banked</b><span>All '+n+' meals checked — the scale does the judging now.</span></span></div>';
+        '<span class="ft-tx"><span class="ft-kicker">TODAY · FUEL</span><b>Fuel day banked</b><span>All '+n+' meals checked — recover, grow, repeat.</span></span>'+
+        '<button type="button" class="ft-plan-link" data-fueljump="1">Review day ›</button></div>';
       return;
     }
     var time=(next.t!=null)?fmtMin(Math.round(next.t*60)):"";
-    var macro=(next.p?next.p+"P":"")+(next.c?((next.p?" · ":"")+next.c+"C"):"");
+    var macro=(next.p?next.p+"P":"")+(next.c?((next.p?" · ":"")+next.c+"C"):"")+(next.f?" · "+next.f+"F":"");
+    var progress=Math.round(done/n*100);
     el.innerHTML='<div class="ftoday">'+
+      '<div class="ft-head"><span class="ft-kicker">TODAY · FUEL</span><span>'+done+' of '+n+' banked</span></div>'+
       '<button type="button" class="ft-next" data-fuelmeal="'+ni+'" data-fuelval="a">'+
         '<span class="ft-ic">🍽️</span><span class="ft-tx"><b>Next: '+next.label+(time?' · '+time:'')+'</b>'+
-        '<span>'+(macro?macro+' — ':'')+'tap when eaten</span></span><span class="ft-chk">✓</span></button>'+
-      '<div class="ft-rem"><span><b>'+done+'</b>/'+n+' fueled</span>'+
-        '<span>still to eat: <b>'+remP+'</b>P · <b>'+remC+'</b>C</span></div>'+
+        '<span>'+(macro||'Your next planned feeding')+'</span></span><span class="ft-bank">Bank it <i class="ft-chk">✓</i></span></button>'+
+      '<div class="ft-progress" aria-label="'+progress+'% of meals completed"><i style="width:'+progress+'%"></i></div>'+
+      '<div class="ft-rem-grid">'+
+        '<span><b>'+Math.round(remK).toLocaleString()+'</b><small>kcal left</small></span>'+
+        '<span><b>'+remP+'g</b><small>protein</small></span>'+
+        '<span><b>'+remC+'g</b><small>carbs</small></span>'+
+        '<span><b>'+remF+'g</b><small>fat</small></span></div>'+
+      '<button type="button" class="ft-plan-link" data-fueljump="1">See today’s meals <span>›</span></button>'+
       '</div>';
   }
   // Every check-off surface routes through one listener.
   document.addEventListener("click", function(e){
     var fm=e.target.closest("[data-fuelmeal]");
     if(fm){ fuelSetMeal(+fm.getAttribute("data-fuelmeal"), fm.getAttribute("data-fuelval")); fuelRefresh(); return; }
+    if(e.target.closest("[data-fueljump]")){ var mc=$("ffMealsCard"); if(mc) mc.scrollIntoView({behavior:"smooth",block:"start"}); return; }
     var fr=e.target.closest("[data-fuelrate]");
     if(fr){ fuelRate(fr.getAttribute("data-fuelrate")); fuelRefresh(); return; }
     if(e.target.closest("[data-fuelnums]")){ fuelNumsOpen=!fuelNumsOpen; try{ calc(); }catch(e2){} return; }
