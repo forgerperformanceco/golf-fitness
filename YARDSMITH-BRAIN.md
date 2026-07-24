@@ -12,11 +12,12 @@ deeper doc when there is one.
 > **Entity: Long Game Labs LLC (Texas, approved Jul 2026)** via Northwest
 > Registered Agent, doing business as **Yardsmith**. Formation COMPLETE: LLC +
 > EIN (CP-575) + Form 503 assumed-name "Yardsmith" all done Jul 2026. **D-U-N-S
-> SUBMITTED (Jul 2026, awaiting issuance ~days–2wk)** — the long pole; don't
-> re-start it. Used SIC 7372 (prepackaged software); business address = the
-> Northwest RA address on file (must match Apple enrollment). Remaining: business
-> bank account (Cert + EIN + DBA in hand), then Apple/Google enrollment as an
-> Organization under Long Game Labs LLC once the D-U-N-S issues.
+> ISSUED (Jul 2026)** for Long Game Labs LLC (SIC 7372; business address = the
+> Northwest RA address on file — this exact name+address must match Apple/Google
+> enrollment). All formation + business-record gates are now CLEAR. Remaining to
+> launch: business bank account (Cert + EIN + DBA in hand), then Apple Developer
+> + Google Play enrollment as an **Organization** under Long Game Labs LLC →
+> TestFlight/internal testing → store submission.
 > **The web app is now a modular `src/` codebase with a build step** (see §3) —
 > the committed root files are generated build outputs. Service worker cache is
 > **content-hash stamped** (no manual version bumps).
