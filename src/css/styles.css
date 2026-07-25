@@ -1056,6 +1056,43 @@
   .ps-result span{ display:block; margin-top:6px; color:#b8d5c3; font:800 10px/1.2 system-ui; letter-spacing:.07em; text-transform:uppercase; }
   .performance-story.focus .ps-result strong{ color:#ffd482; }
   .performance-story.start .ps-result strong{ font-size:25px; letter-spacing:.04em; }
+  /* Brain upgrade: an explainable outlook, never a black-box promise. */
+  .brain-forecast{ margin:-2px 0 14px; padding:17px 18px; color:#eafff1;
+    background:linear-gradient(145deg,#153d27,#0d2719); border:1px solid rgba(255,255,255,.08);
+    border-radius:16px; box-shadow:0 10px 25px rgba(8,40,22,.18); }
+  .bf-top{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
+  .bf-kick{ color:#7fe2a2; font:850 10px/1.2 system-ui; letter-spacing:.12em; }
+  .bf-conf{ color:#b8d6c3; font:750 10.5px system-ui; padding:4px 8px; border-radius:999px; background:rgba(255,255,255,.07); }
+  .bf-main{ display:flex; align-items:flex-end; justify-content:space-between; gap:16px; }
+  .bf-main h3{ margin:0; color:#fff; font:700 32px/1 'FF Numeral',system-ui; letter-spacing:.01em; }
+  .bf-main p{ margin:6px 0 0; max-width:390px; color:#b8d6c3; font-size:12px; line-height:1.45; }
+  .bf-gain{ flex:0 0 auto; text-align:right; }
+  .bf-gain b{ display:block; color:#7ef0a8; font:700 20px/1 'FF Numeral',system-ui; }
+  .bf-gain span{ display:block; margin-top:4px; color:#9bbda7; font-size:9.5px; text-transform:uppercase; letter-spacing:.06em; }
+  .bf-carry{ display:flex; align-items:center; gap:10px; margin-top:13px; padding:10px 11px;
+    border-radius:11px; background:rgba(126,240,168,.08); border:1px solid rgba(126,240,168,.11); }
+  .bf-carry b,.bf-carry small{ display:block; }
+  .bf-carry b{ color:#eafff1; font-size:13px; }
+  .bf-carry small{ margin-top:2px; color:#9fc4ad; font-size:10.5px; }
+  .bf-proof{ margin-top:10px; color:#b8d6c3; font-size:11px; }
+  .bf-proof summary{ display:flex; justify-content:space-between; cursor:pointer; color:#bfe8cd; font-weight:750; }
+  .bf-proof ul{ margin:9px 0 5px; padding-left:18px; line-height:1.5; }
+  .bf-proof p{ margin:5px 0; line-height:1.45; color:#90af9b; }
+  .bf-coach{ width:100%; margin-top:11px; padding:10px 2px 0; border:0; border-top:1px solid rgba(255,255,255,.09);
+    background:none; color:#9ee8b9; text-align:left; font:800 12px system-ui; cursor:pointer; }
+  .bf-coach span{ float:right; font-size:16px; }
+  .brain-forecast.building{ padding:14px 16px; background:linear-gradient(145deg,#173b27,#10291c); }
+  .bf-build{ display:flex; align-items:center; gap:11px; margin-top:8px; }
+  .bf-build b,.bf-build small{ display:block; }
+  .bf-build b{ color:#fff; font-size:13.5px; }
+  .bf-build small{ margin-top:3px; color:#a9c7b4; font-size:11px; line-height:1.4; }
+  .bf-orb{ display:flex; align-items:center; justify-content:center; width:36px; height:36px; flex:0 0 auto;
+    color:#7ef0a8; border-radius:50%; background:rgba(126,240,168,.1); }
+  @media(max-width:520px){
+    .bf-main{ align-items:flex-start; }
+    .bf-main h3{ font-size:28px; }
+    .bf-gain b{ font-size:17px; }
+  }
   .ps-proof{ display:flex; align-items:flex-start; gap:8px; margin:15px 0 0; padding:10px 12px;
     border:1px solid rgba(255,255,255,.09); border-radius:11px; background:rgba(255,255,255,.045);
     color:#a9c8b5; font:600 11.5px/1.35 system-ui; }

@@ -7,7 +7,8 @@ deeper doc when there is one.
 
 > **Status snapshot** (keep current): live PWA at **yardsmith.golf** (domain
 > purchased Jul 2026; fairwayfuel.app redirects); free, no paywall; Supabase
-> backend wired but billing + AI coach gated off pending launch; native Android
+> backend wired; signed-in AI coach live during free early access; billing gated
+> off pending launch; native Android
 > project ready to build; iOS via cloud build; app-store accounts not yet created.
 > **Entity: Long Game Labs LLC (Texas, approved Jul 2026)** via Northwest
 > Registered Agent, doing business as **Yardsmith**. Formation COMPLETE: LLC +
@@ -130,6 +131,11 @@ First visit to each tab fires a one-time coaching tip.
   folds open), a merged gym/strength view, and a **20-week Season map** that
   absorbs the Sunday scorecard. **Scrubbable trend charts** (touch a curve, read
   your season). Event-anchored **Season Peak**.
+- **Brain 2.0** closes the coaching loop: a deterministic decision engine selects
+  one next-best intervention from the golfer's current signals; the coach carries
+  a small, user-clearable cross-session memory; and Progress shows an explainable
+  six-week club-speed range with confidence, assumptions, and estimated 7-iron
+  carry impact. Forecasts are directional ranges, never promises.
 - **Round Debrief** closes the gym-to-course loop; **leaderboard** is opt-in,
   handle-only (score / speed / streak / this-week sessions).
 
@@ -165,7 +171,7 @@ any module is visible to all (exactly like the old monolith). `src/js/global/*.j
 is appended after. `{{V}}` placeholders become a **10-char content hash**, so
 **cache-busting is automatic** — no manual `yardsmith-vNNN` SW bumps, no `?v=`
 edits for app.js/styles.css. (`cloud-sync.js` and `coach.js` keep **manual `?v=`
-pins** — currently `?v=108` and `?v=88` — bump those in `src/index.template.html`
+pins** — currently `?v=113` and `?v=89` — bump those in `src/index.template.html`
 + `src/sw.template.js` when you edit them.) Dark theme is **generated** into the
 CSS between `GENERATED-DARK` markers via `python3 scripts/gen-dark-theme.py`.
 
@@ -174,7 +180,7 @@ The **app modules** (roughly): `005 core-boot`, `006 icons`, `007 motion`,
 `025 macro-calculator`, `030 fuel-check-off`, `035 training-plan` (periodization),
 `040 workout-logger`, `045 inline-logger`, `050 exercise-history`,
 `055 share-cards`, `060 speed-test`, `065 mobility-screen`, `070 workout-player`,
-`075 proactive-coaching`, `080 game-day / notifications / web-push / theme /
+`075 proactive-coaching`, `076 brain-intelligence`, `080 game-day / notifications / web-push / theme /
 backup`, `082 round-debrief`, `085 progress-stats`, `090 first-run-onboarding`.
 
 **Service worker:** content-hash cache; **network-first for HTML with
@@ -204,7 +210,8 @@ merges a blob to `profiles` with additive unions (`ff_log`, `ff_body`,
 `fairwayfuel` (profile, incl. active `view`), `ff_targets` (macros), `ff_body`
 (weight/7-iron/driver by date), `ff_log`, `ff_history`, `ff_start`, `ff_goalyds`,
 `ff_rest`, `ff_notes`, `ff_theme`, `ff_notif` / `ff_push`, `ff_speedtest`,
-`ff_mob`, `ff_round`, plus fuel-check-off + prefs. Derived: Octane (`ff_score`),
+`ff_mob`, `ff_round`, `ff_coach_memory` (bounded, user-clearable coach continuity),
+plus fuel-check-off + prefs. Derived: Octane (`ff_score`),
 `ffBench()` sex/age-calibrated reference numbers.
 
 **Deployment:** GitHub Pages (Fastly CDN) on the **main** branch, custom domain
@@ -317,6 +324,10 @@ stores; we're a URL). Shipping the app matters more than more docs.
 - **Trust** — visible sync health + one-tap backup export/restore; **in-app
   account deletion**; PWA update reliability (no-store HTML, resume-time checks,
   force-refresh escape hatch); refresh returns to Home.
+- **Brain 2.0 closed loop** — bounded cross-session coaching memory, one
+  deterministic next-best intervention, and an honest six-week speed/carry
+  outlook with confidence and visible assumptions. The AI explains and coaches
+  the computed signal; it does not invent the decision or projection.
 - **Speed-day pressure-test (2026-07-09)** — the day already matches the Brennan
   2024 effect-size ranking (jump 0.82 → throws 0.67 → ground force → overspeed
   adjunct; flexibility/balance correctly omitted). Two changes shipped, both their
@@ -414,7 +425,8 @@ Plan of record: **`ROADMAP.md`**. Phases:
 - **Phase 1:** accounts + billing spine (Paddle as Merchant-of-Record; `profiles`
   subscription columns; entitlement read). *Scaffolded, off.*
 - **Phase 2:** the AI coach as the reason to subscribe (server-side Claude, cached
-  knowledge base, per-user context). *Function built, gated off.*
+  knowledge base, per-user context). *Live for signed-in users during free early
+  access; future paid entitlement remains off.*
 - **Phase 3 (largely shipped):** native shell (Capacitor), **push notifications
   (VAPID web push live)**; remaining — normalized data tables, food/exercise DBs.
 

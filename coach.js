@@ -19,18 +19,65 @@
   "use strict";
 
   var FN_PATH = "/functions/v1/ai-coach";
+  var MEMORY_KEY = "ff_coach_memory";
   var history = [];
   var busy = false;
-  var sheet, wrap, log, input, sendBtn;
+  var sheet, wrap, log, input, sendBtn, memoryBtn;
 
   function lsGet(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }
+  function coachMemory() {
+    var m = lsGet(MEMORY_KEY) || {};
+    m.turns = Array.isArray(m.turns) ? m.turns.slice(-12) : [];
+    return m;
+  }
+  function memoryContext() {
+    return coachMemory().turns.slice(-8).map(function (t) {
+      return { at: t.at, topic: t.topic, user: t.user, coach: t.coach };
+    });
+  }
+  function updateMemoryLabel() {
+    if (!memoryBtn) return;
+    var n = coachMemory().turns.length;
+    memoryBtn.textContent = n ? ("Memory on · " + n) : "Memory ready";
+    memoryBtn.setAttribute("aria-label", n ? ("Coach remembers " + n + " recent conversations. Clear memory") : "Coach memory is ready");
+  }
+  function rememberTurn(topic, userText, coachText) {
+    if (!coachText) return;
+    var m = coachMemory();
+    m.turns.push({
+      at: new Date().toISOString(),
+      topic: String(topic || "Coach").slice(0, 80),
+      user: String(userText || "").slice(0, 500),
+      coach: String(coachText || "").slice(0, 900)
+    });
+    m.turns = m.turns.slice(-12);
+    try {
+      localStorage.setItem(MEMORY_KEY, JSON.stringify(m));
+      window.dispatchEvent(new Event("ff-data-changed"));
+    } catch (e) {}
+    updateMemoryLabel();
+  }
+  function clearMemory() {
+    if (!confirm("Clear what the coach remembers from past conversations? Your training, fuel, and progress logs stay untouched.")) return;
+    try {
+      localStorage.removeItem(MEMORY_KEY);
+      window.dispatchEvent(new Event("ff-data-changed"));
+    } catch (e) {}
+    history = [];
+    updateMemoryLabel();
+    bubble("note", "Coach memory cleared. Your workout and progress data were not changed.");
+  }
   function context() {
     var body = lsGet("ff_body") || [], logObj = lsGet("ff_log") || {};
+    var brain = null;
+    try { brain = window.FFBrain && window.FFBrain.snapshot ? window.FFBrain.snapshot() : null; } catch (e) {}
     return {
       profile: lsGet("fairwayfuel"),
       targets: lsGet("ff_targets"),
       score: lsGet("ff_score"),
-      recentLog: { week: lsGet("ff_week") || 1, sessionsLogged: Object.keys(logObj).length, body: body.slice(-6) }
+      recentLog: { week: lsGet("ff_week") || 1, sessionsLogged: Object.keys(logObj).length, body: body.slice(-6) },
+      brain: brain,
+      memory: memoryContext()
     };
   }
   function signedIn() { return !!(window.FF && window.FF.user); }
@@ -49,6 +96,7 @@
       + 'align-items:center;justify-content:space-between;}'
       + '.ffc-head h3{margin:0;font-size:15px;display:flex;align-items:center;gap:8px;}'
       + '.ffc-head .ffc-ctx{margin:2px 0 0;font-size:11px;color:#bfe6cd;}'
+      + '.ffc-memory{margin:5px 0 0;padding:0;border:0;background:none;color:#7fe2a2;font:750 10px system-ui;cursor:pointer;text-decoration:underline;text-underline-offset:2px;}'
       + '.ffc-x{background:rgba(255,255,255,.16);border:0;color:#fff;width:32px;height:32px;border-radius:50%;font-size:17px;cursor:pointer;}'
       + '.ffc-log{flex:1;overflow-y:auto;padding:18px 16px;display:flex;flex-direction:column;gap:14px;}'
       + '.ffc-msg{font-size:14.5px;line-height:1.62;}'
@@ -166,8 +214,9 @@
       var res = await fetch(window.FF.supabaseUrl + FN_PATH, {
         method: "POST",
         headers: { "Authorization": "Bearer " + token, "apikey": window.FF.anonKey, "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text, history: history.slice(-8),
-          profile: ctx.profile, targets: ctx.targets, score: ctx.score, recentLog: ctx.recentLog })
+        body: JSON.stringify({ message: text, history: history.slice(0, -1).slice(-8),
+          profile: ctx.profile, targets: ctx.targets, score: ctx.score, recentLog: ctx.recentLog,
+          brain: ctx.brain, memory: ctx.memory })
       });
       if (res.status === 402) {
         var j = await res.json().catch(function () { return {}; });
@@ -205,7 +254,10 @@
         }
       }
       if (!acc) typing.textContent = "Sorry — I didn't catch that. Try rephrasing?";
-      else history.push({ role: "assistant", content: acc });
+      else {
+        history.push({ role: "assistant", content: acc });
+        rememberTurn(sheet.querySelector(".ffc-ctx").textContent, text, acc);
+      }
     } catch (e) {
       typing.classList.remove("bot"); typing.classList.add("note");
       typing.innerHTML = "Couldn't reach the coach (network/CORS). If you've deployed it, re-run the deploy after the latest fix, and check the function is set to <b>verify_jwt = false</b>.";
@@ -220,7 +272,7 @@
     wrap.innerHTML =
       '<div class="ffc-sheet">'
       + '<div class="ffc-grab"></div>'
-      + '<div class="ffc-head"><div><h3>⛳ Yardsmith Coach</h3><div class="ffc-ctx">Personal to your plan</div></div>'
+      + '<div class="ffc-head"><div><h3>⛳ Yardsmith Coach</h3><div class="ffc-ctx">Personal to your plan</div><button type="button" class="ffc-memory">Memory ready</button></div>'
       + '<button class="ffc-x" aria-label="Close">×</button></div>'
       + '<div class="ffc-log"></div>'
       + '<div class="ffc-in"><textarea rows="1" placeholder="Ask a follow-up…"></textarea><button class="ffc-send">Send</button></div>'
@@ -231,6 +283,9 @@
     input = wrap.querySelector("textarea");
     input.maxLength = 2000;
     sendBtn = wrap.querySelector(".ffc-send");
+    memoryBtn = wrap.querySelector(".ffc-memory");
+    memoryBtn.addEventListener("click", clearMemory);
+    updateMemoryLabel();
     wrap.querySelector(".ffc-x").addEventListener("click", close);
     wrap.addEventListener("click", function (e) { if (e.target === wrap) close(); });
     sendBtn.addEventListener("click", function () { send(); });

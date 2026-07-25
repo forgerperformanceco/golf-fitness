@@ -9,8 +9,8 @@ var ASSETS = [
   './fonts/ffnum.woff2',
   './app.js?v={{V}}',
   './privacy.html',
-  './cloud-sync.js?v=112',
-  './coach.js?v=88',
+  './cloud-sync.js?v=113',
+  './coach.js?v=89',
   './manifest.webmanifest',
   './logo-dark-mark.png',
   // og-image.png intentionally NOT precached — it's only ever fetched by social scrapers.
