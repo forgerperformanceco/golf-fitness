@@ -264,11 +264,12 @@
     $("logTitle").textContent=dayName;
     $("logSub").textContent="Week "+week+" of 20";
     renderLogBody();
+    $("logModal").hidden=false;
     $("logModal").classList.add("open");
     $("logModal").setAttribute("aria-hidden","false");
     document.body.style.overflow="hidden";
   }
-  function closeLogger(){ $("logModal").classList.remove("open"); $("logModal").setAttribute("aria-hidden","true"); document.body.style.overflow=""; logState=null; renderPhase(); }
+  function closeLogger(){ $("logModal").classList.remove("open"); $("logModal").setAttribute("aria-hidden","true"); $("logModal").hidden=true; document.body.style.overflow=""; logState=null; renderPhase(); }
   function renderLogBody(){
     var s=logState.sess, week=logState.week, day=logState.day;
     var last=lastSessionFor(day, week), html="", wv=waveFor(week);

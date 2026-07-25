@@ -44,7 +44,8 @@ test("keyboard users can skip, navigate, and see focus", () => {
 });
 
 test("dialogs hide, trap focus, close with Escape, and restore focus", () => {
-  assert.match(html, /id="logModal" aria-hidden="true"/);
+  assert.match(html, /id="logModal" aria-hidden="true" hidden/);
+  assert.match(nav, /setAttribute\("aria-hidden", selected \? "false" : "true"\)/);
   assert.match(a11y, /card\.setAttribute\("role","dialog"\)/);
   assert.match(a11y, /if\(e\.key==="Escape"\)/);
   assert.match(a11y, /if\(returnFocus && returnFocus\.isConnected\)/);
