@@ -157,6 +157,9 @@ def main():
     top, medias = [], {}
     for media, sel, decls in rules:
         if sel.startswith(':root'): continue
+        # The Performance Story is an intentionally dark, self-contained
+        # surface in both themes. Preserve its contrast and bright action.
+        if '.performance-story' in sel or '.ps-' in sel: continue
         ch = transform_rule(decls)
         if not ch: continue
         if media: medias.setdefault(media, []).append((sel, '; '.join(ch) + ';'))

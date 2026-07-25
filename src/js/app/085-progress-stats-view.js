@@ -245,6 +245,114 @@
     renderProgress();
   });
 
+  /* ----- Performance Story: the answer before the analytics.
+     It prioritizes measured driver carry, then a clearly-labelled 7-iron
+     carry estimate. Strength and adherence are supporting signals, never
+     presented as a made-up yardage formula. ----- */
+  var STORY_ACTIONS={
+    consistency:{ label:"Open this week", attr:'data-goview="plan"' },
+    speed:{ label:"Run a speed test", attr:'data-speedtest="1"' },
+    strength:{ label:"Open today’s lift", attr:'data-goview="plan"' },
+    p2w:{ label:"Log weight + speed", attr:'data-qopen="1"' },
+    mobility:{ label:"Run mobility screen", attr:'data-mobscreen="1"' },
+    fuel:{ label:"Open today’s fuel", attr:'data-goview="calc"' }
+  };
+  function storyOpportunity(r){
+    var have=r.parts.filter(function(p){ return p.have; });
+    var weak=have.slice().sort(function(a,b){ return (a.pts/a.max)-(b.pts/b.max); })[0];
+    var locked=r.parts.filter(function(p){ return !p.have; }).sort(function(a,b){ return b.max-a.max; })[0];
+    var pick=(locked && (!weak || weak.pts/weak.max>.6)) ? locked : weak;
+    if(!pick) pick=r.parts[0];
+    return { part:pick, action:STORY_ACTIONS[pick.key]||STORY_ACTIONS.consistency };
+  }
+  function storySignalText(p){
+    if(p.key==="consistency") return p.detail+" — repeatable work is your biggest controllable.";
+    if(p.key==="speed") return p.detail+" — the closest gym-to-course distance signal.";
+    if(p.key==="strength") return p.detail+" — more force is available to turn into speed.";
+    if(p.key==="p2w") return p.detail+" — your engine is improving per pound.";
+    if(p.key==="mobility") return p.detail+" — keeping turn while you build protects transfer.";
+    return p.detail+" — recovery is supporting the work.";
+  }
+  function performanceStoryHtml(){
+    var r=ffScore(), body=lsGet("ff_body",[]), d=driveStats(), lifts=bigLiftStats();
+    var speeds=body.map(function(e){ return parseFloat(e.s); }).filter(function(v){ return !isNaN(v); });
+    var spBase=speeds.length?speeds[0]:null, spNow=speeds.length?speeds[speeds.length-1]:null;
+    var spGain=speeds.length>=2 ? spNow-spBase : null;
+    var sessions=sessionsByWeek().length, opp=storyOpportunity(r);
+    var title, value, unit="", verdict, proof, tone="building";
+
+    if(d && d.n>=2){
+      value=(d.gain>=0?"+":"−")+Math.abs(d.gain);
+      unit="verified yards";
+      proof="Driver carry · "+d.baseline+" → "+d.latest+" yds";
+      if(d.gain>0){ title="You’re longer off the tee"; verdict="Your measured driver carry is moving in the right direction."; tone="winning"; }
+      else if(d.gain===0){ title="Your distance is holding"; verdict="You’ve protected your baseline. The next block is about converting the engine into more speed."; }
+      else { title="Your distance is rebuilding"; verdict="Your latest driver entry is below baseline, so the next test will tell us whether this is noise or a trend."; tone="focus"; }
+    } else if(spGain!=null){
+      var potential=Math.round(spGain*2);
+      value=(potential>=0?"+":"−")+Math.abs(potential);
+      unit="yds potential";
+      proof="7-iron estimate · "+spBase+" → "+spNow+" mph";
+      if(spGain>0){ title="You’re building distance"; verdict="Your 7-iron speed trend points to more carry becoming available."; tone="winning"; }
+      else if(spGain===0){ title="Your speed baseline is holding"; verdict="The engine is stable. Now we need a stronger training signal to move it."; }
+      else { title="Your speed is rebuilding"; verdict="Speed is below your first test. Retest fresh before treating one dip as a trend."; tone="focus"; }
+    } else if(sessions){
+      value=String(sessions);
+      unit="session"+(sessions===1?"":"s")+" banked";
+      proof="Training momentum · distance trend unlocks after your next speed or driver test";
+      title="The engine is taking shape";
+      verdict="You’re doing the work. Add a second performance test to prove what it is buying on the course.";
+    } else {
+      value="START";
+      unit="build your baseline";
+      proof="No guesswork · one workout plus two performance tests creates your first real trend";
+      title="Let’s prove what works";
+      verdict="Log the first signal and Yardsmith will turn your training into a distance story.";
+      tone="start";
+    }
+
+    var signalParts=r.parts.filter(function(p){ return p.have; }).sort(function(a,b){
+      return (b.pts/b.max)-(a.pts/a.max);
+    }).slice(0,2);
+    var signalHtml=signalParts.length ? signalParts.map(function(p){
+      var pct=Math.round(p.pts/p.max*100);
+      return '<div class="ps-signal"><span class="ps-sicon">'+(p.key==="speed"?"⚡":p.key==="strength"?"🏋️":p.key==="consistency"?"✓":p.key==="mobility"?"↻":p.key==="fuel"?"●":"↗")+'</span>'+
+        '<span><b>'+p.label.replace(" (e1RM)","")+'</b><small>'+storySignalText(p)+'</small></span><em>'+pct+'%</em></div>';
+    }).join("") : '<div class="ps-signal empty"><span class="ps-sicon">＋</span><span><b>Your first signal</b><small>Complete or log today’s work to start the read.</small></span></div>';
+
+    var evidence=0;
+    if(d&&d.n>=2) evidence++;
+    if(speeds.length>=2) evidence++;
+    if(lifts.some(function(L){ return L.n>=2; })) evidence++;
+    if(sessions>=2) evidence++;
+    evidence+=r.parts.filter(function(p){ return p.have && (p.key==="mobility"||p.key==="fuel"); }).length;
+    var conf=evidence>=4?"Strong read":(evidence>=2?"Building read":"Early read");
+    var confHelp=evidence>=4?"multiple trends agree":(evidence>=2?"more than one signal logged":"add another test to raise confidence");
+
+    var milestones=[];
+    if(d&&d.n>=2&&d.gain>0) milestones.push("🏁 +"+d.gain+" verified driver yds");
+    if(spGain!=null&&spNow===Math.max.apply(null,speeds)&&spGain>0) milestones.push("⚡ New 7-iron speed high");
+    var bestLift=lifts.filter(function(L){ return L.n>=2 && L.last>=L.best; })[0];
+    if(bestLift) milestones.push("🏆 "+bestLift.name+" at "+Math.round(bestLift.best)+" lb e1RM");
+    if(sessions) milestones.push("✓ "+sessions+" session"+(sessions===1?"":"s")+" banked");
+    var reassess=speedTestDue() ? '<button type="button" class="ps-retest due" data-speedtest="1">🎯 Speed reassessment due</button>'
+      : (mobDue()?'<button type="button" class="ps-retest due" data-mobscreen="1">↻ Mobility reassessment due</button>'
+      : '<span class="ps-retest">Next read strengthens with your next test</span>');
+
+    return '<section class="performance-story '+tone+'" aria-labelledby="psTitle">'+
+      '<div class="ps-topline"><span>YOUR PERFORMANCE STORY</span><span class="ps-confidence" title="'+confHelp+'">'+conf+'</span></div>'+
+      '<div class="ps-hero"><div class="ps-copy"><h3 id="psTitle">'+title+'</h3><p>'+verdict+'</p></div>'+
+        '<div class="ps-result"><strong>'+value+'</strong><span>'+unit+'</span></div></div>'+
+      '<div class="ps-proof"><span class="ps-proof-dot"></span><span><b>'+(d&&d.n>=2?"Measured":"How we got here")+'</b>'+proof+'</span>'+
+        (spGain!=null&&!(d&&d.n>=2)?'<i>Estimate: ~2 yds of 7-iron carry per 1 mph</i>':'')+'</div>'+
+      '<div class="ps-grid"><div class="ps-drivers"><h4>What’s driving the trend</h4>'+signalHtml+'</div>'+
+        '<div class="ps-next"><span class="ps-next-kick">BIGGEST OPPORTUNITY</span><h4>'+opp.part.label.replace(" (e1RM)","")+'</h4>'+
+          '<p>'+FF_LEVER[opp.part.key]+'.</p><button type="button" class="ps-cta" '+opp.action.attr+'>'+opp.action.label+' <span>→</span></button></div></div>'+
+      (milestones.length?'<div class="ps-milestones">'+milestones.slice(0,3).map(function(m){ return '<span>'+m+'</span>'; }).join("")+'</div>':'')+
+      '<div class="ps-foot">'+reassess+'<button type="button" class="ps-evidence" data-pftoggle="pillars">See the evidence <span>↓</span></button></div>'+
+    '</section>';
+  }
+
   function renderProgress(){
     var el=$("progressBody"); if(!el) return;
     var body=lsGet("ff_body",[]);
@@ -257,6 +365,7 @@
     var hasAny = sess>0 || spF.length>0 || wtF.length>0;
 
     var html='<div class="prog-hd"><div class="prog-kick">⛳ The proof it’s working</div><h2>Your Progress</h2></div>';
+    html += performanceStoryHtml();
     html += renderScoreCard();
 
     // Consolidation pass (Stats 3.0): the page tells THREE stories below the
