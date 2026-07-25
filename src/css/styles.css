@@ -15,9 +15,30 @@
     --shadow: 0 12px 34px rgba(11, 61, 34, 0.10);
     --shadow-sm: 0 2px 8px rgba(11, 61, 34, 0.06);
     --radius: 18px;
+    --focus-ring: #168b46;
+    --focus-halo: rgba(22, 139, 70, .22);
+    --ease-out: cubic-bezier(.2,.8,.2,1);
     color-scheme: light;
   }
   * { box-sizing: border-box; }
+  .sr-only {
+    position:absolute !important; width:1px !important; height:1px !important; padding:0 !important;
+    margin:-1px !important; overflow:hidden !important; clip:rect(0,0,0,0) !important;
+    white-space:nowrap !important; border:0 !important;
+  }
+  .skip-link {
+    position:fixed; left:14px; top:calc(10px + env(safe-area-inset-top)); z-index:500;
+    padding:11px 15px; border-radius:12px; color:#fff; background:#0b3d22;
+    font-size:14px; font-weight:800; box-shadow:0 8px 24px rgba(0,0,0,.28);
+    transform:translateY(-180%); transition:transform .18s var(--ease-out);
+  }
+  .skip-link:focus { transform:translateY(0); }
+  :where(button,a,input,select,textarea,summary,[tabindex]):focus-visible {
+    outline:3px solid var(--focus-ring); outline-offset:3px;
+    box-shadow:0 0 0 6px var(--focus-halo);
+  }
+  button:disabled,[aria-disabled="true"] { opacity:.48; cursor:not-allowed; }
+  button { -webkit-tap-highlight-color:transparent; }
   body {
     margin: 0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -42,6 +63,11 @@
     max-width: 760px; margin: 0 auto; height: 56px;
     padding: 0 max(18px, env(safe-area-inset-right)) 0 max(18px, env(safe-area-inset-left));
     display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  }
+  .appbar-context {
+    display:none; align-items:center; min-height:30px; padding:5px 11px; border-radius:999px;
+    color:#d8f3e1; background:rgba(255,255,255,.09); border:1px solid rgba(255,255,255,.12);
+    font-size:11px; font-weight:800; letter-spacing:.07em; text-transform:uppercase;
   }
   .wordmark { display: inline-flex; align-items: center; gap: 8px; color: #fff; font-weight:800; font-size: 20px; letter-spacing: -.6px;
     background: none; border: 0; padding: 0; margin: 0; font-family: inherit; cursor: pointer; }
@@ -119,6 +145,7 @@
   }
   .tabs button:hover { color: #fff; }
   .tabs button.active { background: #fff; color: var(--green-800); box-shadow: 0 4px 12px rgba(0,0,0,.22); }
+  .tabs button:active { transform:scale(.97); }
 
   [hidden] { display: none !important; }   /* the hidden attribute must always win */
   .view { display: none; }
@@ -1591,16 +1618,23 @@
       display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
       background: rgba(255,255,255,.92); backdrop-filter: blur(10px);
       border-top: 1px solid var(--line); box-shadow: 0 -4px 20px rgba(11,61,34,.10);
-      padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+      padding: 5px 8px calc(5px + env(safe-area-inset-bottom));
     }
     .mobile-tabbar button {
       flex: 1; border: none; background: transparent; cursor: pointer;
       display: flex; flex-direction: column; align-items: center; gap: 3px;
-      padding: 7px 4px; border-radius: 12px; color: var(--muted);
-      font-size: 12px; font-weight: 700; transition: all .15s;
+      position:relative; min-height:52px; padding: 6px 4px 5px; border-radius: 12px; color: var(--muted);
+      font-size: 11px; font-weight: 750; transition: color .18s var(--ease-out), transform .18s var(--ease-out);
     }
-    .mobile-tabbar button .ic { font-size: 19px; line-height: 1; }
-    .mobile-tabbar button.active { color: var(--green-700); background: #eef7f0; }
+    .mobile-tabbar button .ic {
+      display:flex; align-items:center; justify-content:center; width:38px; height:27px;
+      border-radius:999px; font-size:19px; line-height:1; transition:background .18s var(--ease-out), transform .18s var(--ease-out);
+    }
+    .mobile-tabbar button.active { color: var(--green-700); }
+    .mobile-tabbar button.active .ic { background:#e2f4e8; transform:translateY(-1px); }
+    .mobile-tabbar button:active { transform:scale(.94); }
+    .appbar-context { display:inline-flex; margin-left:auto; }
+    body.ff-standalone .appbar-context { display:none; }
     body { padding-bottom: 110px; }
     .wrap { padding-bottom: 72px; }
     .tabs { display: none; }            /* replaced by the bottom bar on phones */
@@ -1634,6 +1668,18 @@
     .sched-time { flex-basis: 64px; }
     .result-hero .kcal { font-size: 48px; }
     input[type="number"], select { padding: 14px 13px; }      /* roomier fields */
+  }
+
+  @media (hover:hover) and (pointer:fine) {
+    :where(.ft-next,.sl-row,.hero-card,.qsheet-act,.swap-opt):hover {
+      transform:translateY(-1px);
+      box-shadow:0 8px 22px rgba(11,61,34,.10);
+    }
+  }
+
+  @media (forced-colors: active) {
+    :where(button,a,input,select,textarea,summary,[tabindex]):focus-visible { outline:3px solid Highlight; box-shadow:none; }
+    .mobile-tabbar button.active .ic,.tabs button.active { border:2px solid Highlight; }
   }
 
   /* ===== Coach tips: per-tab "what is this page" teaching banners ===== */
@@ -2746,9 +2792,9 @@
   html[data-theme="dark"] .wu-row.from-profile .wu-move::after{ color:#bfdbc9; }
   html[data-theme="dark"] .pc-sdot{ border:2px solid #292929; }
   @media (prefers-color-scheme: dark) and (max-width: 760px){
-  html:not([data-theme="light"]) .mobile-tabbar button.active{ background:#142417; }
+  html:not([data-theme="light"]) .mobile-tabbar button.active .ic{ background:#16291d; }
   }
   @media (max-width: 760px){
-  html[data-theme="dark"] .mobile-tabbar button.active{ background:#142417; }
+  html[data-theme="dark"] .mobile-tabbar button.active .ic{ background:#16291d; }
   }
   /* ===== /GENERATED-DARK ===== */
