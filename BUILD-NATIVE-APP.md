@@ -87,8 +87,9 @@ In Xcode:
    `app.yardsmith`.
 2. Add capability **Push Notifications** (and Background Modes → Remote
    notifications) if/when you turn on the nudge notifications.
-3. **Privacy manifest**: add `PrivacyInfo.xcprivacy` declaring data use (email for
-   login, bodyweight — collected, linked to the user, not used for tracking).
+3. **Privacy manifest:** already committed at `native/ios/PrivacyInfo.xcprivacy`.
+   Codemagic installs it in the App target automatically; for a local generated
+   project run `ruby scripts/install-ios-privacy-manifest.rb` after `cap sync ios`.
 4. Set the **Version/Build**, choose *Any iOS Device*, then **Product → Archive**.
 5. **Distribute App → App Store Connect → Upload.**
 6. In **App Store Connect**: create the app record (bundle id `app.yardsmith`),
@@ -99,6 +100,9 @@ In Xcode:
 
 **Review notes to include (avoids the usual rejections):**
 - **Account deletion:** *Account tab → Delete my account* (Guideline 5.1.1(v) — already built).
+- **External deletion URL:** `https://yardsmith.golf/delete-account.html`.
+- **Privacy labels:** email, health, fitness and user content are linked for app
+  functionality; product interaction and crash data are anonymous and not linked.
 - **Guideline 4.2 (“minimum functionality”):** describe the real features — logged
   training plan, macro/meal engine, clubhead-speed tracking, AI coach. Turning on
   push notifications strengthens this.
@@ -107,6 +111,11 @@ In Xcode:
 ---
 
 ## 4. Android → Google Play
+
+The committed Android project targets API 36. In Play Console, complete the
+**Health apps declaration** for Activity/Fitness and Nutrition/Weight Management,
+set the privacy-policy URL to `https://yardsmith.golf/privacy.html`, and set the
+account-deletion URL to `https://yardsmith.golf/delete-account.html`.
 
 ```bash
 npm run open:android           # opens android/ in Android Studio

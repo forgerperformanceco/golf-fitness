@@ -534,7 +534,8 @@
       if(interactive){
         ilog = { week: curWeek(), day: d.name, sess: buildSession(d, curWeek()) };
         var spWork = ilog.sess.ex.some(function(x){ return (x.sets||[]).some(function(st){ return st.w||st.r||st.done; }); });
-        var spDone = !!getSession(curWeek(), d.name);
+        var spSession = getSession(curWeek(), d.name);
+        var spDone = sessionFinished(spSession);
         var spList = '<div class="sess-list">'+ilog.sess.ex.map(function(x){
             return '<button type="button" class="sl-row" data-exhist="'+escAttr(x.name)+'">'+
               '<span class="sl-ic">'+ffPurposeIc(x.name)+'</span>'+
@@ -545,7 +546,7 @@
         return '<div class="day-focus speedday">'+
           speedTestCardHtml()+
           '<button class="pl-start" data-startplayer="'+escAttr(d.name)+'" type="button"><span class="pls-go">›</span>'+
-            '<b>'+(spDone?'✓ Speed session done — replay it':((spWork?ffIcon("play",13)+' Resume':ffIcon("play",13)+' Start')+' speed session'))+'</b>'+
+            '<b>'+(spDone?'✓ Speed session done — replay it':(((spWork||spSession)?ffIcon("play",13)+' Resume':ffIcon("play",13)+' Start')+' speed session'))+'</b>'+
             '<span class="pls-sub">Guided player — warm-up, max-intent drills, full rest</span></button>'+
           '<details class="prelift"><summary>🔥 Warm-up &amp; the why — do these first</summary><div class="prelift-body">'+
             toggle+warmupHtml("speed", false)+
@@ -586,7 +587,7 @@
       // mid-workout reopen lands straight on the lifts (it stays one tap away).
       ilog = { week: curWeek(), day: d.name, sess: buildSession(d, curWeek()) }; openWhy={};
       var hasWork = ilog.sess.ex.some(function(x){ return (x.sets||[]).some(function(st){ return st.w||st.r||st.done; }); });
-      var plDone = !!getSession(curWeek(), d.name) && !!(getSession(curWeek(), d.name)||{}).finishedAt;
+      var plDone = sessionFinished(getSession(curWeek(), d.name));
       // The guided player is the way to train; the inline spreadsheet is the
       // fallback. By default Today shows the session as a compact lift list
       // (Hevy-style) — the full set tables render only once the user opts into
@@ -711,7 +712,7 @@
     if(mode==="today"){
       var todayDate = new Date();
       var strip = stripDays().map(function(d, i){
-        var done = d.type==="rest" ? restDone(wk, dayKey(d)) : !!getSession(wk, d.name);
+        var done = d.type==="rest" ? restDone(wk, dayKey(d)) : sessionFinished(getSession(wk, d.name));
         var cd = chipDate(i), isToday = sameDay(cd, todayDate);
         var dateLbl = isToday ? "Today" : (cd ? fmtChipDate(cd) : ("Day "+(i+1)));
         return '<button class="ws-chip'+(dayKey(d)===featKey?" cur":"")+(done?" done":"")+(isToday?" today":"")+'" data-focusday="'+escAttr(dayKey(d))+'">'+

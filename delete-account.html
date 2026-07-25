@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; connect-src https://tbwmckmyzoxzhpqlomsp.supabase.co; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'" />
+<meta name="referrer" content="no-referrer" />
+<meta name="theme-color" content="#0b3d22" />
+<meta name="robots" content="index, follow" />
+<title>Delete your account — Yardsmith</title>
+<link rel="icon" type="image/svg+xml" href="icon.svg" />
+<style>
+:root{--green:#0b3d22;--accent:#f4c542;--paper:#f7faf6;--card:#fff;--ink:#102519;--muted:#5b6b60;--line:#dce8de;--danger:#b42318}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.55}
+header{background:radial-gradient(120% 160% at 80% 0%,#155e34,var(--green) 60%);color:white;padding:26px 20px}.in,main{max-width:680px;margin:auto}
+.back{color:#d5eadb;text-decoration:none;font-weight:700}.brand{font-size:24px;font-weight:900;margin-top:10px}.brand em{font-style:normal;color:var(--accent)}
+main{padding:34px 20px 70px}h1{font-size:32px;letter-spacing:-.03em;margin:0 0 8px}h2{font-size:19px}.lead{color:var(--muted);margin-bottom:24px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px;margin:16px 0;box-shadow:0 3px 14px rgba(11,61,34,.06)}
+label{font-size:14px;font-weight:800;display:block;margin-bottom:7px}input{width:100%;border:1px solid #b9cbbb;border-radius:10px;padding:13px;font:inherit}
+button{width:100%;border:0;border-radius:11px;padding:13px 16px;font:inherit;font-weight:850;cursor:pointer;background:var(--green);color:white;margin-top:12px}
+button.danger{background:var(--danger)}button:disabled{opacity:.55;cursor:wait}.quiet{font-size:13px;color:var(--muted)}.status{font-weight:750;margin-top:12px}
+ul{padding-left:20px}a{color:#15713a;font-weight:700}
+</style>
+</head>
+<body>
+<header><div class="in"><a class="back" href="./">‹ Back to Yardsmith</a><div class="brand">Yard<em>smith</em></div></div></header>
+<main>
+<h1>Delete your Yardsmith account</h1>
+<p class="lead">Use this page even if you no longer have the app installed. Deletion is permanent.</p>
+<div class="card"><h2>What will be deleted</h2><ul>
+<li>Your sign-in account and email</li>
+<li>Your synced profile, workouts, bodyweight, speed, nutrition, rounds and coach memory</li>
+<li>Your leaderboard entry, recovery snapshots and push subscriptions</li>
+</ul><p class="quiet">Anonymous, non-identifying aggregate product-health events are not connected to your account. Data saved only on another device must be removed by clearing Yardsmith’s app/site data on that device.</p></div>
+<div class="card" id="signInCard"><h2>1. Verify your account</h2>
+<p>Enter the email used for Yardsmith. We’ll send a secure sign-in link—no password required.</p>
+<form id="signInForm"><label for="email">Account email</label><input id="email" type="email" autocomplete="email" required placeholder="you@example.com" />
+<button id="sendLink" type="submit">Email my verification link</button></form><div class="status" id="signInStatus" role="status" aria-live="polite"></div></div>
+<div class="card" id="deleteCard" hidden><h2>2. Permanently delete</h2><p>Your account is verified. This action cannot be undone.</p>
+<button class="danger" id="deleteButton" type="button">Permanently delete my account</button><div class="status" id="deleteStatus" role="status" aria-live="polite"></div></div>
+<p class="quiet">Can’t access your email? Request help at <a href="mailto:bobbydenisclay@gmail.com?subject=Yardsmith%20account%20deletion">bobbydenisclay@gmail.com</a>. See the <a href="privacy.html">Privacy Policy</a>.</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.2/dist/umd/supabase.min.js" integrity="sha384-sgcvElP/LlNRtORGYFLO/9K/bENcpJK19HgvqslWXog6d8f/Va4TpltGiBlGntCM" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+(function(){"use strict";
+var URL="https://tbwmckmyzoxzhpqlomsp.supabase.co",KEY="sb_publishable_bOf591Xidfd_WLCYEYwaiQ_1kCbhbmi";
+var sb=window.supabase.createClient(URL,KEY,{auth:{persistSession:true,detectSessionInUrl:true,autoRefreshToken:true}});
+var signCard=document.getElementById("signInCard"),delCard=document.getElementById("deleteCard"),signStatus=document.getElementById("signInStatus"),delStatus=document.getElementById("deleteStatus");
+function showSession(session){signCard.hidden=!!session;delCard.hidden=!session}
+sb.auth.getSession().then(function(r){showSession(r.data.session)});sb.auth.onAuthStateChange(function(_,session){showSession(session)});
+document.getElementById("signInForm").addEventListener("submit",function(e){e.preventDefault();var b=document.getElementById("sendLink"),email=document.getElementById("email").value.trim();b.disabled=true;signStatus.textContent="Sending…";
+sb.auth.signInWithOtp({email:email,options:{emailRedirectTo:location.origin+location.pathname}}).then(function(r){b.disabled=false;signStatus.textContent=r.error?"Couldn’t send the link. Please try again.":"Check your email and open the Yardsmith link to continue."})});
+document.getElementById("deleteButton").addEventListener("click",function(){if(!confirm("Permanently delete your Yardsmith account and all synced data? This cannot be undone."))return;var b=this;b.disabled=true;delStatus.textContent="Deleting…";
+sb.auth.getSession().then(function(r){var token=r.data.session&&r.data.session.access_token;if(!token)throw new Error("session");return fetch(URL+"/functions/v1/delete-account",{method:"POST",headers:{"Authorization":"Bearer "+token,"Content-Type":"application/json"},body:"{}"})})
+.then(function(r){if(!r.ok)throw new Error("delete");return r.json()}).then(function(){try{localStorage.clear()}catch(_){}delCard.innerHTML="<h2>Account deleted</h2><p>Your Yardsmith account and synced data have been permanently deleted.</p><p><a href='./'>Return to Yardsmith</a></p>"})
+.catch(function(){b.disabled=false;delStatus.textContent="We couldn’t complete deletion. Try again or use the support email below."})});
+})();
+</script>
+</body>
+</html>

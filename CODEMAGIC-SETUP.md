@@ -52,9 +52,13 @@ one-time UI setup that pairs with the committed `codemagic.yaml`.
 
 ### 5. Test, then submit
 - Install via **TestFlight** on your iPhone and check it end-to-end.
+- Codemagic installs the committed `PrivacyInfo.xcprivacy` into the generated
+  Xcode target automatically and fails the build if that step cannot complete.
 - Back in App Store Connect, fill the listing (screenshots: `shot-home.png`,
   `shot-train.png`), set **privacy labels**, add the **Privacy Policy URL**
   `https://yardsmith.golf/privacy.html`, then **Submit for Review**.
+- Use `https://yardsmith.golf/delete-account.html` for the external
+  account-deletion URL.
 
 **Reviewer notes to paste** (from `BUILD-NATIVE-APP.md` §3):
 - Account deletion: *Account tab → Delete my account* (Guideline 5.1.1(v)).

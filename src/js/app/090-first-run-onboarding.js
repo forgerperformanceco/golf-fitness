@@ -103,6 +103,8 @@
       }
       else setView("dash");
       renderDash();
+      try{ if(window.FFHealth) window.FFHealth.track("onboarding_completed",
+        {started_plan:!!startNow,revisit:!!ob.revisit}); }catch(e){}
     }
     function prepToggleHtml(){
       var opts=[["back","Back","stack & brace"],["hips","Hips","turn freely"],["shoulders","Shoulders","swing volume"],["knees","Knees","lower days"]];
@@ -262,7 +264,8 @@
           (s===5?'<button type="button" class="ob-later" id="obLater">'+(ob.hadPlan?"Save & return home":"Save it — I’ll start later")+'</button>':'')+
         '</div></div>';
 
-      var skip=$("obSkip"); if(skip) skip.onclick=function(){ lsSet("ff_onboarded",true); close(); };
+      var skip=$("obSkip"); if(skip) skip.onclick=function(){ lsSet("ff_onboarded",true); close();
+        try{ if(window.FFHealth) window.FFHealth.track("onboarding_skipped"); }catch(e){} };
       var back=$("obBack"); if(back) back.onclick=function(){ readStep(s); ob.step--; render(); };
       var later=$("obLater"); if(later) later.onclick=function(){ finish(false); };
       if(s===1) Array.prototype.forEach.call(root.querySelectorAll("[data-goal]"), function(b){

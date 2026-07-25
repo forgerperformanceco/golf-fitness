@@ -20,6 +20,8 @@ const FILES = [
   "app.js",
   "styles.css",
   "privacy.html",
+  "delete-account.html",
+  "product-health.js",
   "sw.js",
   "cloud-sync.js",
   "coach.js",

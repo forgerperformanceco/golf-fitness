@@ -41,6 +41,6 @@ jobs:
 
       - name: Deploy every Edge Function
         run: |
-          for fn in delete-account ai-coach paddle-webhook push-daily; do
+          for fn in delete-account ai-coach paddle-webhook push-daily product-health; do
             supabase functions deploy "$fn" --project-ref "$PROJECT_REF"
           done

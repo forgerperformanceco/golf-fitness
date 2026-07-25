@@ -142,6 +142,11 @@
   }
   function getLog(){ return lsGet("ff_log",{}); }
   function getSession(w,d){ return getLog()[w+"|"+d]||null; }
+  // A session exists as soon as the player saves the first bit of work, but it
+  // is not "banked" until the user explicitly finishes it. Keep this distinction
+  // shared so Train, Home, Stats, streaks and leaderboards tell the same truth.
+  function sessionFinished(s){ return !!(s && s.finishedAt); }
+  function sessionInProgress(s){ return !!(s && !s.finishedAt); }
   function saveSession(w,d,s){ if(s) s._ts=Date.now(); var L=getLog(); L[w+"|"+d]=s; lsSet("ff_log",L); }
   // Rest-day check-off — kept in its OWN key so it never counts as a training
   // session (Octane, streaks, leaderboard all read ff_log, not this).
@@ -182,8 +187,10 @@
     return working.every(function(st){ return parseInt(st.r,10)>=top; });
   }
   function logFoot(name){
-    var done=!!getSession(curWeek(), name);
-    if(!done) return '<div class="day-foot"><button class="logbtn" data-logday="'+escAttr(name)+'">'+ffIcon("play",13)+' Log workout</button></div>';
+    var sess=getSession(curWeek(), name), done=sessionFinished(sess);
+    if(!sess) return '<div class="day-foot"><button class="logbtn" data-logday="'+escAttr(name)+'">'+ffIcon("play",13)+' Log workout</button></div>';
+    if(!done) return '<div class="day-foot"><button class="logbtn" data-logday="'+escAttr(name)+'">'+ffIcon("play",13)+' Resume workout</button>'+
+      '<button class="logbtn reset" data-clearday="'+escAttr(name)+'">↺ Clear / reset this workout</button></div>';
     // Logged: full-width edit button + a reset, so any logged day (Full-week or a
     // non-featured day) can be cleared without hunting for the Today finish bar.
     return '<div class="day-foot"><button class="logbtn logged" data-logday="'+escAttr(name)+'">✓ Logged — tap to edit</button>'+

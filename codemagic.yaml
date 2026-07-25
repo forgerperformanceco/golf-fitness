@@ -37,6 +37,8 @@ workflows:
       - name: Generate / sync the iOS project
         script: |
           if [ -d "ios" ]; then npx cap sync ios; else npx cap add ios; fi
+      - name: Install the iOS privacy manifest
+        script: ruby scripts/install-ios-privacy-manifest.rb
       - name: Set up automatic code signing
         script: xcode-project use-profiles
       - name: Set the build number

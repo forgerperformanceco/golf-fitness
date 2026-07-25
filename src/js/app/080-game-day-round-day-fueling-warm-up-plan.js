@@ -467,6 +467,10 @@
     html+='<div class="acct-card"><div class="acct-head">🔄 App version</div>'+
       '<p class="acct-p">You’re on build <b>'+lbEsc(window.FF_BUILD||"—")+'</b>. The app updates itself in the background, but if the home-screen version ever looks stuck on an old layout, force a clean reload — it clears the offline cache and pulls the newest build. Your data stays put.</p>'+
       '<button class="acct-btn ghost" id="acctForceUpdate">↻ Force refresh to the latest</button></div>';
+    var healthOn=!!(window.FFHealth&&window.FFHealth.enabled());
+    html+='<div class="acct-card"><div class="acct-head">Product health</div>'+
+      '<p class="acct-p">Help improve Yardsmith with anonymous feature-use and crash signals. No account ID, email, health values, workout values, notes, URLs or advertising trackers.</p>'+
+      '<button class="acct-btn ghost" id="acctHealth">'+(healthOn?'On — tap to turn off':'Off — tap to turn on')+'</button></div>';
     html+='<div class="acct-card"><div class="acct-head">↺ Start the plan over</div>'+
       '<p class="acct-p">Clears your plan start date and logged workouts so the plan resets to week 1. Your bodyweight &amp; 7-iron history and your calculator stay put.</p>'+
       '<button class="acct-btn danger" id="acctResetPlan">↺ Reset plan</button></div>';
@@ -487,7 +491,7 @@
     html+='<div class="acct-links">'+
       '<a href="mailto:bobbydenisclay@gmail.com?subject=Yardsmith%20feedback">✉ Send feedback</a>'+
       '<span>·</span>'+
-      '<a href="privacy.html">Privacy</a></div>';
+      '<a href="privacy.html">Privacy</a><span>·</span><a href="delete-account.html">Delete account</a></div>';
     html+='<div class="acct-foot">Yardsmith · installs &amp; works offline<br>Evidence-based starting points — not medical advice.</div>';
     el.innerHTML=html;
     var rt=$("acctReplayTips"); if(rt) rt.onclick=function(){
@@ -543,6 +547,10 @@
     var ex=$("acctExport"); if(ex) ex.onclick=function(){ ffExportData(); };
     var im=$("acctImport"); if(im) im.onclick=function(){ ffImportData(); };
     var fu=$("acctForceUpdate"); if(fu) fu.onclick=function(){ ffForceUpdate(); };
+    var ph=$("acctHealth"); if(ph) ph.onclick=function(){
+      if(window.FFHealth) window.FFHealth.setEnabled(!window.FFHealth.enabled());
+      renderAccount();
+    };
     var af=$("acctFoods"); if(af) af.onclick=function(){ openFoodPrefs(); };
     var ai=$("acctInstall"); if(ai) ai.onclick=function(){ if(!ffPromptInstall()) alert("Use your browser menu → “Install app” / “Add to Home Screen.”"); };
     var nb=$("acctNotif"); if(nb) nb.onclick=function(){ nb.disabled=true; ffNotifToggle().then(function(){ renderAccount(); }); };

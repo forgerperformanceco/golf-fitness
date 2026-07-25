@@ -134,6 +134,7 @@
     }catch(e){ apply(); }
     if(scroll!==false) window.scrollTo({ top: 0, behavior: "smooth" });
     if(changing){
+      try{ if(window.FFHealth) window.FFHealth.track("view_changed",{view:view}); }catch(e){}
       var announcer=$("viewAnnouncer");
       if(announcer) setTimeout(function(){ announcer.textContent=(viewNames[view]||"Screen")+" screen"; }, 180);
       try{ ffTick(7); }catch(e){}
