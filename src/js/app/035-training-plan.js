@@ -319,14 +319,22 @@
   function warmupList(name){
     var list=warmupBase(name), lim=(typeof mobLimits==="function")?mobLimits():{};
     var lower=(name==="speed") || /Lower|Squat|Hinge/.test(name);
-    function addFix(primary, alt, alreadyRe){
+    var upper=(name==="speed") || /Pull|Rotate|Push|Upper/.test(name);
+    var prep=(typeof state!=="undefined"&&Array.isArray(state.prep))?state.prep:[];
+    function addFix(primary, alt, alreadyRe, source){
       var has=list.some(function(m){ return alreadyRe.test(m[0]); });
       var pick = has ? alt : primary;
-      if(pick && !list.some(function(m){ return m[0]===pick[0]; })) list.push([pick[0], pick[1], true]);
+      if(pick && !list.some(function(m){ return m[0]===pick[0]; })) list.push([pick[0], pick[1], source||"screen"]);
     }
     if(lim.trunk) addFix(["Open-book T-spine","×8/side"], ["Thread-the-needle","×6/side"], /open.?book/i);
     if(lim.hip && lower) addFix(["90/90 hip switches","×8/side"], ["Adductor rock-back","×8/side"], /90\/90/);
     if(lim.squat && lower){ addFix(["Deep squat hold (hold a support)","3 × 20s"], null, /deep squat/i); addFix(["Ankle rockers","×10/side"], null, /ankle/i); }
+    // Setup can add conservative preparation—not diagnose or replace the
+    // mobility screen. The screen remains the higher-confidence adjustment.
+    if(prep.indexOf("back")!==-1) addFix(["Bird dog","×6/side"], ["Cat–cow","×8"], /bird dog|cat.?cow/i, "profile");
+    if(prep.indexOf("hips")!==-1 && lower) addFix(["90/90 hip switches","×8/side"], ["Adductor rock-back","×8/side"], /90\/90/i, "profile");
+    if(prep.indexOf("shoulders")!==-1 && upper) addFix(["Shoulder CARs","×5/side"], ["Band pull-aparts","×20"], /shoulder cars|pull-apart/i, "profile");
+    if(prep.indexOf("knees")!==-1 && lower) addFix(["Supported split-squat hold","2 × 20s/side"], ["Reverse lunge (bodyweight)","×6/side"], /split.?squat hold|reverse lunge/i, "profile");
     return list;
   }
   function primerFor(name){
@@ -341,7 +349,7 @@
   function warmupHtml(name, withPrimer, showNote){
     var h='<div class="wu"><div class="wu-h">🔥 Warm-up <span>· 5 min · tap to check off</span></div>';
     warmupList(name).forEach(function(m){
-      h+='<button type="button" class="wu-row'+(m[2]?' from-screen':'')+'" data-wu="1"><span class="wu-move">'+m[0]+'</span><span class="wu-dose">'+m[1]+'</span></button>';
+      h+='<button type="button" class="wu-row'+(m[2]==="screen"?' from-screen':(m[2]==="profile"?' from-profile':''))+'" data-wu="1"><span class="wu-move">'+m[0]+'</span><span class="wu-dose">'+m[1]+'</span></button>';
     });
     if(withPrimer){
       var p=primerFor(name);
