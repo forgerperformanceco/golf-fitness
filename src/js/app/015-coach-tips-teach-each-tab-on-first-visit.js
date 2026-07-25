@@ -99,15 +99,24 @@
     }
   });
   function setView(view, scroll){
+    var viewNames={ dash:"Home", calc:"Fuel", plan:"Train", progress:"Stats", account:"You", gameday:"Game Day" };
+    var contextNames={ dash:"Today", calc:"Fuel", plan:"Train", progress:"Stats", account:"You", gameday:"Game Day" };
     var apply=function(){
       [tabs, mobileTabs].forEach(function(bar){
         Array.prototype.forEach.call(bar.querySelectorAll("button"), function(b){
-          b.classList.toggle("active", b.getAttribute("data-view")===view);
+          var selected=b.getAttribute("data-view")===view;
+          b.classList.toggle("active", selected);
+          if(selected) b.setAttribute("aria-current","page");
+          else b.removeAttribute("aria-current");
         });
       });
       Array.prototype.forEach.call(document.querySelectorAll(".view"), function(v){
-        v.classList.toggle("active", v.id === "view-" + view);
+        var selected=v.id === "view-" + view;
+        v.classList.toggle("active", selected);
+        v.setAttribute("aria-hidden", selected ? "false" : "true");
       });
+      var context=$("appbarContext"); if(context) context.textContent=contextNames[view]||"Yardsmith";
+      document.title=(viewNames[view]||"Yardsmith")+" Â· Yardsmith";
       if(view==="dash") { try{ renderDash(); }catch(e){} }
       if(view==="calc") { try{ ffRefreshCalcTrainTime(); }catch(e){} }
       if(view==="account") { try{ renderAccount(); }catch(e){} }
@@ -124,12 +133,27 @@
       else apply();
     }catch(e){ apply(); }
     if(scroll!==false) window.scrollTo({ top: 0, behavior: "smooth" });
+    if(changing){
+      var announcer=$("viewAnnouncer");
+      if(announcer) setTimeout(function(){ announcer.textContent=(viewNames[view]||"Screen")+" screen"; }, 180);
+      try{ ffTick(7); }catch(e){}
+    }
     try { persist(); } catch(e){}
   }
   [tabs, mobileTabs].forEach(function(bar){
     bar.addEventListener("click", function(e){
       var btn=e.target.closest("button"); if(!btn) return;
       setView(btn.getAttribute("data-view"));
+    });
+    // Arrow keys make both navigation bars behave like one native app switcher.
+    bar.addEventListener("keydown", function(e){
+      if(["ArrowLeft","ArrowRight","Home","End"].indexOf(e.key)<0) return;
+      var buttons=Array.prototype.slice.call(bar.querySelectorAll("button[data-view]"));
+      var at=buttons.indexOf(document.activeElement); if(at<0) return;
+      e.preventDefault();
+      var next=e.key==="Home" ? 0 : e.key==="End" ? buttons.length-1 :
+        (at+(e.key==="ArrowRight"?1:-1)+buttons.length)%buttons.length;
+      buttons[next].focus(); buttons[next].click();
     });
   });
   // Any [data-goview] button anywhere navigates — one delegated handler so
