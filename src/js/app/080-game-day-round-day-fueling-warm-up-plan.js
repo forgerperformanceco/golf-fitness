@@ -416,7 +416,8 @@
         acctRow('Bodyweight', (prof&&prof.weight)?prof.weight+' lb':'—')+
         acctRow('Daily target', t?t.kcal+' kcal':'—')+
         '</div><button class="acct-btn ghost" id="acctEdit">Edit my numbers</button>'+
-        '<button class="acct-btn ghost" id="acctSetup">↻ Re-run guided setup</button></div>';
+        '<button class="acct-btn ghost" id="acctSetup">↻ Re-personalize my plan</button>'+
+        '<p class="acct-p mini">Updates future guidance without resetting your current week or completed sessions.</p></div>';
     }
     // Training setup — the three golf-plan levers, all tap-to-change, in one place
     // (previously scattered: mission here, days in the Train fold, time in the calculator).

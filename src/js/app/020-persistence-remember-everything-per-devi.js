@@ -7,6 +7,7 @@
         age:$("age").value, weight:$("weight").value,
         heightFt:$("heightFt").value, heightIn:$("heightIn").value,
         activity:$("activity").value,
+        prep:(state.prep||[]).slice(), equipPreset:state.equipPreset||"",
         freq:planState.freq, equip:planState.equip,
         view:(document.querySelector("#tabs button.active")||{getAttribute:function(){return "calc";}}).getAttribute("data-view")
       });
@@ -26,6 +27,8 @@
     }
     if(data.sex){ state.sex=data.sex; act("sexSeg","data-sex",data.sex); }
     if(data.workout){ state.workout=data.workout; act("workoutSeg","data-workout",data.workout); }
+    state.prep=Array.isArray(data.prep)?data.prep.slice():[];
+    if(data.equipPreset) state.equipPreset=data.equipPreset;
     if(data.goal){ state.goal=data.goal;
       Array.prototype.forEach.call($("goals").querySelectorAll(".goal"), function(b){
         b.classList.toggle("active", b.getAttribute("data-goal")===data.goal);

@@ -1,5 +1,5 @@
   /* ===================== MACRO CALCULATOR ===================== */
-  var state = { sex: "male", goal: "leanbulk", workout: "morning", meals: null };
+  var state = { sex: "male", goal: "leanbulk", workout: "morning", meals: null, prep:[], equipPreset:"full" };
   var lastMealPlan = null;   // last computed { meal, timing } — shared with the unified Meals card
 
   // Recommended number of main meals per plan (pre/post-workout feedings are extra, around training).

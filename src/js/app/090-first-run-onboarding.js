@@ -19,9 +19,17 @@
     startOnboarding();
   }
   function startOnboarding(seed){
-    var ob={ step:0, total:8, goal:"leanbulk", sex:"male", age:"", weight:"",
-             hf:"5", hin:"10", activity:"1.55", workout:"morning", freq:4, equip:"", speed:"", drive:"", based:false,
-             goalyds:(lsGet("ff_goalyds",null)||15) };
+    var ob={ step:0, total:6, goal:"leanbulk", sex:"male", age:"", weight:"",
+             hf:"5", hin:"10", activity:"1.55", workout:"morning", freq:4, equip:"full", speed:"", drive:"",
+             prep:[], revisit:!!seed, hadPlan:!!planStart(), goalyds:(lsGet("ff_goalyds",null)||15) };
+    function inferEquipPreset(){
+      if(typeof planState==="undefined") return "full";
+      var e=planState.equip||{};
+      if(e.barbell || e.legpress || e.cable) return "full";
+      if(e.dumbbells || e.bench || e.kettlebell || e.pullupbar) return "home";
+      if(e.bands) return "minimal";
+      return "bodyweight";
+    }
     // On a re-run (from Account) seed every field from saved numbers. On a brand-new
     // first run, leave age & weight blank so the user gives real answers (biggest macro
     // drivers) — height/activity keep sensible soft defaults they can tweak.
@@ -32,9 +40,17 @@
       if($("heightIn")&&$("heightIn").value) ob.hin=$("heightIn").value;
       if($("activity")&&$("activity").value) ob.activity=$("activity").value;
       ob.goal=state.goal||"leanbulk"; ob.sex=state.sex||"male"; ob.workout=state.workout||"morning";
+      ob.prep=Array.isArray(state.prep)?state.prep.slice():[];
+      ob.equip=state.equipPreset||inferEquipPreset();
       if(typeof planState!=="undefined" && planState.freq) ob.freq=planState.freq;
+      var oldBody=lsGet("ff_body",[]);
+      for(var obi=oldBody.length-1;obi>=0;obi--){
+        if(!ob.speed && oldBody[obi]&&oldBody[obi].s!=="") ob.speed=String(oldBody[obi].s||"");
+        if(!ob.drive && oldBody[obi]&&oldBody[obi].d!=="") ob.drive=String(oldBody[obi].d||"");
+        if(ob.speed&&ob.drive) break;
+      }
     }
-    ob.prefs = (function(){ var s=lsGet("ff_foodprefs",null); return s?{liked:(s.liked||[]).slice(),avoid:(s.avoid||[]).slice(),restrict:(s.restrict||[]).slice()}:{liked:[],avoid:[],restrict:[]}; })();
+    ob.original={ weight:ob.weight, speed:ob.speed, drive:ob.drive };
 
     var root=document.createElement("div");
     root.className="ob"; root.id="obRoot";
@@ -58,6 +74,7 @@
     // Push profile into the real app state + recompute. Idempotent: safe to call repeatedly.
     function applyProfile(){
       state.sex=ob.sex; state.goal=ob.goal; state.workout=ob.workout;
+      state.prep=ob.prep.slice(); state.equipPreset=ob.equip;
       if(ob.age) $("age").value=ob.age;
       if(ob.weight) $("weight").value=ob.weight;
       $("heightFt").value=ob.hf||5; $("heightIn").value=ob.hin||10;
@@ -70,22 +87,38 @@
       try{ calc(); }catch(e){}
       try{ persist(); }catch(e){}
     }
-    // Seed the first bodyweight/speed entry once, as the Score's baseline.
+    // Seed or update today's baseline through the shared deduping writer.
     function pushBaseline(){
-      if(ob.based) return; ob.based=true;
-      if(ob.weight || ob.speed || ob.drive){
-        var body=lsGet("ff_body",[]);
-        body.push({ date:todayStr(), w:ob.weight||"", s:ob.speed||"", d:ob.drive||"" });
-        lsSet("ff_body", body);
-      }
+      var changed=!ob.revisit || ob.weight!==ob.original.weight || ob.speed!==ob.original.speed || ob.drive!==ob.original.drive;
+      if(changed && (ob.weight || ob.speed || ob.drive)) logBodyEntry(ob.weight||"",ob.speed||"",ob.drive||"");
     }
     function finish(startNow){
-      applyProfile(); pushBaseline(); ffSavePrefs(ob.prefs); lsSet("ff_onboarded", true);
+      applyProfile(); pushBaseline(); lsSet("ff_onboarded", true);
       lsSet("ff_goalyds", parseInt(ob.goalyds,10)||15);
       close();
-      if(startNow){ try{ startPlanAtWeek(1); }catch(e){} setView("plan"); try{ renderPhase(); }catch(e){} }
+      if(startNow){
+        // Re-personalizing must never reset an active season or erase its place.
+        if(!ob.hadPlan){ try{ startPlanAtWeek(1); }catch(e){} }
+        setView("plan"); try{ renderPhase(); }catch(e){}
+      }
       else setView("dash");
       renderDash();
+    }
+    function prepToggleHtml(){
+      var opts=[["back","Back","stack & brace"],["hips","Hips","turn freely"],["shoulders","Shoulders","swing volume"],["knees","Knees","lower days"]];
+      return '<div class="ob-prep" id="obPrep">'+opts.map(function(o){
+        return '<button type="button" data-prep="'+o[0]+'" class="'+(ob.prep.indexOf(o[0])!==-1?"sel":"")+'"><b>'+o[1]+'</b><small>'+o[2]+'</small></button>';
+      }).join("")+'</div>';
+    }
+    function weekPreviewHtml(){
+      var days=activeDays().filter(function(d){ return d.type!=="rest"; });
+      var equipLabel=(EQ_CARDS.filter(function(x){ return x.v===ob.equip; })[0]||EQ_CARDS[0]).t;
+      return '<div class="ob-week">'+
+        '<div class="ob-weektop"><span>YOUR FIRST WEEK</span><b>'+ob.freq+' sessions · '+equipLabel+'</b></div>'+
+        days.slice(0,ob.freq).map(function(d,i){
+          var nm=(d.name.split("—")[1]||d.name).trim();
+          return '<div class="ob-weekday"><span class="ow-n">'+(i+1)+'</span><span class="ow-t"><b>'+nm+'</b><small>'+sessionMinutes(d)+' min · '+(d.type==="speed"?"speed & power":"strength")+'</small></span><span class="ow-ok">✓</span></div>';
+        }).join("")+'</div>';
     }
 
     function segPick(id, set){
@@ -103,9 +136,9 @@
         ob.weight=($("obWeight").value||"").trim();
         ob.hf=($("obHf").value||"").trim()||"5";
         ob.hin=($("obHin").value||"").trim()||"10";
+        ob.activity=$("obAct").value;
       }
-      if(s===3) ob.activity=$("obAct").value;
-      if(s===5){ ob.speed=($("obSpeed")?$("obSpeed").value:"").trim(); ob.drive=($("obDrive")?$("obDrive").value:"").trim(); }
+      if(s===4){ ob.speed=($("obSpeed")?$("obSpeed").value:"").trim(); ob.drive=($("obDrive")?$("obDrive").value:"").trim(); }
     }
     function advance(s){
       readStep(s);
@@ -114,8 +147,13 @@
         if(!ob.weight || +ob.weight<60 || +ob.weight>500){ if(err) err.textContent="Enter your bodyweight so we can size your fuel."; return; }
         if(ob.age && (+ob.age<14 || +ob.age>90)){ if(err) err.textContent="Enter a real age (14–90)."; return; }
       }
-      if(s===5) applyProfile();   // compute targets so the summary can show them
-      if(s===7){ finish(true); return; }
+      if(s===3 && !ob.equip){ if(err) err.textContent="Pick the equipment setup closest to yours."; return; }
+      if(s===4){
+        if(ob.drive && (+ob.drive<80 || +ob.drive>400)){ if(err) err.textContent="Enter driver carry between 80 and 400 yards, or leave it blank."; return; }
+        if(ob.speed && (+ob.speed<30 || +ob.speed>130)){ if(err) err.textContent="Enter 7-iron speed between 30 and 130 mph, or leave it blank."; return; }
+      }
+      if(s===4) applyProfile();   // compute targets + adapted week for the reveal
+      if(s===5){ finish(true); return; }
       ob.step++; render();
     }
 
@@ -124,9 +162,9 @@
       var kicker="", title="", body="", nextLabel="Continue";
       // Skip is available from the FIRST page (never trap someone in setup) and lives at the
       // BOTTOM of the card — the old top-right link sat under the iPhone status bar on the
-      // installed app (viewport-fit=cover) and couldn't be tapped. Step 7 has its own
+      // installed app (viewport-fit=cover) and couldn't be tapped. The reveal has its own
       // "start later" link, so the generic skip hides there.
-      var showBack=s>0, showSkip=s<7;
+      var showBack=s>0, showSkip=s<5;
 
       if(s===0){
         // Lean welcome — they already installed/opened the app; don't re-pitch it.
@@ -134,80 +172,81 @@
         body='<div class="ob-kicker"><span class="ball"></span> The Golfer’s Mass &amp; Speed System</div>'+
           '<div class="ob-brand">Yard<span class="em">smith</span></div>'+
           '<div class="ob-hook">Turn muscle<br>into <span class="em">distance</span>.</div>'+
-          '<p class="ob-p">Six quick questions dial your <b>fuel, 20-week plan and yardage mission</b> to you. Under a minute — let’s go.</p>';
-        nextLabel="Build my plan →";
+          '<p class="ob-p"><b>Four quick choices.</b> Then see the exact first week built around your body, schedule, equipment and distance goal.</p>'+
+          '<div class="ob-promise"><span>~45 sec</span><span>No account needed</span><span>Change anytime</span></div>';
+        nextLabel=ob.revisit?"Update my plan →":"Build my plan →";
       } else if(s===1){
-        kicker="Step 1 of 7 · Goal"; title="What are you chasing right now?";
+        kicker="Step 1 of 4 · Outcome"; title="What does winning look like?";
         body='<div class="ob-opts">'+GOAL_CARDS.map(function(g){
           return '<button type="button" class="ob-opt'+(ob.goal===g.v?' sel':'')+'" data-goal="'+g.v+'">'+
             '<span class="obo-ic">'+g.ic+'</span><span class="obo-tx">'+
             '<span class="obo-t">'+g.t+' <span class="obo-tag">'+g.tag+'</span></span>'+
             '<span class="obo-d">'+g.d+'</span></span></button>';
-        }).join("")+'</div>';
+        }).join("")+'</div>'+
+          '<div class="ob-mission"><span>20-WEEK DISTANCE MISSION</span><div class="ob-seg" id="obGoalYds">'+[10,15,25].map(function(y){
+            return '<button type="button" data-v="'+y+'" class="'+(String(ob.goalyds)===String(y)?"sel":"")+'">+'+y+' yds</button>';
+          }).join("")+'</div></div>';
       } else if(s===2){
-        kicker="Step 2 of 7 · About you"; title="The engine behind your numbers";
+        kicker="Step 2 of 4 · Body & fuel"; title="Size the engine";
         body='<div class="ob-field"><label>Sex <span>(BMR formula)</span></label>'+
             '<div class="ob-seg" id="obSex">'+
             '<button type="button" data-v="male" class="'+(ob.sex==="male"?"sel":"")+'">Male</button>'+
             '<button type="button" data-v="female" class="'+(ob.sex==="female"?"sel":"")+'">Female</button></div></div>'+
           '<div class="ob-row"><div class="ob-field" style="flex:1"><label>Age</label>'+
-            '<input class="ob-in" id="obAge" type="number" inputmode="numeric" placeholder="32" value="'+ob.age+'" /></div>'+
+            '<input class="ob-in" id="obAge" type="number" inputmode="numeric" placeholder="32" value="'+escAttr(ob.age)+'" /></div>'+
             '<div class="ob-field" style="flex:1"><label>Weight (lb)</label>'+
-            '<input class="ob-in" id="obWeight" type="number" inputmode="decimal" placeholder="'+ffBench(ob.sex, ob.age).weight+'" value="'+ob.weight+'" /></div></div>'+
+            '<input class="ob-in" id="obWeight" type="number" inputmode="decimal" placeholder="'+ffBench(ob.sex, ob.age).weight+'" value="'+escAttr(ob.weight)+'" /></div></div>'+
           '<div class="ob-field"><label>Height</label><div class="ob-row">'+
-            '<input class="ob-in" id="obHf" type="number" inputmode="numeric" placeholder="ft" value="'+ob.hf+'" />'+
-            '<input class="ob-in" id="obHin" type="number" inputmode="numeric" placeholder="in" value="'+ob.hin+'" /></div></div>';
+            '<input class="ob-in" id="obHf" type="number" inputmode="numeric" placeholder="ft" value="'+escAttr(ob.hf)+'" />'+
+            '<input class="ob-in" id="obHin" type="number" inputmode="numeric" placeholder="in" value="'+escAttr(ob.hin)+'" /></div></div>'+
+          '<div class="ob-field"><label>Typical activity</label><select class="ob-select" id="obAct">'+
+            [["1.2","Mostly seated"],["1.375","Light — golf + some training"],["1.55","Moderate — train 3–5×/week"],
+             ["1.725","Very active — hard training most days"],["1.9","Athlete — high-volume / two-a-days"]].map(function(o){
+              return '<option value="'+o[0]+'"'+(ob.activity===o[0]?" selected":"")+'>'+o[1]+'</option>'; }).join("")+'</select></div>';
       } else if(s===3){
-        kicker="Step 3 of 7 · Training"; title="How you train";
-        body='<div class="ob-field"><label>Activity level</label><select class="ob-select" id="obAct">'+
-            [["1.2","Sedentary — desk job, little exercise"],["1.375","Light — range/play + light lifting"],
-             ["1.55","Moderate — gym 3–5×/wk + golf"],["1.725","Very Active — hard training 6–7×/wk, walking 18s"],
-             ["1.9","Athlete — 2-a-days, walking + speed work"]].map(function(o){
-              return '<option value="'+o[0]+'"'+(ob.activity===o[0]?" selected":"")+'>'+o[1]+'</option>'; }).join("")+'</select></div>'+
+        kicker="Step 3 of 4 · Real life"; title="Make the plan fit your week";
+        body=
           '<div class="ob-field"><label>When do you usually train?</label><div class="ob-seg" id="obWk">'+
             [["morning","Morning"],["midday","Midday"],["afternoon","Afternoon"],["evening","Evening"]].map(function(o){
               return '<button type="button" data-v="'+o[0]+'" class="'+(ob.workout===o[0]?"sel":"")+'">'+o[1]+'</button>'; }).join("")+'</div></div>'+
-          '<div class="ob-field"><label>Lifting days per week</label><div class="ob-seg" id="obFreq">'+
+          '<div class="ob-field"><label>Training sessions per week</label><div class="ob-seg" id="obFreq">'+
             [["4","4 days"],["5","5 days"]].map(function(o){
-              return '<button type="button" data-v="'+o[0]+'" class="'+(String(ob.freq)===o[0]?"sel":"")+'">'+o[1]+'</button>'; }).join("")+'</div></div>';
-      } else if(s===4){
-        kicker="Step 4 of 7 · Equipment"; title="What can you train with?";
-        body='<p class="ob-p" style="margin-top:-4px">We swap every exercise to fit your gear. Pick the closest — you can fine-tune any item later in <b>Settings</b>.</p>'+
-          '<div class="ob-opts">'+EQ_CARDS.map(function(g){
+              return '<button type="button" data-v="'+o[0]+'" class="'+(String(ob.freq)===o[0]?"sel":"")+'">'+o[1]+'</button>'; }).join("")+'</div></div>'+
+          '<div class="ob-field"><label>Equipment</label></div>'+
+          '<div class="ob-opts ob-equipopts">'+EQ_CARDS.map(function(g){
             return '<button type="button" class="ob-opt'+(ob.equip===g.v?' sel':'')+'" data-equip="'+g.v+'">'+
               '<span class="obo-ic">'+g.ic+'</span><span class="obo-tx">'+
               '<span class="obo-t">'+g.t+'</span><span class="obo-d">'+g.d+'</span></span></button>';
           }).join("")+'</div>';
-      } else if(s===5){
-        kicker="Step 5 of 7 · Baseline"; title="Your starting line";
-        body='<p class="ob-p" style="margin-top:-4px">Set your starting numbers so you can watch them climb. Add either — or skip and log later.</p>'+
+      } else if(s===4){
+        kicker="Step 4 of 4 · Starting line"; title="Give the plan something to beat";
+        body='<p class="ob-p" style="margin-top:-4px">Optional. One number creates your baseline now; otherwise Yardsmith will guide the test later.</p>'+
           '<div class="ob-field"><label>Driver carry (yds) — your headline distance</label>'+
-            '<input class="ob-in" id="obDrive" type="number" inputmode="decimal" placeholder="e.g. '+ffBench(ob.sex, ob.age).drive+'" value="'+ob.drive+'" /></div>'+
+            '<input class="ob-in" id="obDrive" type="number" inputmode="decimal" placeholder="e.g. '+ffBench(ob.sex, ob.age).drive+'" value="'+escAttr(ob.drive)+'" /></div>'+
           '<div class="ob-field"><label>7-iron clubhead speed (mph)</label>'+
-            '<input class="ob-in" id="obSpeed" type="number" inputmode="decimal" placeholder="e.g. '+ffBench(ob.sex, ob.age).seven+'" value="'+ob.speed+'" /></div>'+
-          '<div class="ob-field"><label>Your mission — yards to add over the 20 weeks</label>'+
-            '<div class="ob-seg" id="obGoalYds">'+[10,15,25].map(function(y){
-              return '<button type="button" data-v="'+y+'" class="'+(String(ob.goalyds)===String(y)?"sel":"")+'">+'+y+' yds</button>';
-            }).join("")+'</div></div>'+
-          '<p class="ob-p" style="font-size:13px;color:#9ccfb0;margin:0">A launch monitor or an on-course guess both work. Your mission is a goal you chase — the app tracks it against your real drives.</p>';
-        nextLabel="Continue →";
-      } else if(s===6){
-        kicker="Step 6 of 7 · Your foods"; title="What do you actually eat?";
-        body='<p class="ob-p" style="margin-top:-4px">Tap the foods you love and flag any dietary needs up top — we’ll build your meal ideas and a full day around them. Totally optional; skip if you’d rather.</p>'+
-          '<div class="ob-foodwrap" id="obFood">'+ffPickerHtml(ob.prefs)+'</div>';
-        nextLabel="Continue →";
-      } else if(s===7){
+            '<input class="ob-in" id="obSpeed" type="number" inputmode="decimal" placeholder="e.g. '+ffBench(ob.sex, ob.age).seven+'" value="'+escAttr(ob.speed)+'" /></div>'+
+          '<div class="ob-field ob-prepfield"><label>Anything that benefits from extra prep? <span>(optional, not a diagnosis)</span></label>'+
+            prepToggleHtml()+'</div>'+
+          '<p class="ob-p ob-quiet">Selected areas get one conservative prep move in relevant warm-ups. The 3-minute mobility screen refines this later.</p>';
+        nextLabel="Show me my plan →";
+      } else if(s===5){
         var t=lsGet("ff_targets",null);
-        kicker="You’re set"; title="Your plan is dialed in";
-        body='<div class="ob-sum">'+
+        var baseline=lbEsc(ob.drive?ob.drive+" yd driver":(ob.speed?ob.speed+" mph 7-iron":"guided test waiting"));
+        kicker=ob.revisit?"Updated without losing your place":"Built for you"; title=ob.revisit?"Your plan just adapted":"This is your opening week";
+        body='<div class="ob-reveal"><div><span>MISSION</span><b>+'+(parseInt(ob.goalyds,10)||15)+' yards</b></div>'+
+            '<div><span>BASELINE</span><b>'+baseline+'</b></div></div>'+
+          weekPreviewHtml()+
+          '<div class="ob-sum">'+
             '<div class="ob-sumv"><div class="v">'+(t?t.kcal:"—")+'</div><div class="k">kcal / day</div></div>'+
             '<div class="ob-sumv"><div class="v">'+(t?t.proteinG:"—")+'<small>g</small></div><div class="k">protein</div></div>'+
             '<div class="ob-sumv"><div class="v">'+(t?t.carbG:"—")+'<small>g</small></div><div class="k">carbs</div></div></div>'+
-          '<p class="ob-p">That’s your daily fuel for <b>'+((GOALS[ob.goal]&&GOALS[ob.goal].label)||"your goal")+'</b>. Your 20-week plan is aimed at <b>+'+(parseInt(ob.goalyds,10)||15)+' yds</b> — tracked against your real drives.</p>'+
-          '<div class="ob-loophead">The whole system is one loop:</div>'+ffLoopHtml()+
-          '<p class="ob-p" style="font-size:13px">🧭 First thing on your dashboard: a <b>3-minute mobility screen</b> — it tunes your warm-ups to what’s tight and completes your Octane score.</p>'+
-          '<div class="ob-startcue">📅 Tapping below makes <b>today Day 1</b> — your Week 1 plan starts <b>right now</b> and counts forward from today. (Just looking? Use the link below — nothing starts until you say go.)</div>';
-        nextLabel="Start — today is Day 1 →";
+          '<div class="ob-fit"><b>Why this fits:</b> '+ob.freq+' sessions at '+ob.workout+' · '+((EQ_CARDS.filter(function(x){return x.v===ob.equip;})[0]||EQ_CARDS[0]).t.toLowerCase())+
+            (ob.prep.length?' · extra prep for '+ob.prep.join(", "):'')+'.</div>'+
+          '<p class="ob-p ob-quiet">Meals begin with these targets. Personalize foods anytime from Fuel. Your mobility screen will fine-tune warm-ups after setup.</p>'+
+          (ob.hadPlan
+            ? '<div class="ob-startcue">✓ Your completed sessions and current week stay exactly where they are. Only future guidance updates.</div>'
+            : '<div class="ob-startcue">📅 Start now and today becomes Day 1. Nothing begins until you choose it.</div>');
+        nextLabel=ob.hadPlan?"Save & see my updated plan →":"Start my first week →";
       }
 
       root.innerHTML=
@@ -219,8 +258,8 @@
           '<div class="ob-nav">'+
             (showBack?'<button type="button" class="ob-back" id="obBack">Back</button>':'')+
             '<button type="button" class="ob-next" id="obNext">'+nextLabel+'</button></div>'+
-          (showSkip?'<button type="button" class="ob-later" id="obSkip">Skip setup — just look around</button>':'')+
-          (s===7?'<button type="button" class="ob-later" id="obLater">I’ll start later — just look around</button>':'')+
+          (showSkip?'<button type="button" class="ob-later" id="obSkip">'+(ob.revisit?"Exit setup":"Skip setup — just look around")+'</button>':'')+
+          (s===5?'<button type="button" class="ob-later" id="obLater">'+(ob.hadPlan?"Save & return home":"Save it — I’ll start later")+'</button>':'')+
         '</div></div>';
 
       var skip=$("obSkip"); if(skip) skip.onclick=function(){ lsSet("ff_onboarded",true); close(); };
@@ -228,20 +267,17 @@
       var later=$("obLater"); if(later) later.onclick=function(){ finish(false); };
       if(s===1) Array.prototype.forEach.call(root.querySelectorAll("[data-goal]"), function(b){
         b.onclick=function(){ ob.goal=b.getAttribute("data-goal"); render(); }; });
+      if(s===1) segPick("obGoalYds", function(v){ ob.goalyds=parseInt(v,10)||15; });
       if(s===2) segPick("obSex", function(v){ ob.sex=v; });
-      if(s===5) segPick("obGoalYds", function(v){ ob.goalyds=parseInt(v,10)||15; });
       if(s===3){ segPick("obWk", function(v){ ob.workout=v; }); segPick("obFreq", function(v){ ob.freq=parseInt(v,10); }); }
-      if(s===4) Array.prototype.forEach.call(root.querySelectorAll("[data-equip]"), function(b){
-        b.onclick=function(){ ob.equip=b.getAttribute("data-equip"); applyEquipPreset(ob.equip); render(); }; });
-      if(s===6){ var fw=$("obFood"); if(fw){ fw.addEventListener("click", function(e){
-        var fb=e.target.closest("[data-fff]"), rb=e.target.closest("[data-ffr]");
-        if(!fb && !rb) return;
-        if(fb) ffCycleFood(ob.prefs, fb.getAttribute("data-fff"));
-        if(rb) ffToggleRestrict(ob.prefs, rb.getAttribute("data-ffr"));
-        fw.innerHTML=ffPickerHtml(ob.prefs);
-      });
-      fw.addEventListener("input", function(e){ if(e.target.id==="ffZipInput"){ var z=e.target.value.replace(/\D/g,"").slice(0,5); if(z!==e.target.value) e.target.value=z; lsSet("ff_zip", z); localStorage.removeItem("ff_region"); var lbl=fw.querySelector(".ffp-reg"); if(lbl) lbl.textContent="📍 "+(US_REGIONS[ffRegion()]||US_REGIONS.US).label; } });
-      fw.addEventListener("change", function(e){ if(e.target.id==="ffZipInput"){ fw.innerHTML=ffPickerHtml(ob.prefs); } }); } }
+      if(s===3) Array.prototype.forEach.call(root.querySelectorAll("[data-equip]"), function(b){
+        b.onclick=function(){ ob.equip=b.getAttribute("data-equip"); render(); }; });
+      if(s===4){ var prep=$("obPrep"); if(prep) prep.onclick=function(e){
+        var b=e.target.closest("[data-prep]"); if(!b) return;
+        var key=b.getAttribute("data-prep"), i=ob.prep.indexOf(key);
+        if(i===-1) ob.prep.push(key); else ob.prep.splice(i,1);
+        b.classList.toggle("sel",i===-1);
+      }; }
       var next=$("obNext"); if(next) next.onclick=function(){ advance(s); };
     }
     render();
