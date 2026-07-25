@@ -40,16 +40,17 @@
 </div></header>
 <main>
   <h1>Privacy Policy</h1>
-  <div class="upd">Last updated: June 2026 · Plain-English, because it should be.</div>
+  <div class="upd">Last updated: July 25, 2026 · Plain-English, because it should be.</div>
 
-  <p>Yardsmith is a free golf training &amp; nutrition app. We collect as little as possible,
+  <p>Yardsmith is a golf training &amp; nutrition app operated by <b>Long Game Labs LLC</b>. We collect as little as possible,
      we don't sell your data, and you can delete it any time. Here's exactly what happens.</p>
 
   <div class="card">
     <h2>What's stored on your device</h2>
     <p>Everything you enter — your calculator inputs, food preferences, workout log, bodyweight
        and clubhead-speed history, and your settings — is saved <b>locally in your browser</b>
-       (localStorage). If you never sign in, your data never leaves your device.</p>
+       (localStorage). If you never sign in, those training, nutrition and health values never leave your device.
+       The anonymous product-health signals described below may still be sent unless you turn them off.</p>
   </div>
 
   <div class="card">
@@ -66,11 +67,26 @@
           device public/authentication keys, timezone, preferred hour, and a seven-day message schedule.</li>
       <li><b>Recovery snapshots</b> — up to ten prior versions of your synced app-data backup,
           retained so accidental corruption can be recovered.</li>
+      <li><b>Coach memory</b> — a small, bounded summary of useful preferences, goals and prior
+          coaching context so the coach can stay consistent across devices. It is part of your
+          synced profile and is deleted with your account.</li>
     </ul>
     <p>Sign-in and cloud storage are handled by <a href="https://supabase.com/privacy" rel="noopener" target="_blank">Supabase</a>,
        our backend provider.</p>
     <p>Recovery snapshots roll forward as you use the app (only the latest ten are kept).
        Inactive push subscriptions are scheduled for deletion after 90 days.</p>
+  </div>
+
+  <div class="card">
+    <h2>Anonymous product health</h2>
+    <p>To improve reliability and make the app easier to use, Yardsmith sends a small set of
+       first-party feature-use and crash signals to our own Supabase backend. These signals use
+       a new random session identifier each launch and are not linked to your account.</p>
+    <p>They do <b>not</b> include your email, account ID, body or health values, workout values,
+       food data, coach messages, notes, URLs, advertising IDs or a persistent device ID. Crash
+       signals contain only the error type, app module and a coarse line-number bucket. We do not
+       use third-party advertising analytics. You can turn Product health off under <b>You</b>;
+       browser “Do Not Track” is also respected.</p>
   </div>
 
   <div class="card">
@@ -97,7 +113,9 @@
     <p>On your device: clearing the app's site data (or your browser data) removes the local copy.
        When signed in, use <b>You → Delete account</b> to permanently delete the authentication
        account, synced profile, recovery history, leaderboard entry, and push subscriptions.
-       You may also email us if you cannot access the app.</p>
+       You can also complete the same verified flow at
+       <a href="delete-account.html">yardsmith.golf/delete-account.html</a>, even if the app is no
+       longer installed, or email us if you cannot access your account.</p>
   </div>
 
   <div class="card">
@@ -111,7 +129,7 @@
   <p>Questions, or want your data deleted? Email
      <a href="mailto:bobbydenisclay@gmail.com?subject=Yardsmith%20privacy">bobbydenisclay@gmail.com</a>.</p>
 
-  <div class="foot">Yardsmith · installs &amp; works offline · made for golfers who lift.</div>
+  <div class="foot">Yardsmith is operated by Long Game Labs LLC · installs &amp; works offline · made for golfers who lift.</div>
 </main>
 </body>
 </html>

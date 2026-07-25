@@ -384,7 +384,7 @@
       var s=parseFloat(e.s); if(!isNaN(s)){ spF.push(s); spD.push(e.date||""); }
       var w=parseFloat(e.w); if(!isNaN(w)){ wtF.push(w); wtD.push(e.date||""); }
     });
-    var sess=Object.keys(getLog()).length, lifts=bigLiftStats();
+    var sess=sessionsByWeek().length, lifts=bigLiftStats();
     var hasAny = sess>0 || spF.length>0 || wtF.length>0;
 
     var html='<div class="prog-hd"><div class="prog-kick">⛳ The proof it’s working</div><h2>Your Progress</h2></div>';
@@ -526,7 +526,7 @@
     var speed = sp.length ? sp[sp.length-1] : null;
     var gain = sp.length>=2 ? Math.round((sp[sp.length-1]-sp[0])/sp[0]*1000)/10 : null;
     return { score:r.score, speed:speed, speed_gain:gain,
-      sessions:Object.keys(getLog()).length, streak:lbStreak(),
+      sessions:sessionsByWeek().length, streak:lbStreak(),
       week_sessions:thisWeekStats().sessions, week_start:weekStartStr(),
       goal:state.goal };
   }

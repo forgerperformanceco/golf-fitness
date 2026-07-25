@@ -4,9 +4,12 @@ import { readFileSync } from "node:fs";
 
 test("Supabase browser SDK is exact-versioned with integrity", () => {
   const src = readFileSync(new URL("../cloud-sync.js", import.meta.url), "utf8");
+  const deletion = readFileSync(new URL("../delete-account.html", import.meta.url), "utf8");
   assert.match(src, /supabase-js@2\.110\.2/);
   assert.match(src, /sc\.integrity = "sha384-/);
   assert.doesNotMatch(src, /supabase-js@2["/]/);
+  assert.match(deletion, /supabase-js@2\.110\.2/);
+  assert.match(deletion, /integrity="sha384-/);
 });
 
 test("Edge Function dependencies are pinned", () => {

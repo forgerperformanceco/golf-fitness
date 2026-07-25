@@ -26,3 +26,8 @@ verify_jwt = false
 # header the function checks itself, so the gateway JWT check stays off —
 # same pattern as paddle-webhook.
 verify_jwt = false
+
+[functions.product-health]
+# Public by design so signed-out activation and startup crashes are visible.
+# The handler accepts only a tiny allow-list and no identity or health values.
+verify_jwt = false

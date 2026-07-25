@@ -39,6 +39,8 @@
     document.body.style.overflow="hidden";
     lsRemove("ff_pl_paused");
     plPauseSync();
+    try{ if(window.FFHealth) window.FFHealth.track(hasAny?"workout_resumed":"workout_started",
+      {kind:day.type==="speed"?"speed":"lift",week:week}); }catch(e){}
   }
   function plClose(){
     plStopRest();
@@ -54,6 +56,8 @@
         sess.activeMs=(sess.activeMs||0)+Math.max(0, Date.now()-started);
         try{ saveSession(player.week, player.dayName, sess); }catch(e){}
         lsSet("ff_pl_paused", { day:player.dayName, week:player.week, st:player.st });
+        try{ if(window.FFHealth) window.FFHealth.track("workout_paused",
+          {kind:player.day.type==="speed"?"speed":"lift",week:player.week,station:player.st}); }catch(e){}
       }
     }
     player=null;
@@ -252,6 +256,9 @@
     saveSession(player.week, player.dayName, player.sess);
     lsRemove("ff_pl_paused");
     pushHistory(player.week, player.dayName, player.sess);
+    try{ if(window.FFHealth) window.FFHealth.track("workout_completed",
+      {kind:player.day.type==="speed"?"speed":"lift",week:player.week,
+       minutes:Math.max(1,Math.round(((player.sess.activeMs||0)+(Date.now()-player.startedAt))/60000))}); }catch(e){}
     try{ ffMilestones(); }catch(e){}
     focusDay=player.dayName;
     ffToast("Workout saved to history 💪 Nice work.");
@@ -615,7 +622,7 @@
   function sessionsByWeek(){
     var L=getLog(), out=[];
     Object.keys(L).forEach(function(k){ var i=k.indexOf("|");
-      out.push({ w:parseInt(k.slice(0,i),10), day:k.slice(i+1), s:L[k] }); });
+      if(sessionFinished(L[k])) out.push({ w:parseInt(k.slice(0,i),10), day:k.slice(i+1), s:L[k] }); });
     out.sort(function(a,b){ return a.w-b.w; });
     return out;
   }
@@ -938,6 +945,10 @@
   /* ----- Dashboard (home overview) ----- */
   function nextWorkout(){
     var wk=curWeek(), days=activeDays(), L=getLog();
+    // Resume the first unfinished workout before offering a new one. A partial
+    // session must never advance the plan or disappear behind the next day.
+    for(var p=0;p<days.length;p++){ if(days[p].type==="rest") continue;
+      var pending=L[wk+"|"+days[p].name]; if(sessionInProgress(pending)) return days[p].name; }
     for(var i=0;i<days.length;i++){ if(days[i].type==="rest") continue; if(!L[wk+"|"+days[i].name]) return days[i].name; }
     for(var j=0;j<days.length;j++){ if(days[j].type!=="rest") return days[j].name; }   // all logged → first workout
     return null;
@@ -948,7 +959,7 @@
   // "week complete", so nailing every workout always reads as a complete week.
   function weekDoneCount(){
     var wk=curWeek(), total=0, done=0;
-    activeDays().forEach(function(d){ if(d.type==="rest") return; total++; if(getSession(wk,d.name)) done++; });
+    activeDays().forEach(function(d){ if(d.type==="rest") return; total++; if(sessionFinished(getSession(wk,d.name))) done++; });
     return { done:done, total:total };
   }
   // One shared "Log today" block — identical fields, styling and behavior on

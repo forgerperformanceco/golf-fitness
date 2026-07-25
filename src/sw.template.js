@@ -9,6 +9,8 @@ var ASSETS = [
   './fonts/ffnum.woff2',
   './app.js?v={{V}}',
   './privacy.html',
+  './delete-account.html',
+  './product-health.js?v=1',
   './cloud-sync.js?v=113',
   './coach.js?v=89',
   './manifest.webmanifest',
@@ -69,12 +71,17 @@ self.addEventListener('fetch', function (e) {
     // back a 10-minute-stale index.html (old app.js hash → old app) right after
     // a deploy. no-store guarantees the new index.html, which pulls the new
     // hashed app.js/styles.css. Offline still falls back to the cached copy.
+    // Standalone legal/deletion pages need distinct entries; otherwise visiting
+    // one would overwrite the app shell's index.html offline fallback.
+    var path = new URL(e.request.url).pathname;
+    var htmlKey = /\/privacy\.html$/.test(path) ? './privacy.html' :
+      (/\/delete-account\.html$/.test(path) ? './delete-account.html' : './index.html');
     e.respondWith(
       fetch(e.request.url, { cache: 'no-store', credentials: 'same-origin' }).then(function (res) {
         var copy = res.clone();
-        caches.open(CACHE).then(function (c) { c.put('./index.html', copy); });
+        caches.open(CACHE).then(function (c) { c.put(htmlKey, copy); });
         return res;
-      }).catch(function () { return caches.match('./index.html').then(function (h) { return h || caches.match('./'); }); })
+      }).catch(function () { return caches.match(htmlKey).then(function (h) { return h || caches.match('./'); }); })
     );
   } else {
     e.respondWith(
