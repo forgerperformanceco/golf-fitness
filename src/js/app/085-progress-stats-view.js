@@ -353,6 +353,29 @@
     '</section>';
   }
 
+  function brainForecastHtml(){
+    if(!window.FFBrain || !window.FFBrain.forecast) return "";
+    var f=window.FFBrain.forecast();
+    if(!f || f.status!=="ready"){
+      return '<section class="brain-forecast building" aria-label="Six-week forecast">'+
+        '<div class="bf-kick">6-WEEK OUTLOOK · BUILDING</div><div class="bf-build">'+
+        '<span class="bf-orb">'+ffIcon("target",18)+'</span><span><b>Your forecast needs one more clean signal</b>'+
+        '<small>'+(f&&f.next?f.next:"Run two dated Speed Tests to unlock a personal outlook.")+'</small></span></div></section>';
+    }
+    function signed(v){ return (v>0?"+":"")+v; }
+    return '<section class="brain-forecast" aria-labelledby="bfTitle">'+
+      '<div class="bf-top"><span class="bf-kick">6-WEEK OUTLOOK</span><span class="bf-conf">'+f.confidence+' confidence</span></div>'+
+      '<div class="bf-main"><div><h3 id="bfTitle">'+f.projected7Iron.low+'–'+f.projected7Iron.high+' mph</h3>'+
+        '<p>Projected 7-iron range if the current training dose and consistency hold.</p></div>'+
+        '<div class="bf-gain"><b>'+signed(f.projectedGain.low)+' to '+signed(f.projectedGain.high)+'</b><span>mph vs now</span></div></div>'+
+      '<div class="bf-carry"><span>'+ffIcon("gauge",17)+'</span><span><b>'+signed(f.estimated7IronCarryGainYards.low)+' to '+signed(f.estimated7IronCarryGainYards.high)+' yards</b>'+
+        '<small>estimated 7-iron carry change · ~2 yards per mph</small></span></div>'+
+      '<details class="bf-proof"><summary>Why this range <span>↓</span></summary><ul>'+
+        f.basis.map(function(x){ return '<li>'+x+'</li>'; }).join("")+'</ul><p>'+f.disclaimer+'</p></details>'+
+      '<button type="button" class="bf-coach" data-ask="forecast">💬 Coach me toward the high end <span>→</span></button>'+
+    '</section>';
+  }
+
   function renderProgress(){
     var el=$("progressBody"); if(!el) return;
     var body=lsGet("ff_body",[]);
@@ -366,6 +389,7 @@
 
     var html='<div class="prog-hd"><div class="prog-kick">⛳ The proof it’s working</div><h2>Your Progress</h2></div>';
     html += performanceStoryHtml();
+    html += brainForecastHtml();
     html += renderScoreCard();
 
     // Consolidation pass (Stats 3.0): the page tells THREE stories below the
@@ -912,9 +936,10 @@
     read:  "Give me a quick read on where I'm at from my numbers — what's working and the single most important thing to focus on this week.",
     meals: "Build me a full day of meals that hits my macro targets — realistic foods with cooked weights and named cuts, plus some variety. Breakfast should be breakfast food, and put faster carbs around training.",
     train: "Look at my current week and training log — am I progressing on the big lifts and my 7-iron speed, and what should I focus on or adjust next?",
-    progress: "Read my progress trends — my 7-iron speed, estimated 1RM on the big lifts, bodyweight and consistency. What's trending well, what's stalling, and the one thing I should push next to turn mass into clubhead speed?"
+    progress: "Read my progress trends — my 7-iron speed, estimated 1RM on the big lifts, bodyweight and consistency. What's trending well, what's stalling, and the one thing I should push next to turn mass into clubhead speed?",
+    forecast: "Explain my six-week forecast, the assumptions behind its range, and give me the three highest-leverage actions that could move me toward the high end without promising a result."
   };
-  var ASK_LABELS = { read:"Your dashboard", meals:"Your macro targets", train:"This week's training", progress:"Your progress trends" };
+  var ASK_LABELS = { read:"Your dashboard", meals:"Your macro targets", train:"This week's training", progress:"Your progress trends", forecast:"Your six-week outlook" };
   document.addEventListener("click", function(e){
     var a=e.target.closest("[data-ask]"); if(!a) return;
     var k=a.getAttribute("data-ask");
