@@ -7,7 +7,9 @@
     workout_started:1, workout_resumed:1, workout_paused:1,
     workout_completed:1, sign_in_completed:1, app_error:1,
     activation_step:1, activation_completed:1, catchup_started:1,
-    weekly_action_started:1, weekly_review_completed:1, weekly_review_shared:1
+    weekly_action_started:1, weekly_review_completed:1, weekly_review_shared:1,
+    reminder_enabled:1, reminder_disabled:1, reminder_settings_changed:1,
+    notification_opened:1
   };
   var PROPS = {
     view_changed:["view"], onboarding_completed:["started_plan","revisit"],
@@ -17,7 +19,9 @@
     app_error:["type","source","line_bucket"],
     activation_step:["step"], catchup_started:["week"],
     weekly_action_started:["action","week"],
-    weekly_review_completed:["week","band"], weekly_review_shared:["week"]
+    weekly_review_completed:["week","band"], weekly_review_shared:["week"],
+    reminder_enabled:["delivery","mode"], reminder_disabled:["delivery"],
+    reminder_settings_changed:["mode","timing"], notification_opened:["kind"]
   };
   var sessionId="";
   try{ sessionId=crypto.randomUUID(); }

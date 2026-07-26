@@ -1,5 +1,32 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## Sprint 4 — smart re-engagement (Jul 26, 2026)
+
+Sprint 4 lets Yardsmith coach while closed without becoming notification noise:
+
+1. **One useful job:** the shared seven-day reminder engine now prioritizes an
+   overdue session, today's unfinished workout, a due speed test, or Sunday
+   week-close. A workout already banked suppresses its notification.
+2. **Essential vs Daily:** Essential (the default) keeps rest days silent. Daily
+   adds intentional recovery nudges. Both modes cap delivery at one notification
+   per local day and expire stale sends after one hour.
+3. **Respectful timing:** users choose training time or one hour before. The final
+   send hour is clamped to 7 AM–8 PM, and Account shows the exact next scheduled
+   reminder before it fires.
+4. **Exact deep links:** notification payloads carry a constrained same-origin
+   route. Tapping opens Train, launches Speed Test Day, or expands the Weekly
+   Flight Plan review instead of dropping users onto a generic Home screen.
+5. **Web, PWA and native parity:** the same message decision powers Supabase web
+   push, open-tab fallback reminders, and Capacitor local notifications.
+6. **Safe delivery intelligence:** the Edge Function validates title, body, kind
+   and URL; skips completed/rest jobs; prunes expired endpoints; and records only
+   coarse message-kind logs. Opt-in, opt-out, settings changes and opens extend
+   the anonymous product-health allow-list without subscription keys, identity,
+   workout contents or health data.
+
+The Account card is now a transparent control surface: delivery status, next
+message, mode, timing, and off switch are visible together.
+
 ## Sprint 3 — the weekly performance loop (Jul 26, 2026)
 
 Sprint 3 moves the engagement system from first-week activation to durable,

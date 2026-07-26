@@ -29,12 +29,32 @@ type SubRow = {
   last_sent: string | null;
 };
 
-type DayMsg = { d?: string; title?: string; body?: string };
+type DayMsg = {
+  d?: string;
+  title?: string;
+  body?: string;
+  kind?: string;
+  url?: string;
+  skip?: boolean;
+};
 
 const FALLBACK = {
   title: "It's been a minute ⛳",
-  body: "Your plan picks up right where you left off — one session gets the streak moving again.",
+  body: "Your plan picks up right where you left off — one session gets the week moving again.",
+  kind: "reengage",
+  url: "./?go=plan&src=push&kind=reengage",
 };
+function safeText(value: unknown, fallback: string, max: number): string {
+  return typeof value === "string" && value.trim() ? value.trim().slice(0, max) : fallback;
+}
+function safeKind(value: unknown): string {
+  return typeof value === "string" && /^[a-z]{1,16}$/.test(value) ? value : "train";
+}
+function safeUrl(value: unknown, kind: string): string {
+  return typeof value === "string" && /^\.\/\?/.test(value)
+    ? value.slice(0, 160)
+    : `./?go=dash&src=push&kind=${kind}`;
+}
 
 function localNow(tz: string): { date: string; hour: number } | null {
   try {
@@ -85,14 +105,24 @@ Deno.serve(async (req: Request) => {
     const week: DayMsg[] = Array.isArray(s.week) ? (s.week as DayMsg[]) : [];
     const today = week.find((m) => m && m.d === now.date);
     const msg = (today && today.title) ? today : FALLBACK;
+    if (today?.skip) {
+      skipped++;
+      await admin.from("push_subs").update({ last_sent: now.date }).eq("endpoint", s.endpoint);
+      continue;
+    }
+    const kind = safeKind(msg.kind);
+    const title = safeText(msg.title, FALLBACK.title, 80);
+    const body = safeText(msg.body, FALLBACK.body, 180);
+    const url = safeUrl(msg.url, kind);
 
     try {
       await webpush.sendNotification(
         { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
-        JSON.stringify({ title: msg.title, body: msg.body, tag: "ff-daily" }),
+        JSON.stringify({ title, body, kind, url, tag: `ff-${kind}` }),
         { TTL: 3600 },   // stale reminders are worse than none
       );
       sent++;
+      console.log(JSON.stringify({ kind:"push_sent", message_kind:kind }));
       await admin.from("push_subs").update({ last_sent: now.date }).eq("endpoint", s.endpoint);
     } catch (e) {
       const code = (e as { statusCode?: number }).statusCode ?? 0;

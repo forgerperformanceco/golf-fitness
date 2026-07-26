@@ -10,7 +10,7 @@ var ASSETS = [
   './app.js?v={{V}}',
   './privacy.html',
   './delete-account.html',
-  './product-health.js?v=3',
+  './product-health.js?v=4',
   './cloud-sync.js?v=114',
   './coach.js?v=89',
   './manifest.webmanifest',
@@ -40,21 +40,27 @@ self.addEventListener('activate', function (e) {
    then only the app's own local reminders use showNotification. */
 self.addEventListener('notificationclick', function (e) {
   e.notification.close();
+  var raw = e.notification && e.notification.data && e.notification.data.url;
+  var target = new URL((typeof raw === 'string' && /^\.\/\?/.test(raw)) ? raw : './', self.registration.scope).href;
   e.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (list) {
       for (var i = 0; i < list.length; i++) {
+        if ('navigate' in list[i]) return list[i].navigate(target).then(function (c) { return c.focus(); });
         if ('focus' in list[i]) return list[i].focus();
       }
-      return self.clients.openWindow('./');
+      return self.clients.openWindow(target);
     })
   );
 });
 self.addEventListener('push', function (e) {
   var data = {};
   try { data = e.data ? e.data.json() : {}; } catch (err) {}
+  var url = (typeof data.url === 'string' && /^\.\/\?/.test(data.url)) ? data.url : './';
+  var kind = (typeof data.kind === 'string' && /^[a-z]{1,16}$/.test(data.kind)) ? data.kind : 'train';
   e.waitUntil(self.registration.showNotification(data.title || 'Yardsmith ⛳', {
     body: data.body || 'Time to train — your yards are waiting.',
-    icon: 'icon-192.png', badge: 'icon-192.png', tag: data.tag || 'ff-push'
+    icon: 'icon-192.png', badge: 'icon-192.png', tag: data.tag || 'ff-push',
+    data: { url:url, kind:kind }
   }));
 });
 
