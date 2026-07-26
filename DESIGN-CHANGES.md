@@ -1,5 +1,34 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## Sprint 3 — the weekly performance loop (Jul 26, 2026)
+
+Sprint 3 moves the engagement system from first-week activation to durable,
+low-pressure retention:
+
+1. **Weekly Flight Plan:** after the Opening Round's two-day victory lap, Home
+   gains one compact weekly card with three signals: complete the authored
+   training frequency, fuel on 3–5 days (scaled to training frequency), and
+   capture one body/performance check-in. The card reads calendar-week history,
+   fuel, body, speed, distance and mobility data already owned by the user.
+2. **Pace, not streak anxiety:** the headline compares sessions with the natural
+   pace through the current weekday. Falling behind becomes “one good rep changes
+   the week”; an imperfect week never resets history or presents failure copy.
+3. **One next win:** the card routes to the highest-value unfinished loop —
+   training, fuel, check-in, then review — instead of presenting three competing
+   calls to action.
+4. **Week-close ritual:** from the weekend (or once training is complete), users
+   can review the win, the lesson and the next tee, then bank the week. The review
+   persists by Monday week key, merges safely across signed-in devices, and
+   produces a branded, shareable recap.
+5. **Privacy-safe retention measurement:** next-action starts, week reviews and
+   recap shares join the strict first-party allow-list. Only action, plan week and
+   a coarse completion band are accepted; no identity, health values, workout
+   details or free text leave the device.
+
+The loop deliberately waits until activation is complete so Home never stacks
+two onboarding systems. It adds depth for returning golfers while keeping the
+daily primary action dominant.
+
 ## Sprint 2 — activation, momentum and forgiving return (Jul 26, 2026)
 
 Sprint 2 closes the gap between “the plan is powerful” and “I know how to build

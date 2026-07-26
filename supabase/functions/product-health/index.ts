@@ -6,6 +6,7 @@ const EVENTS = new Set([
   "workout_started", "workout_resumed", "workout_paused",
   "workout_completed", "sign_in_completed", "app_error",
   "activation_step", "activation_completed", "catchup_started",
+  "weekly_action_started", "weekly_review_completed", "weekly_review_shared",
 ]);
 const PROP_KEYS: Record<string, Set<string>> = {
   view_changed:new Set(["view"]),
@@ -17,6 +18,9 @@ const PROP_KEYS: Record<string, Set<string>> = {
   app_error:new Set(["type","source","line_bucket"]),
   activation_step:new Set(["step"]),
   catchup_started:new Set(["week"]),
+  weekly_action_started:new Set(["action","week"]),
+  weekly_review_completed:new Set(["week","band"]),
+  weekly_review_shared:new Set(["week"]),
 };
 function token(value:unknown,max=24):string|number|boolean|null{
   if(typeof value==="boolean") return value;
