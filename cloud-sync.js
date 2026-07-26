@@ -17,7 +17,7 @@
 
   // Everything the app persists to localStorage — the full progress blob.
   // ff_start = the plan's start date (so the calendar/week follows you across devices).
-  var KEYS = ["fairwayfuel", "ff_week", "ff_log", "ff_body", "ff_start", "ff_planview", "ff_swaps", "ff_onboarded", "ff_handle", "ff_kcal_adj", "ff_lastcheckin", "ff_gameday", "ff_foodprefs", "ff_insights_seen", "ff_region", "ff_zip", "ff_tips_seen", "ff_history", "ff_deleted", "ff_rest", "ff_goalyds", "ff_speedtest", "ff_mobility", "ff_event", "ff_fuel", "ff_rounds", "ff_coach_memory"];
+  var KEYS = ["fairwayfuel", "ff_week", "ff_log", "ff_body", "ff_start", "ff_planview", "ff_swaps", "ff_onboarded", "ff_handle", "ff_kcal_adj", "ff_lastcheckin", "ff_gameday", "ff_foodprefs", "ff_insights_seen", "ff_region", "ff_zip", "ff_tips_seen", "ff_history", "ff_deleted", "ff_rest", "ff_goalyds", "ff_speedtest", "ff_mobility", "ff_event", "ff_fuel", "ff_rounds", "ff_coach_memory", "ff_weekly_reviews"];
 
   // Disabled until configured.
   if (!SUPABASE_URL || !SUPABASE_ANON) return;
@@ -431,6 +431,21 @@
     if (keys.length > 95) { keys.sort(); keys.slice(0, keys.length - 95).forEach(function (k) { delete out[k]; }); }
     return out;
   }
+  // Week reviews are keyed by the ISO Monday. Preserve reviews completed on
+  // either device; if both close the same week, the newer reflection wins.
+  function unionWeeklyReviews(local, cloud) {
+    local = (local && typeof local === "object") ? local : {};
+    cloud = (cloud && typeof cloud === "object") ? cloud : {};
+    var out = {};
+    Object.keys(cloud).forEach(function (k) { out[k] = cloud[k]; });
+    Object.keys(local).forEach(function (k) {
+      var a=local[k], b=out[k];
+      if (!b || ((a && a.ts) || 0) >= ((b && b.ts) || 0)) out[k]=a;
+    });
+    var keys=Object.keys(out);
+    if(keys.length>30){ keys.sort(); keys.slice(0,keys.length-30).forEach(function(k){ delete out[k]; }); }
+    return out;
+  }
   // ---- Merge registry ----
   // Every ADDITIVE key (history the user accumulates) must declare its union
   // here; keys without an entry are settings and take the cloud value on
@@ -444,7 +459,8 @@
     ff_rounds:    function (l, c) { return unionSeries(l, c, function (e) { return e.id || e.ts; }, 60); },
     ff_speedtest: function (l, c) { return unionSeries(l, c, function (e) { return e.ts; }, 60); },
     ff_mobility:  function (l, c) { return unionSeries(l, c, function (e) { return e.ts; }, 40); },
-    ff_fuel:      unionFuel
+    ff_fuel:      unionFuel,
+    ff_weekly_reviews: unionWeeklyReviews
   };
   function mergeBlob(local, cloud) {
     local = local || {}; cloud = cloud || {};

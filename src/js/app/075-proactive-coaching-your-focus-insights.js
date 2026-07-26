@@ -230,6 +230,95 @@
     return wd.done+"/"+wd.total+" sessions · "+fuelDays+" fueled day"+(fuelDays===1?"":"s")+
       (speedTestDue()?" · speed test due":" · speed current");
   }
+  /* ----- WEEKLY FLIGHT PLAN
+     Sprint 3's retention loop. It unlocks after Opening Round's two-day victory
+     lap, then turns an abstract "be consistent" goal into three visible jobs:
+     train to the authored frequency, fuel on most days, and capture one body or
+     performance signal. The week can still be closed when imperfect — reflection
+     should pull a golfer back in, never become another streak to lose. ----- */
+  var weekReviewOpen=false;
+  function weeklyKey(){
+    var d=weekStartDateCal();
+    return ffISO(d);
+  }
+  function weeklyLoopState(){
+    var start=weekStartDateCal(), startMs=start.getTime(), now=new Date();
+    var freq=(typeof planState!=="undefined"&&planState.freq)||4;
+    var sessions=lsGet("ff_history",[]).filter(function(h){ return h && (h.ts||0)>=startMs; }).length;
+    var fuelDays=0;
+    for(var i=0;i<7;i++){
+      var d=new Date(start); d.setDate(start.getDate()+i);
+      if(d>now) break;
+      var f=fuelStateFor(ffISO(d));
+      if(f==="on"||f==="close") fuelDays++;
+    }
+    var checkin=lsGet("ff_body",[]).some(function(e){
+      var t=e&&(e.ts||new Date(e.date||0).getTime());
+      return !!(t && !isNaN(t) && t>=startMs && (e.w||e.s||e.d));
+    }) || mobTests().some(function(m){ return (m.ts||0)>=startMs; });
+    var fuelTarget=Math.min(5,Math.max(3,freq));
+    var day=(now.getDay()+6)%7, pace=Math.ceil(freq*(day+1)/7);
+    var trainingDone=sessions>=freq, fuelDone=fuelDays>=fuelTarget;
+    var done=(trainingDone?1:0)+(fuelDone?1:0)+(checkin?1:0);
+    var reviews=lsGet("ff_weekly_reviews",{});
+    if(!reviews||typeof reviews!=="object") reviews={};
+    return {key:weeklyKey(),week:curWeek(),freq:freq,sessions:sessions,
+      fuelDays:fuelDays,fuelTarget:fuelTarget,checkin:checkin,done:done,
+      onPace:sessions>=pace,closeable:day>=5||trainingDone,review:reviews[weeklyKey()]||null};
+  }
+  function weeklyNext(s){
+    if(s.sessions<s.freq) return {key:"train",label:"Bank the next session",sub:(s.freq-s.sessions)+" left to hit your training line",attr:' data-goview="plan"'};
+    if(s.fuelDays<s.fuelTarget) return {key:"fuel",label:"Fuel today",sub:(s.fuelTarget-s.fuelDays)+" more solid day"+(s.fuelTarget-s.fuelDays===1?"":"s")+" closes the loop",attr:' data-goview="calc"'};
+    if(!s.checkin) return {key:"checkin",label:"Capture one signal",sub:"Bodyweight, speed, distance or mobility — one honest read",attr:' data-weighin="1"'};
+    return {key:"close",label:"Close this week",sub:"Read the win, bank the lesson, see what comes next",attr:' data-weekclose="1"'};
+  }
+  function weeklyReviewCopy(s){
+    var win=s.sessions>=s.freq ? "You kept the training promise." :
+      (s.sessions ? "You banked "+s.sessions+" session"+(s.sessions===1?"":"s")+" — the work still counts." : "This week stayed open. The next rep is the restart.");
+    var lesson=s.fuelDays>=s.fuelTarget ? "Fuel supported the work." :
+      (s.fuelDays ? "Fuel showed up on "+s.fuelDays+" day"+(s.fuelDays===1?"":"s")+"; make the next meal the easy win." : "Fuel is the cleanest lever waiting for you.");
+    return {win:win,lesson:lesson,next:"Week "+Math.min(20,s.week+1)+" keeps your history and starts with a clean card."};
+  }
+  function weeklyFlightHtml(){
+    var complete=lsGet("ff_opening_round_complete",0);
+    if(!planStart()||!complete||Date.now()-complete<=2*864e5) return "";
+    var s=weeklyLoopState(), next=weeklyNext(s), review=weeklyReviewCopy(s);
+    var title=s.review?"Week banked":(s.done===3?"Three signals connected":(s.onPace?"You’re building on pace":"One good rep changes the week"));
+    var rows=[
+      {ic:"🏋️",label:"Train",value:Math.min(s.sessions,s.freq)+"/"+s.freq,done:s.sessions>=s.freq},
+      {ic:"🍽️",label:"Fuel",value:Math.min(s.fuelDays,s.fuelTarget)+"/"+s.fuelTarget+" days",done:s.fuelDays>=s.fuelTarget},
+      {ic:"📍",label:"Check in",value:s.checkin?"Banked":"1 signal",done:s.checkin}
+    ];
+    return '<section class="weekly-flight'+(s.review?' reviewed':'')+'" aria-label="Weekly Flight Plan">'+
+      '<div class="wf-head"><span><small>WEEK '+s.week+' · FLIGHT PLAN</small><b>'+title+'</b></span>'+
+        '<strong>'+s.done+'<i>/3</i></strong></div>'+
+      '<div class="wf-signals">'+rows.map(function(r){
+        return '<div class="wf-signal'+(r.done?' done':'')+'"><span>'+r.ic+'</span><b>'+r.label+'</b><small>'+r.value+'</small></div>';
+      }).join("")+'</div>'+
+      (weekReviewOpen||s.review
+        ? '<div class="wf-review"><div><small>THE WIN</small><b>'+review.win+'</b></div>'+
+            '<div><small>THE LESSON</small><b>'+review.lesson+'</b></div>'+
+            '<div><small>NEXT TEE</small><b>'+review.next+'</b></div>'+
+            (!s.review?'<button type="button" data-weekbank="1">Bank this week ✓</button>':
+              '<button type="button" data-weekshare="1">'+ffIcon("share",14)+' Share the week</button>')+'</div>'
+        : '<button type="button" class="wf-next"'+next.attr+' data-weekaction="'+next.key+'">'+
+            '<span><small>NEXT WIN</small><b>'+next.label+'</b><em>'+next.sub+'</em></span><i>›</i></button>'+
+          (s.closeable?'<button type="button" class="wf-close" data-weekclose="1">Review this week</button>':''))+
+      '</section>';
+  }
+  function shareWeeklyFlight(){
+    var s=weeklyLoopState(), r=weeklyReviewCopy(s);
+    var txt="My Yardsmith week "+s.week+": "+s.sessions+"/"+s.freq+" sessions · "+
+      s.fuelDays+" fueled days · "+(s.checkin?"check-in banked":"next signal due")+" — Yardsmith ⛳";
+    ffShareImage({
+      kick:"Weekly Flight Plan · Week "+s.week,
+      big:s.sessions+"/"+s.freq,unit:"sessions",
+      badge:s.done===3?"✅ THREE SIGNALS CONNECTED":null,
+      lines:["🍽️ "+s.fuelDays+" fueled day"+(s.fuelDays===1?"":"s"),
+        s.checkin?"📍 Performance check-in banked":"📍 Next performance signal due",
+        "⛳ "+r.win]
+    },txt);
+  }
   // Calm-pass state: whether the "✓ N banked" pill is expanded (session-only —
   // the fold resets each visit, which is the calm default).
   var tlShowDone=false;
@@ -352,6 +441,7 @@
       '<div class="today-command-label">'+ffIcon("compass",14)+' Today</div>'+
       nextUpCard()+'</section>';
     html += openingRoundHtml();
+    html += weeklyFlightHtml();
     var timeline=timelineHtml();
     if(timeline){
       html += '<details class="home-fold home-day"><summary><span><b>Today’s schedule</b><small>Meals, training and check-ins</small></span><i>View</i></summary>'+timeline+'</details>';
@@ -370,4 +460,25 @@
   document.addEventListener("click",function(e){
     var catchup=e.target.closest("[data-catchup]");
     if(catchup) openingEventOnce("catchup:"+curWeek()+":"+dayOfPlan(),"catchup_started",{week:curWeek()});
+    var action=e.target.closest("[data-weekaction]");
+    if(action) openingEventOnce("weekaction:"+weeklyKey()+":"+action.getAttribute("data-weekaction"),
+      "weekly_action_started",{action:action.getAttribute("data-weekaction"),week:curWeek()});
+    if(e.target.closest("[data-weekclose]")){
+      weekReviewOpen=true; renderDash(); return;
+    }
+    if(e.target.closest("[data-weekbank]")){
+      var s=weeklyLoopState(), reviews=lsGet("ff_weekly_reviews",{});
+      if(!reviews||typeof reviews!=="object") reviews={};
+      reviews[s.key]={ts:Date.now(),sessions:s.sessions,fuelDays:s.fuelDays,checkin:s.checkin};
+      lsSet("ff_weekly_reviews",reviews);
+      openingEventOnce("weekbank:"+s.key,"weekly_review_completed",
+        {week:s.week,band:s.done===3?"complete":(s.done===2?"solid":"building")});
+      weekReviewOpen=false;
+      try{ ffCelebrate(); ffToast("Week banked — clean card, same mission next week ⛳"); }catch(_){}
+      renderDash(); return;
+    }
+    if(e.target.closest("[data-weekshare]")){
+      openingEventOnce("weekshare:"+weeklyKey(),"weekly_review_shared",{week:curWeek()});
+      shareWeeklyFlight();
+    }
   });

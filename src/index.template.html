@@ -376,14 +376,14 @@
 </main>
 
 <script>window.FF_BUILD="{{V}}";</script>
-<script src="product-health.js?v=2"></script>
+<script src="product-health.js?v=3"></script>
 <script src="app.js?v={{V}}"></script>
 <!-- Login lives in the Account tab, so cloud-sync should skip its floating pill. -->
 <script>window.FF_ACCOUNT_TAB = true;</script>
 <!-- Cloud login + progress sync. The Supabase SDK itself is LAZY-LOADED by
      cloud-sync.js only when a session exists (or the user taps sign-in), so
      signed-out visitors never download it. -->
-<script defer src="cloud-sync.js?v=113"></script>
+<script defer src="cloud-sync.js?v=114"></script>
 <!-- AI coach chat. Degrades gracefully until the Edge Function is deployed. -->
 <script defer src="coach.js?v=89"></script>
 </body>
