@@ -1339,6 +1339,19 @@
   .acct-head + .acct-set { margin-top:4px; }
   .acct-set-lbl { font:700 13px system-ui; color:var(--ink); margin-bottom:7px; }
   .acct-set-lbl small { font-size:11px; font-weight:500; color:var(--muted); }
+  .notif-card{ overflow:hidden; }
+  .notif-status{ display:inline-flex; align-items:center; gap:7px; margin:0 0 12px; padding:6px 9px;
+    border:1px solid var(--line); border-radius:999px; color:var(--muted); background:#f8faf8; font:750 10.5px system-ui; }
+  .notif-status i{ width:7px; height:7px; border-radius:50%; background:#a8b2ab; }
+  .notif-status.on{ color:#166537; border-color:#b9ddc2; background:#edf8f0; }
+  .notif-status.on i{ background:#20a35a; box-shadow:0 0 0 3px rgba(32,163,90,.12); }
+  .notif-next{ margin:0 0 13px; padding:11px 12px; border:1px solid #d7e8dc; border-radius:11px;
+    background:linear-gradient(145deg,#f8fcf9,#f0f8f2); }
+  .notif-next small{ display:block; color:var(--green-700); font:850 9px system-ui; letter-spacing:.11em; }
+  .notif-next b{ display:block; margin-top:3px; color:var(--ink); font:750 12px/1.35 system-ui; }
+  .notif-set{ padding-top:12px; border-top:1px solid var(--line); }
+  .notif-set .seg button{ min-height:40px; }
+  .notif-card > .acct-btn{ margin-top:15px; }
   .goal-chips { display:flex; flex-wrap:wrap; gap:8px; }
   .goal-chips button { flex:1; min-width:52px; padding:11px 6px; border:1px solid var(--line); background:#fcfdfc;
     border-radius:12px; font:800 14px system-ui; color:var(--muted); cursor:pointer; }
@@ -2493,6 +2506,10 @@
   html:not([data-theme="light"]) .acct-btn.danger{ background:#1a1a1a; color:#ddbdb8; border:1.5px solid #472c28; }
   html:not([data-theme="light"]) .acct-btn.danger:active{ background:#241613; }
   html:not([data-theme="light"]) .calc-trainref{ background:#172014; }
+  html:not([data-theme="light"]) .notif-status{ background:#151e15; }
+  html:not([data-theme="light"]) .notif-status i{ background:#353c37; }
+  html:not([data-theme="light"]) .notif-status.on{ color:#c2e2cf; border-color:#2b4c33; background:#142418; }
+  html:not([data-theme="light"]) .notif-next{ border:1px solid #26432f; background:linear-gradient(145deg,#122116,#132317); }
   html:not([data-theme="light"]) .goal-chips button{ background:#141f14; }
   html:not([data-theme="light"]) .tracker h3{ color:#e1dac1; }
   html:not([data-theme="light"]) .tracker ul{ color:#e1dac1; }
@@ -2788,6 +2805,10 @@
   html[data-theme="dark"] .acct-btn.danger{ background:#1a1a1a; color:#ddbdb8; border:1.5px solid #472c28; }
   html[data-theme="dark"] .acct-btn.danger:active{ background:#241613; }
   html[data-theme="dark"] .calc-trainref{ background:#172014; }
+  html[data-theme="dark"] .notif-status{ background:#151e15; }
+  html[data-theme="dark"] .notif-status i{ background:#353c37; }
+  html[data-theme="dark"] .notif-status.on{ color:#c2e2cf; border-color:#2b4c33; background:#142418; }
+  html[data-theme="dark"] .notif-next{ border:1px solid #26432f; background:linear-gradient(145deg,#122116,#132317); }
   html[data-theme="dark"] .goal-chips button{ background:#141f14; }
   html[data-theme="dark"] .tracker h3{ color:#e1dac1; }
   html[data-theme="dark"] .tracker ul{ color:#e1dac1; }

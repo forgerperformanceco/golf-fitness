@@ -1,19 +1,21 @@
 # Web push setup — reminders that land with the app closed
 
-The client side already ships: the Account tab's "Turn on reminders" upgrades
+The client side already ships: the Account tab's "Smart reminders" card upgrades
 to a real push subscription automatically once this backend exists, and the
-service worker's push handler has been in place since the notifications pass.
+service worker deep-links every notification to its exact job.
 This guide is the one-time server setup (~10 minutes, all in the Supabase
 dashboard for project `tbwmckmyzoxzhpqlomsp`).
 
 How it works, in one paragraph: when a signed-in user turns reminders on, the
 app stores their push subscription in a `push_subs` row along with their
-timezone, training-slot hour, and a **7-day schedule of day-aware messages**
-(same copy as the in-app reminders), refreshed on every app open. An Edge
+timezone, respectful send hour, and a **7-day schedule of state-aware jobs**
+(training, catch-up, speed test, week-close, optional recovery, or skip),
+refreshed on every app open. An Edge
 Function (`push-daily`) runs hourly, and for each row where it's currently the
-user's training hour it sends today's scheduled message — or, if the schedule
-has gone stale because the app hasn't been opened in over a week, a
-re-engagement nudge. One send per local day, expired subscriptions are pruned.
+user's chosen hour it sends today's scheduled message — or, if the schedule has
+gone stale because the app hasn't been opened in over a week, a re-engagement
+nudge. Finished jobs and Essential-mode rest days are suppressed. One send per
+local day, one-hour TTL, expired subscriptions pruned.
 
 ## 1 · Create the table
 
@@ -64,9 +66,9 @@ $cron$);
 
 ## 5 · Verify
 
-1. On your phone (installed PWA or browser), sign in, Account → Turn on
-   reminders. In Table Editor, `push_subs` should now have a row whose `week`
-   holds 7 dated messages.
+1. On your phone (installed PWA or browser), sign in, Account → Smart reminders
+   → Turn on reminders. In Table Editor, `push_subs` should now have a row whose
+   `week` holds 7 dated jobs with `kind`, `url`, and optional `skip`.
 2. Force a send without waiting for your training hour: temporarily set that
    row's `hour` to the current hour in your timezone and `last_sent` to null,
    then trigger the function once:

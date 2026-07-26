@@ -327,4 +327,14 @@
   try{ var bootView=(document.querySelector("#tabs button.active")||{getAttribute:function(){return "dash";}}).getAttribute("data-view"); showTipFor(bootView); }catch(e){}
   // App-shortcut deep links (long-press the installed icon): ?go=plan|calc|gameday|progress
   try{ var go=(new URLSearchParams(location.search)).get("go"); if(go && document.getElementById("view-"+go)) setView(go); }catch(e){}
+  // Notification deep links land on the exact job, then clean the launch URL so
+  // a refresh never re-opens a ritual the user already handled.
+  try{
+    var launchQ=new URLSearchParams(location.search);
+    if(launchQ.get("src")==="push"){
+      var launchKind=launchQ.get("kind")||"train";
+      setTimeout(function(){ try{ ffOpenReminder(launchKind); }catch(_){} },300);
+      if(history&&history.replaceState) history.replaceState({},"",location.pathname);
+    }
+  }catch(e){}
   maybeOnboard(sharedLink);   // first-run guided setup (no-op for returning users)

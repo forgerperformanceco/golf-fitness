@@ -49,15 +49,67 @@
   }
 
   /* ----- Account ----- */
-  /* ----- Workout reminders (native app only — Capacitor local notifications) -----
-     No backend: on every app open (and on toggle) we cancel + reschedule the next
-     7 days at the user's training-slot hour, with day-aware copy (train vs recover). */
+  /* ----- Smart reminders — one shared decision for native, PWA and web push.
+     Native schedules the next seven jobs locally; web serializes the same jobs
+     to Supabase. Completed work suppresses a nudge, and all paths deep-link. ----- */
   function ffNotifPlugin(){
     try{ return (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications) || null; }
     catch(e){ return null; }
   }
   function ffNotifOn(){ return !!lsGet("ff_notif", false); }
   var FF_SLOT_HOUR = { morning:7, midday:12, afternoon:16, evening:19 };
+  function ffReminderMode(){ return lsGet("ff_reminder_mode","essential")==="daily"?"daily":"essential"; }
+  function ffReminderLead(){ return lsGet("ff_reminder_lead",0)===1?1:0; }
+  function ffReminderHour(){
+    // A reminder should never become a 6 AM or late-night interruption.
+    return Math.max(7,Math.min(20,(FF_SLOT_HOUR[state.workout]||17)-ffReminderLead()));
+  }
+  function ffWeekKeyFor(date){
+    var d=new Date(date), dow=(d.getDay()+6)%7;
+    d.setHours(0,0,0,0); d.setDate(d.getDate()-dow);
+    return ffLocalISO(d);
+  }
+  function ffReminderMessage(offset){
+    var date=new Date(); date.setDate(date.getDate()+offset);
+    var dop=dayOfPlan(), slots=stripDays(), wk=curWeek();
+    if(dop==null) return {skip:true,kind:"none",d:ffLocalISO(date)};
+    var day=slots[(dop-1+offset)%7]||{}, rest=day.type==="rest";
+    var planWeek=Math.min(20,wk+Math.floor((Math.max(1,dop)+offset-1)/7));
+    if(offset===0){
+      var missed=(typeof missedWorkout==="function")?missedWorkout():null;
+      if(missed) return {d:ffLocalISO(date),kind:"catchup",title:"Pick up the thread ⛳",
+        body:missed.name.replace(/^Day \d+ — /,"")+" is waiting. No reset — one session keeps the plan moving.",
+        url:"./?go=plan&src=push&kind=catchup"};
+      if(!rest && sessionFinished(getSession(wk,day.name))) rest=true;
+    }
+    if(!rest) return {d:ffLocalISO(date),kind:"train",title:"Your next rep is ready ⛳",
+      body:(day.name||"Your session").replace(/^Day \d+ — /,"")+" · Week "+planWeek+" — open straight into the plan.",
+      url:"./?go=plan&src=push&kind=train"};
+    if(offset===0 && speedTestDue() && lsGet("ff_body",[]).some(function(e){ return e&&e.s; }))
+      return {d:ffLocalISO(date),kind:"speed",title:"Speed Test Day 🎯",
+        body:"Three max-intent 7-iron swings. Best one counts — cash in the work.",
+        url:"./?go=plan&src=push&kind=speed"};
+    var reviews=lsGet("ff_weekly_reviews",{}), activated=lsGet("ff_opening_round_complete",0);
+    if(date.getDay()===0 && activated && Date.now()-activated>2*864e5 && !(reviews&&reviews[ffWeekKeyFor(date)]))
+      return {d:ffLocalISO(date),kind:"week",title:"Close the week ⛳",
+        body:"Bank the win, name the lesson, and start the next card clean.",
+        url:"./?go=dash&src=push&kind=week"};
+    if(ffReminderMode()==="daily") return {d:ffLocalISO(date),kind:"recovery",title:"Recover on purpose 🌱",
+      body:"Walk, mobility, or an easy nine — growth happens away from the rack too.",
+      url:"./?go=dash&src=push&kind=recovery"};
+    return {d:ffLocalISO(date),skip:true,kind:"rest"};
+  }
+  function ffOpenReminder(kind){
+    kind=String(kind||"train");
+    try{ if(window.FFHealth) window.FFHealth.track("notification_opened",{kind:kind}); }catch(_){}
+    if(kind==="speed"){
+      setView("plan"); setTimeout(function(){ try{ openSpeedTest(); }catch(_){} },250); return;
+    }
+    if(kind==="week"){
+      weekReviewOpen=true; setView("dash"); try{ renderDash(); }catch(_){} return;
+    }
+    setView(kind==="recovery"?"dash":"plan");
+  }
   async function ffNotifReschedule(){
     var LN=ffNotifPlugin(); if(!LN) return;
     try{
@@ -65,42 +117,45 @@
       if(pend && pend.notifications && pend.notifications.length) await LN.cancel({ notifications: pend.notifications.map(function(n){ return { id:n.id }; }) });
     }catch(e){}
     if(!ffNotifOn()) return;
-    var hour = FF_SLOT_HOUR[state.workout] || 17;
-    var dop = dayOfPlan(), wk = curWeek(), slots = stripDays();
-    if(dop==null) return;                               // plan not started yet
+    var hour=ffReminderHour();
+    if(dayOfPlan()==null) return;                       // plan not started yet
     var list=[], now=Date.now();
     for(var o=0;o<7;o++){
       var d=new Date(); d.setDate(d.getDate()+o); d.setHours(hour,0,0,0);
       if(d.getTime()<=now) continue;                    // today's slot already passed
-      var day=slots[(dop-1+o)%7]||{};
-      var rest = day.type==="rest";
+      var msg=ffReminderMessage(o); if(msg.skip) continue;
       list.push({ id:100+o,
-        title: rest ? "Recovery day 🌱" : "Time to train ⛳",
-        body: rest ? "Walk, mobility, foam roll — growth happens today."
-                   : ((day.name||"Your session").replace(/^Day \d+ — /,"")+" · Week "+wk+" — your yards are waiting."),
+        title:msg.title, body:msg.body, extra:{kind:msg.kind,url:msg.url},
         schedule:{ at:d, allowWhileIdle:true } });
     }
     if(list.length){ try{ await LN.schedule({ notifications:list }); }catch(e){} }
   }
   async function ffNotifToggle(){
     var LN=ffNotifPlugin(); if(!LN) return false;
-    if(ffNotifOn()){ lsSet("ff_notif", false); await ffNotifReschedule(); return false; }
+    if(ffNotifOn()){
+      lsSet("ff_notif", false); await ffNotifReschedule();
+      try{ if(window.FFHealth) window.FFHealth.track("reminder_disabled",{delivery:"native"}); }catch(_){}
+      return false;
+    }
     try{
       var p=await LN.requestPermissions();
       if(!p || p.display!=="granted"){ alert("Notifications are blocked — allow them in your phone's settings for Yardsmith."); return false; }
     }catch(e){ return false; }
-    lsSet("ff_notif", true); await ffNotifReschedule(); return true;
+    lsSet("ff_notif", true); await ffNotifReschedule();
+    try{ if(window.FFHealth) window.FFHealth.track("reminder_enabled",{delivery:"native",mode:ffReminderMode()}); }catch(_){}
+    return true;
   }
   // Keep the 7-day window fresh on every launch of the installed app.
-  if(ffNotifPlugin()){ setTimeout(function(){ try{ ffNotifReschedule(); }catch(e){} }, 2500); }
+  if(ffNotifPlugin()){
+    setTimeout(function(){ try{ ffNotifReschedule(); }catch(e){} },2500);
+    try{ ffNotifPlugin().addListener("localNotificationActionPerformed",function(e){
+      ffOpenReminder(e&&e.notification&&e.notification.extra&&e.notification.extra.kind);
+    }); }catch(_){}
+  }
 
   /* ----- Web reminders (browser / installed PWA) -----
-     The web can't schedule notifications while fully closed without a push server,
-     so this is best-effort local: whenever the app is open (foreground OR a
-     background tab / installed window), fire today's training-slot reminder once
-     the hour passes — checked on load, on show, and on a 15-min tick. True server
-     push (VAPID + a scheduled Edge Function) is the Phase-3 upgrade; the sw.js
-     push handler is already in place for it. */
+     Signed-in PushManager clients receive closed-app delivery. Signed-out and
+     unsupported clients keep the open-tab fallback using the same message. ----- */
   function ffWebNotifSupported(){ return !ffNotifPlugin() && !window.Capacitor && ("Notification" in window) && ("serviceWorker" in navigator); }
 
   /* ----- Real server push (VAPID) -----
@@ -126,17 +181,8 @@
   }
   function ffLocalISO(d){ return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2); }
   function ffPushWeek(){
-    var out=[], dop=dayOfPlan(), wk=curWeek(), slots=stripDays();
-    if(dop==null) return out;                          // plan not started → server uses its fallback copy
-    for(var o=0;o<7;o++){
-      var d=new Date(); d.setDate(d.getDate()+o);
-      var day=slots[(dop-1+o)%7]||{};
-      var rest=day.type==="rest";
-      out.push({ d: ffLocalISO(d),
-        title: rest ? "Recovery day 🌱" : "Time to train ⛳",
-        body: rest ? "Walk, mobility, foam roll — growth happens today."
-                   : ((day.name||"Your session").replace(/^Day \d+ — /,"")+" · Week "+wk+" — your yards are waiting.") });
-    }
+    var out=[];
+    for(var o=0;o<7;o++) out.push(ffReminderMessage(o));
     return out;
   }
   function ffPushSubscribe(force){
@@ -146,7 +192,7 @@
       var j=sub.toJSON();
       var tz="UTC"; try{ tz=Intl.DateTimeFormat().resolvedOptions().timeZone||"UTC"; }catch(e){}
       var row={ endpoint:j.endpoint, p256dh:j.keys.p256dh, auth:j.keys.auth,
-        tz:tz, hour:FF_SLOT_HOUR[state.workout]||17, week:ffPushWeek() };
+        tz:tz, hour:ffReminderHour(), week:ffPushWeek() };
       // The schedule's content only changes once a calendar day (or when the
       // training slot/plan moves) — skip the upsert when it's byte-identical
       // to the last successful upload, so the routine on-open resync stops
@@ -185,7 +231,13 @@
 
   function ffWebNotifToggle(){
     if(!ffWebNotifSupported()) return Promise.resolve(false);
-    if(ffNotifOn()){ lsSet("ff_notif", false); return ffPushUnsubscribe().then(function(){ return false; }); }
+    if(ffNotifOn()){
+      lsSet("ff_notif", false);
+      return ffPushUnsubscribe().then(function(){
+        try{ if(window.FFHealth) window.FFHealth.track("reminder_disabled",{delivery:"web"}); }catch(_){}
+        return false;
+      });
+    }
     return Promise.resolve().then(function(){ return Notification.requestPermission(); }).then(function(p){
       if(p!=="granted"){ alert("Notifications are blocked — allow them for this site in your browser settings."); return false; }
       lsSet("ff_notif", true);
@@ -194,10 +246,14 @@
         // reason, the local best-effort path still covers open-tab reminders.
         return ffPushSubscribe(true).catch(function(){ return false; }).then(function(ok){
           if(!ok) ffWebNotifCheck();
+          try{ if(window.FFHealth) window.FFHealth.track("reminder_enabled",
+            {delivery:ok?"push":"web",mode:ffReminderMode()}); }catch(_){}
           return true;
         });
       }
-      ffWebNotifCheck(); return true;
+      ffWebNotifCheck();
+      try{ if(window.FFHealth) window.FFHealth.track("reminder_enabled",{delivery:"web",mode:ffReminderMode()}); }catch(_){}
+      return true;
     }).catch(function(){ return false; });
   }
   function ffWebNotifCheck(){
@@ -205,17 +261,16 @@
       if(lsGet("ff_push_on",false)) return;            // the server sends these now
       if(!ffWebNotifSupported() || !ffNotifOn() || Notification.permission!=="granted") return;
       if(planStart()==null) return;
-      var hour=FF_SLOT_HOUR[state.workout]||17;
+      var hour=ffReminderHour();
       if(new Date().getHours()<hour) return;                 // slot not reached yet today
       if(lsGet("ff_notif_lastday","")===todayStr()) return;  // already nudged today
+      var msg=ffReminderMessage(0); if(msg.skip) return;
       lsSet("ff_notif_lastday", todayStr());
-      var dop=dayOfPlan(), day=(stripDays()[(dop||1)-1])||{}, rest=day.type==="rest";
-      var title = rest ? "Recovery day 🌱" : "Time to train ⛳";
-      var bodyTxt = rest ? "Walk, mobility, foam roll — growth happens today."
-        : ((day.name||"Your session").replace(/^Day \d+ — /,"")+" · Week "+curWeek()+" — your yards are waiting.");
       navigator.serviceWorker.getRegistration().then(function(reg){
-        if(reg && reg.showNotification) reg.showNotification(title, { body:bodyTxt, icon:"icon-192.png", badge:"icon-192.png", tag:"ff-daily" });
-        else new Notification(title, { body:bodyTxt, icon:"icon-192.png" });
+        var opts={body:msg.body,icon:"icon-192.png",badge:"icon-192.png",tag:"ff-daily",
+          data:{url:msg.url,kind:msg.kind}};
+        if(reg && reg.showNotification) reg.showNotification(msg.title,opts);
+        else new Notification(msg.title,opts);
       });
     }catch(e){}
   }
@@ -240,6 +295,31 @@
     // Refresh the server-side 7-day schedule on open and right after login.
     setTimeout(function(){ try{ ffPushResync(); }catch(e){} }, 5000);
     window.addEventListener("ff-auth", function(){ setTimeout(function(){ try{ ffPushResync(); }catch(e){} }, 1500); });
+  }
+  function ffNextReminderText(){
+    var hour=ffReminderHour(), now=Date.now();
+    for(var o=0;o<7;o++){
+      var msg=ffReminderMessage(o); if(msg.skip) continue;
+      var d=new Date(); d.setDate(d.getDate()+o); d.setHours(hour,0,0,0);
+      if(d.getTime()<=now) continue;
+      var when=o===0?"Today":(o===1?"Tomorrow":d.toLocaleDateString(undefined,{weekday:"short"}));
+      return when+" · "+fmtMin(hour*60)+" · "+msg.title.replace(/[⛳🎯🌱]/g,"").trim();
+    }
+    return "No interruption scheduled in the next 7 days";
+  }
+  function ffReminderSettingsHtml(on,delivery){
+    var mode=ffReminderMode(), lead=ffReminderLead();
+    return '<div class="notif-status'+(on?' on':'')+'"><i></i><span>'+(on?("On · "+delivery):"Off")+'</span></div>'+
+      (on?'<div class="notif-next"><small>NEXT REMINDER</small><b>'+ffNextReminderText()+'</b></div>':'')+
+      '<div class="acct-set notif-set"><div class="acct-set-lbl">Reminder mode <small>one notification maximum per day</small></div>'+
+        '<div class="seg" id="acctNotifMode"><button type="button" data-nmode="essential" class="'+(mode==="essential"?'active':'')+'">Essential</button>'+
+        '<button type="button" data-nmode="daily" class="'+(mode==="daily"?'active':'')+'">Daily</button></div>'+
+        '<p class="acct-p mini">'+(mode==="essential"
+          ? "Training, a due speed test, or Sunday week-close. Rest days stay quiet."
+          : "Adds intentional recovery-day nudges. Finished sessions still suppress reminders.")+'</p></div>'+
+      '<div class="acct-set notif-set"><div class="acct-set-lbl">Timing <small>never before 7 AM or after 8 PM</small></div>'+
+        '<div class="seg" id="acctNotifLead"><button type="button" data-nlead="0" class="'+(lead===0?'active':'')+'">At training time</button>'+
+        '<button type="button" data-nlead="1" class="'+(lead===1?'active':'')+'">1 hour before</button></div></div>';
   }
 
   function acctRow(k,v){ return '<div class="acct-li"><span>'+k+'</span><b>'+v+'</b></div>'; }
@@ -389,19 +469,21 @@
     }
     if(ffNotifPlugin()){
       var non=ffNotifOn();
-      html+='<div class="acct-card"><div class="acct-head">🔔 Workout reminders</div>'+
-        '<p class="acct-p">A daily nudge at your training time — the session on training days, recovery on rest days. No account needed; it all happens on your phone.</p>'+
+      html+='<div class="acct-card notif-card"><div class="acct-head">🔔 Smart reminders</div>'+
+        '<p class="acct-p">Yardsmith checks what is actually unfinished before nudging. One useful job, no streak guilt, no notification pileup.</p>'+
+        ffReminderSettingsHtml(non,"on this phone")+
         '<button class="acct-btn'+(non?' ghost':'')+'" id="acctNotif">'+(non?"Reminders on — tap to turn off":"Turn on reminders")+'</button></div>';
     } else if(ffWebNotifSupported()){
       var nonW=ffNotifOn() && Notification.permission==="granted";
       var pushReady=("PushManager" in window) && !!(window.FF && window.FF.pushKey);
       var pushLive=nonW && lsGet("ff_push_on",false);
-      html+='<div class="acct-card"><div class="acct-head">🔔 Workout reminders</div>'+
-        '<p class="acct-p">A daily nudge at your training time — the session on training days, recovery on rest days. '+
+      html+='<div class="acct-card notif-card"><div class="acct-head">🔔 Smart reminders</div>'+
+        '<p class="acct-p">Yardsmith checks what is actually unfinished before nudging. '+
         (pushLive ? '<b>Delivered even when the app is closed.</b>'
-         : (pushReady && user ? 'Delivered even when the app is closed.'
-         : (pushReady ? '<b>Sign in</b> and reminders land even when the app is closed; signed out they only fire while the app is open.'
-                      : 'On the web they fire while Yardsmith is open in a tab or installed.')))+'</p>'+
+         : (pushReady && user ? 'Turn them on for delivery even when the app is closed.'
+         : (pushReady ? '<b>Sign in</b> for closed-app delivery; signed out reminders only fire while Yardsmith is open.'
+                      : 'This browser supports reminders only while Yardsmith is open.')))+'</p>'+
+        ffReminderSettingsHtml(nonW,pushLive?"closed-app delivery":"this browser")+
         '<button class="acct-btn'+(nonW?' ghost':'')+'" id="acctNotifWeb">'+(nonW?"Reminders on — tap to turn off":"Turn on reminders")+'</button></div>';
     }
     var curTheme=ffTheme();
@@ -555,6 +637,21 @@
     var ai=$("acctInstall"); if(ai) ai.onclick=function(){ if(!ffPromptInstall()) alert("Use your browser menu → “Install app” / “Add to Home Screen.”"); };
     var nb=$("acctNotif"); if(nb) nb.onclick=function(){ nb.disabled=true; ffNotifToggle().then(function(){ renderAccount(); }); };
     var nbw=$("acctNotifWeb"); if(nbw) nbw.onclick=function(){ nbw.disabled=true; ffWebNotifToggle().then(function(){ renderAccount(); }); };
+    var nm=$("acctNotifMode"); if(nm) nm.onclick=function(ev){
+      var b=ev.target.closest("[data-nmode]"); if(!b) return;
+      lsSet("ff_reminder_mode",b.getAttribute("data-nmode")==="daily"?"daily":"essential");
+      try{ ffNotifReschedule(); }catch(_){} try{ ffPushResync(); }catch(_){}
+      try{ if(window.FFHealth) window.FFHealth.track("reminder_settings_changed",{mode:ffReminderMode()}); }catch(_){}
+      renderAccount();
+    };
+    var nl=$("acctNotifLead"); if(nl) nl.onclick=function(ev){
+      var b=ev.target.closest("[data-nlead]"); if(!b) return;
+      lsSet("ff_reminder_lead",parseInt(b.getAttribute("data-nlead"),10)===1?1:0);
+      try{ ffNotifReschedule(); }catch(_){} try{ ffPushResync(); }catch(_){}
+      try{ if(window.FFHealth) window.FFHealth.track("reminder_settings_changed",
+        {mode:ffReminderMode(),timing:ffReminderLead()===1?"early":"ontime"}); }catch(_){}
+      renderAccount();
+    };
     function evSave(){
       var d=($("acctEvDate")||{}).value||"", n=($("acctEvName")||{}).value||"";
       if(!d) lsRemove("ff_event");
