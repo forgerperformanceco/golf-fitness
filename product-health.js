@@ -5,14 +5,16 @@
   var ALLOWED = {
     app_open:1, view_changed:1, onboarding_completed:1, onboarding_skipped:1,
     workout_started:1, workout_resumed:1, workout_paused:1,
-    workout_completed:1, sign_in_completed:1, app_error:1
+    workout_completed:1, sign_in_completed:1, app_error:1,
+    activation_step:1, activation_completed:1, catchup_started:1
   };
   var PROPS = {
     view_changed:["view"], onboarding_completed:["started_plan","revisit"],
     workout_started:["kind","week"], workout_resumed:["kind","week"],
     workout_paused:["kind","week","station"],
     workout_completed:["kind","week","minutes"],
-    app_error:["type","source","line_bucket"]
+    app_error:["type","source","line_bucket"],
+    activation_step:["step"], catchup_started:["week"]
   };
   var sessionId="";
   try{ sessionId=crypto.randomUUID(); }

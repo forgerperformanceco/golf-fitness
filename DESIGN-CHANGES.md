@@ -1,5 +1,29 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## Sprint 2 — activation, momentum and forgiving return (Jul 26, 2026)
+
+Sprint 2 closes the gap between “the plan is powerful” and “I know how to build
+a habit with it” without adding a noisy badge/feed layer:
+
+1. **Opening Round:** after a plan begins, Home connects the three signals that
+   make Yardsmith useful — one banked workout, one fueled day and one 7-iron
+   baseline. The 0/3 card advances from “three wins” to a two-day victory lap,
+   then removes itself permanently so experienced users keep a clean Home.
+2. **Weekly momentum in one line:** the existing collapsed Progress row now says
+   sessions completed, fueled days and speed-test status. No new dashboard or
+   competing score.
+3. **Never-miss-twice recovery:** if a scheduled workout passes unfinished,
+   Home promotes the oldest missed session with “Pick up the thread · No reset.”
+   Completing it uses the normal player and preserves dates, logs and season
+   position — no guilt, silent skipping or destructive restart.
+4. **Anonymous funnel signals:** activation steps, activation completion and
+   catch-up starts extend the first-party allow-list from Sprint 1. They remain
+   session-anonymous and contain no account, health, workout or free-text data.
+
+Regression coverage executes the catch-up decision and the three-signal
+activation state, while mobile light/dark browser QA verifies the full Opening
+Round hierarchy and accessible labels.
+
 Three features shipped together, aimed at the same goal from three angles:
 make the plan *coach itself* (periodization), make progress *feel like an event*
 (the speed-test ritual), and make mass gain *provably safe for the swing*

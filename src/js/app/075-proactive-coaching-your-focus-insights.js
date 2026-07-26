@@ -115,16 +115,35 @@
   /* ----- HOME = the Today spine: one primary action, then the day in time order.
      Deep dives stay on their tabs; Home answers "what do I do right now?" ----- */
   function todaySlot(){ var dop=dayOfPlan(); if(dop==null) return null; return stripDays()[dop-1]||null; }
+  // A missed workout is never a broken streak or a reason to restart. Surface
+  // the oldest unfinished session whose calendar slot has already passed, then
+  // let the normal player bank it without moving dates or erasing progress.
+  function missedWorkout(){
+    if(!planStart()) return null;
+    var days=stripDays(), through=Math.max(0,(dayOfPlan()||1)-1), wk=curWeek();
+    for(var i=0;i<through;i++){
+      var d=days[i]; if(!d || d.type==="rest") continue;
+      if(!sessionFinished(getSession(wk,d.name))) return d;
+    }
+    return null;
+  }
   function nextUpCard(){
     if(!planStart())
       return '<button type="button" class="nu-card" data-goview="plan"><span class="nu-go">›</span>'+
         '<div class="nu-kick">Next up</div><div class="nu-title">Start your 20-week plan</div>'+
         '<div class="nu-sub">Today becomes Day 1 — fuel, lifts and speed work, dialed to you.</div></button>';
-    var wk=curWeek(), d=todaySlot();
+    var wk=curWeek(), missed=missedWorkout(), d=todaySlot();
+    if(missed){
+      var old=getSession(wk,missed.name), mid=sessionInProgress(old);
+      return '<button type="button" class="nu-card catchup" data-startplayer="'+escAttr(missed.name)+'" data-catchup="1"><span class="nu-go">›</span>'+
+        '<div class="nu-kick">Pick up the thread · No reset</div>'+
+        '<div class="nu-title">'+(mid?'Resume: ':'Your next win: ')+missed.name.replace(/^Day \d+ — /,"")+'</div>'+
+        '<div class="nu-sub">Life happened. Your progress is safe — bank this one and the plan keeps moving.</div></button>';
+    }
     if(d && d.type!=="rest"){
       var sess=getSession(wk, d.name);
       if(!(sess && sess.finishedAt)){
-        var started=!!(sess && (sess.ex||[]).some(function(x){ return (x.sets||[]).some(function(st){ return st.w||st.r||st.done; }); }));
+        var started=sessionInProgress(sess);
         return '<button type="button" class="nu-card" data-startplayer="'+escAttr(d.name)+'"><span class="nu-go">›</span>'+
           '<div class="nu-kick">Next up · Week '+wk+' · '+WAVES[waveFor(wk)].label+'</div>'+
           '<div class="nu-title">'+(started?'Resume: ':ffIcon("play",13)+' ')+d.name.replace(/^Day \d+ — /,"")+'</div>'+
@@ -152,6 +171,64 @@
     return '<button type="button" class="nu-card rest" data-goview="plan"><span class="nu-go">›</span>'+
       '<div class="nu-kick">Next up</div><div class="nu-title">Today is banked ✓</div>'+
       '<div class="nu-sub">Session done. Eat to your targets and let it build — tomorrow’s plan is ready.</div></button>';
+  }
+  function openingEventOnce(key,event,props){
+    var seen=lsGet("ff_activation_events",{}); if(!seen||typeof seen!=="object") seen={};
+    if(seen[key]) return;
+    seen[key]=Date.now(); lsSet("ff_activation_events",seen);
+    try{ if(window.FFHealth) window.FFHealth.track(event,props||{}); }catch(e){}
+  }
+  function openingRoundState(){
+    var trained=sessionsByWeek().length>0;
+    var fueled=false, f=fuelLog();
+    Object.keys(f).some(function(iso){
+      var state=fuelStateFor(iso);
+      if(state==="on"||state==="close"){ fueled=true; return true; }
+      return false;
+    });
+    var body=lsGet("ff_body",[]);
+    var baseline=speedTests().length>0 || body.some(function(e){ return e && e.s!=null && e.s!==""; });
+    return {trained:trained,fueled:fueled,baseline:baseline,
+      done:(trained?1:0)+(fueled?1:0)+(baseline?1:0)};
+  }
+  function openingRoundHtml(){
+    if(!planStart()) return "";
+    var s=openingRoundState(), completedAt=lsGet("ff_opening_round_complete",0);
+    if(s.trained) openingEventOnce("train","activation_step",{step:"train"});
+    if(s.fueled) openingEventOnce("fuel","activation_step",{step:"fuel"});
+    if(s.baseline) openingEventOnce("baseline","activation_step",{step:"baseline"});
+    if(s.done===3 && !completedAt){
+      completedAt=Date.now(); lsSet("ff_opening_round_complete",completedAt);
+      openingEventOnce("complete","activation_completed",{});
+      setTimeout(function(){ try{ ffCelebrate(); ffToast("Opening Round complete — your engine is running ⛳"); }catch(e){} },80);
+    }
+    // The completed state gets one victory lap, then leaves Home clean.
+    if(s.done===3 && completedAt && Date.now()-completedAt>2*864e5) return "";
+    var steps=[
+      {key:"train",ic:"🏋️",t:"Bank a workout",sub:"Learn the player and put work in history",done:s.trained,attr:' data-goview="plan"'},
+      {key:"fuel",ic:"🍽️",t:"Fuel one day",sub:"Check meals as they happen — adherence, not accounting",done:s.fueled,attr:' data-goview="calc"'},
+      {key:"baseline",ic:"🎯",t:"Set your speed baseline",sub:"Three 7-iron swings give the plan a scoreboard",done:s.baseline,attr:' data-speedtest="1"'}
+    ];
+    var title=s.done===3?"Your engine is running":(s.done===2?"One signal from your first real read":(s.done===1?"You’re on the board":"Three wins to make Yardsmith yours"));
+    return '<section class="opening-round'+(s.done===3?' complete':'')+'" aria-label="Opening Round">'+
+      '<div class="or-top"><span><small>OPENING ROUND</small><b>'+title+'</b></span><strong>'+s.done+'<i>/3</i></strong></div>'+
+      '<div class="or-track" aria-label="'+s.done+' of 3 opening wins complete">'+[0,1,2].map(function(i){return '<i'+(i<s.done?' class="on"':'')+'></i>';}).join("")+'</div>'+
+      '<div class="or-steps">'+steps.map(function(x){
+        return '<button type="button" class="or-step'+(x.done?' done':'')+'"'+x.attr+' data-activation="'+x.key+'">'+
+          '<span class="or-check">'+(x.done?'✓':x.ic)+'</span><span><b>'+x.t+'</b><small>'+(x.done?'Banked':x.sub)+'</small></span><i>›</i></button>';
+      }).join("")+'</div>'+
+      (s.done===3?'<div class="or-win">✓ Workout · fuel · baseline connected. Your personal trend starts here.</div>':'')+
+      '</section>';
+  }
+  function weekMomentumText(){
+    if(!planStart()) return "Octane, distance and current focus";
+    var wd=weekDoneCount(), fuelDays=0, through=Math.max(1,dayOfPlan()||1);
+    for(var i=0;i<through;i++){
+      var date=chipDate(i), state=date?fuelStateFor(ffISO(date)):null;
+      if(state==="on"||state==="close") fuelDays++;
+    }
+    return wd.done+"/"+wd.total+" sessions · "+fuelDays+" fueled day"+(fuelDays===1?"":"s")+
+      (speedTestDue()?" · speed test due":" · speed current");
   }
   // Calm-pass state: whether the "✓ N banked" pill is expanded (session-only —
   // the fold resets each visit, which is the calm default).
@@ -274,6 +351,7 @@
     var html = '<section class="today-command" aria-label="Today">'+
       '<div class="today-command-label">'+ffIcon("compass",14)+' Today</div>'+
       nextUpCard()+'</section>';
+    html += openingRoundHtml();
     var timeline=timelineHtml();
     if(timeline){
       html += '<details class="home-fold home-day"><summary><span><b>Today’s schedule</b><small>Meals, training and check-ins</small></span><i>View</i></summary>'+timeline+'</details>';
@@ -281,7 +359,7 @@
     // One coaching voice at a time: when an advice card is showing, the hero's
     // lever line steps down to a quiet tag; otherwise the hero carries the coaching.
     var advice = renderAdaptiveCard() || renderInsight();
-    html += '<details class="home-fold home-progress"><summary><span><b>Your progress</b><small>Octane, distance and current focus</small></span><i>View</i></summary>'+
+    html += '<details class="home-fold home-progress"><summary><span><b>Your progress</b><small>'+weekMomentumText()+'</small></span><i>View</i></summary>'+
       '<div class="home-fold-body">'+renderHeroCard(!!advice)+advice+'</div></details>';
     try{ html += dashTipHtml(); }catch(e){}   // education stays below the daily job
     html += '<button class="dash-ai" data-ask="read"><span class="dai-ic">💬</span>'+
@@ -289,3 +367,7 @@
       '<span class="dai-go">›</span></button>';
     el.innerHTML=html;
   }
+  document.addEventListener("click",function(e){
+    var catchup=e.target.closest("[data-catchup]");
+    if(catchup) openingEventOnce("catchup:"+curWeek()+":"+dayOfPlan(),"catchup_started",{week:curWeek()});
+  });

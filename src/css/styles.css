@@ -1881,6 +1881,38 @@
     color:var(--green-700); font:800 12px system-ui; letter-spacing:.11em; text-transform:uppercase; }
   .today-command .nu-card{ margin-bottom:0; padding-top:20px; padding-bottom:20px; }
   .today-command .nu-title{ font-size:23px; }
+  .nu-card.catchup{ background:linear-gradient(135deg,#4b3212,#271a0b); border-color:#76531f;
+    box-shadow:0 10px 26px rgba(55,34,7,.28); }
+  .nu-card.catchup .nu-kick,.nu-card.catchup .nu-go{ color:#f4c96b; }
+  .nu-card.catchup .nu-sub{ color:#e7d3a8; }
+  /* Opening Round: a temporary activation bridge, not a permanent dashboard
+     widget. Three meaningful wins connect Train, Fuel and the speed scoreboard. */
+  .opening-round{ margin:0 0 11px; padding:15px; border:1px solid #cfe3d4; border-radius:16px;
+    background:linear-gradient(145deg,#f7fcf8,#eef8f1); box-shadow:var(--shadow-sm); }
+  .or-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:15px; }
+  .or-top > span{ display:flex; flex-direction:column; min-width:0; }
+  .or-top small{ color:var(--green-700); font:850 10.5px system-ui; letter-spacing:.13em; }
+  .or-top b{ margin-top:2px; color:var(--green-900); font:850 17px/1.2 system-ui; letter-spacing:-.02em; }
+  .or-top strong{ color:var(--green-800); font:900 24px/1 var(--num); white-space:nowrap; }
+  .or-top strong i{ color:var(--muted); font:800 13px system-ui; font-style:normal; }
+  .or-track{ display:grid; grid-template-columns:repeat(3,1fr); gap:5px; margin:11px 0 10px; }
+  .or-track i{ height:5px; border-radius:99px; background:#d5e6d9; overflow:hidden; }
+  .or-track i.on{ background:linear-gradient(90deg,#168447,#48bd72); }
+  .or-steps{ display:grid; gap:6px; }
+  .or-step{ width:100%; display:flex; align-items:center; gap:10px; min-height:53px; padding:8px 9px;
+    border:1px solid #d8e7db; border-radius:12px; background:#fff; color:var(--ink); text-align:left; cursor:pointer; }
+  .or-step > span:nth-child(2){ min-width:0; flex:1; display:flex; flex-direction:column; gap:1px; }
+  .or-step b{ font:800 13.5px system-ui; }
+  .or-step small{ color:var(--muted); font:600 11.5px/1.3 system-ui; }
+  .or-step > i{ color:var(--green-700); font:900 19px system-ui; font-style:normal; }
+  .or-check{ width:31px; height:31px; flex:0 0 31px; display:grid; place-items:center; border-radius:10px;
+    background:#edf6ef; font-size:16px; }
+  .or-step.done{ background:transparent; border-color:transparent; min-height:43px; padding-top:4px; padding-bottom:4px; }
+  .or-step.done .or-check{ background:#168447; color:#fff; font-weight:900; }
+  .or-step.done > i{ opacity:.35; }
+  .or-win{ margin-top:10px; padding:9px 11px; border-radius:10px; background:#dff4e5;
+    color:#145a30; font:750 12px/1.4 system-ui; }
+  .opening-round.complete{ border-color:#b8ddc2; background:linear-gradient(145deg,#f2fbf4,#e5f6e9); }
   .home-fold{ margin:0 0 11px; border:1px solid var(--line); border-radius:14px; background:var(--card);
     box-shadow:var(--shadow-sm); overflow:hidden; }
   .home-fold > summary{ list-style:none; display:flex; align-items:center; gap:12px; min-height:66px;
@@ -1899,6 +1931,10 @@
   .home-fold .tl{ margin:0; padding:14px 13px 15px 6px; }
   .home-fold-body{ padding:14px; }
   .home-fold-body > :last-child{ margin-bottom:0; }
+  @media(max-width:380px){
+    .opening-round{ padding:13px; }
+    .or-step small{ font-size:11px; }
+  }
   .tl{ margin:2px 0 14px; }
   .tl-h{ font-size:12px; font-weight:800; letter-spacing:.09em; text-transform:uppercase; color:var(--muted); margin:0 2px 8px;
     display:flex; align-items:center; justify-content:space-between; gap:8px; }
@@ -2508,6 +2544,12 @@
   html:not([data-theme="light"]) .frate-chip{ border:1px solid #2b4334; background:#1a1a1a; color:#c5ddd5; }
   html:not([data-theme="light"]) .frate-chip.on{ background:#14261a; color:#c4e3d1; }
   html:not([data-theme="light"]) .fchk-b{ border:1.5px solid #2b4334; background:#1a1a1a; color:#c4d3ca; }
+  html:not([data-theme="light"]) .opening-round{ border:1px solid #284530; background:linear-gradient(145deg,#122115,#132418); }
+  html:not([data-theme="light"]) .or-track i{ background:#1d3021; }
+  html:not([data-theme="light"]) .or-step{ border:1px solid #28412d; background:#1a1a1a; }
+  html:not([data-theme="light"]) .or-check{ background:#142518; }
+  html:not([data-theme="light"]) .or-win{ background:#172a1c; color:#c4e2d0; }
+  html:not([data-theme="light"]) .opening-round.complete{ border-color:#2b4d34; background:linear-gradient(145deg,#122216,#15281a); }
   html:not([data-theme="light"]) .tl-fuelchip.full{ background:#142417; border-color:#274531; }
   html:not([data-theme="light"]) .tl-dot{ border:2.5px solid #34493a; }
   html:not([data-theme="light"]) .ord-row{ background:#1a1a1a; }
@@ -2792,6 +2834,12 @@
   html[data-theme="dark"] .frate-chip{ border:1px solid #2b4334; background:#1a1a1a; color:#c5ddd5; }
   html[data-theme="dark"] .frate-chip.on{ background:#14261a; color:#c4e3d1; }
   html[data-theme="dark"] .fchk-b{ border:1.5px solid #2b4334; background:#1a1a1a; color:#c4d3ca; }
+  html[data-theme="dark"] .opening-round{ border:1px solid #284530; background:linear-gradient(145deg,#122115,#132418); }
+  html[data-theme="dark"] .or-track i{ background:#1d3021; }
+  html[data-theme="dark"] .or-step{ border:1px solid #28412d; background:#1a1a1a; }
+  html[data-theme="dark"] .or-check{ background:#142518; }
+  html[data-theme="dark"] .or-win{ background:#172a1c; color:#c4e2d0; }
+  html[data-theme="dark"] .opening-round.complete{ border-color:#2b4d34; background:linear-gradient(145deg,#122216,#15281a); }
   html[data-theme="dark"] .tl-fuelchip.full{ background:#142417; border-color:#274531; }
   html[data-theme="dark"] .tl-dot{ border:2.5px solid #34493a; }
   html[data-theme="dark"] .ord-row{ background:#1a1a1a; }
