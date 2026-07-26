@@ -10,7 +10,7 @@ var ASSETS = [
   './app.js?v={{V}}',
   './privacy.html',
   './delete-account.html',
-  './product-health.js?v=1',
+  './product-health.js?v=2',
   './cloud-sync.js?v=113',
   './coach.js?v=89',
   './manifest.webmanifest',
