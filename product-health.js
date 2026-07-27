@@ -9,7 +9,7 @@
     activation_step:1, activation_completed:1, catchup_started:1,
     weekly_action_started:1, weekly_review_completed:1, weekly_review_shared:1,
     reminder_enabled:1, reminder_disabled:1, reminder_settings_changed:1,
-    notification_opened:1
+    notification_opened:1, readiness_completed:1, adaptive_session_started:1
   };
   var PROPS = {
     view_changed:["view"], onboarding_completed:["started_plan","revisit"],
@@ -21,7 +21,8 @@
     weekly_action_started:["action","week"],
     weekly_review_completed:["week","band"], weekly_review_shared:["week"],
     reminder_enabled:["delivery","mode"], reminder_disabled:["delivery"],
-    reminder_settings_changed:["mode","timing"], notification_opened:["kind"]
+    reminder_settings_changed:["mode","timing"], notification_opened:["kind"],
+    readiness_completed:["band"], adaptive_session_started:["band","override"]
   };
   var sessionId="";
   try{ sessionId=crypto.randomUUID(); }

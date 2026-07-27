@@ -1,5 +1,29 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## Sprint 5 — Daily Readiness → Adaptive Session (Jul 26, 2026)
+
+Sprint 5 makes the authored program responsive without turning Yardsmith into a
+medical device or a settings maze:
+
+1. **Three honest taps:** sleep, body, and energy create a readiness read in
+   roughly 20 seconds. The check-in appears on Home and Train and intercepts only
+   the first start of a new session; resumptions are never blocked.
+2. **A deterministic dose, not AI improvisation:** Full Send keeps the authored
+   plan; Smart Trim preserves the first two lifts and removes one later accessory
+   set; Recovery Dose keeps two crisp sets per lift and suggests roughly 75% load.
+3. **The plan never moves:** readiness changes today's dose only. Week, phase,
+   exercise order, completion truth, and missed-session recovery remain intact.
+4. **The golfer stays in control:** every reduced dose offers “Keep the original
+   session,” and the whole check-in can be skipped.
+5. **One coaching brain:** today's band is visible inside the workout player,
+   becomes a deterministic Brain signal, and is supplied to the conversational
+   coach so both surfaces explain the same decision.
+6. **Private by design:** signed-in users can sync a bounded 60-day readiness
+   history. Anonymous telemetry receives only the coarse band and whether the
+   original session was chosen—never sleep, soreness, energy, or health values.
+7. **Safety boundary:** the result explicitly redirects sharp pain, new injury,
+   dizziness, or illness away from training and toward appropriate care.
+
 ## Sprint 4 — smart re-engagement (Jul 26, 2026)
 
 Sprint 4 lets Yardsmith coach while closed without becoming notification noise:

@@ -76,6 +76,7 @@
       targets: lsGet("ff_targets"),
       score: lsGet("ff_score"),
       recentLog: { week: lsGet("ff_week") || 1, sessionsLogged: Object.keys(logObj).length, body: body.slice(-6) },
+      readiness: (lsGet("ff_readiness") || []).slice(-7),
       brain: brain,
       memory: memoryContext()
     };
@@ -216,7 +217,7 @@
         headers: { "Authorization": "Bearer " + token, "apikey": window.FF.anonKey, "Content-Type": "application/json" },
         body: JSON.stringify({ message: text, history: history.slice(0, -1).slice(-8),
           profile: ctx.profile, targets: ctx.targets, score: ctx.score, recentLog: ctx.recentLog,
-          brain: ctx.brain, memory: ctx.memory })
+          brain: ctx.brain, readiness: ctx.readiness, memory: ctx.memory })
       });
       if (res.status === 402) {
         var j = await res.json().catch(function () { return {}; });
