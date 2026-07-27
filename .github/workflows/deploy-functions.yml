@@ -39,6 +39,23 @@ jobs:
             supabase secrets set ANTHROPIC_API_KEY="$ANTHROPIC_API_KEY" --project-ref "$PROJECT_REF"
           fi
 
+      - name: Require and update push secrets
+        env:
+          VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+          PUSH_CRON_SECRET: ${{ secrets.PUSH_CRON_SECRET }}
+        run: |
+          for name in VAPID_PUBLIC_KEY VAPID_PRIVATE_KEY PUSH_CRON_SECRET; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Missing repo secret $name"; exit 1
+            fi
+          done
+          supabase secrets set \
+            VAPID_PUBLIC_KEY="$VAPID_PUBLIC_KEY" \
+            VAPID_PRIVATE_KEY="$VAPID_PRIVATE_KEY" \
+            PUSH_CRON_SECRET="$PUSH_CRON_SECRET" \
+            --project-ref "$PROJECT_REF"
+
       - name: Deploy every Edge Function
         run: |
           for fn in delete-account ai-coach paddle-webhook push-daily product-health; do

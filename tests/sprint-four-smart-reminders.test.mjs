@@ -9,6 +9,9 @@ const sw = readFileSync(new URL("../src/sw.template.js", import.meta.url), "utf8
 const sender = readFileSync(new URL("../supabase/functions/push-daily/index.ts", import.meta.url), "utf8");
 const health = readFileSync(new URL("../product-health.js", import.meta.url), "utf8");
 const healthFn = readFileSync(new URL("../supabase/functions/product-health/index.ts", import.meta.url), "utf8");
+const deploy = readFileSync(new URL("../.github/workflows/deploy-functions.yml", import.meta.url), "utf8");
+const schedule = readFileSync(new URL("../.github/workflows/push-reminders.yml", import.meta.url), "utf8");
+const cloud = readFileSync(new URL("../cloud-sync.js", import.meta.url), "utf8");
 
 function functionSource(source, name) {
   const start = source.indexOf(`function ${name}(`);
@@ -77,4 +80,16 @@ test("reminder controls and analytics stay explicit and anonymous", () => {
     assert.match(healthFn, new RegExp(`"${event}"`));
   }
   assert.doesNotMatch(health, /endpoint|p256dh|auth:/);
+});
+
+test("production provisioning requires matching push secrets and an authenticated hourly sender", () => {
+  for (const secret of ["VAPID_PUBLIC_KEY", "VAPID_PRIVATE_KEY", "PUSH_CRON_SECRET"]) {
+    assert.match(deploy, new RegExp(`secrets\\.${secret}`));
+  }
+  assert.match(deploy, /supabase secrets set/);
+  assert.match(schedule, /cron:\s*['"]5 \* \* \* \*['"]/);
+  assert.match(schedule, /x-cron-secret:\s*\$PUSH_CRON_SECRET/);
+  assert.match(schedule, /--fail-with-body/);
+  const publicKey = cloud.match(/FF_PUSH_PUB = "([^"]+)"/)?.[1] ?? "";
+  assert.match(publicKey, /^[A-Za-z0-9_-]{87}$/);
 });

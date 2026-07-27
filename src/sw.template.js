@@ -11,7 +11,7 @@ var ASSETS = [
   './privacy.html',
   './delete-account.html',
   './product-health.js?v=4',
-  './cloud-sync.js?v=114',
+  './cloud-sync.js?v=115',
   './coach.js?v=89',
   './manifest.webmanifest',
   './logo-dark-mark.png',

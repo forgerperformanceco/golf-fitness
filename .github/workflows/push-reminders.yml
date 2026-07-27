@@ -1,0 +1,35 @@
+name: Send Smart Reminders
+
+on:
+  schedule:
+    - cron: '5 * * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: smart-reminders-hourly
+  cancel-in-progress: false
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require scheduler secret
+        env:
+          PUSH_CRON_SECRET: ${{ secrets.PUSH_CRON_SECRET }}
+        run: |
+          if [ -z "$PUSH_CRON_SECRET" ]; then
+            echo "::error::Missing repo secret PUSH_CRON_SECRET"; exit 1
+          fi
+
+      - name: Send due reminders
+        env:
+          PUSH_CRON_SECRET: ${{ secrets.PUSH_CRON_SECRET }}
+        run: |
+          curl --silent --show-error --fail-with-body \
+            --request POST \
+            --header "Content-Type: application/json" \
+            --header "x-cron-secret: $PUSH_CRON_SECRET" \
+            --data '{}' \
+            https://tbwmckmyzoxzhpqlomsp.supabase.co/functions/v1/push-daily
