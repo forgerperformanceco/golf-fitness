@@ -262,14 +262,20 @@
         var n=parseSets(tgt), sets=[]; for(var i=0;i<n;i++) sets.push({w:"",r:"",done:false});
         return { name:nm, orig:row[0], target:tgt, sets:sets }; });
     }
-    return { date:"", ex:ex };
+    var built={ date:"", ex:ex };
+    return (typeof ffApplyReadiness==="function")?ffApplyReadiness(built,day,week):built;
   }
-  function openLogger(dayName){
+  function openLogger(dayName,readinessChecked){
     var day=findDay(dayName); if(!day) return;
+    if(!readinessChecked && typeof ffReadinessNeedsCheck==="function" && ffReadinessNeedsCheck(day)){
+      ffReadinessOpen(dayName,"manual"); return;
+    }
     var week=curWeek();
     logState={ week:week, day:dayName, sess:buildSession(day, week) };
     $("logTitle").textContent=dayName;
-    $("logSub").textContent="Week "+week+" of 20";
+    var rr=logState.sess.readiness, rm=rr&&typeof ffReadinessMeta==="function"
+      ?ffReadinessMeta(rr.original?"ready":rr.band):null;
+    $("logSub").textContent="Week "+week+" of 20"+(rm?" · "+rm.label:"");
     renderLogBody();
     $("logModal").hidden=false;
     $("logModal").classList.add("open");
@@ -280,6 +286,10 @@
   function renderLogBody(){
     var s=logState.sess, week=logState.week, day=logState.day;
     var last=lastSessionFor(day, week), html="", wv=waveFor(week);
+    if(s.readiness&&typeof ffReadinessMeta==="function"){
+      var rm=ffReadinessMeta(s.readiness.original?"ready":s.readiness.band);
+      html+='<div class="logx-nudge ready-log"><b>'+rm.label+':</b> '+rm.copy+'</div>';
+    }
     s.ex.forEach(function(x, xi){
       var lx=null;
       if(last){ last.ex.forEach(function(e){ if(e.name===x.name) lx=e; }); }

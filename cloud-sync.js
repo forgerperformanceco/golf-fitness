@@ -17,7 +17,7 @@
 
   // Everything the app persists to localStorage — the full progress blob.
   // ff_start = the plan's start date (so the calendar/week follows you across devices).
-  var KEYS = ["fairwayfuel", "ff_week", "ff_log", "ff_body", "ff_start", "ff_planview", "ff_swaps", "ff_onboarded", "ff_handle", "ff_kcal_adj", "ff_lastcheckin", "ff_gameday", "ff_foodprefs", "ff_insights_seen", "ff_region", "ff_zip", "ff_tips_seen", "ff_history", "ff_deleted", "ff_rest", "ff_goalyds", "ff_speedtest", "ff_mobility", "ff_event", "ff_fuel", "ff_rounds", "ff_coach_memory", "ff_weekly_reviews"];
+  var KEYS = ["fairwayfuel", "ff_week", "ff_log", "ff_body", "ff_start", "ff_planview", "ff_swaps", "ff_onboarded", "ff_handle", "ff_kcal_adj", "ff_lastcheckin", "ff_gameday", "ff_foodprefs", "ff_insights_seen", "ff_region", "ff_zip", "ff_tips_seen", "ff_history", "ff_deleted", "ff_rest", "ff_goalyds", "ff_speedtest", "ff_mobility", "ff_event", "ff_fuel", "ff_rounds", "ff_coach_memory", "ff_weekly_reviews", "ff_readiness"];
 
   // Disabled until configured.
   if (!SUPABASE_URL || !SUPABASE_ANON) return;
@@ -459,6 +459,7 @@
     ff_rounds:    function (l, c) { return unionSeries(l, c, function (e) { return e.id || e.ts; }, 60); },
     ff_speedtest: function (l, c) { return unionSeries(l, c, function (e) { return e.ts; }, 60); },
     ff_mobility:  function (l, c) { return unionSeries(l, c, function (e) { return e.ts; }, 40); },
+    ff_readiness: function (l, c) { return unionSeries(l, c, function (e) { return e.date; }, 60); },
     ff_fuel:      unionFuel,
     ff_weekly_reviews: unionWeeklyReviews
   };

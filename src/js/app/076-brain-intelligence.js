@@ -46,6 +46,7 @@
     var score=lsGet("ff_score",null), trend=null;
     var started=typeof planStart==="function" && !!planStart();
     try{ trend=weightTrend(); }catch(e){}
+    var readiness=(typeof ffReadinessToday==="function")?ffReadinessToday():null;
     return {
       planWeek:(started&&typeof curWeek==="function")?curWeek():null,
       phase:(started&&typeof curWeek==="function"&&typeof waveFor==="function"&&typeof WAVES!=="undefined")?WAVES[waveFor(curWeek())].label:null,
@@ -56,11 +57,14 @@
       speedSpanDays:Math.round(spanDays),
       weightRatePerWeek:trend&&trend.ratePerWeek!=null?ffBrainRound(trend.ratePerWeek,2):null,
       octane:score&&score.score!=null?score.score:null,
-      daysSinceAnyLog:recentTs?Math.floor((now-recentTs)/864e5):null
+      daysSinceAnyLog:recentTs?Math.floor((now-recentTs)/864e5):null,
+      readiness:readiness?{band:readiness.band,score:readiness.score,original:!!readiness.original}:null
     };
   }
   function ffBrainDecision(signals){
     if(typeof planStart!=="function" || !planStart()) return { key:"start", title:"Start the season", reason:"Your plan has not started, so there is nothing to adapt yet.", action:"Start Week 1 and establish today as Day 1." };
+    if(signals.readiness&&signals.readiness.band==="recharge"&&!signals.readiness.original)
+      return {key:"readiness",title:"Protect today's quality",reason:"Sleep, body, and energy point to a recovery dose today.",action:"Run the adapted two-set session at 70–80% and leave PRs for a better day."};
     if(signals.speedTests===0) return { key:"baseline", title:"Bank the speed baseline", reason:"Without a 7-iron baseline, the app cannot prove whether the work is buying speed.", action:"Run the guided three-swing Speed Test; best swing counts." };
     if(typeof speedTestDue==="function" && speedTestDue()) return { key:"retest", title:"Reassess speed now", reason:"The biweekly testing window is open, and a fresh outcome is more valuable than another guess.", action:"Warm up, take three max-intent 7-iron swings, and log the best." };
     if(signals.daysSinceAnyLog!=null && signals.daysSinceAnyLog>=6)

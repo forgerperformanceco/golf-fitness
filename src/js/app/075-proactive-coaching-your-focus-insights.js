@@ -440,6 +440,7 @@
     var html = '<section class="today-command" aria-label="Today">'+
       '<div class="today-command-label">'+ffIcon("compass",14)+' Today</div>'+
       nextUpCard()+'</section>';
+    if(typeof ffReadinessHomeHtml==="function") html+=ffReadinessHomeHtml();
     html += openingRoundHtml();
     html += weeklyFlightHtml();
     var timeline=timelineHtml();

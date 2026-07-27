@@ -42,6 +42,7 @@ interface CoachRequest {
   score?: unknown;                     // Yardsmith Score + pillar breakdown
   recentLog?: unknown;                 // trimmed ff_log / speed trend
   brain?: unknown;                     // deterministic signals, intervention, forecast
+  readiness?: unknown;                 // bounded recent sleep/body/energy bands
   memory?: { at?: string; topic?: string; user?: string; coach?: string }[];
 }
 
@@ -132,6 +133,7 @@ Deno.serve(async (req) => {
     yardsmithScore: body.score ?? null,
     recent: body.recentLog ?? null,
     decisionEngine: body.brain ?? null,
+    recentReadiness: body.readiness ?? null,
     coachingMemory: cleanMemory,
   };
   const contextBlock =

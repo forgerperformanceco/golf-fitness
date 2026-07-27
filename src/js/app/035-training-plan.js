@@ -692,6 +692,7 @@
       '<span class="lh-mode '+(retain?"retain":"build")+'">'+(retain?"Retain":"Build")+'</span></div>';
 
     if(mode==="today"){
+      if(typeof ffReadinessInlineHtml==="function") html+=ffReadinessInlineHtml(featured);
       if(featured.type==="rest"){
         var heroRestDone=restDone(wk,featKey);
         html+='<button type="button" class="train-today-cta recovery'+(heroRestDone?' done':'')+'" data-restday="'+escAttr(featKey)+'">'+

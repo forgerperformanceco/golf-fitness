@@ -5,8 +5,11 @@
      saving on every change — exit any time, nothing is lost. Always dark (focus mode). */
   var player=null, plRestTimer=null, plRestEnd=0, plRestTotal=0;
   function plLiftBase(day){ return (day.type==="speed") ? 1 : 2; }   // stations before the first lift
-  function startPlayer(dayName){
+  function startPlayer(dayName,readinessChecked){
     var day=findDay(dayName); if(!day || day.type==="rest") return;
+    if(!readinessChecked && typeof ffReadinessNeedsCheck==="function" && ffReadinessNeedsCheck(day)){
+      ffReadinessOpen(dayName); return;
+    }
     var week=curWeek();
     var sess=buildSession(day, week);
     var prevBest={}; bigLiftStats().forEach(function(L){ prevBest[L.name]=L.best; });
@@ -119,13 +122,13 @@
         }).join("")+'</div>';
     }
     if(st.type==="primer"){
-      var p=primerFor(player.dayName);
-      return '<div class="pl-skick">Station 2 · Power primer — fresh, max intent</div>'+
+      var p=primerFor(player.dayName), low=player.sess.readiness&&player.sess.readiness.band==="recharge"&&!player.sess.readiness.original;
+      return '<div class="pl-skick">Station 2 · Power primer'+(low?" — recovery dose":" — fresh, max intent")+'</div>'+
         '<div class="pl-exname">'+p.move+'</div>'+
-        '<div class="pl-target">'+p.dose+'</div>'+
-        '<div class="pl-cue">'+(p.note||"")+' Every rep explosive — the second a rep slows, the set is over. Full rest between sets.</div>'+
+        '<div class="pl-target">'+(low?"2 × 2 easy":p.dose)+'</div>'+
+        '<div class="pl-cue">'+(low?"Two easy, crisp reps. Stop well before fatigue.":((p.note||"")+' Every rep explosive — the second a rep slows, the set is over. Full rest between sets.'))+'</div>'+
         '<div class="pl-list"><button type="button" class="pl-item'+(player.prDone?" done":"")+'" data-plprimer="1">'+
-          '<span>'+(player.prDone?"✓ Primer done":"Mark primer done")+'</span><span class="dose">'+p.dose+'</span></button></div>'+
+          '<span>'+(player.prDone?"✓ Primer done":"Mark primer done")+'</span><span class="dose">'+(low?"2 × 2 easy":p.dose)+'</span></button></div>'+
         '<div class="pl-note">⚠️ '+PRIMER_NOTE+'</div>';
     }
     if(st.type==="lift"){
@@ -133,6 +136,9 @@
       var ready=progressReady(lx, x.target);
       var topLast=0; if(lx) lx.sets.forEach(function(s){ var w=parseFloat(s.w); if(w>topLast) topLast=w; });
       var presc=prescribeW(topLast||null, x.name, ready, wv);
+      var readyBand=player.sess.readiness&&player.sess.readiness.original?"ready":(player.sess.readiness&&player.sess.readiness.band);
+      var recoveryLoad=(typeof ffReadinessLoad==="function")?ffReadinessLoad(topLast,readyBand):null;
+      if(recoveryLoad!=null) presc=recoveryLoad;
       var cue=liftWhy(x.name).cue;
       // This session's values carry forward: the nearest EARLIER set with data
       // ghosts into later empty sets, and tapping ✓ on an empty set commits it.
@@ -171,7 +177,9 @@
         (lsGet("ff_hint_press",false)?'':'<span class="pl-setops-hint">✋ hold a set to remove it · hold the name to reorder</span>')+'</div>';
       var livePr=(player.prHit && player.prHit[x.name])
         ? '<div class="pl-livepr">🚀 e1RM PR — <b>'+Math.round(player.prHit[x.name])+'</b> lb</div>' : '';
-      var prescLine = bw
+      var prescLine = readyBand==="recharge"
+        ? (bw?'🌱 Recovery dose — move cleanly and stop well before fatigue.':'🌱 Recovery dose — about <b>'+(presc!=null?presc+" lb":"70–80% of normal")+'</b>, no PR chasing.')
+        : bw
         ? '⚡ <b>Bodyweight</b> — every rep max height, land soft, full rest. Log the reps.'
         : (presc!=null
           ? (wv==="deload" ? '🪫 Deload — today: <b>'+presc+' lb</b> (~60% of last week)' : '📈 Progression earned — today: <b>'+presc+' lb</b>')
@@ -232,6 +240,10 @@
       '<div class="pl-title">'+player.dayName.replace(/^Day \d+ — /,'')+'</div></div></div>'+
       '<div class="pl-dots">'+player.stations.map(function(s,i){
         return '<span class="pl-dot'+(i===player.st?' cur':(i<player.st||plStationDone(i)?' done':''))+'"></span>'; }).join("")+'</div>';
+    if(player.sess.readiness){
+      var rm=ffReadinessMeta(player.sess.readiness.original?"ready":player.sess.readiness.band);
+      head+='<div class="pl-ready '+(player.sess.readiness.original?"ready":player.sess.readiness.band)+'"><b>'+rm.label+'</b><span>'+rm.title+'</span></div>';
+    }
     $("plTop").innerHTML=head;
     var body=$("plBody");
     // Start each STATION at the top, but keep the scroll position on in-place
@@ -324,6 +336,9 @@
           if(carry!=null && !isNaN(carry)){ cur=carry; if(dir<0) cur+=(f==="w"?incNum(x.name):1); }
           else if(f==="w"){ var lx=plLastFor(x.name), top=0; if(lx) lx.sets.forEach(function(ls){ var w=parseFloat(ls.w); if(w>top) top=w; });
             var presc=prescribeW(top||null, x.name, progressReady(lx, x.target), waveFor(player.week));
+            var rb=player.sess.readiness&&!player.sess.readiness.original&&player.sess.readiness.band;
+            var rload=(typeof ffReadinessLoad==="function")?ffReadinessLoad(top,rb):null;
+            if(rload!=null) presc=rload;
             cur=(presc!=null?presc:(top||45));
             if(dir<0) cur+= (f==="w"? incNum(x.name):1);   // first minus lands on the seed itself
           } else { var m=String(x.target).match(/[×x]\s*(\d+)/); cur=m?parseInt(m[1],10):8; if(dir<0) cur+=1; }
