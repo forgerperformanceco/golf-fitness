@@ -175,7 +175,7 @@
   // its private half lives in Supabase Edge Function secrets. Regenerate the
   // pair with `node scripts/gen-vapid.mjs` (doing so invalidates existing
   // subscriptions — every device must re-toggle reminders).
-  var FF_PUSH_PUB = "BHhvzZKWGc_ULisImsEa_faL5TNqlGA9pKuSC4UaDp7TyglKv7Wxg1EH9fmmjSsYbTkHq-FJOL_NiuJGO9N8Og4";
+  var FF_PUSH_PUB = "BDxDw_Z3wPPNYAbGHaUJ98k3TjyGFNFDW8P9ZErr4LqZlIsRjMZxHnVqKAA36QSoFnNYs4NHvmVXpBrATyOf1TA";
   window.FF.pushKey = FF_PUSH_PUB;
   // Upsert this browser's subscription + its 7-day message schedule (the app
   // rebuilds `week` on every open so the copy stays day-aware server-side).
