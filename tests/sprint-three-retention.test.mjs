@@ -22,11 +22,15 @@ function functionSource(source, name) {
 }
 
 test("Weekly Flight Plan reads real calendar-week signals", () => {
-  const monday = new Date();
-  const dow = (monday.getDay() + 6) % 7;
-  monday.setHours(0, 0, 0, 0);
-  monday.setDate(monday.getDate() - dow);
+  const monday = new Date("2026-07-20T12:00:00.000Z");
+  const fixedNow = new Date("2026-07-26T12:00:00.000Z").getTime();
+  class FixedDate extends Date {
+    constructor(...args) {
+      super(...(args.length ? args : [fixedNow]));
+    }
+  }
   const context = {
+    Date: FixedDate,
     planState: { freq: 4 },
     weekStartDateCal: () => new Date(monday),
     ffISO: (d) => d.toISOString().slice(0, 10),
