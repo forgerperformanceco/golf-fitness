@@ -274,8 +274,25 @@ That intersection is ours.
 - Relaunched Feb 2026 around the **Golf Fitness Handicap™** — a 10-test battery
   (5 mobility + 5 fitness), scored to 50, re-tested every 6 weeks; program library
   fronted by celebrity coaches; weekly leaderboards; pro shop; in both app stores.
+- **Evolved further (owner-shared screenshots, Jul 2026):** the Golf Fitness
+  Handicap /50 is now just one input into a bigger hero — a **"Player Rating"
+  /100** ("ON TRACK, +1.5 today"), composed of Golf Handicap + Fitness Handicap +
+  a branded "FUSION Score" /50. A **breakdown** view splits it into tappable
+  sub-scores with tiered category bars (Golf HCP Index, Fitness HCP, Best Score,
+  **Average Drive 263 yds, Ball Speed 177 mph**, Fusion Score), plus a
+  progression line chart (7d/1mo/3mo/all) and a **Recovery card driven by a
+  wearable** (HRV, resting HR, sleep, % recovery, "Sync Again"). So they've moved
+  toward a composite-with-breakdown and even surface golf outcomes — but as
+  inputs to a *fitness* rating, not the headline, and the recovery card **needs a
+  wearable** (breaks free/offline/no-hardware).
 - **What DRVN still doesn't do:** nutrition, or a conversational coach that reads
   your own numbers. Our moat is intact.
+- **Our in-lane response (shipped, Jul 2026):** the Octane breakdown was polished
+  — each of the six pillars now surfaces its real metric + pts/max, and a
+  composite **Octane trend** sparkline was added — all from the user's own data.
+  We borrowed the *generic UX pattern* (composite-with-legible-breakdown), never
+  their names, metrics, tests, or wearable dependency. Still **not** a synthetic
+  test battery (see "Dyno Day" rejection, §Decisions).
 
 ### Our moat (unchanged)
 1. **Nutrition + fueling** — a whole pillar they skip.
