@@ -18,7 +18,7 @@ the training × nutrition × AI-coach intersection Yardsmith is built for.**
 
 | App | Lane | Does | Model | Gap |
 |---|---|---|---|---|
-| **DRVN** | Athletic training | Golf-biomechanics strength programming, periodisation, a composite assessment ("Golf Fitness Handicap™") | Subscription (+ pro/facility tiers) | No nutrition. Coaching is programmed, not conversational. |
+| **DRVN** | Athletic training | Golf-biomechanics strength programming, periodisation, a composite assessment ("Golf Fitness Handicap™") — now rolled up into a **"Player Rating" /100** with a tappable sub-score breakdown, a progression chart, and a **wearable-driven Recovery card** (HRV/sleep) | Subscription (+ pro/facility tiers) | No nutrition. Coaching is programmed, not conversational. Recovery needs a wearable. |
 | **GolfForever** | Mobility / seniors | Low-intensity stability + mobility, injury prevention; anchored to a sold-separately Swing Trainer | Sub + hardware | Low athletic ceiling. No nutrition. Hardware-gated. |
 | **Fitforgolf** | General fitness-for-golf | Stability/conditioning, decent library, some gym work | Sub | Less golf-specific; partial periodisation; no nutrition. |
 | **JoeyD Golf** | Swing speed | Superspeed/overspeed distance protocols | Sub (+ aids) | Narrow — speed only. No strength breadth, no nutrition. |

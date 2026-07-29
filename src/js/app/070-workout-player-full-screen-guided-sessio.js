@@ -814,6 +814,19 @@
     // Stash the Octane score + pillars so the AI coach can explain & coach toward it.
     try { lsSet("ff_score", { score:r.score,
       pillars:r.parts.map(function(p){ return { name:p.label, pts:p.pts, max:p.max, have:p.have, detail:p.detail }; }) }); } catch(e){}
+    // Local (non-roaming) daily trace of the composite, so the breakdown can draw
+    // an Octane trend. It's a DERIVED cache — deliberately NOT in cloud-sync KEYS:
+    // the score is "gain from your first entry", so a past day can't be recomputed
+    // or backfilled; it just accumulates forward and self-heals on any device.
+    if(r.score==null) return;
+    try {
+      var hist = lsGet("ff_score_hist", []); if(!Array.isArray(hist)) hist=[];
+      var day = todayStr();
+      if(hist.length && hist[hist.length-1].d===day) hist[hist.length-1].s=r.score;   // newest wins for today
+      else hist.push({ d:day, s:r.score });
+      if(hist.length>60) hist=hist.slice(hist.length-60);
+      lsSet("ff_score_hist", hist);
+    } catch(e){}
   }
   // Dashboard hero: driver carry + gain up top, the Octane engine gauge underneath.
   function goalYds(){ var g=parseInt(lsGet("ff_goalyds",0),10); return (g>0)?g:null; }
@@ -945,14 +958,26 @@
     }
     var bars = r.parts.map(function(p){
       var w = p.max>0 ? Math.round(p.pts/p.max*100) : 0;
+      // Each pillar shows its REAL metric on the face (was tap-only) and the points
+      // as pts/max so the number and the bar agree — no more bare cryptic "23".
+      var val = p.have ? (p.pts+'<i>/'+p.max+'</i>') : '＋';
       var row='<button type="button" class="ffp'+(p.have?"":" locked")+'" data-pillar="'+p.key+'" aria-expanded="'+(openPillar===p.key?'true':'false')+'">'+
-        '<span class="ffp-label">'+p.label.replace(" (e1RM)","")+'</span>'+
-        '<span class="ffp-track"><span class="ffp-fill" style="width:'+(p.have?Math.max(7,w):100)+'%"></span></span>'+
-        '<span class="ffp-val">'+(p.have? p.pts : "+")+'</span></button>';
+        '<span class="ffp-top"><span class="ffp-label">'+p.label.replace(" (e1RM)","")+'</span>'+
+          '<span class="ffp-val">'+val+'</span></span>'+
+        '<span class="ffp-metric">'+ffEsc(p.detail||"")+'</span>'+
+        '<span class="ffp-track"><span class="ffp-fill" style="width:'+(p.have?Math.max(7,w):100)+'%"></span></span></button>';
       if(openPillar===p.key) row+='<div class="ffp-detail">'+pillarDetailHtml(p)+'</div>';
       return row;
     }).join("");
-    return '<div class="ffscore">'+top+'<div class="ffscore-bars">'+bars+'</div>'+
+    // Octane trend — the composite over the days you've logged (local trace). Only
+    // drawn once there are ≥2 days; otherwise it stays quiet rather than faking data.
+    var oh = lsGet("ff_score_hist", []);
+    var ohv = (Array.isArray(oh)?oh:[]).map(function(h){ return h.s; }).filter(function(v){ return v!=null && !isNaN(v); });
+    var trend = ohv.length>=2
+      ? '<div class="ffscore-trend"><span class="fst-lbl">Octane trend</span>'+pcMiniSpark(ohv,"#8be9ac")+
+        pcDelta(ohv[ohv.length-1]-ohv[0], "", false)+'</div>'
+      : '';
+    return '<div class="ffscore">'+top+trend+'<div class="ffscore-bars">'+bars+'</div>'+
       '<div style="margin-top:8px;font-size:12px;color:#9fc4ac;">Tap a pillar to see what drives it — and the fastest way to move it.</div>'+
       '<button type="button" class="ffscore-drives" data-pftoggle="pillars">Hide the breakdown <span class="pf-arr">⌄</span></button></div>';
   }

@@ -1222,6 +1222,35 @@ glossary/loop entries all in place from earlier passes. Two grammar nits:
 setup → mobility → backup → foods → start-over → show-me-around →
 full-access), reset button wired, zero page errors.
 
+## 79 · Octane breakdown polish + composite trend (competitive read: DRVN screenshots)
+
+Owner shared DRVN screenshots — they've rolled their Golf Fitness Handicap /50
+into a "Player Rating" /100 with a tappable sub-score breakdown and a progression
+chart. We borrowed the **generic UX pattern** (composite-with-legible-breakdown),
+never their names/metrics/tests/wearables, and applied it to Octane — our own
+six-pillar score from the user's own data.
+
+Two changes to the Octane card (`renderScoreCard`, 070):
+- **Legible pillar rows.** Each pillar was a single bar with a bare, cryptic
+  points number ("23"). Now it's a small block: label + **pts/max** on top (so the
+  number and the fill bar agree), the pillar's **real metric surfaced on the face**
+  ("+5.1% 7-iron", "Speed outpacing weight" — previously tap-only), and the bar
+  below. Locked pillars show `＋` and their next step ("Take the 3-move screen").
+- **Octane trend.** `saveScoreSnapshot` now also appends a daily composite score to
+  a local, capped `ff_score_hist` trace, and the breakdown draws an **Octane trend**
+  sparkline + delta once ≥2 days exist. Deliberately NOT synced: the score is
+  "gain from your first entry," so a past day can't be backfilled — it accumulates
+  forward and self-heals on any device.
+
+Stayed in lane: no "Player Rating"/"FUSION" naming, no synthetic test battery
+(the settled "Dyno Day" rejection), no wearable dependency. Recorded the DRVN
+evolution in `YARDSMITH-BRAIN.md` §5 and `COMPETITIVE-LANDSCAPE.md`.
+
+**Verified** (Playwright): breakdown open with seeded data — all six pillars
+render a metric line; pillars with data read `26/30` / `10/10`, locked ones read
+`＋`; the trend chip draws a sparkline + delta from `ff_score_hist`; zero page
+errors.
+
 ## 78 · Skip-link stops peeking out on notched phones (user report: "skip to main content button out of place")
 
 The "Skip to main content" accessibility link was leaking into view at the
