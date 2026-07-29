@@ -438,9 +438,7 @@
     var el=$("dashBody"); if(!el) return;
     // Home is a command center, not a feed: one dominant action first. The day's
     // checklist and the deeper progress/coaching layer stay available on demand.
-    var html = '<section class="today-command" aria-label="Today">'+
-      '<div class="today-command-label">'+ffIcon("compass",14)+' Today</div>'+
-      nextUpCard()+'</section>';
+    var html = '<section class="today-command" aria-label="Today">'+nextUpCard()+'</section>';
     if(typeof ffReadinessHomeHtml==="function") html+=ffReadinessHomeHtml();
     html += openingRoundHtml();
     html += weeklyFlightHtml();

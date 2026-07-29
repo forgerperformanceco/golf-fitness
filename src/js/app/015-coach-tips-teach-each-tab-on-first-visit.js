@@ -84,7 +84,10 @@
     if(!html) return;
     var el = document.createElement("div");
     el.innerHTML = html;
-    host.insertBefore(el.firstChild, host.firstChild);
+    // Keep the shared page header as the first orientation landmark. Education
+    // can introduce the tab, but it should never replace the page identity.
+    var head=host.querySelector(":scope > .view-head");
+    host.insertBefore(el.firstChild, head?head.nextSibling:host.firstChild);
   }
   function ffSeeTip(key){ var s=lsGet("ff_tips_seen", []); if(s.indexOf(key)<0){ s.push(key); lsSet("ff_tips_seen", s); } }
   // One delegated handler for every tip's close button + the sign-in CTA.
