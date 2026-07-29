@@ -7,6 +7,8 @@ const home = readFileSync(new URL("../src/js/app/075-proactive-coaching-your-foc
 const css = readFileSync(new URL("../src/css/styles.css", import.meta.url), "utf8");
 const health = readFileSync(new URL("../product-health.js", import.meta.url), "utf8");
 const healthFn = readFileSync(new URL("../supabase/functions/product-health/index.ts", import.meta.url), "utf8");
+const logger = readFileSync(new URL("../src/js/app/040-workout-logger.js", import.meta.url), "utf8");
+const sync = readFileSync(new URL("../cloud-sync.js", import.meta.url), "utf8");
 
 function functionSource(source, name) {
   const start = source.indexOf(`function ${name}(`);
@@ -37,12 +39,42 @@ test("catch-up chooses the oldest due unfinished workout without moving the plan
     curWeek: () => 2,
     getSession: (week, day) => log[`${week}|${day}`] || null,
     sessionFinished: (session) => !!(session && session.finishedAt),
+    sessionSkipped: () => false,
   };
   vm.runInNewContext(functionSource(home, "missedWorkout"), context);
   assert.equal(context.missedWorkout().name, "Day 2");
   log["2|Day 2"].finishedAt = "done";
   assert.equal(context.missedWorkout(), null);
   assert.doesNotMatch(functionSource(home, "missedWorkout"), /lsSet\("ff_start"/);
+});
+
+test("catch-up can be intentionally skipped without moving or deleting the plan", () => {
+  const days = [
+    { name: "Day 1", type: "lift" },
+    { name: "Day 2", type: "lift" },
+    { name: "Rest", type: "rest" },
+  ];
+  const skipped = new Set();
+  const context = {
+    planStart: () => "2026-07-12",
+    stripDays: () => days,
+    dayOfPlan: () => 3,
+    curWeek: () => 2,
+    getSession: () => null,
+    sessionFinished: () => false,
+    sessionSkipped: (week, day) => skipped.has(`${week}|${day}`),
+  };
+  vm.runInNewContext(functionSource(home, "missedWorkout"), context);
+  assert.equal(context.missedWorkout().name, "Day 1");
+  skipped.add("2|Day 1");
+  assert.equal(context.missedWorkout().name, "Day 2");
+  skipped.add("2|Day 2");
+  assert.equal(context.missedWorkout(), null);
+  assert.match(home, /data-skipsession=/);
+  assert.match(home, /Skip this session/);
+  assert.match(logger, /function skipSession\(/);
+  assert.match(logger, /if\(sessionFinished\(s\)\)/);
+  assert.match(sync, /"ff_skipped_sessions"/);
 });
 
 test("Opening Round is based on three real activation signals", () => {
