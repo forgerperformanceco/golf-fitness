@@ -1222,7 +1222,6 @@ glossary/loop entries all in place from earlier passes. Two grammar nits:
 setup → mobility → backup → foods → start-over → show-me-around →
 full-access), reset button wired, zero page errors.
 
-<<<<<<< HEAD
 ## 79 · Octane breakdown polish + composite trend (competitive read: DRVN screenshots)
 
 Owner shared DRVN screenshots — they've rolled their Golf Fitness Handicap /50
@@ -1252,8 +1251,6 @@ render a metric line; pillars with data read `26/30` / `10/10`, locked ones read
 `＋`; the trend chip draws a sparkline + delta from `ff_score_hist`; zero page
 errors.
 
-=======
->>>>>>> origin/claude/golf-app-evaluation-tyv6ri
 ## 78 · Skip-link stops peeking out on notched phones (user report: "skip to main content button out of place")
 
 The "Skip to main content" accessibility link was leaking into view at the
