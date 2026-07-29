@@ -1910,6 +1910,11 @@
     box-shadow:0 10px 26px rgba(55,34,7,.28); }
   .nu-card.catchup .nu-kick,.nu-card.catchup .nu-go{ color:#f4c96b; }
   .nu-card.catchup .nu-sub{ color:#e7d3a8; }
+  .nu-catchup .nu-card{ margin-bottom:6px; }
+  .nu-skip{ display:flex; align-items:center; justify-content:center; gap:7px; width:100%; min-height:38px;
+    border:0; background:transparent; color:var(--muted); font:800 12px system-ui; cursor:pointer; }
+  .nu-skip span{ font-weight:600; opacity:.78; }
+  .nu-skip:hover,.nu-skip:focus-visible{ color:var(--green-800); text-decoration:underline; text-underline-offset:3px; }
   /* Opening Round: a temporary activation bridge, not a permanent dashboard
      widget. Three meaningful wins connect Train, Fuel and the speed scoreboard. */
   .opening-round{ margin:0 0 11px; padding:15px; border:1px solid #cfe3d4; border-radius:16px;

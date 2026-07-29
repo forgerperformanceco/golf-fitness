@@ -133,7 +133,7 @@
   // cloud-sync merge would resurrect the old season's log from the server.
   function resetPlanFull(){
     try{ Object.keys(getLog()).forEach(function(k){ ffTomb("L:"+k); }); }catch(e){}
-    ["ff_start","ff_log","ff_week","ff_planview"].forEach(lsRemove);
+    ["ff_start","ff_log","ff_week","ff_planview","ff_skipped_sessions"].forEach(lsRemove);
     try{ window.dispatchEvent(new Event("ff-data-changed")); }catch(e){}
     focusDay=null;
     renderPhase();
@@ -147,7 +147,22 @@
   // shared so Train, Home, Stats, streaks and leaderboards tell the same truth.
   function sessionFinished(s){ return !!(s && s.finishedAt); }
   function sessionInProgress(s){ return !!(s && !s.finishedAt); }
-  function saveSession(w,d,s){ if(s) s._ts=Date.now(); var L=getLog(); L[w+"|"+d]=s; lsSet("ff_log",L); }
+  function getSkippedSessions(){ var s=lsGet("ff_skipped_sessions",{}); return (s&&typeof s==="object")?s:{}; }
+  function sessionSkipped(w,d){ return !!getSkippedSessions()[w+"|"+d]; }
+  function skipSession(w,d){
+    var s=getSkippedSessions(), k=w+"|"+d;
+    s[k]=Date.now();
+    lsSet("ff_skipped_sessions",s);
+  }
+  function saveSession(w,d,s){
+    if(s) s._ts=Date.now();
+    var L=getLog(); L[w+"|"+d]=s; lsSet("ff_log",L);
+    // A completed workout wins over an earlier skip on every device.
+    if(sessionFinished(s)){
+      var skipped=getSkippedSessions(), k=w+"|"+d;
+      if(skipped[k]){ delete skipped[k]; lsSet("ff_skipped_sessions",skipped); }
+    }
+  }
   // Rest-day check-off — kept in its OWN key so it never counts as a training
   // session (Octane, streaks, leaderboard all read ff_log, not this).
   function getRest(){ var r=lsGet("ff_rest",{}); return (r&&typeof r==="object")?r:{}; }

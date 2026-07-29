@@ -123,7 +123,7 @@
     var days=stripDays(), through=Math.max(0,(dayOfPlan()||1)-1), wk=curWeek();
     for(var i=0;i<through;i++){
       var d=days[i]; if(!d || d.type==="rest") continue;
-      if(!sessionFinished(getSession(wk,d.name))) return d;
+      if(!sessionFinished(getSession(wk,d.name)) && !sessionSkipped(wk,d.name)) return d;
     }
     return null;
   }
@@ -135,10 +135,11 @@
     var wk=curWeek(), missed=missedWorkout(), d=todaySlot();
     if(missed){
       var old=getSession(wk,missed.name), mid=sessionInProgress(old);
-      return '<button type="button" class="nu-card catchup" data-startplayer="'+escAttr(missed.name)+'" data-catchup="1"><span class="nu-go">›</span>'+
+      return '<div class="nu-catchup"><button type="button" class="nu-card catchup" data-startplayer="'+escAttr(missed.name)+'" data-catchup="1"><span class="nu-go">›</span>'+
         '<div class="nu-kick">Pick up the thread · No reset</div>'+
         '<div class="nu-title">'+(mid?'Resume: ':'Your next win: ')+missed.name.replace(/^Day \d+ — /,"")+'</div>'+
-        '<div class="nu-sub">Life happened. Your progress is safe — bank this one and the plan keeps moving.</div></button>';
+        '<div class="nu-sub">Life happened. Your progress is safe — bank this one and the plan keeps moving.</div></button>'+
+        '<button type="button" class="nu-skip" data-skipsession="'+escAttr(missed.name)+'" data-skipweek="'+wk+'">Skip this session <span>Keep my plan moving</span></button></div>';
     }
     if(d && d.type!=="rest"){
       var sess=getSession(wk, d.name);
@@ -459,6 +460,13 @@
     el.innerHTML=html;
   }
   document.addEventListener("click",function(e){
+    var skip=e.target.closest("[data-skipsession]");
+    if(skip){
+      skipSession(parseInt(skip.getAttribute("data-skipweek"),10)||curWeek(),skip.getAttribute("data-skipsession"));
+      try{ ffToast("Session skipped — your plan keeps moving."); }catch(_){}
+      renderDash();
+      return;
+    }
     var catchup=e.target.closest("[data-catchup]");
     if(catchup) openingEventOnce("catchup:"+curWeek()+":"+dayOfPlan(),"catchup_started",{week:curWeek()});
     var action=e.target.closest("[data-weekaction]");
