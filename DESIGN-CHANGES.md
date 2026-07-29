@@ -1222,6 +1222,27 @@ glossary/loop entries all in place from earlier passes. Two grammar nits:
 setup → mobility → backup → foods → start-over → show-me-around →
 full-access), reset button wired, zero page errors.
 
+## 78 · Skip-link stops peeking out on notched phones (user report: "skip to main content button out of place")
+
+The "Skip to main content" accessibility link was leaking into view at the
+top-left — overlapping the status-bar clock — inside the full-screen workout
+player. Cause: its `top` was `calc(10px + env(safe-area-inset-top))`, but the
+hide transform was a fixed `translateY(-180%)`. On a notched iPhone the inset
+(~59px) pushed the link *down* further than −180% (~75px) pulled it *up*, so
+~30px stayed on-screen. The player's dark-green background matches the link's
+own `#0b3d22` pill, so it stood out there.
+
+Fix: the hidden state is now inset-independent — `top:10px` with
+`transform:translateY(calc(-100% - 24px))`, which fully clears the element's own
+height regardless of notch depth. The safe-area inset moved into the focused
+position (`translateY(calc(env(safe-area-inset-top, 0px) + 4px))`), with an
+explicit `0px` fallback so the `calc()` never goes invalid and drops the reveal.
+
+**Verified** (Playwright, player open): unfocused the link sits at top −52 /
+bottom −14 (fully above the viewport); on keyboard focus it reveals at top 14
+(below the status bar); on blur it returns to −52. Inset-independence proven by
+construction — `top` no longer references `env()`.
+
 ## 77 · Resume returns to where you left off (user: "when you resume a workout it should go to where you left off")
 
 The player already paused cleanly — banking active time and surfacing the

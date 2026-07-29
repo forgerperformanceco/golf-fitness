@@ -27,12 +27,14 @@
     white-space:nowrap !important; border:0 !important;
   }
   .skip-link {
-    position:fixed; left:14px; top:calc(10px + env(safe-area-inset-top)); z-index:500;
+    position:fixed; left:14px; top:10px; z-index:500;
     padding:11px 15px; border-radius:12px; color:#fff; background:#0b3d22;
     font-size:14px; font-weight:800; box-shadow:0 8px 24px rgba(0,0,0,.28);
-    transform:translateY(-180%); transition:transform .18s var(--ease-out);
+    /* Hide fully off-screen INDEPENDENT of the safe-area inset — the inset lives
+       in the focused position, not in `top`, so a notch can't leave it peeking. */
+    transform:translateY(calc(-100% - 24px)); transition:transform .18s var(--ease-out);
   }
-  .skip-link:focus { transform:translateY(0); }
+  .skip-link:focus { transform:translateY(calc(env(safe-area-inset-top, 0px) + 4px)); }
   :where(button,a,input,select,textarea,summary,[tabindex]):focus-visible {
     outline:3px solid var(--focus-ring); outline-offset:3px;
     box-shadow:0 0 0 6px var(--focus-halo);
