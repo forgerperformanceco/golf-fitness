@@ -153,6 +153,14 @@
   .view { display: none; }
   .view.active { display: block; }
 
+  /* One orientation layer for every primary tab. The job beneath it changes;
+     its position, hierarchy and rhythm do not. */
+  .view-head{ min-height:72px; margin:2px 3px 16px; display:flex; flex-direction:column; justify-content:flex-end; }
+  .view-head-kicker{ margin-bottom:5px; color:var(--green-600); font:850 10.5px/1 system-ui;
+    letter-spacing:.14em; text-transform:uppercase; }
+  .view-head h1{ margin:0; color:var(--green-800); font:900 28px/1.04 system-ui; letter-spacing:-.75px; }
+  .view-head p{ margin:6px 0 0; color:var(--muted); font:600 12.5px/1.35 system-ui; }
+
   /* Single centered column everywhere — a collapsed inputs card next to the tall plan
      left the desktop layout lopsided, so the Fuel view now stacks like the rest of the app. */
   .grid { display: grid; grid-template-columns: 1fr; gap: 16px; align-items: start; }
@@ -1039,10 +1047,6 @@
   }
 
   /* ---- Progress / Stats view ---- */
-  .prog-hd { margin:4px 2px 14px; }
-  .prog-kick { font:800 11px/1.2 system-ui; letter-spacing:.09em; text-transform:uppercase; color:var(--green-600); margin-bottom:6px; }
-  .prog-hd h2 { margin:0 0 3px; font:800 26px/1.05 system-ui; color:var(--green-800); letter-spacing:-.5px; }
-  .prog-hd p { margin:0; font-size:13px; color:var(--muted); line-height:1.45; }
   /* Performance Story — the executive read before the evidence. */
   .performance-story{ position:relative; overflow:hidden; margin:0 0 13px; padding:17px;
     color:#effaf3; border:1px solid rgba(159,231,187,.2); border-radius:20px;
@@ -1546,6 +1550,8 @@
   #view-plan.started .plan-intro { display:none; }
   /* Once training, the brochure nutrition fold is redundant with the Fuel tab. */
   #view-plan.started .tracker-fold { display:none; }
+  #view-plan.started > .card{ padding:0; background:transparent; border:0; box-shadow:none; }
+  #view-plan.started #phaseDetail{ margin-top:0; }
   /* Equipment editor nested inside the Plan & settings fold. */
   .settings-equip { margin-top:14px; padding-top:14px; border-top:1px solid var(--line); }
   .seteq-label { font-size:13px; font-weight:800; color:var(--green-800); margin-bottom:10px; }
@@ -1902,8 +1908,6 @@
   .nu-go{ position:absolute; right:15px; top:50%; transform:translateY(-50%); font-size:26px; color:#8be9ac; }
   .nu-card.alt .nu-go{ color:#8ec8e8; }
   .today-command{ margin:0 0 14px; }
-  .today-command-label{ display:flex; align-items:center; gap:7px; margin:0 3px 8px;
-    color:var(--green-700); font:800 12px system-ui; letter-spacing:.11em; text-transform:uppercase; }
   .today-command .nu-card{ margin-bottom:0; padding-top:20px; padding-bottom:20px; }
   .today-command .nu-title{ font-size:23px; }
   .nu-card.catchup{ background:linear-gradient(135deg,#4b3212,#271a0b); border-color:#76531f;

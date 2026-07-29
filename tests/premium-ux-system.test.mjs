@@ -27,6 +27,16 @@ test("primary navigation exposes location and controlled screens", () => {
   assert.match(nav, /removeAttribute\("aria-current"\)/);
 });
 
+test("every primary tab starts with the same page-header hierarchy", () => {
+  for (const id of ["view-dash", "view-calc", "view-plan", "view-progress", "view-account"]) {
+    assert.match(html, new RegExp(`id="${id}"[\\s\\S]*?<header class="view-head">`));
+  }
+  assert.equal((html.match(/<header class="view-head">/g) || []).length, 5);
+  assert.match(css, /\.view-head\{/);
+  assert.match(css, /#view-plan\.started > \.card\{/);
+  assert.match(nav, /head\?head\.nextSibling:host\.firstChild/);
+});
+
 test("screen changes stay oriented visually and audibly", () => {
   assert.match(html, /id="appbarContext"/);
   assert.match(html, /id="viewAnnouncer" aria-live="polite"/);

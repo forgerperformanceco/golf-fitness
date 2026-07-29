@@ -387,7 +387,7 @@
     var sess=sessionsByWeek().length, lifts=bigLiftStats();
     var hasAny = sess>0 || spF.length>0 || wtF.length>0;
 
-    var html='<div class="prog-hd"><div class="prog-kick">⛳ The proof it’s working</div><h2>Your Progress</h2></div>';
+    var html='';
     html += performanceStoryHtml();
     html += brainForecastHtml();
     html += renderScoreCard();
