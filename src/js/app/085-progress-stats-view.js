@@ -74,6 +74,9 @@
     document.addEventListener("pointerup", hide, true);
     document.addEventListener("pointercancel", hide, true);
   })();
+  // Set by renderProgress around its Octane call: true when the Performance Story
+  // already named the biggest lever on this screen (see renderScoreCard).
+  var ffStatsStoryLever = false;
   function pcMiniSpark(vals, color){
     var pts=vals.filter(function(v){ return v!=null && !isNaN(v); });
     if(pts.length<2) return '';
@@ -388,12 +391,15 @@
     var hasAny = sess>0 || spF.length>0 || wtF.length>0;
 
     var html='';
-    // The Story card names the biggest lever when it renders its "next" block;
-    // tell the Octane card so the same advice isn't printed twice on one screen.
-    var storyHtml = performanceStoryHtml();
-    html += storyHtml;
+    html += performanceStoryHtml();
     html += brainForecastHtml();
-    html += renderScoreCard(false, storyHtml.indexOf('ps-next')>-1);
+    // The Story card names the biggest lever when it renders its "next" block;
+    // flag it so the Octane card doesn't print the same advice twice on one
+    // screen. (Shared-scope flag, set and reset around the one call, so the
+    // literal `html += renderScoreCard()` contract stays intact.)
+    ffStatsStoryLever = html.indexOf('ps-next')>-1;
+    html += renderScoreCard();
+    ffStatsStoryLever = false;
 
     // Consolidation pass (Stats 3.0): the page tells THREE stories below the
     // Octane hub — ⚡ speed (the north star, open), ⛳ the course (proof), and
