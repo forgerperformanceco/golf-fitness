@@ -388,9 +388,12 @@
     var hasAny = sess>0 || spF.length>0 || wtF.length>0;
 
     var html='';
-    html += performanceStoryHtml();
+    // The Story card names the biggest lever when it renders its "next" block;
+    // tell the Octane card so the same advice isn't printed twice on one screen.
+    var storyHtml = performanceStoryHtml();
+    html += storyHtml;
     html += brainForecastHtml();
-    html += renderScoreCard();
+    html += renderScoreCard(false, storyHtml.indexOf('ps-next')>-1);
 
     // Consolidation pass (Stats 3.0): the page tells THREE stories below the
     // Octane hub — ⚡ speed (the north star, open), ⛳ the course (proof), and

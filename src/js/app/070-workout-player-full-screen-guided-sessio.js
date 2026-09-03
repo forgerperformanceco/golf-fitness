@@ -759,14 +759,17 @@
     mobility: "run the 3-move mobility screen and hit the warm-up moves it adds",
     fuel: "check off your meals on the Fuel tab — ten seconds a day closes the loop"
   };
-  function ffScoreSummary(r){
+  function ffScoreSummary(r, noLever){
     if(r.score==null) return "Log a workout and add your bodyweight + 7-iron speed to fill the tank — one number for showing up, getting faster &amp; stronger.";
     if(r.pillars<2) return "Add data across a few weeks so the gauge can read your <b>trend</b>, not just a snapshot.";
+    var tone = r.score>=80 ? "Dialed in. " : (r.score>=55 ? "Solid trajectory. " : "Early days. ");
+    // On Stats the Performance Story card already names the biggest lever right
+    // above this gauge — don't say it twice on one screen; point at the breakdown.
+    if(noLever) return tone + "The six pillars below show exactly what's moving the needle.";
     var have=r.parts.filter(function(p){ return p.have; });
     var weak=have.slice().sort(function(a,b){ return (a.pts/a.max)-(b.pts/b.max); })[0];
     var locked=r.parts.filter(function(p){ return !p.have; }).sort(function(a,b){ return b.max-a.max; })[0];
     var pick = (locked && (!weak || (weak.pts/weak.max)>0.6)) ? locked : weak;
-    var tone = r.score>=80 ? "Dialed in. " : (r.score>=55 ? "Solid trajectory. " : "Early days. ");
     return tone + "Biggest lever now: <b>" + (FF_LEVER[pick.key]||"keep stacking sessions") + "</b>.";
   }
   // The Octane engine gauge — semicircular fuel-style arc (E→F) that fills with the score.
@@ -940,11 +943,11 @@
       '<button type="button" class="fd-act" data-mobscreen="1">🧭 '+(mobDue()?'Screen due — run it':'Re-run the screen')+'</button>';
   }
   // Progress tab: the full Octane card with its four component pillars.
-  function renderScoreCard(compact){
+  function renderScoreCard(compact, noLever){
     var r = ffScore(); saveScoreSnapshot(r);
     var top = '<div class="ffscore-top">'+octaneGaugeHtml(r.score)+
       '<div class="ffscore-head"><h3>'+ffIcon("gauge",15)+' '+ffTerm('octane','OCTANE')+'</h3>'+
-      '<p class="ff-sum">'+ffScoreSummary(r)+'</p></div></div>';
+      '<p class="ff-sum">'+ffScoreSummary(r, noLever)+'</p></div></div>';
     if(compact){
       return '<button class="ffscore ffscore-compact" data-goview="progress">'+top+
         '<span class="ffscore-more">See the full breakdown ›</span></button>';
