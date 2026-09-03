@@ -1222,6 +1222,45 @@ glossary/loop entries all in place from earlier passes. Two grammar nits:
 setup → mobility → backup → foods → start-over → show-me-around →
 full-access), reset button wired, zero page errors.
 
+## 80 · Fresh-eyes streamlining pass (owner: "anything that needs updating… simplistic and streamlined… make it top tier")
+
+A full visual + audit sweep of every primary view (Home, Fuel, Train, Stats, You)
+with a realistic week-5 user, light and dark, after the parallel "sprint" series
+(#81–#90, #94–#95) landed. Verdict: the information architecture is sound —
+Train and Fuel are action-first with folds, Home is one command card then
+folds — but the sprint work eroded two standards set earlier, and Stats says one
+thing twice. Fixed exactly those; nothing added.
+
+**1 · Type floor restored (the §67 11px rule).** The sweep found 41 rules below
+11px introduced since the type pass: every tab's `view-head-kicker` (10.5),
+"DAILY READINESS" (9), "TODAY'S WORKOUT" (9.5), the Fuel hero's KCAL/PROTEIN/
+CARBS/FAT labels (8.5!), and the Stats story/outlook kickers, pills and captions
+(9–10.5). All raised to 11px; kickers keep their tracking. The only sub-11px
+rule left is the intentional `.ws-date` week-strip label (10.5, per §67).
+
+**2 · Tap targets.** Home's timeline rows (`.tl-card` — the meal / weigh-in /
+workout check-off rows, the primary Home interaction) measured 33px tall; now
+`min-height:44px` (slim variant 40). Fuel's meals-per-day segment buttons were
+38×29; now ≥40×40.
+
+**3 · Stats: same advice printed twice.** The Performance Story's "BIGGEST
+OPPORTUNITY" block and the Octane card's "Biggest lever now" both read from
+`FF_LEVER` — identical text, two cards apart. `renderScoreCard(compact, noLever)`
+now takes a flag; Stats passes it when the Story rendered its next-block, and the
+Octane summary keeps its tone line but points at the breakdown instead of
+repeating the lever. Home's compact Octane and every other caller are unchanged.
+
+**Looked at and deliberately left alone:** the "Opening Round complete" toast
+(properly guarded — fires once; the 2-day victory-lap card is intentional), the
+You tab's two sign-in CTAs (the top one is the dismissible first-visit coach tip,
+not a permanent duplicate), and the two AI-coach doors on Stats (distinct asks:
+a forecast-specific one and the generic one).
+
+**Verified** (Playwright, 5 views × light/dark): sub-11px text nodes went from
+3/6/4/10/2 per view to 0 everywhere except the one intentional label; timeline
+rows ≥44px; meal-count buttons ≥40px; zero page errors on all views; Stats shows
+the lever exactly once.
+
 ## 79 · Octane breakdown polish + composite trend (competitive read: DRVN screenshots)
 
 Owner shared DRVN screenshots — they've rolled their Golf Fitness Handicap /50
