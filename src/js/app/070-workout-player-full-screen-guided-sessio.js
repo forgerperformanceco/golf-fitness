@@ -944,6 +944,9 @@
   }
   // Progress tab: the full Octane card with its four component pillars.
   function renderScoreCard(compact, noLever){
+    // Stats sets ffStatsStoryLever around its call when the Performance Story
+    // already named the biggest lever; the compact Home card never suppresses it.
+    if(!noLever && !compact && typeof ffStatsStoryLever!=="undefined" && ffStatsStoryLever) noLever=true;
     var r = ffScore(); saveScoreSnapshot(r);
     var top = '<div class="ffscore-top">'+octaneGaugeHtml(r.score)+
       '<div class="ffscore-head"><h3>'+ffIcon("gauge",15)+' '+ffTerm('octane','OCTANE')+'</h3>'+
