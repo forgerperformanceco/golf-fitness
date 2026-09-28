@@ -158,7 +158,7 @@ Sizes from `wc -l`. One line each; the number prefix is the load order (§1d).
 | `040-workout-logger.js` | 317 | **The storage layer**: memoized `lsGet`/`lsSet`/`lsRemove` + `ff-external-write`/`storage` invalidation; `migrateDayNames()`; plan-date math (`planStart`/`curWeek`/`dayOfPlan`/`stripDays`/`weekStartDate`); `getLog`/`getSession`/`saveSession`; `ff_rest` rest check-offs; `ff_swaps`; `EXERCISE_DB` (~234 lifts in 13 groups) + `exGroupFor` regex; progression helpers (`progressReady`/`incFor`/`incNum`); the modal spreadsheet logger. |
 | `045-inline-logger-log-as-you-train-in-the-ca.js` | 167 | In-card set logging (`var ilog`, `ilogBodyHtml`); plate math for barbell lifts; rest timers. |
 | `050-exercise-history-every-lift-s-full-story.js` | 307 | Per-lift history from `ff_history`+`ff_log`; PRs; **tombstones** (`ffTomb`), `pushHistory`, `clearWorkoutFor`, `finishBtnHtml`, `ffToast`. |
-| `055-share-cards-branded-pngs-generated-on-de.js` | 75 | Canvas-drawn 1080×1350 share PNGs (`ffMakeCard`/`ffShareImage`); share → download → clipboard fallback. (Stale-wordmark defect fixed 2026-09-28, §7.6.) |
+| `055-share-cards-branded-pngs-generated-on-de.js` | 269 | Canvas-drawn 1080×1350 share PNGs: `ffMakeCard`/`ffShareImage` for moment cards, plus the **Yardsmith card** (`ycData` → `ffMakeYardsmithCard`, opened by `[data-yscard]` on the Stats Performance Story). One delivery path (`ffShareBlob`): share → download → clipboard. (Stale-wordmark defect fixed 2026-09-28, §7.6.) |
 | `060-speed-test-day-the-biweekly-testing-ritu.js` | 138 | Biweekly 7-iron speed test (`SPEEDTEST_EVERY=14`, `speedTestDue`, `openSpeedTest`); writes `ff_body` via `logBodyEntry` + detailed `ff_speedtest`. |
 | `065-mobility-screen-the-3-move-durability-ch.js` | 94 | 3-move mobility screen (`lastMob`/`mobDue` 28-day/`mobLimits` → warm-up routing); `ff_mobility`. |
 | `070-workout-player-full-screen-guided-sessio.js` | 1000 | Full-screen guided player (`startPlayer`, `plRender`, pause/resume); **the Octane engine** (`ffScore` at 070:621, §6); `e1RM` (Epley); `logBodyEntry` — the single writer for weight/7-iron/driver rows; `renderHeroCard` dashboard hero; `ffBench` norms. |
@@ -194,7 +194,7 @@ Declaration sites verified 2026-07-08; re-verify with
 | 040 | `lsGet`/`lsSet`/`lsRemove`, `escAttr`, `planStart`/`curWeek`/`dayOfPlan`/`stripDays`/`weekStartDate`, `getLog`/`getSession`/`saveSession`, `getRest`/`restDone`, `migrateDayNames`, `EXERCISE_DB`, `exGroupFor`, `incFor`/`incNum`/`progressReady`, `todayStr`, `resetPlanFull` |
 | 045 | `ilog` (var), `ilogBodyHtml`, `isBarbell`, `platesFor` |
 | 050 | `ffTomb`, `pushHistory`, `clearWorkoutFor`, `finishBtnHtml`, `ffToast` |
-| 055 | `ffShareImage`, `ffMakeCard` |
+| 055 | `ffShareImage`, `ffMakeCard`, `ffShareBlob`, `ffCardCanvas`, `ffMakeYardsmithCard`, `shareYardsmithCard`, `ycData` |
 | 060 | `speedTestDue`, `openSpeedTest`, `stSpeedHistory` |
 | 065 | `lastMob`, `mobDue`, `mobLimits` |
 | 070 | `startPlayer`, `e1RM`, `sessionsByWeek`, `strengthGain`, `ffScore`, `ffScoreSummary`, `octaneGaugeHtml`, `saveScoreSnapshot`, `driveStats`, `logBodyEntry`, `goalYds`, `ffBench`, `renderHeroCard` |

@@ -138,6 +138,10 @@ First visit to each tab fires a one-time coaching tip.
   carry impact. Forecasts are directional ranges, never promises.
 - **Round Debrief** closes the gym-to-course loop; **leaderboard** is opt-in,
   handle-only (score / speed / streak / this-week sessions).
+- **Yardsmith card** — one tap on the Performance Story shares a PNG "player
+  card" built from the golfer's own numbers: progress since their start
+  (driver carry first), mission bar, Octane / speed / strength / streak tiles.
+  Never a rank against other golfers or a tier.
 
 ### Account (settings hub)
 - Sign in (magic-link/OTP, optional), **cloud sync with visible sync health** +
@@ -308,6 +312,11 @@ That intersection is ours.
   We borrowed the *generic UX pattern* (composite-with-legible-breakdown), never
   their names, metrics, tests, or wearable dependency. Still **not** a synthetic
   test battery (see "Dyno Day" rejection, §Decisions).
+- **Our answer to their player card (shipped, Sep 2026): the Yardsmith card.**
+  We borrowed the generic pattern (an identity card worth posting) but built it
+  on progress against the golfer's own start, not a /100 rating against other
+  golfers or an "ELITE" tier. Their card flatters players who are already elite;
+  ours works for anyone who's improving.
 
 ### Our moat (unchanged)
 1. **Nutrition + fueling** — a whole pillar they skip.
@@ -343,6 +352,9 @@ stores; we're a URL). Shipping the app matters more than more docs.
 - **Speed day** — Gym ↔ Field, Speed 101, structured overspeed ramp, biweekly
   **Speed Test** ritual. **Mobility screen** (3-move) as Octane's 5th pillar.
 - **Fuel check-off** adherence loop (day rating + streak) as Octane's 6th pillar.
+- **Yardsmith card** (Sep 2026) — a shareable player card from the golfer's own
+  data: progress since their start, never a rank or tier. The mission bar stays
+  hidden until there's a gain, and drops are never shown as gains.
 - **Distributed rest** + best-practice leg-day order (compound first, Leg
   Extension as finisher) + a restored knee-flexion **leg curl**.
 - **Distance Mission**, **population calibration** (`ffBench()`), **weekly
