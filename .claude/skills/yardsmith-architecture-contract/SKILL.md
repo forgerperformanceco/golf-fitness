@@ -158,7 +158,7 @@ Sizes from `wc -l`. One line each; the number prefix is the load order (§1d).
 | `040-workout-logger.js` | 317 | **The storage layer**: memoized `lsGet`/`lsSet`/`lsRemove` + `ff-external-write`/`storage` invalidation; `migrateDayNames()`; plan-date math (`planStart`/`curWeek`/`dayOfPlan`/`stripDays`/`weekStartDate`); `getLog`/`getSession`/`saveSession`; `ff_rest` rest check-offs; `ff_swaps`; `EXERCISE_DB` (~234 lifts in 13 groups) + `exGroupFor` regex; progression helpers (`progressReady`/`incFor`/`incNum`); the modal spreadsheet logger. |
 | `045-inline-logger-log-as-you-train-in-the-ca.js` | 167 | In-card set logging (`var ilog`, `ilogBodyHtml`); plate math for barbell lifts; rest timers. |
 | `050-exercise-history-every-lift-s-full-story.js` | 307 | Per-lift history from `ff_history`+`ff_log`; PRs; **tombstones** (`ffTomb`), `pushHistory`, `clearWorkoutFor`, `finishBtnHtml`, `ffToast`. |
-| `055-share-cards-branded-pngs-generated-on-de.js` | 75 | Canvas-drawn 1080×1350 share PNGs (`ffMakeCard`/`ffShareImage`); share → download → clipboard fallback. **Carries the stale-wordmark defect (§7).** |
+| `055-share-cards-branded-pngs-generated-on-de.js` | 75 | Canvas-drawn 1080×1350 share PNGs (`ffMakeCard`/`ffShareImage`); share → download → clipboard fallback. (Stale-wordmark defect fixed 2026-09-28, §7.6.) |
 | `060-speed-test-day-the-biweekly-testing-ritu.js` | 138 | Biweekly 7-iron speed test (`SPEEDTEST_EVERY=14`, `speedTestDue`, `openSpeedTest`); writes `ff_body` via `logBodyEntry` + detailed `ff_speedtest`. |
 | `065-mobility-screen-the-3-move-durability-ch.js` | 94 | 3-move mobility screen (`lastMob`/`mobDue` 28-day/`mobLimits` → warm-up routing); `ff_mobility`. |
 | `070-workout-player-full-screen-guided-sessio.js` | 1000 | Full-screen guided player (`startPlayer`, `plRender`, pause/resume); **the Octane engine** (`ffScore` at 070:621, §6); `e1RM` (Epley); `logBodyEntry` — the single writer for weight/7-iron/driver rows; `renderHeroCard` dashboard hero; `ffBench` norms. |
@@ -414,14 +414,11 @@ through `yardsmith-change-control`.
    and silently fall out of "this week" — accepted for stragglers, but don't
    create new `ff_body` rows without `iso`+`ts` (`logBodyEntry` does this
    correctly; use it).
-6. **Share-card stale wordmark — OPEN DEFECT as of 2026-07-08.** The canvas
-   header still draws the pre-rebrand split wordmark: `g.fillText("Fairway",…)`
-   + `g.fillText("Fuel",…)` at 055:19-21, while the footer draws "Yardsmith"
-   (055:47). Every shared PNG (session recap, Sunday Scorecard, speed test)
-   ships the old brand in its header. The fix is two strings + the accent
-   split (mirror `Yard`|`smith` per the rebrand's email-template fix), then
-   rebuild; no one has claimed it yet. Verify still present:
-   `grep -n '"Fairway"' src/js/app/055-*.js`.
+6. **Share-card stale wordmark — FIXED 2026-09-28.** The canvas header drew
+   the pre-rebrand split wordmark (`"Fairway"` + `"Fuel"`) at 055:19-21 while
+   the footer drew "Yardsmith", so every shared PNG shipped the old brand. It
+   now draws `Yard`|`smith`. Regression check:
+   `grep -n '"Fairway"' src/js/app/055-*.js` must return nothing.
 7. **es2017 syntax ceiling.** esbuild minifies with `target:"es2017"`
    (build.mjs:36-38) — the emitted syntax stays within the codebase's
    async/await baseline. esbuild will transform some newer syntax down, but
@@ -511,8 +508,8 @@ commands below before citing them onward.
   `cat src/js/global/900-sw-register.js`
 - Octane/wave locations: `grep -n "function ffScore\|function logBodyEntry" src/js/app/070-*.js`
   and `grep -n "function purposeFor\|function effTarget\|function prescribeW" src/js/app/035-*.js`
-- Share-card defect still open?: `grep -n '"Fairway"' src/js/app/055-*.js`
-  (no hits = someone fixed it; update §7.6)
+- Share-card wordmark regression check: `grep -n '"Fairway"' src/js/app/055-*.js`
+  (fixed 2026-09-28; any hit is a regression)
 - Manual pins current values: `grep -n "cloud-sync.js?v=\|coach.js?v=" src/index.template.html src/sw.template.js`
   (v=112 / v=88 as of 2026-07-08)
 - Dark markers: `grep -n "GENERATED-DARK" src/css/styles.css`

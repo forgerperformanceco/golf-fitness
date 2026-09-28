@@ -1,5 +1,21 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## Share-card wordmark — the last FairwayFuel straggler (Sep 28, 2026)
+
+Every PNG the app generates for sharing (session recap, Sunday Scorecard, speed
+test) still drew the pre-rebrand wordmark "Fairway"+"Fuel" in its header while
+its footer said "Yardsmith". The rebrand sweeps searched for `FairwayFuel` and
+the split-HTML `Fairway<span>Fuel</span>` pattern; the canvas draws the two
+halves as separate `fillText` strings, which matched neither. The header now
+draws `Yard` (white) + `smith` (accent green), mirroring the in-app wordmark.
+Lesson for any future brand sweep: grep each *half* of an old split wordmark,
+canvas strings included.
+
+**Verified:** rebuilt (FF_BUILD `05af081028`); `check-release.mjs` passed all
+four gates; `ffMakeCard` rendered headlessly to a 1080×1350 PNG reading
+"Yardsmith" in both header and footer; the built app booted headlessly at
+390×844 with zero page errors; `"Fairway"` has 0 hits in `app.js`.
+
 ## Sprint 5 — Daily Readiness → Adaptive Session (Jul 26, 2026)
 
 Sprint 5 makes the authored program responsive without turning Yardsmith into a

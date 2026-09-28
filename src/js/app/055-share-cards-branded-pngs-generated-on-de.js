@@ -16,9 +16,9 @@
     // brand
     g.textBaseline="alphabetic";
     g.font="900 66px system-ui, -apple-system, sans-serif";
-    g.fillStyle="#ffffff"; g.fillText("Fairway",72,132);
-    var bw=g.measureText("Fairway").width;
-    g.fillStyle="#7ef0a8"; g.fillText("Fuel",72+bw,132);
+    g.fillStyle="#ffffff"; g.fillText("Yard",72,132);
+    var bw=g.measureText("Yard").width;
+    g.fillStyle="#7ef0a8"; g.fillText("smith",72+bw,132);
     // kicker
     g.font="800 38px system-ui, sans-serif"; g.fillStyle="#8fd6a8";
     g.fillText((o.kick||"").toUpperCase(),72,262);

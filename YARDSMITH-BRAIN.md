@@ -285,6 +285,21 @@ That intersection is ours.
   toward a composite-with-breakdown and even surface golf outcomes — but as
   inputs to a *fitness* rating, not the headline, and the recovery card **needs a
   wearable** (breaks free/offline/no-hardware).
+- **Evolved again (owner-shared screenshots, Sep 2026; the profile build was
+  running from TestFlight, i.e. pre-release):** the Player Rating became an
+  **identity card** — photo, name, flag, rating /100, an "ELITE" tier badge,
+  and golf outcomes (best score, average drive, ball speed) on its face.
+  Around it: Instagram-style **activity stories** + a **FEED** tab, a **weekly
+  workout scorecard**, a **"Biggest Opportunity"** card naming one lever and
+  the rating points it's worth, a **projected** 8-week rating line, and
+  per-test **assessment results** (gauge score → "what this means" bullets,
+  fronted by a named coach). Marketing pushes **daily programs** that include a
+  technical range session. Read: they're converging on outcomes + next-best
+  action (our lane) and layering identity + social on top. We already ship the
+  analogous mechanics from the golfer's own data (Progress "Biggest
+  Opportunity", the six-week club-speed forecast *range*, the weekly loop,
+  opt-in leaderboard, share cards, readiness), so the gap is **distribution,
+  identity (a card worth sharing), and community** — not training features.
 - **What DRVN still doesn't do:** nutrition, or a conversational coach that reads
   your own numbers. Our moat is intact.
 - **Our in-lane response (shipped, Jul 2026):** the Octane breakdown was polished
@@ -390,13 +405,10 @@ Native wrapper: **Capacitor**, appId **`app.yardsmith`**. Web app unchanged;
   Play Billing or keep payment entirely on the website — **do not** sell subs
   inside the Android app via Paddle.
 
-**OPEN: Play Console account type.** The GitHub org "forgerperformanceco" =
-Bobby's **peptide** company (Forger Performance Co), **not** Yardsmith's
-publisher. Yardsmith has no legal entity yet → default recommendation is a
-**Personal** developer account (display name "Yardsmith"), accepting the
-**20-tester / 14-day closed-testing** gate. Organization account (no gate,
-branded name) needs a registered entity + D-U-N-S number. **You can't switch type
-later — decide deliberately.** (Undecided.)
+**Store account type: RESOLVED — Organization** on both stores under Long Game
+Labs LLC (D-U-N-S issued; see the status snapshot and §10.2). The GitHub org
+"forgerperformanceco" is the owner's **peptide** company (Forger Performance
+Co), **not** Yardsmith's publisher. Account type can't be switched later.
 
 ---
 
