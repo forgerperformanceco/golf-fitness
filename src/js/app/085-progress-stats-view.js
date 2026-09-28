@@ -352,6 +352,8 @@
         '<div class="ps-next"><span class="ps-next-kick">BIGGEST OPPORTUNITY</span><h4>'+opp.part.label.replace(" (e1RM)","")+'</h4>'+
           '<p>'+FF_LEVER[opp.part.key]+'.</p><button type="button" class="ps-cta" '+opp.action.attr+'>'+opp.action.label+' <span>→</span></button></div></div>'+
       (milestones.length?'<div class="ps-milestones">'+milestones.slice(0,3).map(function(m){ return '<span>'+m+'</span>'; }).join("")+'</div>':'')+
+      // The Yardsmith card (055) — offered once there's a real number to post.
+      ((r.score!=null||d||speeds.length||sessions)?'<button type="button" class="ps-share" data-yscard="1">'+ffIcon("share",16)+'<span>Share my Yardsmith card</span></button>':'')+
       '<div class="ps-foot">'+reassess+'<button type="button" class="ps-evidence" data-pftoggle="pillars">See the evidence <span>↓</span></button></div>'+
     '</section>';
   }

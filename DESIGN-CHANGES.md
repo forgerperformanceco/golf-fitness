@@ -1,5 +1,62 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## The Yardsmith card — a player card built from your own numbers (Sep 28, 2026)
+
+User: "build the Yardsmith card." It's our answer to DRVN's pre-release player
+card (photo, a /100 rating, an "ELITE" tier). That card ranks golfers against
+each other, so it flatters players who are already elite. Ours measures a
+golfer against their own start.
+
+1. **Entry point:** "Share my Yardsmith card" on the Stats tab's Performance
+   Story card, shown once there's any real number (44px target, 13px type).
+   One tap renders a 1080×1350 PNG through the same share → download →
+   copy-text path as every other card (`ffShareBlob`, 055).
+2. **Hero = progress since your start:** driver-carry gain ("+13 yds",
+   "228 → 241 yds"), else 7-iron speed gain, else today's carry or speed, else
+   sessions banked, else Octane. Driver comes first because we lead with yards.
+3. **Distance mission bar:** the golfer's goal and % there. It appears only once
+   there's a positive gain, so a share card never prints "0%".
+4. **Up to four tiles:** Octane (sparkline from `ff_score_hist`), driver carry,
+   7-iron speed (sparklines at 3+ entries), strength (+% big-lift e1RM), and a
+   live week streak that counts back from this week, so it's never stale. The
+   hero's metric isn't repeated as a tile.
+5. **Header/footer:** wordmark, "WEEK N OF 20", and the leaderboard handle only
+   if the golfer chose one; yardsmith.golf in the footer.
+6. **Honesty rules:** only the golfer's own logged numbers. No rank against
+   other golfers, no tiers, no mph→yards estimates. A drop is never shown as a
+   gain: that tile shows today's value with no delta.
+7. `ffCardCanvas`/`ffCardBlob` were factored out of `ffMakeCard`, and the
+   existing cards draw identically.
+
+**Verified:** headless at 390×844 across 5 data states × light/dark (no data,
+early user, full progress, numbers going down, sessions only). Checked: the
+button appears only when there's data, a 330×44 target, 13px type, a
+1080×1350 PNG handed to a stubbed native share sheet, and the share text (e.g.
+"+13 yds of driver carry since Aug 16 · Octane 68 · 7-iron 84.5 mph · big lifts
++18% · 5-week streak"). The going-down card has no ▲, − or NaN. Zero page
+errors. The download fallback saves `yardsmith-card.png`. All cards were checked
+by eye. Also green: `check-release.mjs` 4/4, `npm run check`, `npm test` 54/54,
+`audit-contrast` (1494 nodes, both themes). `audit-type` (25 findings) and
+`smoke.mjs` are red on `main` already, and the findings are identical on base
+vs this branch. None involve the new button; smoke's only failure is the
+sandbox blocking the boot-time `product-health` ping.
+
+## Share-card wordmark — the last FairwayFuel straggler (Sep 28, 2026)
+
+Every PNG the app generates for sharing (session recap, Sunday Scorecard, speed
+test) still drew the pre-rebrand wordmark "Fairway"+"Fuel" in its header while
+its footer said "Yardsmith". The rebrand sweeps searched for `FairwayFuel` and
+the split-HTML `Fairway<span>Fuel</span>` pattern; the canvas draws the two
+halves as separate `fillText` strings, which matched neither. The header now
+draws `Yard` (white) + `smith` (accent green), mirroring the in-app wordmark.
+Lesson for any future brand sweep: grep each *half* of an old split wordmark,
+canvas strings included.
+
+**Verified:** rebuilt (FF_BUILD `05af081028`); `check-release.mjs` passed all
+four gates; `ffMakeCard` rendered headlessly to a 1080×1350 PNG reading
+"Yardsmith" in both header and footer; the built app booted headlessly at
+390×844 with zero page errors; `"Fairway"` has 0 hits in `app.js`.
+
 ## Sprint 5 — Daily Readiness → Adaptive Session (Jul 26, 2026)
 
 Sprint 5 makes the authored program responsive without turning Yardsmith into a

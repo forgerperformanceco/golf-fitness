@@ -256,7 +256,7 @@ merge-safe migrations.
   **deny-list** staging (deny-list deliberately chosen *"so a new served asset
   is never dropped by accident"*).
 
-## 8. Rebrand FairwayFuel → Yardsmith + domain cutover (Jul 7–8; status: COMPLETE, one straggler OPEN)
+## 8. Rebrand FairwayFuel → Yardsmith + domain cutover (Jul 7–8; status: COMPLETE — last straggler fixed Sep 28)
 
 Trigger (verified in `89bab89` body): a live federal trademark application
 "FAIRWAY FUEL" (Ser. 99663152, filed 2026-02-20, Class 32) plus two same-name
@@ -278,11 +278,13 @@ redirect live (Jul 8).
 key stays `"fairwayfuel"` and all `ff_*` keys keep their names — renaming them
 wipes user data (CLAUDE.md; mechanics in `yardsmith-data-and-sync`).
 
-**OPEN straggler (verified in source as of 2026-07-08):**
-`src/js/app/055-share-cards-branded-pngs-generated-on-de.js` still canvas-draws
-the header wordmark as `"Fairway"+"Fuel"` (~lines 19–21) while the footer draws
-`"Yardsmith"` (~line 47). Nobody has decided/fixed it yet. Also OPEN per the
-brain: YARDSMITH trademark filing (Classes 9/41/42).
+**Last straggler — FIXED 2026-09-28:**
+`src/js/app/055-share-cards-branded-pngs-generated-on-de.js` canvas-drew the
+header wordmark as `"Fairway"+"Fuel"` while the footer drew `"Yardsmith"`. The
+rebrand sweeps searched for `FairwayFuel` and the split-HTML
+`Fairway<span>Fuel</span>` pattern; separate canvas `fillText` strings matched
+neither. Now `Yard`|`smith`. Still OPEN per the brain: YARDSMITH trademark
+filing (Classes 9/41/42).
 
 ## 9. The repo-rename wobble (Jul 3–5; status: RESOLVED, motive unrecorded)
 
@@ -413,7 +415,7 @@ git show 1163506:sw.js | head -3
 # Current manual pins (were v=112 / v=88)
 grep -o 'cloud-sync.js?v=[0-9]*\|coach.js?v=[0-9]*' src/index.template.html
 
-# Rebrand straggler still open? (header should say Yardsmith when fixed)
+# Rebrand straggler regression check (fixed 2026-09-28; expect no hits)
 grep -n '"Fairway"' src/js/app/055-share-cards-branded-pngs-generated-on-de.js
 
 # Branch graveyard still as described

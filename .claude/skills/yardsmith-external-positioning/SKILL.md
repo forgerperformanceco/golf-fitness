@@ -315,12 +315,11 @@ the rebrand commits of Jul 7-8 2026):
   `yardsmith-data-and-sync`, restated here only because brand work keeps
   tripping on it): the localStorage profile key stays `"fairwayfuel"` and
   `ff_*` keys keep their names — **a rebrand never renames stored keys**.
-- **Known rebrand straggler (open, user-visible):** the on-device share-card
-  canvas still draws the split wordmark "Fairway"+"Fuel" in its header
-  (`src/js/app/055-share-cards-branded-pngs-generated-on-de.js:19-21`) while
-  the footer draws "Yardsmith" (line ~47). Share cards are outward-facing brand
-  surface; fixing this is a normal src/ change through
-  `yardsmith-change-control`.
+- **Last rebrand straggler — FIXED 2026-09-28:** the on-device share-card
+  canvas header drew the split wordmark "Fairway"+"Fuel"
+  (`src/js/app/055-share-cards-branded-pngs-generated-on-de.js`) while the
+  footer drew "Yardsmith"; it now draws `Yard`|`smith`. Brand sweeps must grep
+  each *half* of an old split wordmark, canvas strings included.
 - Naming note: "Long Game Labs/Yardsmith" appears once (`YARDSMITH-BRAIN.md:435`)
   as the possible operating-company name under a parked Wyoming holdco plan —
   it is not a product name; don't use it in copy.
@@ -364,9 +363,8 @@ Console account question resolved"):
   via Northwest Registered Agent) → EIN → business bank → Form 503 assumed name
   "Yardsmith" ($25) → D-U-N-S → store enrollments (BRAIN status snapshot,
   lines 12-14).
-- ⚠️ **Staleness trap:** `YARDSMITH-BRAIN.md:348-354` (§7) still says the
-  account-type question is "OPEN … Undecided" and leans Personal. That
-  paragraph is superseded by §10.2 and the `f21930a` commit. §10 wins.
+- BRAIN §7's old "OPEN … Undecided / lean Personal" account-type paragraph
+  was corrected on 2026-09-28 to match §10.2 (Organization).
 - The GitHub org `forgerperformanceco` is the owner's **peptide** company
   (Forger Performance Co), **not** Yardsmith's publisher — never present it as
   the app's brand or seller.
@@ -403,7 +401,7 @@ busting; ignore it (staleness map lives in `yardsmith-docs-and-writing`).
 | Ingest a book/course/podcast | Through `sources/` (git-ignored), original synthesis only, attribution in further-reading, flag branded methods. |
 | Add a paid tier to the Android app | Play Billing or web-only payment — never in-app Paddle. |
 | Create the Play/App Store account | Organization under the Texas LLC, after SOS + D-U-N-S. Never Personal (irreversible). |
-| Rename anything brand-visible | Brand strings yes; stored `ff_*`/`"fairwayfuel"` keys never. Check the share-card wordmark straggler. |
+| Rename anything brand-visible | Brand strings yes; stored `ff_*`/`"fairwayfuel"` keys never. (Share-card wordmark straggler fixed 2026-09-28.) |
 
 ---
 
@@ -433,7 +431,7 @@ Re-verification commands (run from the repo root):
   Google's policy itself can change — re-check Play policy before monetizing.
 - Account deletion wiring: `grep -n 'deleteAccount' cloud-sync.js` (expect ~line 89),
   `grep -n 'Delete my account' src/js/app/080-*.js`, `ls supabase/functions/`.
-- Share-card wordmark straggler: `grep -n '"Fairway"' src/js/app/055-*.js` —
-  if this returns nothing, the straggler has been fixed; delete that bullet.
+- Share-card wordmark regression check: `grep -n '"Fairway"' src/js/app/055-*.js`
+  must return nothing (fixed 2026-09-28).
 - Line numbers cited throughout drift as docs are edited; prefer the grep
   patterns above over absolute line refs when re-verifying.

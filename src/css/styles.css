@@ -1139,6 +1139,11 @@
   .ps-milestones::-webkit-scrollbar{ display:none; }
   .ps-milestones span{ flex:0 0 auto; padding:6px 9px; color:#c9e8d4; background:rgba(255,255,255,.055);
     border:1px solid rgba(255,255,255,.08); border-radius:99px; font:700 11px system-ui; }
+  .ps-share{ display:flex; align-items:center; justify-content:center; gap:8px; width:100%; min-height:44px; margin-top:12px;
+    padding:10px 14px; color:#e3f7ea; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14);
+    border-radius:12px; cursor:pointer; font:800 13px system-ui; }
+  .ps-share svg{ color:#8ceab0; flex:0 0 auto; }
+  .ps-share:active{ transform:translateY(1px); }
   .ps-foot{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:12px; }
   .ps-retest,.ps-evidence{ color:#89ad96; background:none; border:0; padding:6px 0; font:700 11px system-ui; text-align:left; }
   button.ps-retest,.ps-evidence{ cursor:pointer; }
