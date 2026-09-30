@@ -1,5 +1,42 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## Hypertrophy evidence update — six changes (Sep 30, 2026)
+
+User: "any scientific evidence you can find and use towards optimizing lifting for a
+golfer and keeping our 'bodybuilding' affection alive?" Two parallel literature reviews
+(2021–2026 hypertrophy science; golf-specific strength/body composition) — full write-up,
+citations, confidence and the open leads in NUTRITION-AND-TRAINING-REFERENCE.md **§9a**.
+The user approved the six changes:
+
+1. **Cable Triceps Pushdown → Cable Overhead Triceps Extension** (both splits; long-head
+   stretch, Maeo 2023). New substitution entry (dumbbell / band overhead extension,
+   diamond push-up). `FF_PLAN_RENAMED` in 040 carries a user's existing pushdown swap
+   over to the new name; setting or resetting the new one clears the old key.
+2. **Seated Leg Curl added to the 4-day Day 1** (it had no knee-flexion work; seated beat
+   lying, Maeo 2021). Day 1 grows by 3 sets.
+3. **Cues:** leg extension "lean back / recline the seat" (Larsen 2024/25); calf raise
+   "pause 1–2 s in the deep stretch at the bottom" (Kassiano 2023); new overhead-triceps
+   form entry; leg-curl cue says seated beats lying.
+4. **Tempo:** "control the lowering (~3 sec)" → "(1–2 sec), then drive up fast" (no growth
+   benefit from slower; ≤2 s eccentrics gave better jump gains — Amdi & King 2025).
+5. **Rest:** ≥13-rep sets "rest ~75s" → "rest ~90s" (Singer 2024).
+6. **Docs:** the reference doc's "steep diminishing returns past ~10–12 sets" corrected
+   (Pelland 2025: growth keeps rising; the sharper cap is per session); the AI coach's
+   knowledge base and the domain skill updated to match (knowledge.ts redeploys with the
+   ai-coach function on merge).
+
+Not shipped (open leads in §9a): the 2026 training meta-analysis as a new headline number
+(needs the full paper first — low GRADE certainty), a per-session cap on the 14-set pull
+day, an in-season maintenance mode, round-timing guidance.
+
+**Verified:** `npm test` 66/66 (new `tests/hypertrophy-evidence.test.mjs`: the swaps,
+tempo/rest/cue copy, the coach knowledge, and the swap carry-over + reset); wave-cases
+91/91 (new names classified 💪); `check-release` 4/4; data contract; claims-lint clean;
+audit-train 18/18; audit-scroll 16/16; audit-contrast clean; audit-type only the known
+`.ft-bank` flag. Headless: 5-day push day shows the overhead extension, 4-day Day 1 lists
+the seated curl, an old pushdown swap still shows the user's choice, no "~3 sec" copy,
+zero page errors.
+
 ## You pass — sign-in on top, four folded groups (Sep 30, 2026)
 
 The last tab in the simplification series, and the longest: 15 separate cards

@@ -110,7 +110,7 @@ const CLS = [
   ["Leg Press", "🏋️"], ["Hack Squat", "🏋️"], ["Deadlift", "🏋️"],
   ["Romanian Deadlift", "🏋️"], ["Standing Overhead Press", "🏋️"], ["Pull-up", "🏋️"],
   // Hypertrophy accessories (💪 = trimmed at intensify/retain):
-  ["Incline DB Press", "💪"], ["Lateral Raise", "💪"], ["Cable Triceps Pushdown", "💪"],
+  ["Incline DB Press", "💪"], ["Lateral Raise", "💪"], ["Cable Triceps Pushdown", "💪"], ["Cable Overhead Triceps Extension", "💪"], ["Seated Leg Curl", "💪"],
   ["Leg Extension", "💪"], ["Standing Calf Raise", "💪"], ["Hanging Leg Raise", "💪"],
   ["Walking Lunge", "💪"], ["Seated Leg Curl", "💪"]
 ];

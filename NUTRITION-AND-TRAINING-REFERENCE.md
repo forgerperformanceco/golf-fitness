@@ -26,6 +26,7 @@ bodybuilding principles it's built on.
 7. [Bodybuilding / hypertrophy principles](#7-bodybuilding--hypertrophy-principles)
 8. [Gaining ~10 lb of muscle: realistic rate & timeline](#8-gaining-10-lb-of-muscle-realistic-rate--timeline)
 9. [Where golf actually changes things](#9-where-golf-actually-changes-things)
+   - [9a. Evidence update — hypertrophy for a golfer (Sep 2026)](#9a-evidence-update--hypertrophy-for-a-golfer-sep-2026)
 10. [The app's exact formulas & config](#10-the-apps-exact-formulas--config)
 11. [Supplements: the few that actually work](#11-supplements-the-few-that-actually-work)
 12. [How Yardsmith compares to other calculators](#12-how-yardsmith-compares-to-other-calculators)
@@ -240,14 +241,19 @@ The training side of adding muscle ("build like a bodybuilder").
 - **Progressive overload** is the engine: over time, add weight, reps, or sets. If the
   load never increases, the muscle has no reason to grow. **Log every session.**
 - **Volume** drives hypertrophy: roughly **10–20 hard sets per muscle group per week**
-  for most intermediates, split across 2 sessions/muscle/week.
+  for most intermediates, split across 2 sessions/muscle/week. Growth keeps rising with
+  more weekly sets (diminishing returns, not a wall — Pelland 2025); the sharper ceiling
+  is **per session**, ~11 sets per muscle. Count synergist sets as **half** a set.
 - **Rep ranges:** hypertrophy happens across a wide range (~5–30 reps) *if sets are
   taken close to failure* (~0–3 reps in reserve). The classic **8–15 rep** zone is
   time-efficient and joint-friendly for most accessory work; heavier **3–6 rep** work
   builds the maximal strength that raises your ceiling.
 - **Exercise selection:** anchor on compound lifts (squat, deadlift, hinge, press, row,
   pull-up) for the most muscle worked per unit time, then add isolation for lagging areas.
-- **Rest:** 1.5–3 min for hypertrophy accessory work; 3–5 min for heavy strength sets.
+- **Rest:** ≥90 s for hypertrophy accessory work (shorter than ~60 s costs growth —
+  Singer 2024); 2–3+ min for heavy strength sets.
+- **Train muscles long (stretch bias).** Muscles grow more when loaded in the lengthened
+  position — the best-evidenced "bodybuilding" lever (see §9a).
 - **Recovery is where growth happens:** 7–9 h sleep, managed stress, and enough food.
   You don't grow in the gym — you grow recovering from it.
 - **Periodization — consistent & concurrent beats block-switching here.** You do *not*
@@ -391,6 +397,70 @@ meal frequency — is **the same as for any fit, muscle-building athlete.**
 
 ---
 
+## 9a. Evidence update — hypertrophy for a golfer (Sep 2026)
+
+A literature pass (2021–2026, two parallel reviews) aimed at one question: how to keep the
+program's "build like a bodybuilder" identity while optimizing for clubhead speed.
+**Method caveat:** the reviewers could read abstracts and search-result text but not full
+papers, and several 2026 papers post-date the reviewing model's training data. Numbers are
+as reported in abstracts; anything marked *unverified* could not be confirmed. Nothing here
+may be used in public claims until checked against the full paper (see
+`yardsmith-external-positioning`).
+
+**Shipped from this pass (Sep 30, 2026):**
+
+| Change | Evidence | Confidence |
+|---|---|---|
+| Cable pushdown → **cable overhead triceps extension** (both splits) | Overhead grew triceps 19.9% vs 13.5% for pushdowns (Maeo 2023, *Eur J Sport Sci*, doi 10.1080/17461391.2022.2100279) | moderate |
+| **Seated leg curl added** to the 4-day plan (it had no knee-flexion work) | Seated beat prone curls: whole hamstrings +14.1% vs +9.3%, biceps femoris long head +14.4% vs +6.5% (Maeo 2021, *MSSE*, PMID 33009197) | moderate |
+| Leg extension: **lean back / recline** cue | Reclined (40° hip) beat upright for rectus femoris growth (Larsen 2024/25, *J Sports Sci*, doi 10.1080/02640414.2024.2444713) | moderate |
+| Calf raise: **pause in the bottom stretch** cue | Stretched-range partials grew medial gastrocnemius 15.2% vs 6.7% (Kassiano 2023, *JSCR*) | moderate |
+| Lowering tempo **3 s → controlled 1–2 s** | Rep duration 0.5–8 s grows muscle equally (Schoenfeld 2015, PMID 25601394; Enes 2025, *JSCR*); ≤2 s eccentrics gave larger jump gains (Amdi & King 2025, *J Sports Sci*, PMID 40692176) | moderate |
+| Rest on ≥13-rep sets **75 s → 90 s** | >60 s beats shorter for growth; no difference beyond ~90 s (Singer 2024, *Front Sports Act Living*, PMID 39205815) | low–moderate |
+
+Existing users keep any swap they chose for the old pushdown (`FF_PLAN_RENAMED` in 040);
+the new exercises start with no history, so the first session asks for a working weight.
+
+**Confirmed (no change needed):** 10–20 weekly sets as the working range; ~2 sessions/muscle
+(frequency barely matters for growth when volume is equal, helps strength — Schoenfeld 2019;
+Pelland 2025); 1–2 RIR on hypertrophy sets and 2–3 on heavy sets (growth improves closer to
+failure, strength doesn't — Robinson 2024, *Sports Med*, doi 10.1007/s40279-024-02069-2;
+Refalo 2023/2024); 5–30 rep ranges; double progression; moderate volume held while cutting
+(Roth 2023).
+
+**Why the bodybuilding identity is defensible, not decorative:**
+- **Lifting doesn't cost the turn.** Full-range resistance training improves range of motion
+  about as much as stretching (Alizadeh 2023, *Sports Med*, 55 studies, ES 0.73 vs control,
+  0.08 vs stretching; Afonso 2021; Favro 2025). Supports "the mass you add won't cost your
+  rotation" — provided lifts are full range.
+- **Lean mass predicts speed long-term.** Elite juniors followed 5 years (n=323): lean body
+  mass was the strongest modifiable predictor of CHS (β≈0.43 vs age 0.14; Nagashima 2026,
+  *Int J Sports Sci Coach*) — juniors, so growth confounds it. Early gains are neural
+  (Hegedus 2016: women gained speed with no lean-mass change).
+- **Heavy and fast force still lead.** In tour pros, driver CHS correlated with trunk rotation
+  peak power (r≈0.89, males), CMJ impulse/power (r≈0.67–0.78) and IMTP peak force (r≈0.75,
+  males) (Johansen 2026, *Scand J Med Sci Sports*). Hypertrophy sits beside the heavy and
+  ballistic work, never instead of it.
+- **Gap:** no trial compares bodybuilding-style vs strength/power training for CHS.
+
+**Open leads (not shipped):**
+- **New training meta-analysis:** Johansen et al. 2026, *Sports Med* (33 studies, n=798):
+  controlled training raised CHS ~+1.05 m/s (≈2.3 mph), ball speed ~+2.2 m/s, carry
+  ~+9.3 m — **GRADE certainty low**. Would supersede Uthoff 2021's ~4.1% as the headline
+  number **once the full paper is read**; until then the public-claims rules are unchanged.
+- **Per-session cap:** gains flatten past ~11 fractional sets per muscle per session (Remmert,
+  Pelland 2025 preprint, not peer reviewed). The 5-day pull day is 14 back sets in one
+  session — candidate: move one row to push day.
+- **In-season maintenance mode:** size and strength hold on ~⅓ volume, 1–2 sessions/week, heavy
+  loads (Bickel 2011; Spiering 2021); older lifters need more to keep size.
+- **Round timing:** keep high-volume leg sessions away from the day before a round
+  (extrapolated — no golf study); a low-volume heavy/ballistic "primer" 1.75–48 h before
+  shows a small benefit in other sports (2026 meta, g≈0.18, low certainty).
+- **Arm balance:** golfers' triceps strength and biceps:triceps ratio correlated with driving
+  distance (PLOS One 2024, PMID 39042614; effect sizes unverified).
+
+---
+
 ## 10. The app's exact formulas & config
 
 So this file fully documents the data behind Yardsmith.
@@ -457,7 +527,7 @@ qualities — no block-switching (see §7 for the evidence).
 **4-day option (balanced, not a deletion).** Choosing 4 days does **not** simply drop a day —
 it runs a purpose-built balanced split so pushing and pulling stay matched: **Day 1 Lower
 (Squat + Hinge) · Day 2 Upper (Push) · Day 3 Speed & Power · Day 4 Upper (Pull + Rotate).**
-Both lower patterns live on Day 1, anti-rotation (Pallof) and rotational power are retained,
+Both lower patterns live on Day 1 (plus a seated leg curl since Sep 2026 — §9a), anti-rotation (Pallof) and rotational power are retained,
 and no upper-body pulling is lost.
 
 **Every training day opens with a 5-minute warm-up** — hip and thoracic-spine mobility on
@@ -500,13 +570,14 @@ these tweaks:
 - **Velocity quality.** Power reps build speed only while they're fast — **stop a set the instant
   reps visibly slow**; keep loads light and rest full. (Velocity-loss research.)
 - **Eccentric / deceleration.** The low back is the #1 golf injury and most non-contact injuries
-  occur in deceleration; eccentric work cuts strain injuries ~50%. Lift cue now emphasizes a
-  **~3-second lowering**, and jumps require **landing competency before height**.
+  occur in deceleration; eccentric work cuts strain injuries ~50%. Lifts use a **controlled
+  1–2 s lowering** (Sep 2026: slower adds no growth, and ≤2 s eccentrics gave better jump
+  gains — §9a), and jumps require **landing competency before height**.
 - **Grip / forearm.** Grip strength correlates with ball speed and protects the lead wrist/elbow
   (top amateur upper-limb injuries) — added direct wrist work on the pull day.
-- **Volume realism.** Hypertrophy shows steep diminishing returns past ~10–12 hard sets/muscle/
-  week, and strength needs even fewer — so the program holds moderate volume rather than chasing
-  it, preserving recovery for the power/speed work.
+- **Volume realism.** Hypertrophy keeps rising past ~10–12 hard sets/muscle/week but with
+  diminishing returns (Pelland 2025), and strength needs even fewer — so the program holds
+  moderate volume rather than chasing it, preserving recovery for the power/speed work.
 - **In-season & peaking.** Maintain size/strength on **~1–2 hard heavy sets/muscle, 1–2×/week**;
   to peak for an event, **cut volume ~40–50% for ≤2 weeks while holding intensity** (~3–6% power
   bump). See the in-app "In-season & peaking" panel.

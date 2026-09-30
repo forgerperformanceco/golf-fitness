@@ -40,7 +40,7 @@
         ]},
         { name:"Day 2 \u2014 Upper (Push)", tag:"Lift", ex:[
           ["Barbell Bench Press","4 \u00d7 5 (heavy \u00b7 fast up)"],["Incline DB Press","3 \u00d7 10"],["Standing Overhead Press","4 \u00d7 6"],
-          ["Single-Arm DB Bench Press","3 \u00d7 8 / side"],["Lateral Raise","3 \u00d7 15"],["Cable Triceps Pushdown","3 \u00d7 12"],["Cable Wood-chop","3 \u00d7 10 / side"]
+          ["Single-Arm DB Bench Press","3 \u00d7 8 / side"],["Lateral Raise","3 \u00d7 15"],["Cable Overhead Triceps Extension","3 \u00d7 12"],["Cable Wood-chop","3 \u00d7 10 / side"]
         ]},
         { name:"Rest / Play 18", tag:"rest", type:"rest" },
         { name:"Day 3 \u2014 Speed & Power", tag:"speed", type:"speed" },
@@ -57,11 +57,11 @@
       days4: [
         { name:"Day 1 \u2014 Lower (Quads & Hinge)", tag:"Lift", ex:[
           ["Romanian Deadlift","4 \u00d7 6 (heavy \u00b7 fast up)"],["Leg Press","4 \u00d7 6"],["Hip Thrust","3 \u00d7 8"],["Walking Lunge","3 \u00d7 10 / leg"],
-          ["Leg Extension","3 \u00d7 12"],["Standing Calf Raise","3 \u00d7 12"],["Pallof Press","3 \u00d7 12 / side"]
+          ["Leg Extension","3 \u00d7 12"],["Seated Leg Curl","3 \u00d7 12"],["Standing Calf Raise","3 \u00d7 12"],["Pallof Press","3 \u00d7 12 / side"]
         ]},
         { name:"Day 2 \u2014 Upper (Push)", tag:"Lift", ex:[
           ["Barbell Bench Press","4 \u00d7 5 (heavy \u00b7 fast up)"],["Incline DB Press","3 \u00d7 10"],["Standing Overhead Press","4 \u00d7 6"],
-          ["Single-Arm DB Bench Press","3 \u00d7 8 / side"],["Lateral Raise","3 \u00d7 15"],["Cable Triceps Pushdown","3 \u00d7 12"],["Cable Wood-chop","3 \u00d7 10 / side"]
+          ["Single-Arm DB Bench Press","3 \u00d7 8 / side"],["Lateral Raise","3 \u00d7 15"],["Cable Overhead Triceps Extension","3 \u00d7 12"],["Cable Wood-chop","3 \u00d7 10 / side"]
         ]},
         { name:"Rest / Play 18", tag:"rest", type:"rest" },
         { name:"Day 3 \u2014 Speed & Power", tag:"speed", type:"speed" },
@@ -140,6 +140,9 @@
     "Seated DB Shoulder Press":{needs:["dumbbells"],subs:[{needs:["bands"],name:"Band Overhead Press"},{needs:["bodyweight"],name:"Pike Push-up"}]},
     "Standing Overhead Press":{needs:["barbell"],subs:[{needs:["dumbbells"],name:"Standing DB Press"},{needs:["bands"],name:"Band Overhead Press"},{needs:["bodyweight"],name:"Pike Push-up"}]},
     "Lateral Raise":{needs:["dumbbells"],subs:[{needs:["bands"],name:"Band Lateral Raise"}]},
+    // Overhead (long-head stretch) beat pushdowns for triceps growth, 19.9% vs
+    // 13.5% (Maeo 2023) — the plan's default since the Sep 2026 evidence update.
+    "Cable Overhead Triceps Extension":{needs:["cable"],subs:[{needs:["dumbbells"],name:"Overhead Triceps Extension"},{needs:["bands"],name:"Band Overhead Triceps Extension"},{needs:["bodyweight"],name:"Diamond Push-up"}]},
     "Cable Triceps Pushdown":{needs:["cable"],subs:[{needs:["bands"],name:"Band Triceps Pushdown"},{needs:["bodyweight"],name:"Diamond Push-up"}]},
     "Cable Wood-chop":{needs:["cable"],subs:[{needs:["bands"],name:"Band Wood-chop"},{needs:["medball"],name:"Med-Ball Rotational Throw"},{needs:["bodyweight"],name:"Speed Russian Twist"}]},
     "Deadlift":{needs:["barbell"],subs:[{needs:["dumbbells"],name:"DB Romanian Deadlift"},{needs:["kettlebell"],name:"Kettlebell Deadlift"},{needs:["bodyweight"],name:"Single-leg RDL"}]},
@@ -327,7 +330,7 @@
     var bulk=(typeof state!=="undefined" && (state.goal==="bulk" || state.goal==="leanbulk"));
     if(bulk && name && typeof purposeFor==="function" && purposeFor(name)==="💪")
       return "RIR 0–1 · last set to failure · rest ~90s";
-    if(reps>=13) return "RIR 1 · rest ~75s";
+    if(reps>=13) return "RIR 1 · rest ~90s";   // >60–90 s beats shorter for growth (Singer 2024)
     return "RIR 1–2 · rest ~90s";
   }
   // Warm-up & power primer as scannable, tappable checklists (gym-readable).
@@ -656,7 +659,7 @@
       '<details class="prelift"><summary>🔥 Warm-up &amp; power primer — do these first</summary><div class="prelift-body">'+warmPrimer+'</div></details>';
     return head +
       '<table class="ex"><tr><th>Exercise</th><th style="text-align:right">Sets × Reps</th></tr>'+rows+'</table>'+
-      '<div class="romcue">Full range, every rep — <b>control the lowering (~3 sec)</b>. It builds muscle and protects your swing.</div>'+
+      '<div class="romcue">Full range, every rep — <b>control the lowering (1–2 sec)</b>, then drive up fast. Full-range lifting builds muscle and keeps your turn.</div>'+
       logFoot(d.name)+'</div>';
   }
   // Short chip label for the week strip: "Squat", "Push", "Speed", "Hinge", "Pull", "Rest".
