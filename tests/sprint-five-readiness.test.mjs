@@ -72,7 +72,10 @@ test("readiness gates only new sessions and remains visible across the product",
   assert.match(player, /ffReadinessOpen\(dayName\)/);
   assert.match(logger, /ffReadinessOpen\(dayName,"manual"\)/);
   assert.match(logger, /ffApplyReadiness\(built,day,week\)/);
-  assert.match(home, /ffReadinessHomeHtml/);
+  // Home carries no readiness card (Sep 2026): Start itself asks the check-in,
+  // and Train shows the scored dose once there is one.
+  assert.doesNotMatch(home, /ffReadinessHomeHtml/);
+  assert.match(readiness, /if\(!r\) return "";/);
   assert.match(brain, /readiness:readiness\?/);
   assert.match(coachFn, /recentReadiness:\s*body\.readiness/);
   // One dose helper applies the readiness load on every logging surface.

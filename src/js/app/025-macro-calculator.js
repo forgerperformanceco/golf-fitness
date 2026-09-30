@@ -8,7 +8,7 @@
   var GOALS = {
     leanbulk: { label: "Lean Bulk", pct: 0.10, proteinPerLb: 0.9, fatPerLb: 0.35, weekly:[0.0025,0.005],
       preFrac: 0.25, postFrac: 0.30,
-      timing: "Post-workout is your <b>build window</b> — keep it the biggest carb feeding of the day.",
+      timing: "Post-workout is your <b>build window</b> — keep it the biggest carb meal of the day.",
       note: "A clean surplus builds <b>quality mass and force</b> — the lean, fast body out-drives the heavy one." },
     bulk: { label: "Bulk", pct: 0.20, proteinPerLb: 0.9, fatPerLb: 0.35, weekly:[0.005,0.0075],
       preFrac: 0.25, postFrac: 0.35,

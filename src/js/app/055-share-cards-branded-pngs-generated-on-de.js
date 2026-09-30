@@ -144,9 +144,9 @@
       hero={ kind:"drive", big:String(d.latest), unit:"yds", kick:"Driver carry", share:"driver carry "+d.latest+" yds" };
     else if(sNow!=null)
       hero={ kind:"speed", big:ycNum(sNow), unit:"mph", kick:"7-iron speed", share:"7-iron "+ycNum(sNow)+" mph" };
-    else if(sess)       // early days: the work banked says more than a young Octane
-      hero={ kind:"sessions", big:String(sess), unit:(sess===1?"session":"sessions"), kick:"Banked so far",
-        share:sess+" session"+(sess===1?"":"s")+" banked" };
+    else if(sess)       // early days: the work done says more than a young Octane
+      hero={ kind:"sessions", big:String(sess), unit:(sess===1?"workout":"workouts"), kick:"Done so far",
+        share:sess+" workout"+(sess===1?"":"s")+" done" };
     else if(r.score!=null)
       hero={ kind:"octane", big:String(r.score), unit:"Octane", kick:"My engine score", share:"Octane "+r.score };
     if(!hero) return null;
@@ -173,9 +173,9 @@
       tiles.push({ label:"STRENGTH", value:"+"+stPct+"%", unit:"", up:true, sub:"on the big lifts",
         share:"big lifts +"+stPct+"%" });
     if(sess && hero.kind!=="sessions"){
-      var streak=ycStreak(), banked=sess+" session"+(sess===1?"":"s")+" banked";
+      var streak=ycStreak(), banked=sess+" workout"+(sess===1?"":"s")+" done";
       if(streak>=2) tiles.push({ label:"STREAK", value:String(streak), unit:"wk", sub:banked, share:streak+"-week streak" });
-      else tiles.push({ label:"SESSIONS", value:String(sess), unit:"", sub:"banked", share:banked });
+      else tiles.push({ label:"WORKOUTS", value:String(sess), unit:"", sub:"done", share:banked });
     }
 
     var gy=goalYds(), mission=null;

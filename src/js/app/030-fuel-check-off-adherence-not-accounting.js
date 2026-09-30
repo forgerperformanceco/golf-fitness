@@ -66,7 +66,9 @@
   function renderFuelToday(){
     var el=$("fuelToday"); if(!el) return;
     var t=lsGet("ff_targets",null);
-    if(!t || !t.kcal || typeof ffSchedule==="undefined" || !ffSchedule || !ffSchedule.length){ el.innerHTML=""; return; }
+    // The ~10-day calorie check-in (weight trend vs goal) leads Fuel when due.
+    var adapt=""; try{ adapt=renderAdaptiveCard(); }catch(_){}
+    if(!t || !t.kcal || typeof ffSchedule==="undefined" || !ffSchedule || !ffSchedule.length){ el.innerHTML=adapt; return; }
     var fd=fuelDay(ffISO())||{ m:{} };
     var n=ffSchedule.length, done=0, next=null, ni=-1, remP=0, remC=0, remF=0, remK=0;
     ffSchedule.forEach(function(sl,i){
@@ -76,19 +78,19 @@
       remK+=(sl.p||0)*4+(sl.c||0)*4+(sl.f||0)*9;
     });
     if(!next){
-      el.innerHTML='<div class="ftoday done"><span class="ft-ic">✅</span>'+
-        '<span class="ft-tx"><span class="ft-kicker">TODAY · FUEL</span><b>Fuel day banked</b><span>All '+n+' meals checked — recover, grow, repeat.</span></span>'+
+      el.innerHTML=adapt+'<div class="ftoday done"><span class="ft-ic">✅</span>'+
+        '<span class="ft-tx"><span class="ft-kicker">TODAY’S MEALS</span><b>All meals done ✓</b><span>All '+n+' checked off — recover, grow, repeat.</span></span>'+
         '<button type="button" class="ft-plan-link" data-fueljump="1">Review day ›</button></div>';
       return;
     }
     var time=(next.t!=null)?fmtMin(Math.round(next.t*60)):"";
     var macro=(next.p?next.p+"P":"")+(next.c?((next.p?" · ":"")+next.c+"C"):"")+(next.f?" · "+next.f+"F":"");
     var progress=Math.round(done/n*100);
-    el.innerHTML='<div class="ftoday">'+
-      '<div class="ft-head"><span class="ft-kicker">TODAY · FUEL</span><span>'+done+' of '+n+' banked</span></div>'+
+    el.innerHTML=adapt+'<div class="ftoday">'+
+      '<div class="ft-head"><span class="ft-kicker">TODAY’S MEALS</span><span>'+done+' of '+n+' done</span></div>'+
       '<button type="button" class="ft-next" data-fuelmeal="'+ni+'" data-fuelval="a">'+
         '<span class="ft-ic">🍽️</span><span class="ft-tx"><b>Next: '+next.label+(time?' · '+time:'')+'</b>'+
-        '<span>'+(macro||'Your next planned feeding')+'</span></span><span class="ft-bank">Bank it <i class="ft-chk">✓</i></span></button>'+
+        '<span>'+(macro||'Your next planned meal')+'</span></span><span class="ft-bank">Ate it <i class="ft-chk">✓</i></span></button>'+
       '<div class="ft-progress" aria-label="'+progress+'% of meals completed"><i style="width:'+progress+'%"></i></div>'+
       '<div class="ft-rem-grid">'+
         '<span><b>'+Math.round(remK).toLocaleString()+'</b><small>kcal left</small></span>'+
@@ -112,20 +114,20 @@
     var done=Object.keys(d.m||{}).length, streak=fuelStreak();
     var line;
     if(d.rating){
-      line = d.rating==="on" ? "Day logged: <b>on target</b> ✓ — rated, not itemized. The scale keeps score."
-           : d.rating==="close" ? "Day logged: <b>close</b> — good enough to keep the streak alive."
-           : "Day logged: <b>off the rails</b> — happens. Tomorrow’s plan is already written.";
+      line = d.rating==="on" ? "Day rated: <b>on plan</b> ✓ — no need to tick every meal."
+           : d.rating==="close" ? "Day rated: <b>close</b> — that still counts."
+           : "Day rated: <b>off plan</b> — it happens. Tomorrow’s plan is already written.";
     } else if(done===0){
-      line = "Tap ✓ on each meal as it happens — <b>adherence, not accounting</b>. Ten seconds a day.";
+      line = "Tap ✓ when you eat a meal — <b>no calorie counting</b>. Ten seconds a day.";
     } else if(done>=n){
-      line = "<b>All "+n+" feedings banked ✓</b> — that’s a fueled engine. See you at the scale.";
+      line = "<b>All "+n+" meals done ✓</b> — nicely fueled.";
     } else {
       // the biggest remaining meal is the coaching hint
       var big=null, bigI=-1;
       m.schedule.forEach(function(sl,i){ if(d.m[i]) return;
         var k=(sl.p||0)*4+(sl.c||0)*4+(sl.f||0)*9;
         if(!big || k>big._k){ big=sl; big._k=k; bigI=i; } });
-      line = "<b>"+done+" of "+n+"</b> down"+(big?(" — <b>"+big.label+"</b> is your biggest block left."):".");
+      line = "<b>"+done+" of "+n+"</b> done"+(big?(" — <b>"+big.label+"</b> is the biggest meal left."):".");
     }
     var nums='';
     if(fuelNumsOpen && !d.rating){
@@ -134,15 +136,15 @@
         var f=(v==="a")?1:0.75;
         kc+=((sl.p||0)*4+(sl.c||0)*4+(sl.f||0)*9)*f; pg+=(sl.p||0)*f; });
       var t=lsGet("ff_targets",null);
-      nums='<div class="fuel-nums">≈ <b>'+Math.round(kc).toLocaleString()+'</b>'+(t?' / '+t.kcal.toLocaleString():'')+' kcal · <b>'+Math.round(pg)+'</b>'+(t?' / '+t.proteinG:'')+'g protein banked</div>';
+      nums='<div class="fuel-nums">≈ <b>'+Math.round(kc).toLocaleString()+'</b>'+(t?' / '+t.kcal.toLocaleString():'')+' kcal · <b>'+Math.round(pg)+'</b>'+(t?' / '+t.proteinG:'')+'g protein so far</div>';
     }
     return '<div class="fuel-sum'+(d.rating?' rated-'+d.rating:'')+'">'+
       '<div class="fuel-sum-top"><span class="fuel-sum-t">🍽️ Today’s fuel</span>'+
       (streak>0?'<span class="fuel-streak">'+ffIcon("flame",13)+' '+streak+'-day fuel streak</span>':'')+'</div>'+
       '<div class="fuel-sum-line">'+line+'</div>'+nums+
       (!d.rating?'<button type="button" class="fuel-numbtn" data-fuelnums="1">'+(fuelNumsOpen?'Hide numbers':'Show the numbers')+'</button>':'')+
-      '<div class="frate"><span class="frate-lbl">Ate off-plan?</span>'+
-        [["on","✓ On target"],["close","≈ Close"],["off","✗ Off the rails"]].map(function(o){
+      '<div class="frate"><span class="frate-lbl">Or rate the whole day:</span>'+
+        [["on","✓ On plan"],["close","≈ Close"],["off","✗ Off plan"]].map(function(o){
           return '<button type="button" class="frate-chip'+(d.rating===o[0]?' on':'')+'" data-fuelrate="'+o[0]+'">'+o[1]+'</button>'; }).join("")+
       '</div></div>';
   }

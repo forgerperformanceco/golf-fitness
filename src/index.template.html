@@ -60,7 +60,6 @@
         <button type="button" data-view="progress" aria-controls="view-progress">Progress</button>
         <button type="button" data-view="account" aria-controls="view-account">Account</button>
       </nav>
-      <span class="appbar-context" id="appbarContext" aria-hidden="true">Today</span>
       <button class="appbar-refresh" id="appRefresh" type="button" aria-label="Refresh app" title="Refresh">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.65-6.36"/><path d="M21 3v6h-6"/></svg>
       </button>
@@ -73,7 +72,7 @@
     <header class="view-head">
       <div class="view-head-kicker">Your day</div>
       <h1>Today</h1>
-      <p>One clear next move, then everything else.</p>
+      <p id="dashDate">Start with the big button.</p>
     </header>
     <div class="dash-hero">
       <img class="hero-ic" src="logo-dark-mark.png" alt="" width="84" height="84" />
@@ -294,7 +293,7 @@
     <header class="view-head">
       <div class="view-head-kicker">Your program</div>
       <h1>Train</h1>
-      <p>Your work inside a 20-week performance plan.</p>
+      <p>Your 20-week plan, one workout at a time.</p>
     </header>
     <section class="card">
       <details class="plan-intro train-method">
@@ -353,7 +352,7 @@
     <header class="view-head">
       <div class="view-head-kicker">Your progress</div>
       <h1>Stats</h1>
-      <p>The proof your work is changing your game.</p>
+      <p>Is the work adding distance? Here’s the answer.</p>
     </header>
     <div id="progressBody"></div>
   </div>
@@ -401,14 +400,14 @@
 </main>
 
 <script>window.FF_BUILD="{{V}}";</script>
-<script src="product-health.js?v=5"></script>
+<script src="product-health.js?v=6"></script>
 <script src="app.js?v={{V}}"></script>
 <!-- Login lives in the Account tab, so cloud-sync should skip its floating pill. -->
 <script>window.FF_ACCOUNT_TAB = true;</script>
 <!-- Cloud login + progress sync. The Supabase SDK itself is LAZY-LOADED by
      cloud-sync.js only when a session exists (or the user taps sign-in), so
      signed-out visitors never download it. -->
-<script defer src="cloud-sync.js?v=118"></script>
+<script defer src="cloud-sync.js?v=119"></script>
 <!-- AI coach chat. Degrades gracefully until the Edge Function is deployed. -->
 <script defer src="coach.js?v=91"></script>
 </body>

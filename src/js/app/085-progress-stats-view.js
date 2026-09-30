@@ -159,7 +159,7 @@
       '<span class="pf-num">Wk '+wk+'/20</span><span class="pf-sub">'+c.sessions+'/'+c.freq+' this wk</span>',
       '<div class="season-scroll"><svg width="'+width+'" height="'+H+'" viewBox="0 0 '+width+' '+H+'">'+svg+'</svg></div>'+
       '<div class="season-leg"><span><i style="background:#2f9e5d"></i>Build</span><span><i style="background:#e0a33a"></i>Heavy</span>'+
-      '<span><i style="background:#4d685a"></i>Deload</span><span><i style="background:#f4c542"></i>Peak</span><span>⛳ speed test (mph)</span>'+(ev&&ev.week?'<span>🏆 your event</span>':'')+'</div>'+
+      '<span><i style="background:#4d685a"></i>Easy</span><span><i style="background:#f4c542"></i>Peak</span><span>⛳ speed test (mph)</span>'+(ev&&ev.week?'<span>🏆 your event</span>':'')+'</div>'+
       '<div class="season-foot"><b>Week '+wk+' · '+wave2.label+'.</b> '+wave2.strap+
         (ev ? (ev.week && !ev.past
                 ? ' <br><b>🏆 '+ffEsc(ev.name||"Your event")+' — week '+ev.week+'.</b> The taper re-anchors to it: weeks '+(ev.week-1)+'–'+ev.week+' peak (volume down, intensity heavy), week '+(ev.week+1)+' recovers.'
@@ -248,7 +248,7 @@
   document.addEventListener("click", function(e){
     var b=e.target.closest("[data-pftoggle]"); if(!b) return;
     var k=b.getAttribute("data-pftoggle");
-    // data-pfopen marks a "take me there" link (the story's "See the evidence"):
+    // data-pfopen marks a "take me there" link (the story's "See the details"):
     // it always OPENS its fold and scrolls to it — it never closes an open one.
     var openOnly=b.hasAttribute("data-pfopen");
     var st=lsGet("ff_statsfold",null)||{};
@@ -264,12 +264,12 @@
      carry estimate. Strength and adherence are supporting signals, never
      presented as a made-up yardage formula. ----- */
   var STORY_ACTIONS={
-    consistency:{ label:"Open this week", attr:'data-goview="plan"' },
-    speed:{ label:"Run a speed test", attr:'data-speedtest="1"' },
-    strength:{ label:"Open today’s lift", attr:'data-goview="plan"' },
+    consistency:{ label:"See this week’s workouts", attr:'data-goview="plan"' },
+    speed:{ label:"Test your swing speed", attr:'data-speedtest="1"' },
+    strength:{ label:"Open today’s workout", attr:'data-goview="plan"' },
     p2w:{ label:"Log weight + speed", attr:'data-qopen="1"' },
-    mobility:{ label:"Run mobility screen", attr:'data-mobscreen="1"' },
-    fuel:{ label:"Open today’s fuel", attr:'data-goview="calc"' }
+    mobility:{ label:"Do the mobility check", attr:'data-mobscreen="1"' },
+    fuel:{ label:"Open today’s meals", attr:'data-goview="calc"' }
   };
   function storyOpportunity(r){
     var have=r.parts.filter(function(p){ return p.have; });
@@ -280,12 +280,12 @@
     return { part:pick, action:STORY_ACTIONS[pick.key]||STORY_ACTIONS.consistency };
   }
   function storySignalText(p){
-    if(p.key==="consistency") return p.detail+" — repeatable work is your biggest controllable.";
-    if(p.key==="speed") return p.detail+" — the closest gym-to-course distance signal.";
-    if(p.key==="strength") return p.detail+" — more force is available to turn into speed.";
-    if(p.key==="p2w") return p.detail+" — your engine is improving per pound.";
-    if(p.key==="mobility") return p.detail+" — keeping turn while you build protects transfer.";
-    return p.detail+" — recovery is supporting the work.";
+    if(p.key==="consistency") return p.detail+" — showing up is what moves this most.";
+    if(p.key==="speed") return p.detail+" — the number closest to distance on the course.";
+    if(p.key==="strength") return p.detail+" — more strength to turn into swing speed.";
+    if(p.key==="p2w") return p.detail+" — faster for every pound you carry.";
+    if(p.key==="mobility") return p.detail+" — staying loose while you add muscle.";
+    return p.detail+" — your meals are backing up the work.";
   }
   function performanceStoryHtml(){
     var r=ffScore(), body=lsGet("ff_body",[]), d=driveStats(), lifts=bigLiftStats();
@@ -312,16 +312,16 @@
       else { title="Your speed is rebuilding"; verdict="Speed is below your first test. Retest fresh before treating one dip as a trend."; tone="focus"; }
     } else if(sessions){
       value=String(sessions);
-      unit="session"+(sessions===1?"":"s")+" banked";
-      proof="Training momentum · distance trend unlocks after your next speed or driver test";
-      title="The engine is taking shape";
-      verdict="You’re doing the work. Add a second performance test to prove what it is buying on the course.";
+      unit="workout"+(sessions===1?"":"s")+" done";
+      proof="Your distance trend appears after your next swing speed or driver test";
+      title="You’re putting in the work";
+      verdict="Test your swing speed again to see what the training is adding up to.";
     } else {
       value="START";
-      unit="build your baseline";
-      proof="No guesswork · one workout plus two performance tests creates your first real trend";
-      title="Let’s prove what works";
-      verdict="Log the first signal and Yardsmith will turn your training into a distance story.";
+      unit="set your starting point";
+      proof="One workout and two swing speed tests create your first real trend";
+      title="Let’s see what works";
+      verdict="Do a workout and test your swing speed — this page turns them into your distance story.";
       tone="start";
     }
 
@@ -332,7 +332,7 @@
       var pct=Math.round(p.pts/p.max*100);
       return '<div class="ps-signal"><span class="ps-sicon">'+(p.key==="speed"?"⚡":p.key==="strength"?"🏋️":p.key==="consistency"?"✓":p.key==="mobility"?"↻":p.key==="fuel"?"●":"↗")+'</span>'+
         '<span><b>'+p.label.replace(" (e1RM)","")+'</b><small>'+storySignalText(p)+'</small></span><em>'+pct+'%</em></div>';
-    }).join("") : '<div class="ps-signal empty"><span class="ps-sicon">＋</span><span><b>Your first signal</b><small>Complete or log today’s work to start the read.</small></span></div>';
+    }).join("") : '<div class="ps-signal empty"><span class="ps-sicon">＋</span><span><b>Nothing yet</b><small>Do today’s workout to start the read.</small></span></div>';
 
     var evidence=0;
     if(d&&d.n>=2) evidence++;
@@ -340,32 +340,32 @@
     if(lifts.some(function(L){ return L.n>=2; })) evidence++;
     if(sessions>=2) evidence++;
     evidence+=r.parts.filter(function(p){ return p.have && (p.key==="mobility"||p.key==="fuel"); }).length;
-    var conf=evidence>=4?"Strong read":(evidence>=2?"Building read":"Early read");
-    var confHelp=evidence>=4?"multiple trends agree":(evidence>=2?"more than one signal logged":"add another test to raise confidence");
+    var conf=evidence>=4?"Clear trend":(evidence>=2?"Trend forming":"Too early to tell");
+    var confHelp=evidence>=4?"several numbers agree":(evidence>=2?"more than one number logged":"another test makes this clearer");
 
     var milestones=[];
     if(d&&d.n>=2&&d.gain>0) milestones.push("🏁 +"+d.gain+" verified driver yds");
     if(spGain!=null&&spNow===Math.max.apply(null,speeds)&&spGain>0) milestones.push("⚡ New 7-iron speed high");
     var bestLift=lifts.filter(function(L){ return L.n>=2 && L.last>=L.best; })[0];
     if(bestLift) milestones.push("🏆 "+ffEsc(bestLift.name)+" at "+Math.round(bestLift.best)+" lb e1RM");
-    if(sessions) milestones.push("✓ "+sessions+" session"+(sessions===1?"":"s")+" banked");
-    var reassess=speedTestDue() ? '<button type="button" class="ps-retest due" data-speedtest="1">🎯 Speed reassessment due</button>'
-      : (mobDue()?'<button type="button" class="ps-retest due" data-mobscreen="1">↻ Mobility reassessment due</button>'
-      : '<span class="ps-retest">Next read strengthens with your next test</span>');
+    if(sessions) milestones.push("✓ "+sessions+" workout"+(sessions===1?"":"s")+" done");
+    var reassess=speedTestDue() ? '<button type="button" class="ps-retest due" data-speedtest="1">🎯 Speed test due</button>'
+      : (mobDue()?'<button type="button" class="ps-retest due" data-mobscreen="1">↻ Mobility check due</button>'
+      : '<span class="ps-retest">Your next test makes this clearer</span>');
 
     return '<section class="performance-story '+tone+'" aria-labelledby="psTitle">'+
-      '<div class="ps-topline"><span>YOUR PERFORMANCE STORY</span><span class="ps-confidence" title="'+confHelp+'">'+conf+'</span></div>'+
+      '<div class="ps-topline"><span>YOUR PROGRESS</span><span class="ps-confidence" title="'+confHelp+'">'+conf+'</span></div>'+
       '<div class="ps-hero"><div class="ps-copy"><h3 id="psTitle">'+title+'</h3><p>'+verdict+'</p></div>'+
         '<div class="ps-result"><strong>'+value+'</strong><span>'+unit+'</span></div></div>'+
-      '<div class="ps-proof"><span class="ps-proof-dot"></span><span><b>'+(d&&d.n>=2?"Measured":"How we got here")+'</b>'+proof+'</span>'+
+      '<div class="ps-proof"><span class="ps-proof-dot"></span><span><b>'+(d&&d.n>=2?"Measured":"So far")+'</b>'+proof+'</span>'+
         (spGain!=null&&!(d&&d.n>=2)?'<i>Estimate: ~2 yds of 7-iron carry per 1 mph</i>':'')+'</div>'+
-      '<div class="ps-grid"><div class="ps-drivers"><h4>What’s driving the trend</h4>'+signalHtml+'</div>'+
-        '<div class="ps-next"><span class="ps-next-kick">BIGGEST OPPORTUNITY</span><h4>'+opp.part.label.replace(" (e1RM)","")+'</h4>'+
+      '<div class="ps-grid"><div class="ps-drivers"><h4>What’s working</h4>'+signalHtml+'</div>'+
+        '<div class="ps-next"><span class="ps-next-kick">WORK ON NEXT</span><h4>'+opp.part.label.replace(" (e1RM)","")+'</h4>'+
           '<p>'+FF_LEVER[opp.part.key]+'.</p><button type="button" class="ps-cta" '+opp.action.attr+'>'+opp.action.label+' <span>→</span></button></div></div>'+
       (milestones.length?'<div class="ps-milestones">'+milestones.slice(0,3).map(function(m){ return '<span>'+m+'</span>'; }).join("")+'</div>':'')+
       // The Yardsmith card (055) — offered once there's a real number to post.
       ((r.score!=null||d||speeds.length||sessions)?'<button type="button" class="ps-share" data-yscard="1">'+ffIcon("share",16)+'<span>Share my Yardsmith card</span></button>':'')+
-      '<div class="ps-foot">'+reassess+'<button type="button" class="ps-evidence" data-pftoggle="pillars" data-pfopen="1">See the evidence <span>↓</span></button></div>'+
+      '<div class="ps-foot">'+reassess+'<button type="button" class="ps-evidence" data-pftoggle="pillars" data-pfopen="1">See the details <span>↓</span></button></div>'+
     '</section>';
   }
 
@@ -414,6 +414,7 @@
 
     var html='';
     html += performanceStoryHtml();
+    html += weeklyFlightHtml();   // this week's three jobs + the week review (moved from Home, Sep 2026)
     html += brainForecastHtml();
     // The Story card names the biggest lever when it renders its "next" block;
     // flag it so the Octane card doesn't print the same advice twice on one
@@ -434,7 +435,7 @@
         { ic:'⚡', t:'Speed trend', s:'run the guided 7-iron test — your north star number', attr:' data-speedtest="1"' },
         { ic:'🏋️', t:'Gym & body', s:'log your first workout — PRs, strength and consistency build here', attr:' data-goview="plan"' },
         { ic:'⛳', t:'On the course', s:'bank rounds — the gym-to-course proof builds here', attr:' data-roundlog="1"' },
-        { ic:'⚖️', t:'Bodyweight trend', s:'five seconds with ＋ Log', attr:' data-qopen="1"' });
+        { ic:'⚖️', t:'Bodyweight trend', s:'log a weigh-in — five seconds', attr:' data-qopen="1"' });
     } else {
       // ---- Clubhead speed (north star) ----
       // The payoff of speed is DISTANCE. A 7-iron carries ~2 yards farther per +1 mph of
@@ -449,7 +450,7 @@
         (spNow!=null?'<span class="pf-num">'+spNow+' mph</span>':'')+(spF.length>=2?pcDelta(spNow-spBase," mph"):""),
         (spNow!=null?'<div class="pc-now">'+spNow+'<span>mph</span></div>':'<div class="pc-now muted">—</div>')+
         (spF.length>=2 ? pcLine(spF,"#16a34a","pcSpeed", spD, " mph")
-          : '<div class="pc-need">'+(spF.length===1?"One more entry and your speed trend appears.":"Add a 7-iron speed with <b>＋ Log</b> to start the trend.")+'</div>')+
+          : '<div class="pc-need">'+(spF.length===1?"One more entry and your speed trend appears.":"Add a 7-iron speed with <b>Log something</b> on Home to start the trend.")+'</div>')+
         (spF.length>=2&&spGain>0
           ? '<div class="pc-payoff">🎯 That’s roughly <b>+'+Math.round(spGain*YDS_PER_MPH)+' yards</b> of 7-iron carry since your baseline. <span>Speed is distance — ~2 yds per mph.</span></div>'
           : (spF.length>=2 ? '<div class="pc-payoff muted">Every <b>+1 mph</b> here is about <b>+2 yards</b> of carry. Keep the trend climbing.</div>' : ""))+
@@ -486,7 +487,7 @@
           (wtF.length>=2 ? pcLine(wtF,"#0e7490","pcWt", wtD, " lb")+
             '<div class="pc-foot"><span>start <b>'+wtBase+'</b></span><span>now <b>'+wtNow+'</b> lb '+pcDelta(wtNow-wtBase," lb",true)+'</span></div>'
           : '<div class="pc-need">Logged <b>'+wtNow+' lb</b> — one more weigh-in and the trend line appears.</div>');
-        else g+='<div class="pc-need">⚖️ A five-second weigh-in with <b>＋ Log</b> starts your bodyweight trend.</div>';
+        else g+='<div class="pc-need">⚖️ A five-second weigh-in with <b>Log something</b> on Home starts your bodyweight trend.</div>';
         if(sess) g+='<div class="pc-sec">📅 Consistency</div>'+
           '<div class="wkbars">'+weekBars()+'</div>'+
           '<div class="pc-foot"><span>'+sess+' total · sessions per week (last 8)</span><span>goal <b>'+((typeof planState!=="undefined"&&planState.freq)||4)+'</b>/wk</span></div>';
@@ -875,32 +876,37 @@
   // Dashboard tiles jump to the relevant tab; quick-add logs weight + speed from home.
   var db=$("dashBody");
   if(db) db.addEventListener("click", function(e){
-    var idis=e.target.closest("[data-insdismiss]");
-    if(idis){ ffDismissInsight(idis.getAttribute("data-insdismiss")); renderDash(); return; }
     var iask=e.target.closest("[data-insask]");
-    if(iask){ if(window.FFCoach && window.FFCoach.ready()) window.FFCoach.ask(iask.getAttribute("data-insask"), "Your focus"); return; }
-    var ad=e.target.closest("[data-adapt]");
-    if(ad){ var act=ad.getAttribute("data-adapt");
-      if(act==="apply"){ var a=adaptiveCheck();
-        if(a){ var nx=Math.max(-600, Math.min(600, lsGet("ff_kcal_adj",0)+a.deltaKcal)); lsSet("ff_kcal_adj", nx); } }
-      lsSet("ff_lastcheckin", Date.now()); try{ calc(); }catch(e2){} renderDash(); return; }
+    if(iask){
+      // Asked once → the row moves on to the next signal (or the general read).
+      var isig=iask.getAttribute("data-inssig"); if(isig) ffDismissInsight(isig);
+      if(window.FFCoach && window.FFCoach.ready()) window.FFCoach.ask(iask.getAttribute("data-insask"), "Coach");
+      renderDash(); return; }
     var nr=e.target.closest("[data-nurest]");
     if(nr){ toggleRestDone(curWeek(), nr.getAttribute("data-nurest"));
       try{ window.dispatchEvent(new Event("ff-data-changed")); }catch(_){}
       renderDash(); return; }
-    if(e.target.closest("[data-qopen]")){ var fb=$("ffFab"); if(fb) fb.click(); return; }
-    // [data-goview] is handled by the global delegated navigator (015-coach-tips).
+    // [data-goview] and [data-qopen] are handled by document-level listeners
+    // (015-coach-tips navigator; the quick-log sheet below).
   });
-  /* ---- Global quick-log: the floating ＋ and its bottom sheet. One entry point
-     for the daily inputs (weight / 7-iron / driver) plus jump-offs to the player,
-     speed test and mobility screen — replaces the form that lived on Home. ---- */
+  // The ~10-day calorie check-in renders on Fuel (it left Home in the Sep 2026
+  // simplification pass) — Apply / Not now work wherever it shows.
+  document.addEventListener("click", function(e){
+    var ad=e.target.closest("[data-adapt]"); if(!ad) return;
+    var act=ad.getAttribute("data-adapt");
+    if(act==="apply"){ var a=adaptiveCheck();
+      if(a){ var nx=Math.max(-600, Math.min(600, lsGet("ff_kcal_adj",0)+a.deltaKcal)); lsSet("ff_kcal_adj", nx); } }
+    lsSet("ff_lastcheckin", Date.now());
+    try{ calc(); }catch(_){}
+    try{ renderFuelToday(); }catch(_){}
+    try{ renderDash(); }catch(_){}
+  });
+  /* ---- Global quick-log sheet. One entry point for the daily inputs (weight /
+     7-iron / driver) plus jump-offs to the player, speed test, mobility screen
+     and Game Day. Opened by any [data-qopen] (Home's "Log something" row, Stats)
+     — the floating ＋ Log button that used to cover content on every tab is gone
+     (Sep 2026 simplification pass). [data-weighin] opens the scale-only variant. ---- */
   (function(){
-    var fab=document.createElement("button");
-    fab.className="ff-fab"; fab.id="ffFab"; fab.type="button"; fab.setAttribute("aria-label","Log anything");
-    // Labeled, not a mystery circle: the one rule a user has to learn is
-    // "anything that happened, hit ＋ Log."
-    fab.innerHTML='＋<span class="ff-fab-lbl">Log</span>';
-    document.body.appendChild(fab);
     var sheet=document.createElement("div");
     sheet.className="qsheet"; sheet.id="qSheet"; sheet.hidden=true;
     document.body.appendChild(sheet);
@@ -929,13 +935,14 @@
         }
       }catch(e){}
       sheet.innerHTML='<div class="qsheet-card"><div class="qsheet-grab"></div>'+
-        '<div class="qsheet-h">＋ Log anything</div>'+
+        '<div class="qsheet-h">Log something</div>'+
         quickLogHtml("q","Weight, 7-iron &amp; driver feed your trends, Octane and the board.")+
         '<div class="ff-inerr" id="qErr" role="alert" hidden></div>'+
         '<div class="qsheet-acts">'+
         (train?('<button type="button" class="qsheet-act" data-startplayer="'+escAttr(d.name)+'">'+ffIcon("barbell",18)+'<span>Start today’s workout<span class="qa-sub">'+d.name.replace(/^Day \d+ — /,"")+' · guided player</span></span><span class="qa-go">›</span></button>'):'')+
         mealRow+
         '<button type="button" class="qsheet-act" data-roundlog="1">⛳<span>Log a round<span class="qa-sub">score, longest drive, how the body held up</span></span><span class="qa-go">›</span></button>'+
+        '<button type="button" class="qsheet-act" data-goview="gameday">🏌️<span>Playing today?<span class="qa-sub">warm-up and snack plan built around your tee time</span></span><span class="qa-go">›</span></button>'+
         '<button type="button" class="qsheet-act" data-speedtest="1">'+ffIcon("target",18)+'<span>Speed test<span class="qa-sub">3 max swings — best one counts</span></span><span class="qa-go">›</span></button>'+
         '<button type="button" class="qsheet-act" data-mobscreen="1">'+ffIcon("compass",18)+'<span>Mobility screen<span class="qa-sub">3 moves · ~3 minutes</span></span><span class="qa-go">›</span></button>'+
         '</div></div>';
@@ -949,9 +956,8 @@
       var n=parseFloat(v);
       return (!isNaN(n) && n>=lo && n<=hi) ? null : { msg:label+" should be "+lo+"–"+hi+" "+unit+" — check for a typo.", id:id };
     }
-    fab.addEventListener("click", function(){ openSheet(false); });
-    // The Home "Morning weigh-in" row opens the scale-only variant.
     document.addEventListener("click", function(e){
+      if(e.target.closest("[data-qopen]")){ openSheet(false); return; }
       if(e.target.closest("[data-weighin]")) openSheet(true);
     });
     sheet.addEventListener("click", function(e){
@@ -981,8 +987,8 @@
       // Action rows open their overlays via the document-level listeners — just get
       // out of the way. (This element listener fires FIRST; the meal check-off then
       // runs in 030's document handler, which re-renders the dash itself.)
-      if(e.target.closest("[data-fuelmeal]")){ closeSheet(); ffToast("Meal banked ✓"); return; }
-      if(e.target.closest("[data-startplayer],[data-speedtest],[data-mobscreen],[data-roundlog]")) closeSheet();
+      if(e.target.closest("[data-fuelmeal]")){ closeSheet(); ffToast("Meal checked off ✓"); return; }
+      if(e.target.closest("[data-startplayer],[data-speedtest],[data-mobscreen],[data-roundlog],[data-goview]")) closeSheet();
     });
   })();
 
@@ -1005,7 +1011,6 @@
     var pil=e.target.closest("[data-pillar]");
     if(pil){ var pk=pil.getAttribute("data-pillar"); openPillar=(openPillar===pk)?null:pk; renderProgress(); return; }
     if(e.target.closest("[data-scshare]")){ shareScorecard(); return; }
-    if(e.target.closest("[data-qopen]")){ var fb2=$("ffFab"); if(fb2) fb2.click(); return; }
     var lbb=e.target.closest("[data-lb]");
     if(lbb){ lbBoard=lbb.getAttribute("data-lb");
       Array.prototype.forEach.call(document.querySelectorAll("#lbSeg [data-lb]"), function(b){

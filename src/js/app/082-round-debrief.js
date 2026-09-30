@@ -95,7 +95,7 @@
       try{ ffCelebrate(); ffTick([25,45,25]); }catch(e){}
       ffToast("🚀 On-course PR — "+Math.round(drive)+" yds. That’s the gym showing up.");
     } else {
-      ffToast("Round banked ⛳");
+      ffToast("Round logged ⛳");
     }
     try{ renderDash(); }catch(e){}
     try{ if($("view-progress")&&$("view-progress").classList.contains("active")) renderProgress(); }catch(e){}

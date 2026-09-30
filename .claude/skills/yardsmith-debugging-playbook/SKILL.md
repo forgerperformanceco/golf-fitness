@@ -270,8 +270,9 @@ window.FF_BUILD                                 // rule zero: pre-7ada915 builds
 **Where the fix lives now:** the pinning IIFE in
 `src/js/app/007-motion.js:114-152` — computes
 `dy = (vv.offsetTop + vv.height) - window.innerHeight` and applies
-`translateY(dy)` to `#mobileTabs`, `#ffFab`, `#plPauseBar`; keyboard state sets
-`body.ff-kb`, and `styles.css:1643` hides the three bars under it. Keyboard
+`translateY(dy)` to `#mobileTabs` and `#plPauseBar` (the floating `#ffFab` Log
+button was removed in the Sep 2026 simplification pass); keyboard state sets
+`body.ff-kb`, and the `body.ff-kb` rule in `styles.css` hides the bars under it. Keyboard
 detection requires a focused editable AND `vv.scale < 1.15` AND a >150px gap.
 
 **Triage:**

@@ -211,7 +211,10 @@ for (const st of STATES) {
     const errs = [];
     page.on('pageerror', e => errs.push('pageerror: ' + e));
     page.on('console', m => { if (m.type() === 'error' && !FILTER.test(m.text())) errs.push('console: ' + m.text()); });
-    const kv = { ff_onboarded: true, fairwayfuel: baseProfile(), ff_theme: theme, ...st.seed };
+    // ff_welcome_back = "active user": the Welcome-back screen (087) greets
+    // anyone with 14+ quiet days, and deload-week starts 35 days back with no
+    // activity — without this stamp the greeting would cover the tab bar.
+    const kv = { ff_onboarded: true, fairwayfuel: baseProfile(), ff_theme: theme, ff_welcome_back: Date.now(), ...st.seed };
     await page.addInitScript(obj => { for (const k of Object.keys(obj)) localStorage.setItem(k, JSON.stringify(obj[k])); }, kv);
     await page.goto(`http://127.0.0.1:${port}/`, { waitUntil: 'networkidle' });
     await page.click('#mobileTabs button[data-view="plan"]');

@@ -105,16 +105,27 @@
     function finish(startNow){
       applyProfile(); pushBaseline(); lsSet("ff_onboarded", true);
       lsSet("ff_goalyds", parseInt(ob.goalyds,10)||15);
-      close();
-      if(startNow){
-        // Re-personalizing must never reset an active season or erase its place.
-        if(!ob.hadPlan){ try{ startPlanAtWeek(1); }catch(e){} }
-        setView("plan"); try{ renderPhase(); }catch(e){}
-      }
-      else setView("dash");
-      renderDash();
+      // Targets exist now — the first-visit brand hero on Home steps aside.
+      var dh=document.querySelector(".dash-hero"); if(dh) dh.hidden=true;
       try{ if(window.FFHealth) window.FFHealth.track("onboarding_completed",
         {started_plan:!!startNow,revisit:!!ob.revisit}); }catch(e){}
+      if(startNow && !ob.hadPlan){
+        // Setup ends by STARTING: today becomes day 1 and the last screen
+        // offers the first workout itself, not a tour of the Train tab.
+        try{ startPlanAtWeek(1); }catch(e){}
+        setView("dash"); renderDash();
+        ob.step=6; render(); return;
+      }
+      close();
+      // Re-personalizing must never reset an active season or erase its place.
+      if(startNow){ setView("plan"); try{ renderPhase(); }catch(e){} }
+      else setView("dash");
+      renderDash();
+    }
+    // Step 6 (after "Start my first week"): today's workout, one tap away.
+    function firstDay(){
+      var d=(typeof todaySlot==="function")?todaySlot():null;
+      return (d && d.type!=="rest") ? d : null;
     }
     function prepToggleHtml(){
       var opts=[["back","Back","stack & brace"],["hips","Hips","turn freely"],["shoulders","Shoulders","swing volume"],["knees","Knees","lower days"]];
@@ -166,17 +177,18 @@
       }
       if(s===4) applyProfile();   // compute targets + adapted week for the reveal
       if(s===5){ finish(true); return; }
+      if(s===6){ var fd=firstDay(); close(); if(fd) startPlayer(fd.name); return; }
       ob.step++; render();
     }
 
     function render(){
-      var s=ob.step, pct=Math.round((s/(ob.total-1))*100);
+      var s=ob.step, pct=Math.min(100,Math.round((s/(ob.total-1))*100));
       var kicker="", title="", body="", nextLabel="Continue";
       // Skip is available from the FIRST page (never trap someone in setup) and lives at the
       // BOTTOM of the card — the old top-right link sat under the iPhone status bar on the
       // installed app (viewport-fit=cover) and couldn't be tapped. The reveal has its own
       // "start later" link, so the generic skip hides there.
-      var showBack=s>0, showSkip=s<5;
+      var showBack=s>0 && s<6, showSkip=s<5;
 
       if(s===0){
         // Lean welcome — they already installed/opened the app; don't re-pitch it.
@@ -259,6 +271,16 @@
             ? '<div class="ob-startcue">✓ Your completed sessions and current week stay exactly where they are. Only future guidance updates.</div>'
             : '<div class="ob-startcue">📅 Start now and today becomes Day 1. Nothing begins until you choose it.</div>');
         nextLabel=ob.hadPlan?"Save & see my updated plan →":"Start my first week →";
+      } else if(s===6){
+        var d6=firstDay(), nm6=d6?(d6.name.split("—")[1]||d6.name).trim():"";
+        kicker="Day 1 · Today"; title=d6?"Your first workout is ready":"Your plan starts today";
+        body=d6
+          ? '<div class="ob-week"><div class="ob-weektop"><span>TODAY</span><b>About '+sessionMinutes(d6)+' min</b></div>'+
+              '<div class="ob-weekday"><span class="ow-n">1</span><span class="ow-t"><b>'+nm6+'</b>'+
+              '<small>Warm-up first, then each lift with the weight picked for you and a rest timer.</small></span><span class="ow-ok">▶</span></div></div>'+
+            '<p class="ob-p ob-quiet">Not at the gym right now? It’ll be the big button on Home whenever you are.</p>'
+          : '<p class="ob-p">Today is a rest day. Your first workout will be the big button on Home tomorrow.</p>';
+        nextLabel=d6?"Start workout now →":"Go to Home →";
       }
 
       root.innerHTML=
@@ -272,12 +294,14 @@
             '<button type="button" class="ob-next" id="obNext">'+nextLabel+'</button></div>'+
           (showSkip?'<button type="button" class="ob-later" id="obSkip">'+(ob.revisit?"Exit setup":"Skip setup — just look around")+'</button>':'')+
           (s===5?'<button type="button" class="ob-later" id="obLater">'+(ob.hadPlan?"Save & return home":"Save it — I’ll start later")+'</button>':'')+
+          (s===6&&firstDay()?'<button type="button" class="ob-later" id="obHome">Later — take me to Home</button>':'')+
         '</div></div>';
 
       var skip=$("obSkip"); if(skip) skip.onclick=function(){ lsSet("ff_onboarded",true); close();
         try{ if(window.FFHealth) window.FFHealth.track("onboarding_skipped"); }catch(e){} };
       var back=$("obBack"); if(back) back.onclick=function(){ readStep(s); ob.step--; render(); };
       var later=$("obLater"); if(later) later.onclick=function(){ finish(false); };
+      var home=$("obHome"); if(home) home.onclick=function(){ close(); };
       if(s===1) Array.prototype.forEach.call(root.querySelectorAll("[data-goal]"), function(b){
         b.onclick=function(){ ob.goal=b.getAttribute("data-goal"); render(); }; });
       if(s===1) segPick("obGoalYds", function(v){ ob.goalyds=parseInt(v,10)||15; });
@@ -330,6 +354,7 @@
       renderPhase();
       if(typeof renderDash==="function") renderDash();
       try{ ffNotifReschedule(); }catch(_){}   // reminders follow the new week/day
+      try{ ffMaybeWelcomeBack(); }catch(_){}  // resumed after weeks in the background
     }catch(e){}
   }
   document.addEventListener("visibilitychange", function(){ if(!document.hidden) ffRefreshForNewDay(); });
@@ -349,3 +374,4 @@
     }
   }catch(e){}
   maybeOnboard(sharedLink);   // first-run guided setup (no-op for returning users)
+  ffWelcomeBackBoot(sharedLink);   // back after 14+ quiet days → one "where do you want to start?" screen
