@@ -4,7 +4,7 @@
      cookouts) so the record never dies for honest reasons. Scores land on the Today
      timeline, the Sunday Scorecard, a fuel streak, and Octane's 6th pillar. The
      metabolism check-in stays the quantitative truth — the scale audits everything. */
-  var ffSchedule=null, fuelNumsOpen=false;
+  var ffSchedule=null;
   function ffISO(d){ d=d||new Date(); var m=d.getMonth()+1, dd=d.getDate();
     return d.getFullYear()+"-"+(m<10?"0":"")+m+"-"+(dd<10?"0":"")+dd; }
   function fuelLog(){ var f=lsGet("ff_fuel",{}); return (f && typeof f==="object")?f:{}; }
@@ -77,78 +77,49 @@
       remP+=(sl.p||0); remC+=(sl.c||0); remF+=(sl.f||0);
       remK+=(sl.p||0)*4+(sl.c||0)*4+(sl.f||0)*9;
     });
+    var streak=fuelStreak();
+    var streakHtml=streak>0?'<span class="ft-streak">'+ffIcon("flame",12)+' '+streak+'-day streak</span>':'';
     if(!next){
       el.innerHTML=adapt+'<div class="ftoday done"><span class="ft-ic">✅</span>'+
         '<span class="ft-tx"><span class="ft-kicker">TODAY’S MEALS</span><b>All meals done ✓</b><span>All '+n+' checked off — recover, grow, repeat.</span></span>'+
-        '<button type="button" class="ft-plan-link" data-fueljump="1">Review day ›</button></div>';
+        streakHtml+'</div>';
       return;
     }
     var time=(next.t!=null)?fmtMin(Math.round(next.t*60)):"";
     var macro=(next.p?next.p+"P":"")+(next.c?((next.p?" · ":"")+next.c+"C"):"")+(next.f?" · "+next.f+"F":"");
     var progress=Math.round(done/n*100);
     el.innerHTML=adapt+'<div class="ftoday">'+
-      '<div class="ft-head"><span class="ft-kicker">TODAY’S MEALS</span><span>'+done+' of '+n+' done</span></div>'+
+      '<div class="ft-head"><span class="ft-kicker">TODAY’S MEALS</span><span>'+streakHtml+done+' of '+n+' done</span></div>'+
       '<button type="button" class="ft-next" data-fuelmeal="'+ni+'" data-fuelval="a">'+
         '<span class="ft-ic">🍽️</span><span class="ft-tx"><b>Next: '+next.label+(time?' · '+time:'')+'</b>'+
         '<span>'+(macro||'Your next planned meal')+'</span></span><span class="ft-bank">Ate it <i class="ft-chk">✓</i></span></button>'+
+      (done===0 && !fd.rating ? '<div class="ft-hint">Tap ✓ when you eat a meal — no calorie counting.</div>' : '')+
       '<div class="ft-progress" aria-label="'+progress+'% of meals completed"><i style="width:'+progress+'%"></i></div>'+
       '<div class="ft-rem-grid">'+
         '<span><b>'+Math.round(remK).toLocaleString()+'</b><small>kcal left</small></span>'+
         '<span><b>'+remP+'g</b><small>protein</small></span>'+
         '<span><b>'+remC+'g</b><small>carbs</small></span>'+
         '<span><b>'+remF+'g</b><small>fat</small></span></div>'+
-      '<button type="button" class="ft-plan-link" data-fueljump="1">See today’s meals <span>›</span></button>'+
+      fuelRateHtml(fd)+
+      '</div>';
+  }
+  // Didn't tick meals? Rate the whole day instead — one tap, same streak.
+  function fuelRateHtml(d){
+    var line = !d.rating ? '' : '<div class="ft-rated">'+(d.rating==="on" ? "Day rated: <b>on plan</b> ✓"
+      : d.rating==="close" ? "Day rated: <b>close</b> — that still counts."
+      : "Day rated: <b>off plan</b> — it happens. Tomorrow’s plan is already written.")+'</div>';
+    return line+'<div class="frate"><span class="frate-lbl">Or rate the whole day:</span>'+
+      [["on","✓ On plan"],["close","≈ Close"],["off","✗ Off plan"]].map(function(o){
+        return '<button type="button" class="frate-chip'+(d.rating===o[0]?' on':'')+'" data-fuelrate="'+o[0]+'">'+o[1]+'</button>'; }).join("")+
       '</div>';
   }
   // Every check-off surface routes through one listener.
   document.addEventListener("click", function(e){
     var fm=e.target.closest("[data-fuelmeal]");
     if(fm){ fuelSetMeal(+fm.getAttribute("data-fuelmeal"), fm.getAttribute("data-fuelval")); fuelRefresh(); return; }
-    if(e.target.closest("[data-fueljump]")){ var mc=$("ffMealsCard"); if(mc) mc.scrollIntoView({behavior:"smooth",block:"start"}); return; }
     var fr=e.target.closest("[data-fuelrate]");
     if(fr){ fuelRate(fr.getAttribute("data-fuelrate")); fuelRefresh(); return; }
-    if(e.target.closest("[data-fuelnums]")){ fuelNumsOpen=!fuelNumsOpen; try{ calc(); }catch(e2){} return; }
   });
-  function fuelSummaryHtml(m){
-    var d=fuelDay(ffISO())||{ m:{} }, n=m.schedule.length;
-    var done=Object.keys(d.m||{}).length, streak=fuelStreak();
-    var line;
-    if(d.rating){
-      line = d.rating==="on" ? "Day rated: <b>on plan</b> ✓ — no need to tick every meal."
-           : d.rating==="close" ? "Day rated: <b>close</b> — that still counts."
-           : "Day rated: <b>off plan</b> — it happens. Tomorrow’s plan is already written.";
-    } else if(done===0){
-      line = "Tap ✓ when you eat a meal — <b>no calorie counting</b>. Ten seconds a day.";
-    } else if(done>=n){
-      line = "<b>All "+n+" meals done ✓</b> — nicely fueled.";
-    } else {
-      // the biggest remaining meal is the coaching hint
-      var big=null, bigI=-1;
-      m.schedule.forEach(function(sl,i){ if(d.m[i]) return;
-        var k=(sl.p||0)*4+(sl.c||0)*4+(sl.f||0)*9;
-        if(!big || k>big._k){ big=sl; big._k=k; bigI=i; } });
-      line = "<b>"+done+" of "+n+"</b> done"+(big?(" — <b>"+big.label+"</b> is the biggest meal left."):".");
-    }
-    var nums='';
-    if(fuelNumsOpen && !d.rating){
-      var kc=0,pg=0;
-      m.schedule.forEach(function(sl,i){ var v=d.m[i]; if(!v) return;
-        var f=(v==="a")?1:0.75;
-        kc+=((sl.p||0)*4+(sl.c||0)*4+(sl.f||0)*9)*f; pg+=(sl.p||0)*f; });
-      var t=lsGet("ff_targets",null);
-      nums='<div class="fuel-nums">≈ <b>'+Math.round(kc).toLocaleString()+'</b>'+(t?' / '+t.kcal.toLocaleString():'')+' kcal · <b>'+Math.round(pg)+'</b>'+(t?' / '+t.proteinG:'')+'g protein so far</div>';
-    }
-    return '<div class="fuel-sum'+(d.rating?' rated-'+d.rating:'')+'">'+
-      '<div class="fuel-sum-top"><span class="fuel-sum-t">🍽️ Today’s fuel</span>'+
-      (streak>0?'<span class="fuel-streak">'+ffIcon("flame",13)+' '+streak+'-day fuel streak</span>':'')+'</div>'+
-      '<div class="fuel-sum-line">'+line+'</div>'+nums+
-      (!d.rating?'<button type="button" class="fuel-numbtn" data-fuelnums="1">'+(fuelNumsOpen?'Hide numbers':'Show the numbers')+'</button>':'')+
-      '<div class="frate"><span class="frate-lbl">Or rate the whole day:</span>'+
-        [["on","✓ On plan"],["close","≈ Close"],["off","✗ Off plan"]].map(function(o){
-          return '<button type="button" class="frate-chip'+(d.rating===o[0]?' on':'')+'" data-fuelrate="'+o[0]+'">'+o[1]+'</button>'; }).join("")+
-      '</div></div>';
-  }
-
   // The ✓/≈ pair for schedule slot i — shared by the generic schedule, the
   // foods-you-love meal cards, and any other surface that shows a meal.
   function ffFchkHtml(i){
@@ -159,13 +130,12 @@
       '<button type="button" class="fchk-b close'+(v==="c"?" on":"")+'" data-fuelmeal="'+i+'" data-fuelval="c" aria-label="Ate something close">≈</button>'+
       '</div>';
   }
+  // One plain heading for the day's list (both the generic and foods-you-love views).
+  function fuelListHead(n, rest, slot){
+    return '<div class="meals-head"><span>All of today’s meals</span>'+
+      '<span class="meals-sub">'+n+' meals · '+(rest?'rest day':String(slot||'').toLowerCase()+' workout')+'</span></div>';
+  }
   function mealBlock(m){
-    var opts="";
-    [3,4,5,6].forEach(function(n){
-      opts+='<button type="button" data-meals="'+n+'"'+(n===m.n?' class="active"':'')+'>'+n+'</button>';
-    });
-    var recTxt = m.n===m.recommended ? "recommended for this plan" : "recommended: "+m.recommended;
-
     var fd=fuelDay(ffISO())||{ m:{} };
     function fchk(i){ return ffFchkHtml(i); }
     var rows = m.schedule.map(function(s, i){
@@ -189,13 +159,10 @@
 
     var h="";
     h+='<div class="meals">';
-    h+='<div class="meals-head"><span>🍽️ Meal Plan</span>'+
-       '<span class="meal-pick"><span class="meal-pick-lbl">meals/day</span><span class="seg meal-seg">'+opts+'</span></span></div>';
+    h+=fuelListHead(m.n, m.rest, m.slot);
     h+='<div class="meals-body">';
-    h+=fuelSummaryHtml(m);
-    h+='<div class="sched-title">'+ffIcon("calendar",14)+' Your day &mdash; <b>'+m.n+' meals</b> <span class="rec">('+recTxt+')</span>'+(m.rest?', portioned evenly &mdash; <b>rest day</b>':', portioned for a <b>'+m.slot+'</b> workout')+'</div>';
     h+='<div class="sched">'+rows+'</div>';
-    h+='<div class="meal-foot">Tap any meal for a food example · times are guides — shift the day to fit your schedule.</div>';
+    h+='<div class="meal-foot">Tap a meal for a food idea. Times are a guide — shift the day to fit your schedule.</div>';
     h+='</div></div>';
     return h;
   }

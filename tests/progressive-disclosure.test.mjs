@@ -12,8 +12,13 @@ test("Fuel leads with daily execution and keeps target math collapsed", () => {
   assert.ok(html.indexOf('id="fuelToday"') < html.indexOf('id="fuelTargetsFold"'));
   assert.match(html, /<details class="card fuel-targets" id="fuelTargetsFold">/);
   assert.doesNotMatch(html, /id="fuelTargetsFold"[^>]*\sopen(?:\s|>)/);
+  // Sep 2026 Fuel pass: today's meals, then one "Your plan" group of folds.
   assert.match(css, /\.fuel-meals-card\{ order:1;/);
-  assert.match(css, /\.fuel-targets\{ order:2;/);
+  assert.match(css, /\.fuel-plan-h\{ order:2;/);
+  assert.match(css, /\.fuel-targets\{ order:3;/);
+  assert.match(css, /\.fuel-timing\{ order:4;/);
+  assert.match(html, /<div class="fuel-plan-h" role="heading" aria-level="2">Your plan<\/div>/);
+  assert.match(html, /<details class="card fuel-timing" id="fuelTimingFold" hidden>/);
   assert.match(calculator, /var calcCollapsed = true;/);
 });
 
@@ -23,7 +28,13 @@ test("Fuel command card includes the whole remaining-day picture", () => {
   assert.match(fuel, /protein/);
   assert.match(fuel, /carbs/);
   assert.match(fuel, /fat/);
-  assert.match(fuel, /data-fueljump/);
+  // One "today" card: the whole-day rating lives here (no second summary box
+  // inside the meal list), and meals-per-day moved to the targets fold.
+  assert.match(fuel, /fuelRateHtml\(fd\)/);
+  assert.doesNotMatch(fuel, /function fuelSummaryHtml/);
+  assert.match(fuel, /All of today’s meals/);
+  assert.match(calculator, /class="meals-per-day"/);
+  assert.doesNotMatch(calculator, /meal-seg/);
 });
 
 test("Train puts the next action ahead of methodology", () => {

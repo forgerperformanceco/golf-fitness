@@ -112,6 +112,10 @@ First visit to each tab fires a one-time coaching tip.
   adherence (not calorie accounting) and feeds Octane's 6th pillar.
 - Training-time is *referenced here* (drives carb timing) but **edited in Account**
   — single source of truth.
+- **Layout (Sep 2026 Fuel pass):** one "Today's meals" card on top (next meal +
+  "Ate it", what's left, rate the whole day), then the day's meal list, then a
+  **Your plan** group of slim folds — daily targets + meals per day, carb timing,
+  the food guide, your details. The calorie check-in leads the tab when due.
 
 ### Train (the 20-week plan + Workout Player)
 - Start-date-anchored **rolling 7-day** cycle (not weekday-bound), 20 weeks,
@@ -402,6 +406,10 @@ stores; we're a URL). Shipping the app matters more than more docs.
   by §9, already an honest adjunct) and **S3** (add jump/throw volume — already
   inside the §10.2/§10.3 envelope). Thread 7 closed.
 
+- **Fuel pass (Sep 2026)** — one "today" card holds the whole daily job (next meal,
+  what's left, rate the day); the day's list follows with no second summary or
+  header bar; everything set-once lives in "Your plan" folds. Meals per day is a
+  plan setting (in the targets fold), not a control on the daily list.
 - **Simplification pass (Sep 2026)** — the owner came back after two months and
   couldn't find where to start. Rules now: **Home = one big button + quiet rows**
   (nothing else stacks there — readiness, timeline, folds, weekly plan all left);
@@ -545,10 +553,13 @@ publishable key + VAPID public key ship client.
    exposure grows. Discipline that makes it work: separate banking, no
    commingling, holdco never guarantees opco debts, holdco stays passive.
    Optional upgrade then: holdco owns the trademarks, licenses to the opcos.
-9. **Simplification pass 2 (deferred from Sep 2026):** (a) merge tabs so there
-   are fewer places to look (e.g. Stats into Home's progress row / Train), and
-   (b) group the You tab into a few clear sections. Shipped pass 1 first because
-   it was the biggest clarity gain with no stored-data changes.
+9. **Simplification, remaining tabs (Sep 2026).** Home ✓ (pass 1) and Fuel ✓
+   (pass 2) are done. Rule for the rest: one clear thing on top, everything else
+   folded — not Home's one-button treatment. Next, in order: **Stats** (merge the
+   6-week outlook into the progress story; fold the rest under "See the
+   details"), **Train** (tuck manual logging, "Coach this week", history and the
+   playbook/settings folds under one "More"), **You** (group into account,
+   reminders, app settings, data). Tab merging stays deferred.
 
 ---
 

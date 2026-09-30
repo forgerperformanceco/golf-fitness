@@ -163,6 +163,8 @@ def main():
         # The big button's action pill sits on the always-dark Today card —
         # its bright fill IS the affordance, in both themes.
         if '.nu-cta' in sel: continue
+        # Fuel's Today's-meals card (.ftoday / .ft-*) is dark in both themes too.
+        if '.ftoday' in sel or '.ft-' in sel: continue
         ch = transform_rule(decls)
         if not ch: continue
         if media: medias.setdefault(media, []).append((sel, '; '.join(ch) + ';'))

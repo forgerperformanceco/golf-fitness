@@ -1,5 +1,50 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## Fuel pass — one "today" card, then "Your plan" (Sep 30, 2026)
+
+User, after the Home pass: "should we take a similar approach to the other
+tabs?" → agreed rule for the non-Home tabs: one clear thing on top, everything
+else folded (not Home's single button — these tabs hold the detail). Fuel went
+first because it was the most confusing: "today's meals" appeared twice (the top
+card, then a "Today's fuel" box inside a "Meal Plan" card with its own dark
+header bar and a 3/4/5/6 picker), and four separate white cards of settings
+followed, one with an empty band of padding.
+
+1. **Today's meals card (top, 030 `renderFuelToday`).** Next meal + "Ate it ✓",
+   a first-day hint ("Tap ✓ when you eat a meal — no calorie counting"),
+   progress, what's left (kcal/protein/carbs/fat), and **"Or rate the whole
+   day: On plan / Close / Off plan"** — moved up from the old summary box, with
+   a "Day rated: …" line once used. The fuel streak sits in the card header.
+   The "See today's meals" link is gone (the list is right below).
+2. **The day's list.** "All of today's meals · 4 meals · morning workout" as a
+   plain heading — no dark header bar, no picker, no second summary (the
+   `fuelSummaryHtml` box and its "Show the numbers" toggle are deleted). Same
+   treatment in the foods-you-love view. "Make these meals yours" became one
+   tappable row: "Use foods you actually eat ›".
+3. **Your plan.** A small "YOUR PLAN" heading over slim folds: **Daily targets**
+   (now also holds **Meals per day**, with "recommended for your plan"), **Carb
+   timing around training** (moved out of the meal card into its own fold,
+   `#fuelTimingFold`), **What do I eat to hit these numbers?** (the empty padding
+   band removed), and **Your details** (was "On the Tee · Your Numbers").
+4. **Dark theme.** The always-dark Today's-meals card (`.ftoday`, `.ft-*`) is now
+   excluded from the generator like the big-button pill — it had been darkening
+   the progress bar's bright end. Dead CSS for the removed pieces deleted.
+
+Result on the active seed: page 2,362 → 1,921px, 251 → 207 words, the same jobs.
+
+**Verified:** `npm test` 62/62 (progressive-disclosure test now asserts the
+"Your plan" order, the timing fold, the rating in the top card and meals-per-day
+in the targets fold); `check-release` 4/4; data contract holds; claims-lint
+clean; audit-train 18/18; audit-scroll 16/16 (the removed "show numbers" case is
+replaced by `fuel-meals-per-day`, a full calc() re-render; it taps the active
+count because changing the count adds a row above the picker and scroll
+anchoring rightly shifts scrollY by that row); audit-contrast clean;
+audit-type only the known `.ft-bank` flag; smoke functional checks pass.
+Headless: list ✓ and top-card "Ate it" both update the count, the hint hides
+after the first check, rating from the top card, meals-per-day rebuilds the list
+with the fold staying open, carb timing opens, the foods-you-love view uses the
+same heading with no picker/summary, zero page errors; light + dark captures.
+
 ## Simplification pass — "where do I even start?" (Sep 30, 2026)
 
 User: "The app is still confusing to use/start. Opening it after a couple of
