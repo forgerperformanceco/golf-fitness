@@ -161,17 +161,16 @@
     var sess=getSession(curWeek(),day.name);
     if(sessionFinished(sess)||(sess&&!sess.readiness)) return "";
     var r=(sess&&sess.readiness)||ffReadinessToday();
-    if(!r) return '<button type="button" class="ready-inline" data-readyopen="'+escAttr(day.name)+'">'+
-      '<span><small>DAILY READINESS</small><b>Check in before you train</b><em>Sleep · body · energy · 20 sec</em></span><i>›</i></button>';
+    // No separate "check in first" card: Start asks the 20-second check-in
+    // itself (startPlayer → ffReadinessOpen), so a second button for the same
+    // step only made the screen harder to read. The card returns once there is
+    // a result worth showing (today's dose).
+    if(!r) return "";
     var m=ffReadinessMeta(r.band);
     if(sess) return '<div class="ready-inline scored '+r.band+'">'+
       '<span><small>SESSION DOSE · '+m.label.toUpperCase()+'</small><b>'+m.title+'</b><em>Dose locked once logging starts</em></span><i>✓</i></div>';
     return '<button type="button" class="ready-inline scored '+r.band+'" data-readyopen="'+escAttr(day.name)+'">'+
       '<span><small>TODAY’S DOSE · '+m.label.toUpperCase()+'</small><b>'+m.title+'</b><em>Tap to reassess before starting</em></span><i>›</i></button>';
-  }
-  function ffReadinessHomeHtml(){
-    var dop=dayOfPlan(), day=dop&&stripDays()[dop-1];
-    return ffReadinessInlineHtml(day);
   }
   document.addEventListener("click",function(e){
     var b=e.target.closest("[data-readyopen]");

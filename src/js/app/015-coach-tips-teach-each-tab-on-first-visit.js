@@ -5,14 +5,14 @@
      and the AI features turn on. Seen tips are remembered in ff_tips_seen (and synced). */
   function ffSignedIn(){ return !!(window.FF && window.FF.user); }
   var FF_TIPS = {
-    dash:    { key:"dash",  ic:"🏠", t:"This is your home base",
-      b:"Your daily <b>Octane score</b>, a coach's read, and quick tiles into every part of the app live here. Tap any tile to dive in." },
-    calc:    { key:"calc",  ic:"🍽️", t:"Fuel — your meals & macros",
-      b:"Start with your <b>next meal</b>, bank it in one tap, and use the live numbers to see exactly what remains. Your full day and food options stay right below." },
-    plan:    { key:"plan",  ic:"🏋️", t:"Train — your 20-week speed plan",
-      b:"Each session starts with the <b>warm-up + daily power</b> work (the amber box) — don't skip it, that's where clubhead speed is made." },
-    progress:{ key:"prog",  ic:"📈", t:"Stats — track it to grow it",
-      b:"Log your <b>lifts, bodyweight and 7-iron speed</b> here. Every entry feeds your Octane so you can watch the trend climb." },
+    dash:    { key:"dash",  ic:"🏠", t:"Start here every day",
+      b:"The <b>big button</b> is always the next thing to do. Your meals, progress and logging sit right under it." },
+    calc:    { key:"calc",  ic:"🍽️", t:"Fuel — your meals",
+      b:"Tap <b>✓ when you eat a meal</b> — no calorie counting. Your full day and food ideas are right below." },
+    plan:    { key:"plan",  ic:"🏋️", t:"Train — your 20-week plan",
+      b:"Tap <b>Start workout</b> and the app guides every set. The warm-up and power moves come first — don't skip them, that's where swing speed is made." },
+    progress:{ key:"prog",  ic:"📈", t:"Stats — is it working?",
+      b:"Your <b>swing speed, driver distance and strength</b> over time — the proof the work is paying off." },
     gameday: { key:"gday",  ic:"⛳", t:"Game Day — fuel your round",
       b:"Enter your tee time and we build a <b>timed plan</b>: pre-round meal, first-tee warm-up, on-course fueling and the turn snack." },
     account: { key:"acct",  ic:"☁", t:"You — sign in to unlock everything",
@@ -103,7 +103,6 @@
   });
   function setView(view, scroll){
     var viewNames={ dash:"Home", calc:"Fuel", plan:"Train", progress:"Stats", account:"You", gameday:"Game Day" };
-    var contextNames={ dash:"Today", calc:"Fuel", plan:"Train", progress:"Stats", account:"You", gameday:"Game Day" };
     var apply=function(){
       [tabs, mobileTabs].forEach(function(bar){
         Array.prototype.forEach.call(bar.querySelectorAll("button"), function(b){
@@ -118,7 +117,6 @@
         v.classList.toggle("active", selected);
         v.setAttribute("aria-hidden", selected ? "false" : "true");
       });
-      var context=$("appbarContext"); if(context) context.textContent=contextNames[view]||"Yardsmith";
       document.title=(viewNames[view]||"Yardsmith")+" · Yardsmith";
       if(view==="dash") { try{ renderDash(); }catch(e){} }
       if(view==="calc") { try{ ffRefreshCalcTrainTime(); }catch(e){} }

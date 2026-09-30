@@ -71,7 +71,7 @@ test("catch-up can be intentionally skipped without moving or deleting the plan"
   skipped.add("2|Day 2");
   assert.equal(context.missedWorkout(), null);
   assert.match(home, /data-skipsession=/);
-  assert.match(home, /Skip this session/);
+  assert.match(home, /Skip it <span>and keep my plan moving/);
   assert.match(logger, /function skipSession\(/);
   assert.match(logger, /if\(sessionFinished\(s\)\)/);
   assert.match(sync, /"ff_skipped_sessions"/);
@@ -89,18 +89,31 @@ test("Opening Round is based on three real activation signals", () => {
   assert.deepEqual({ ...context.openingRoundState() }, {
     trained: true, fueled: true, baseline: true, done: 3,
   });
-  assert.match(home, /Opening Round complete/);
+  assert.match(home, /You’re all set — workout, meals and speed test done/);
   assert.match(home, /Date\.now\(\)-completedAt>2\*864e5/);
+  // Never a permanent fixture: it expires two weeks into the plan.
+  assert.match(home, /s\.done<3 && \(daysSinceStart\(\)\|\|0\)>=14/);
 });
 
-test("Home stays simple while exposing dynamic weekly momentum", () => {
-  assert.match(home, /openingRoundHtml\(\)/);
-  assert.match(home, /weekMomentumText\(\)/);
-  assert.match(home, /Pick up the thread · No reset/);
-  assert.match(home, /Life happened\. Your progress is safe/);
+test("Home is one big button plus quiet rows", () => {
+  const dash = functionSource(home, "renderDash");
+  // One primary card, then meals / progress / log / (week review) / coach rows.
+  assert.match(dash, /nextUpCard\(\)/);
+  for (const row of ["homeMealsRow()", "homeProgressRow()", "data-qopen", "weekReviewRowHtml()", "homeCoachRow()"])
+    assert.ok(dash.includes(row), `Home should render ${row}`);
+  assert.match(dash, /openingRoundHtml\(\)/);
+  // Everything that used to stack up on Home stays off it.
+  for (const gone of ["ffReadinessHomeHtml", "weeklyFlightHtml", "timelineHtml", "renderHeroCard", "home-fold"])
+    assert.ok(!dash.includes(gone), `Home should not render ${gone}`);
+  // Every state of the big button names its action in plain words.
+  assert.match(home, /nuCta\(started\?'Resume workout':'Start workout'\)/);
+  assert.match(home, /<div class="nu-kick">Catch up<\/div>/);
+  assert.match(home, /You missed this one — do it today and your plan stays on track\./);
   assert.match(home, /var started=sessionInProgress\(sess\)/);
   assert.match(css, /\.opening-round\{/);
   assert.match(css, /\.nu-card\.catchup\{/);
+  assert.match(css, /\.nu-cta\{/);
+  assert.match(css, /\.home-row\{/);
 });
 
 test("activation analytics remain anonymous and allow-listed", () => {

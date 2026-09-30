@@ -16,7 +16,7 @@ test("Stats leads with the Performance Story before the Octane evidence", () => 
   const octane = stats.indexOf("html += renderScoreCard()");
   assert.ok(story > -1, "Performance Story should render");
   assert.ok(octane > story, "Octane evidence should follow the story");
-  assert.match(stats, /See the evidence/);
+  assert.match(stats, /See the details <span>↓<\/span>/);
   assert.match(stats, /data-pftoggle="pillars"/);
 });
 
@@ -29,14 +29,15 @@ test("distance claims distinguish measured results from estimates", () => {
 });
 
 test("story supplies confidence, drivers, one opportunity, and reassessment", () => {
-  assert.match(stats, /Strong read/);
-  assert.match(stats, /Building read/);
-  assert.match(stats, /Early read/);
-  assert.match(stats, /What’s driving the trend/);
-  assert.match(stats, /BIGGEST OPPORTUNITY/);
+  // Plain words (Sep 2026 pass): confidence reads as a trend, not a "read".
+  assert.match(stats, /Clear trend/);
+  assert.match(stats, /Trend forming/);
+  assert.match(stats, /Too early to tell/);
+  assert.match(stats, /What’s working/);
+  assert.match(stats, /WORK ON NEXT/);
   assert.match(stats, /STORY_ACTIONS/);
-  assert.match(stats, /Speed reassessment due/);
-  assert.match(stats, /Mobility reassessment due/);
+  assert.match(stats, /Speed test due/);
+  assert.match(stats, /Mobility check due/);
 });
 
 test("Performance Story has responsive mobile presentation", () => {

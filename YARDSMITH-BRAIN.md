@@ -24,6 +24,10 @@ deeper doc when there is one.
 > `20260930110636_prelaunch_review_hardening` is APPLIED to the live project
 > (Sep 30 2026, via Supabase MCP; CI tests migrations but never applies them). AI coach now defaults to
 > **`claude-sonnet-5-5`** (override: `AI_COACH_MODEL` function secret).
+> **Simplification pass DONE (Sep 30 2026)** — Home is one big button + quiet
+> rows; a Welcome-back screen greets anyone back after 14+ quiet days; setup
+> ends by starting the first workout; plain words throughout (DESIGN-CHANGES
+> "Simplification pass"). Tab merge + You-tab grouping deferred (§10).
 > **The web app is now a modular `src/` codebase with a build step** (see §3) —
 > the committed root files are generated build outputs. Service worker cache is
 > **content-hash stamped** (no manual version bumps).
@@ -82,18 +86,23 @@ golfer actually wants: **yards**.
 in-house SVG icon set, and technical terms are tap-to-explain via a glossary.
 First visit to each tab fires a one-time coaching tip.
 
-### Dashboard (the Today spine)
-- **Driver-carry hero** — the star metric (yards), with a "▲ +N yds vs your start"
-  gain and a **Distance Mission** progress bar (+5…+30 yds goal).
-- **Octane** — a 0–100 composite "engine" score shown as a fuel gauge, built from
-  **six pillars**: training consistency, clubhead-speed gain, strength e1RM,
-  power-to-weight, the **mobility screen** (5th pillar), and **fuel adherence**
-  (6th pillar). It's a *trajectory* score off the user's own data; only counts
-  pillars they've fed. Full design in `OCTANE-SCORE.md`.
-- **One coaching voice** — a single prioritized "your focus" insight from a rules
-  engine over the user's data (no filler; the hero defers to the advice slot).
-- **The day as a timeline** — the day's primary action first, quick-log for
-  weight / 7-iron / driver, meal check-offs, coach entry, game-day / round-day.
+### Dashboard (Home — one big button, Sep 2026)
+- **The big button** — the one next thing to do, in plain words, with a visible
+  action pill: today's workout ("Start workout ›"), a missed one ("Catch up"), a
+  speed test, the mobility check, a rest day, or "Start your 20-week plan".
+- **Quiet rows under it** — Today's meals (x of N done + one-tap "✓ Ate it" for
+  the next meal), Your progress (driver / 7-iron → Stats), Log something (the
+  quick-log sheet: weight / 7-iron / driver / round / Game Day), Review your week
+  (only once the week can be closed), and the Coach row (the one live coaching
+  signal from the rules engine, or the general AI read).
+- **Getting started** — a 3-step checklist for NEW users only; expires 14 days in.
+- **Welcome back** — after 14+ quiet days, one screen: where you are, how the app
+  works in 3 lines, and "ease back in at week 1 (history kept) / pick up at week N
+  / decide later" (`ff_welcome_back`, roams).
+- **Octane** — a 0–100 composite "engine" score (six pillars: consistency, speed
+  gain, strength e1RM, power-to-weight, mobility, fuel adherence) — a
+  *trajectory* score off the user's own data, shown on **Stats** (it left Home
+  with the driver-carry hero card). Full design in `OCTANE-SCORE.md`.
 
 ### Fuel (the macro engine — a moat)
 - TDEE (Mifflin–St Jeor) → goal calorie adjustment → protein/carb/fat targets.
@@ -393,6 +402,16 @@ stores; we're a URL). Shipping the app matters more than more docs.
   by §9, already an honest adjunct) and **S3** (add jump/throw volume — already
   inside the §10.2/§10.3 envelope). Thread 7 closed.
 
+- **Simplification pass (Sep 2026)** — the owner came back after two months and
+  couldn't find where to start. Rules now: **Home = one big button + quiet rows**
+  (nothing else stacks there — readiness, timeline, folds, weekly plan all left);
+  **every primary card names its action**; **plain words** in UI copy (Build /
+  Heavy / Easy / Peak week; "done", not "banked"; "no calorie counting", not
+  "adherence, not accounting") while internal keys keep their names; **no
+  floating buttons** over content; a returning user gets **one question**
+  (Welcome back), not a stack of catch-up cards; setup **ends by starting** the
+  first workout. Don't re-add Home cards without removing one.
+
 **Rejected (deliberately):**
 - **Macro *tracking*** (barcode calorie logging) — commodity; we build *toward
   distance* instead.
@@ -526,6 +545,10 @@ publishable key + VAPID public key ship client.
    exposure grows. Discipline that makes it work: separate banking, no
    commingling, holdco never guarantees opco debts, holdco stays passive.
    Optional upgrade then: holdco owns the trademarks, licenses to the opcos.
+9. **Simplification pass 2 (deferred from Sep 2026):** (a) merge tabs so there
+   are fewer places to look (e.g. Stats into Home's progress row / Train), and
+   (b) group the You tab into a few clear sections. Shipped pass 1 first because
+   it was the biggest clarity gain with no stored-data changes.
 
 ---
 

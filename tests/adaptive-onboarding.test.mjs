@@ -40,10 +40,21 @@ test("the reveal makes mission, baseline, fuel, schedule, and equipment tangible
 
 test("re-personalizing never restarts an active plan", () => {
   assert.match(onboarding, /hadPlan:!!planStart\(\)/);
-  assert.match(onboarding, /if\(!ob\.hadPlan\)\{ try\{ startPlanAtWeek\(1\)/);
+  // Only a NEW plan starts at week 1; a re-run saves and returns to Train.
+  assert.match(onboarding, /if\(startNow && !ob\.hadPlan\)\{[\s\S]{0,260}?startPlanAtWeek\(1\)/);
   assert.match(onboarding, /completed sessions and current week stay exactly where they are/);
   assert.match(account, /Re-personalize my plan/);
   assert.match(account, /without resetting your current week or completed sessions/);
+});
+
+test("setup ends by offering the first workout itself", () => {
+  // Sep 2026 simplification: the last screen is "your first workout is ready",
+  // with Start now (opens the guided player) or Later (Home's big button).
+  assert.match(onboarding, /Your first workout is ready/);
+  assert.match(onboarding, /Start workout now →/);
+  assert.match(onboarding, /if\(s===6\)\{ var fd=firstDay\(\); close\(\); if\(fd\) startPlayer\(fd\.name\)/);
+  assert.match(onboarding, /Later — take me to Home/);
+  assert.match(onboarding, /showBack=s>0 && s<6/);
 });
 
 test("optional extra-prep choices persist and adapt relevant warm-ups", () => {

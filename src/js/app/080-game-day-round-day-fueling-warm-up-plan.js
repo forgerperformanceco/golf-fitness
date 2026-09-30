@@ -21,7 +21,7 @@
       '<div class="gd-hero"><div class="gd-hero-t">⛳ Game Day</div>'+
         '<div class="gd-hero-sub">Golf is a <b>4–5 hour endurance event.</b> Most golfers fade on the back nine from low fuel and dehydration — not lack of skill. Plan the round and finish as strong as you start.</div></div>'+
       ((typeof roundToday==="function"&&roundToday())
-        ? '<button type="button" class="gd-loground done" data-roundlog="1">✓ Round banked — tap to edit</button>'
+        ? '<button type="button" class="gd-loground done" data-roundlog="1">✓ Round logged — tap to edit</button>'
         : '<button type="button" class="gd-loground" data-roundlog="1">🏁 Just played? Log your round — 20 seconds</button>')+
       '<div class="gd-controls">'+
         '<label class="gd-field"><span>Tee time</span><input type="time" id="gdTee" value="'+escAttr(g.teeTime||"")+'" /></label>'+

@@ -1,5 +1,95 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## Simplification pass — "where do I even start?" (Sep 30, 2026)
+
+User: "The app is still confusing to use/start. Opening it after a couple of
+months and I can't even remember where to start, which means a new person will
+have no idea. We have to simplify the experience." Screenshots of a returning
+user (plan started 75 days ago, 2 workouts) showed a catch-up card, a readiness
+card, a 3-step "Opening Round", two folds and a floating ＋ Log all competing for
+the first tap, in jargon ("Pick up the thread · No reset", "Intensify", "banked",
+"adherence, not accounting"). This pass shipped ideas 1–4 + 7 of the proposal;
+tab consolidation (5) and grouping the You tab (6) are deferred (BRAIN §10).
+
+1. **Welcome back (new `087-welcome-back-return-after-a-break.js`).** After 14+
+   days with no activity of ANY kind (workouts started or finished, weigh-ins,
+   meal check-offs, rest/skip marks, rounds, tests, check-ins, week reviews,
+   plan start, last answer), one full-screen card: "It's been N weeks · your last
+   workout was <date> · everything is saved", "How Yardsmith works" in three
+   lines (Lift / Eat / Measure), and one question. **Ease back in** = the
+   season-2 reset (`resetPlanFull` + `startPlanAtWeek(1)`; history, lifts and
+   trends stay) — recommended at 28+ days or when the season ran out. **Pick up
+   at week N** = keep the calendar, and this week's already-passed sessions get
+   skip marks so the next screen is today's workout, not "you missed this".
+   **Decide later** = hidden for this app session (sessionStorage). The answer
+   stamps `ff_welcome_back` (new ROAMING key → cloud-sync `KEYS`, pin v=119) so
+   every device agrees. Signed-in devices wait for the first sync outcome
+   (`ff-sync-status`, 6s cap) before judging, and a later cloud merge that shows
+   recent activity closes the card — a stale tablet must not greet someone who
+   trained yesterday on their phone. Skipped for shared links, push-notification
+   launches and `?go=` deep links. Also checked when the app resumes on a new day.
+   Analytics: `welcome_back_shown {weeks}` / `welcome_back_choice {choice,weeks}`
+   (product-health.js v=6 + the edge-function allow-list).
+2. **Home is one big button.** `renderDash` = the next-up card + quiet rows:
+   **Today's meals** (x of N done · next meal, with a one-tap "✓ Ate it"), **Your
+   progress** (driver / 7-iron numbers → Stats), **Log something** (opens the
+   quick-log sheet), **Review your week** (only once the week can be closed),
+   **Coach** (the one live coaching signal — a PR, a stall, flat speed — or the
+   general read; asking marks it seen). The big card now always SAYS its action
+   in a bright pill ("Start workout ›", "Start the test ›", "Mark it done ›").
+   Gone from Home: the readiness card (Start already asks the 20-second
+   check-in), the day timeline fold, the progress fold (hero card + insight
+   card — both deleted as dead code), and the weekly flight plan (now on
+   Stats, right under the story). The calorie check-in card moved to the top of
+   Fuel; the meals row says "Calorie check-in ready" when it's waiting. The
+   Octane daily trace (`ff_score_hist`) is still fed from every Home render.
+   The page header shows today's date.
+3. **Getting started (was "Opening Round").** Plain steps — "Do your first
+   workout / Check off a day of meals / Test your swing speed". It now expires
+   14 days into the plan if unfinished, and never shows for returning golfers
+   (history from before the current plan start, e.g. after a restart).
+4. **Setup ends by starting.** "Start my first week" now lands on a last screen:
+   "Your first workout is ready — About 55 min" → **Start workout now** (opens
+   the guided player; readiness asks first as usual) or **Later — take me to
+   Home**. Re-running setup (hadPlan) still saves and returns to Train.
+5. **Plain words.** Waves display as **Build / Heavy / Easy / Peak week** (keys
+   unchanged: accumulate/intensify/deload/peak). Train hero reads "WEEK 11 OF
+   20 · 🔥 HEAVY WEEK" (mission dropped from the kicker; the Build/Retain chip
+   removed). Catch-up: "Catch up — You missed this one — do it today and your
+   plan stays on track." Fuel: "Today's meals · x of N done", "Ate it ✓", "Tap ✓
+   when you eat a meal — no calorie counting", "Or rate the whole day: On plan /
+   Close / Off plan". Stats: "YOUR PROGRESS", "workouts done", confidence reads
+   "Clear trend / Trend forming / Too early to tell", "What's working", "WORK ON
+   NEXT", "Speed test due". "banked" → "done"/"logged" on the main surfaces.
+   First-visit tips rewritten ("Start here every day — the big button is always
+   the next thing to do").
+6. **Cleanups.** The floating ＋ Log button is gone (it covered content on every
+   tab); the sheet opens from any `[data-qopen]` and gained a "Playing today?"
+   row → Game Day (its only in-app entry was the removed timeline). The header
+   context pill ("TODAY") is gone — it duplicated each page's title and read as a
+   button. The Stats contradiction is fixed: the consistency pillar said "0
+   sessions logged · last 8 wk" under the story's "2 sessions banked"; it now
+   says "0 in the last 8 wk · 2 total". Train's pre-check-in readiness card is
+   gone (Start asks); the scored dose card still shows after a check-in.
+   `.nu-skip` grew to the 44px tap floor. ~100 lines of dead Home CSS removed.
+7. **Dark theme.** `--green-900` had no dark value (the Getting started and
+   weekly-card titles rendered dark-on-dark) — pinned in `CORE`. The big
+   button's action pill is excluded from the generator (it sits on the
+   always-dark Today card; darkening it hid the affordance).
+
+**Verified:** `npm test` 62/62 (new `tests/welcome-back.test.mjs`; the
+literal-asserting sprint tests were updated to the new behavior, not deleted);
+`check-release.mjs` 4/4; `npm run check`; data contract holds (all 47 lsSet keys
+accounted for); audit-train 18/18 (its fixture now stamps `ff_welcome_back` — the
+deload-week state starts 35 quiet days back and was correctly greeted);
+audit-scroll 16/16; audit-contrast clean; audit-type has only the known
+intentional `.ft-bank` flag; smoke functional checks all pass (red only from the
+sandbox-blocked product-health fetch). Headless walkthroughs: fresh setup → "first
+workout is ready" → Later → Home and → Start now → readiness modal; a 75-day
+returning user → Welcome back → restart (week 1, no checklist) / pick up (today's
+week-11 workout, no catch-up) / decide later (hidden on same-session reload);
+active user Home/Train/Fuel/Stats in light and dark.
+
 ## Pre-launch review — six-area bug sweep (Sep 30, 2026)
 
 User: "We've never gone live because I don't think this is quite ready. Do a

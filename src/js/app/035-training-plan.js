@@ -440,10 +440,12 @@
      Weeks 6 · 12 · 18 deload — one set less everywhere, ~60% loads prescribed.
      Weeks 19-20 peak — volume cut ~40-50%, loads stay heavy, speed work crisp. ---- */
   var WAVES = {
-    accumulate: { label:"Accumulate", ic:"🏗️", strap:"Build phase — push reps to the top of each range; the logger tees up your next jump." },
-    intensify:  { label:"Intensify",  ic:"🔥", strap:"Heavy phase — reps drop, loads climb. Add weight, keep every rep fast." },
-    deload:     { label:"Deload",     ic:"🪫", strap:"Planned easy week — one set less, ~60% loads. Recovery is when the gains land." },
-    peak:       { label:"Peak",       ic:"🏁", strap:"Final stretch — volume halved, intensity heavy. Shed fatigue, take your yards." }
+    // Display labels are plain words ("Heavy week"); the keys stay the
+    // periodization terms the engine, tests and wave-cases fixtures use.
+    accumulate: { label:"Build", ic:"🏗️", strap:"More reps each week — the app tells you when to add weight." },
+    intensify:  { label:"Heavy", ic:"🔥", strap:"Fewer reps, heavier weights. Keep every rep fast." },
+    deload:     { label:"Easy",  ic:"🪫", strap:"Planned easy week — one set less, lighter weights. This is when the gains land." },
+    peak:       { label:"Peak",  ic:"🏁", strap:"Less volume, still heavy. Shed the fatigue and take your yards." }
   };
   /* A "big event" date (club champs, member-guest, buddies trip) re-anchors the
      taper: the event week and the week before become Peak (volume cut, intensity
@@ -718,9 +720,9 @@
     var st=planStart(), since="";
     try{ since=new Date(st).toLocaleDateString(undefined,{month:"short",day:"numeric"}); }catch(e){}
     return '<div class="lift-hero season-done"><div class="lh-l">'+
-        '<div class="lh-week">WEEK 20 / 20 · 🏁 SEASON COMPLETE'+(goalYds()?' · MISSION +'+goalYds()+' YDS':'')+'</div>'+
+        '<div class="lh-week">WEEK 20 OF 20 · 🏁 SEASON COMPLETE</div>'+
         '<h2 class="lh-name">Season complete</h2>'+
-        '<div class="lh-sub">20 weeks'+(since?' since '+ffEsc(since):'')+' <span class="lh-dot">·</span> <b class="lh-done">'+n+' workout'+(n===1?'':'s')+' banked</b></div>'+
+        '<div class="lh-sub">20 weeks'+(since?' since '+ffEsc(since):'')+' <span class="lh-dot">·</span> <b class="lh-done">'+n+' workout'+(n===1?'':'s')+' done</b></div>'+
         '<div class="lh-prog"><span style="width:100%"></span></div></div></div>'+
       '<div class="upcoming-banner">🏁 <b>You finished the 20-week plan.</b> Run your 7-iron speed test to close the book on this season, then start season 2 — a fresh week 1 built on the strength you have now. Your workout history, PRs, bodyweight and speed trends all stay.</div>'+
       '<button type="button" class="train-today-cta" data-newseason="1">'+
@@ -743,7 +745,7 @@
   // swap it wholesale.
   function trainWeekHtml(p, shown, wk){
     var html="";
-    var retain=trainRetain(), mode=planViewMode(), wd=weekDoneCount();
+    var mode=planViewMode(), wd=weekDoneCount();
     // Focus is tracked by dayKey (not name) so the two identically-named rest days
     // don't both resolve/highlight as the focused day.
     // On a rest day with no explicit focus, feature TODAY (the recovery card) so
@@ -760,19 +762,18 @@
 
     // ---- clean hero: the workout, front and centre ----
     html+='<div class="lift-hero"><div class="lh-l">'+
-      '<div class="lh-week">WEEK '+wk+' / 20 · '+WAVES[waveFor(wk)].ic+' '+WAVES[waveFor(wk)].label.toUpperCase()+(goalYds()?' · MISSION +'+goalYds()+' YDS':'')+'</div>'+
+      '<div class="lh-week">WEEK '+wk+' OF 20 · '+WAVES[waveFor(wk)].ic+' '+WAVES[waveFor(wk)].label.toUpperCase()+' WEEK</div>'+
       '<h2 class="lh-name">'+heroName+'</h2>'+
       '<div class="lh-sub">'+(mode==="today"?('About '+sessionMinutes(featured)+' min <span class="lh-dot">·</span> Day '+dayOfPlan()+' of your week'):'Browsing the full week')+
         (wd.total?(' <span class="lh-dot">·</span> '+(wd.done>=wd.total?'<b class="lh-done">week complete ✓</b>':'<b class="lh-done">'+wd.done+' of '+wd.total+' done</b>')):'')+'</div>'+
-      '<div class="lh-prog"><span style="width:'+Math.max(5,Math.round(wk/20*100))+'%"></span></div></div>'+
-      '<span class="lh-mode '+(retain?"retain":"build")+'">'+(retain?"Retain":"Build")+'</span></div>';
+      '<div class="lh-prog"><span style="width:'+Math.max(5,Math.round(wk/20*100))+'%"></span></div></div></div>';
 
     if(mode==="today"){
       if(typeof ffReadinessInlineHtml==="function") html+=ffReadinessInlineHtml(featured);
       if(featured.type==="rest"){
         var heroRestDone=restDone(wk,featKey);
         html+='<button type="button" class="train-today-cta recovery'+(heroRestDone?' done':'')+'" data-restday="'+escAttr(featKey)+'">'+
-          '<span><small>TODAY’S ACTION · 10 MIN</small><b>'+(heroRestDone?'Recovery banked ✓':'Start recovery')+'</b></span><i>›</i></button>';
+          '<span><small>TODAY’S ACTION · 10 MIN</small><b>'+(heroRestDone?'Recovery done ✓':'Start recovery')+'</b></span><i>›</i></button>';
       } else if(!isFutureDay(featured.name)){
         var heroSession=getSession(wk,featured.name), heroFinished=!!(heroSession&&heroSession.finishedAt);
         html+='<button type="button" class="train-today-cta" data-startplayer="'+escAttr(featured.name)+'">'+
@@ -784,7 +785,7 @@
       '<button data-planview="week"'+(mode==="week"?' class="active"':'')+'>Full week</button></div>';
 
     var wvKey=waveFor(wk), wave=WAVES[wvKey];
-    if(wvKey!=="accumulate") html+='<div class="deload-banner">'+wave.ic+' <b>'+wave.label+' week.</b> '+wave.strap+' '+ffTerm('wave','How waves work ›')+'</div>';
+    if(wvKey!=="accumulate") html+='<div class="deload-banner">'+wave.ic+' <b>'+wave.label+' week.</b> '+wave.strap+' '+ffTerm('wave','How the weeks work ›')+'</div>';
 
     if(mode==="today"){
       var todayDate = new Date();
@@ -845,7 +846,7 @@
     html+='<details class="fold playbook"><summary>📚 Coaching playbook</summary><div class="fold-body">'+
       '<div class="pb-sec"><h4>🌀 Why this builds clubhead speed</h4>'+phaseWhy()+'</div>'+
       '<div class="pb-sec"><h4>📈 How the plan progresses for you</h4>'+
-        '<p><b>The wave.</b> Every 6 weeks the plan itself shifts: <b>Accumulate</b> (wks 1–3) — targets as written, build reps to the top of each range · <b>Intensify</b> (wks 4–5) — big-lift rep targets drop ~2 so the loads climb, accessories drop a set · <b>Deload</b> (wks 6, 12, 18) — one set less everywhere and the logger pre-suggests ~60% loads · <b>Peak</b> (wks 19–20) — volume cut nearly in half, intensity stays heavy. You don’t manage any of it — the day cards and logger update themselves.</p>'+
+        '<p><b>The weeks.</b> Every 6 weeks the plan itself shifts: <b>Build</b> (wks 1–3) — targets as written, build reps to the top of each range · <b>Heavy</b> (wks 4–5) — big-lift rep targets drop ~2 so the loads climb, accessories drop a set · <b>Easy</b> (wks 6, 12, 18) — one set less everywhere and the logger pre-suggests ~60% loads · <b>Peak</b> (wks 19–20) — volume cut nearly in half, intensity stays heavy. You don’t manage any of it — the day cards and logger update themselves.</p>'+
         '<p><b>Double progression.</b> Hold the same weight until you hit the <b>top of the rep range on every set</b> (e.g. all sets reach 5 on a 4×5). The logger spots it, pre-fills the suggested jump (<b>+2.5–5 lb</b> upper / <b>+5–10 lb</b> lower) into the weight placeholders, and gives you a one-tap fill.</p>'+
         '<p><b>RIR</b> = reps in reserve — how many clean reps you stop short of failure. “RIR 2” means leave about 2 in the tank. The note by each lift gives a target RIR and rest time.</p>'+
         '<p><b>Speed &amp; power quality.</b> Jumps, throws and overspeed only build speed when every rep is <i>fast</i> — <b>stop a set the instant reps visibly slow</b>, keep the implement light, and rest fully between efforts. Never grind power work.</p></div>'+

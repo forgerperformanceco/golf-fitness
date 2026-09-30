@@ -361,7 +361,7 @@
       if(dose.band==="recharge" && lx){
         ref='<div class="logx-nudge">🌱 Recovery dose — '+(dose.w!=null?'about <b>'+dose.w+' lb</b>':'70–80% of normal')+', no PR chasing.</div>';
       } else if(wv==="deload" && lx){
-        ref='<div class="logx-nudge">🪫 Deload — run ~60% of last week’s loads, one set less. Recovery is the workout.</div>';
+        ref='<div class="logx-nudge">🪫 Easy week — run ~60% of last week’s loads, one set less. Recovery is the workout.</div>';
       } else if(dose.bump){
         ref='<div class="logx-nudge">✅ Hit all reps last time — go up ~'+incFor(x.name)+' this session</div>';
       } else if(lx){

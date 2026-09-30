@@ -191,7 +191,7 @@
           : (/Footwork/i.test(x.name) ? '⚡ <b>Bodyweight</b> — drive hard into the ground every rep, full rest. Log the reps.'
           : '⚡ <b>Bodyweight</b> — every rep max height, land soft, full rest. Log the reps.'))
         : (presc!=null
-          ? (wv==="deload" ? '🪫 Deload — today: <b>'+presc+' lb</b> (~60% of last week)' : '📈 Progression earned — today: <b>'+presc+' lb</b>')
+          ? (wv==="deload" ? '🪫 Easy week — today: <b>'+presc+' lb</b> (~60% of last week)' : '📈 You earned more weight — today: <b>'+presc+' lb</b>')
           : (ballistic
             ? (topLast ? '⚡ Last time: <b>'+topLast+' lb</b> — keep every rep fast; add load only while it stays explosive.' : '⚡ <b>Light and fast</b> — pick a load you can move explosively. The set ends the moment a rep slows.')
             : (topLast ? 'Last time’s top: <b>'+topLast+' lb</b> — beat the reps, then the load follows.' : 'First time — find a weight you can own with 2 reps in reserve.')));
@@ -295,7 +295,7 @@
       var pb=player.prevBest[x.name];
       if(top>0 && pb!=null && top>pb+0.5) prs.push(x.name+" e1RM "+Math.round(top)+" lb");
     });
-    var txt=player.dayName.replace(/^Day \d+ — /,'')+" done 💪 "+(vol>0?vol.toLocaleString()+" lb moved":"session banked")+
+    var txt=player.dayName.replace(/^Day \d+ — /,'')+" done 💪 "+(vol>0?vol.toLocaleString()+" lb moved":"workout done")+
       (prs.length?(" · PR: "+prs.join(", ")):"")+" — training with Yardsmith ⛳";
     var mins=Math.max(1, Math.round(((player.sess.activeMs||0)+(Date.now()-player.startedAt))/60000));
     ffShareImage({
@@ -462,7 +462,7 @@
     hist.forEach(function(h){ vol+=(h.volume||0); });
     var seen=lsGet("ff_milestones", {});
     var msg=null;
-    FF_MS_SESS.forEach(function(t){ if(n>=t && (seen.s||0)<t){ seen.s=t; msg="🏆 "+t+" sessions banked — that's a habit, not a phase."; } });
+    FF_MS_SESS.forEach(function(t){ if(n>=t && (seen.s||0)<t){ seen.s=t; msg="🏆 "+t+" workouts done — that's a habit, not a phase."; } });
     FF_MS_VOL.forEach(function(t){ if(vol>=t && (seen.v||0)<t){ seen.v=t; msg="🏋️ "+t.toLocaleString()+" lb moved lifetime — you've lifted a house."; } });
     if(msg){
       lsSet("ff_milestones", seen);
@@ -687,7 +687,9 @@
     if(sess.length > 0){
       var cons = clamp(done/expected, 0, 1);
       parts.push({ key:"consistency", label:"Consistency", have:true, max:35,
-        pts: Math.round(35*cons), detail: done+" session"+(done===1?"":"s")+" logged · last "+weeksIn+" wk" });
+        pts: Math.round(35*cons), detail: done===sess.length
+          ? done+" workout"+(done===1?"":"s")+" · last "+weeksIn+" wk"
+          : done+" in the last "+weeksIn+" wk · "+sess.length+" total" });
     } else {
       parts.push({ key:"consistency", label:"Consistency", have:false, max:35, pts:0,
         detail:"Log a workout to start" });
@@ -861,67 +863,12 @@
       ? { seven:75, drive:210, weight:185, label:"typical 50+ male amateur", range:"~70–78 mph 7-iron" }
       : { seven:85, drive:245, weight:180, label:"typical male amateur",     range:"~75–80 mph 7-iron" };
   }
-  function renderHeroCard(muted){
-    var r=ffScore(); saveScoreSnapshot(r);
-    var d=driveStats(), top, gy=goalYds();
-    if(d){
-      var gain = d.n>=2 ? d.gain : null;
-      var missionHtml='';
-      if(gain!=null && gy){
-        var hit = gain>=gy, pctG = clamp(Math.round(gain/gy*100), 0, 100);
-        missionHtml = '<div class="hero-mission'+(hit?' hit':'')+'">'+
-          '<span class="hm-lbl">'+(hit?'🏁 Mission complete — +'+gy+' yds':'Mission: +'+gy+' yds')+'</span>'+
-          '<span class="hm-track"><span class="hm-fill" style="width:'+Math.max(4,pctG)+'%"></span></span></div>';
-      }
-      top = '<div class="hero-kick">⛳ Driver carry</div>'+
-        '<div class="hero-dist"><b>'+d.latest+'</b><span class="u">yds</span></div>'+
-        (gain!=null
-          ? '<div class="hero-gainrow"><span class="hero-gain'+(gain>=0?'':' neg')+'">'+(gain>=0?'▲ +':'▼ ')+Math.abs(gain)+' yds</span>'+
-            '<span class="hero-since">vs your start · was '+d.baseline+'</span></div>'+missionHtml
-          : '<div class="hero-since solo">Baseline banked — your next logged drive starts the climb.</div>');
-    } else {
-      top = '<div class="hero-kick">⛳ Driver carry</div>'+
-        '<div class="hero-empty"><b>Add your driver distance</b><span>From a launch monitor, or just how far you hit it — hit <b>＋ Log</b> and watch it climb.</span></div>';
-    }
-    // The Octane subline is the SAME dynamic "biggest lever" read the Stats hub
-    // uses — a coach line that changes with the data beats a slogan that never
-    // does. `muted` = an advice card is already on screen (one coaching voice
-    // at a time), so step down to a quiet tag.
-    var engine = '<div class="hero-engine">'+octaneGaugeHtml(r.score)+
-      '<div class="hero-etx"><div class="hero-ename">'+ffTerm('octane','Octane')+'</div>'+
-      '<div class="hero-esub">'+(muted ? 'Your engine — <b>tap for the full breakdown</b>.' : ffScoreSummary(r))+'</div></div></div>';
-    return '<button class="ffscore hero-card" data-goview="progress">'+top+engine+heroWeekStrip()+'</button>';
-  }
-  // Hevy-style week strip: Mon–Sun dots, filled when a session was finished that
-  // day, ringed on today — the week's consistency in one glance, on the card you
-  // look at every open. Replaces the old "Week so far" row.
-  function heroWeekStrip(){
-    if(!planStart()) return '';
-    var ws=weekStartDateCal(), freq=(typeof planState!=="undefined"&&planState.freq)||4;
-    var byDay={};
-    lsGet("ff_history",[]).forEach(function(h){
-      var t=h && (h.doneTs || h.ts);   // doneTs = original finish; ts moves on re-save/restore
-      if(!t) return;
-      var d=new Date(t); d.setHours(0,0,0,0); byDay[d.getTime()]=true;
-    });
-    var today=new Date(); today.setHours(0,0,0,0);
-    var n=0, dots='';
-    for(var i=0;i<7;i++){
-      var d=new Date(ws); d.setDate(ws.getDate()+i);
-      var done=!!byDay[d.getTime()];
-      if(done) n++;
-      dots+='<span class="hw-d'+(done?' on':'')+(d.getTime()===today.getTime()?' today':'')+'">'+
-        ["M","T","W","T","F","S","S"][i]+'</span>';
-    }
-    return '<div class="hero-week"><span class="hw-dots">'+dots+'</span>'+
-      '<span class="hw-n"><b>'+n+'</b>/'+freq+' this week</span></div>';
-  }
   // The Octane hub: each pillar opens a drill-in — its trend, what it means, and
   // the one action that moves it. The gauge stops being a number and becomes a map.
   var openPillar=null;
   function pillarDetailHtml(p){
     if(p.key==="consistency"){
-      return '<div class="fd-tx"><b>'+p.detail+'</b> — sessions logged vs your '+((typeof planState!=="undefined"&&planState.freq)||4)+'/week plan. Showing up is the heaviest pillar.</div>'+
+      return '<div class="fd-tx"><b>'+p.detail+'</b> — workouts done vs your '+((typeof planState!=="undefined"&&planState.freq)||4)+'/week plan. Showing up counts the most.</div>'+
         '<div class="wkbars">'+weekBars()+'</div>'+
         '<button type="button" class="fd-act" data-goview="plan">Open this week ›</button>';
     }

@@ -122,14 +122,14 @@ def transform_rule(decls):
     return changed
 
 # Hand-maintained dark pins the mechanical transform can't derive:
-#  - token overrides (--green-800/--green-700 are text-only in light mode;
+#  - token overrides (--green-900/--green-800/--green-700 are text-only in light mode;
 #    --sand/--sand-dark back the amber nutrient-timing surfaces)
 #  - rgba()/var()-backed surfaces the parser skips (mobile tab bar)
 #  - the two rules that use --green-700 as a button BACKGROUND keep light-mode green
 CORE = [
     (':root',
      '--paper:#0d1712; --card:#141f18; --ink:#e4efe6; --muted:#96ab9d; --line:#28402f; '
-     '--green-800:#a5dcb8; --green-700:#7ccd9c; --sand:#332c18; --sand-dark:#584c28; '
+     '--green-900:#c9ecd6; --green-800:#a5dcb8; --green-700:#7ccd9c; --sand:#332c18; --sand-dark:#584c28; '
      '--shadow:0 12px 34px rgba(0,0,0,.45); --shadow-sm:0 2px 8px rgba(0,0,0,.35); color-scheme:dark;'),
     ('input, select, textarea', 'background:#101b14; color:var(--ink);'),
     ('.logbtn:hover', 'background:#15803d;'),
@@ -160,6 +160,9 @@ def main():
         # The Performance Story is an intentionally dark, self-contained
         # surface in both themes. Preserve its contrast and bright action.
         if '.performance-story' in sel or '.ps-' in sel: continue
+        # The big button's action pill sits on the always-dark Today card —
+        # its bright fill IS the affordance, in both themes.
+        if '.nu-cta' in sel: continue
         ch = transform_rule(decls)
         if not ch: continue
         if media: medias.setdefault(media, []).append((sel, '; '.join(ch) + ';'))

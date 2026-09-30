@@ -38,9 +38,12 @@ test("every primary tab starts with the same page-header hierarchy", () => {
 });
 
 test("screen changes stay oriented visually and audibly", () => {
-  assert.match(html, /id="appbarContext"/);
+  // The header "context" pill duplicated each page's own title and read as a
+  // button; it was removed in the Sep 2026 simplification pass. Orientation
+  // comes from the page header, the tab bar, the document title and the
+  // live-region announcement.
+  assert.doesNotMatch(html, /id="appbarContext"/);
   assert.match(html, /id="viewAnnouncer" aria-live="polite"/);
-  assert.match(nav, /contextNames=\{/);
   assert.match(nav, /document\.title=/);
   assert.match(nav, /announcer\.textContent=/);
 });

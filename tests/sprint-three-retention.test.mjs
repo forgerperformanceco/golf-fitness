@@ -53,8 +53,14 @@ test("Weekly Flight Plan reads real calendar-week signals", () => {
   assert.equal(state.done, 2);
 });
 
-test("the weekly loop unlocks after activation and forgives imperfect weeks", () => {
-  assert.match(home, /Date\.now\(\)-complete<=2\*864e5/);
+const stats = readFileSync(new URL("../src/js/app/085-progress-stats-view.js", import.meta.url), "utf8");
+
+test("the weekly loop lives on Stats and forgives imperfect weeks", () => {
+  // Moved off Home in the Sep 2026 simplification pass; Home only shows a
+  // one-line "Review your week" row once the week can be closed.
+  assert.match(stats, /html \+= weeklyFlightHtml\(\)/);
+  assert.doesNotMatch(functionSource(home, "renderDash"), /weeklyFlightHtml\(\)/);
+  assert.match(functionSource(home, "weekReviewRowHtml"), /!s\.closeable \|\| s\.review/);
   assert.match(home, /the work still counts/i);
   assert.match(home, /clean card/);
   assert.match(home, /data-weekbank/);

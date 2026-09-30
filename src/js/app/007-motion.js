@@ -135,7 +135,7 @@
       // 0 in a normal viewport, so this is a no-op unless iOS misbehaves.
       var dy=(vv.offsetTop + vv.height) - window.innerHeight;
       var mobile=!narrow || narrow.matches;
-      ["mobileTabs","ffFab","plPauseBar"].forEach(function(id){
+      ["mobileTabs","plPauseBar"].forEach(function(id){
         var el=document.getElementById(id); if(!el) return;
         el.style.transform=(mobile && !kb && Math.abs(dy)>1) ? "translateY("+dy+"px)" : "";
       });
