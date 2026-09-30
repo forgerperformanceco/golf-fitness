@@ -9,7 +9,7 @@
         activity:$("activity").value,
         prep:(state.prep||[]).slice(), equipPreset:state.equipPreset||"",
         freq:planState.freq, equip:planState.equip,
-        view:(document.querySelector("#tabs button.active")||{getAttribute:function(){return "calc";}}).getAttribute("data-view")
+        view:((document.querySelector(".view.active")||{id:"view-dash"}).id||"view-dash").replace(/^view-/,"")
       });
     } catch(e){}
   }

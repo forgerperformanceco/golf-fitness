@@ -99,6 +99,10 @@
         if (sub) { await window.FF.pushRemove(sub.endpoint); try { await sub.unsubscribe(); } catch (e) {} }
       }
     } catch (e) {}
+    try {                                    // this browser no longer has server reminders
+      localStorage.removeItem("ff_push_on"); localStorage.removeItem("ff_push_sig");
+      window.dispatchEvent(new Event("ff-external-write"));
+    } catch (e) {}
     loginSynced = null;
     if (sb) try { await sb.auth.signOut(); } catch (e) {}
   };

@@ -80,12 +80,12 @@
 
     bigLiftStats().slice(0,4).forEach(function(L){
       if(L.n>=2 && L.last===L.best && L.last>L.first)
-        out.push({prio:58, sig:"spr:"+L.name+":"+Math.round(L.last), ic:"🏋️", title:"Strength PR — "+L.name,
+        out.push({prio:58, sig:"spr:"+L.name+":"+Math.round(L.last), ic:"🏋️", title:"Strength PR — "+ffEsc(L.name),
           body:"Estimated 1RM up to <b>"+Math.round(L.last)+" lb</b>. Force is the raw material for clubhead speed — this is exactly how mass becomes yards.", ask:null});
       else if(L.n>=3){
         var recent=L.series.slice(-3), rmax=Math.max.apply(null,recent);
         if(L.last<=rmax && L.last<=L.best-0.5)
-          out.push({prio:60, sig:"sstall:"+L.name+":"+Math.round(L.last), ic:"🧱", title:L.name+" has stalled",
+          out.push({prio:60, sig:"sstall:"+L.name+":"+Math.round(L.last), ic:"🧱", title:ffEsc(L.name)+" has stalled",
             body:"Estimated 1RM has plateaued around <b>"+Math.round(L.last)+" lb</b>. Try the double-progression bump — hold the load until you hit the top of every set's rep range, then add a little — or take a deload week.",
             ask:"My "+L.name+" estimated 1RM has stalled for a few sessions. How should I adjust my training to start progressing again?"});
       }
@@ -120,6 +120,7 @@
   // let the normal player bank it without moving dates or erasing progress.
   function missedWorkout(){
     if(!planStart()) return null;
+    if(typeof seasonComplete==="function" && seasonComplete()) return null;   // season over: nothing is missed
     var days=stripDays(), through=Math.max(0,(dayOfPlan()||1)-1), wk=curWeek();
     for(var i=0;i<through;i++){
       var d=days[i]; if(!d || d.type==="rest") continue;
@@ -127,11 +128,23 @@
     }
     return null;
   }
+  // Home folds re-render on every tap inside them (meal check-off, insight
+  // dismiss), so their open state lives here and is written back at render
+  // (toggle doesn't bubble, so capture it).
+  var ffHomeFold={ day:false, progress:false };
+  document.addEventListener("toggle", function(e){
+    var k=e.target && e.target.getAttribute && e.target.getAttribute("data-homefold");
+    if(k) ffHomeFold[k]=e.target.open;
+  }, true);
   function nextUpCard(){
     if(!planStart())
       return '<button type="button" class="nu-card" data-goview="plan"><span class="nu-go">›</span>'+
         '<div class="nu-kick">Next up</div><div class="nu-title">Start your 20-week plan</div>'+
         '<div class="nu-sub">Today becomes Day 1 — fuel, lifts and speed work, dialed to you.</div></button>';
+    if(typeof seasonComplete==="function" && seasonComplete())
+      return '<button type="button" class="nu-card" data-goview="plan"><span class="nu-go">›</span>'+
+        '<div class="nu-kick">🏁 Season complete</div><div class="nu-title">20 weeks banked</div>'+
+        '<div class="nu-sub">Start season 2 on the Train tab — your history and trends carry over.</div></button>';
     var wk=curWeek(), missed=missedWorkout(), d=todaySlot();
     if(missed){
       var old=getSession(wk,missed.name), mid=sessionInProgress(old);
@@ -444,12 +457,12 @@
     html += weeklyFlightHtml();
     var timeline=timelineHtml();
     if(timeline){
-      html += '<details class="home-fold home-day"><summary><span><b>Today’s schedule</b><small>Meals, training and check-ins</small></span><i>View</i></summary>'+timeline+'</details>';
+      html += '<details class="home-fold home-day"'+(ffHomeFold.day?' open':'')+' data-homefold="day"><summary><span><b>Today’s schedule</b><small>Meals, training and check-ins</small></span><i>View</i></summary>'+timeline+'</details>';
     }
     // One coaching voice at a time: when an advice card is showing, the hero's
     // lever line steps down to a quiet tag; otherwise the hero carries the coaching.
     var advice = renderAdaptiveCard() || renderInsight();
-    html += '<details class="home-fold home-progress"><summary><span><b>Your progress</b><small>'+weekMomentumText()+'</small></span><i>View</i></summary>'+
+    html += '<details class="home-fold home-progress"'+(ffHomeFold.progress?' open':'')+' data-homefold="progress"><summary><span><b>Your progress</b><small>'+weekMomentumText()+'</small></span><i>View</i></summary>'+
       '<div class="home-fold-body">'+renderHeroCard(!!advice)+advice+'</div></details>';
     try{ html += dashTipHtml(); }catch(e){}   // education stays below the daily job
     html += '<button class="dash-ai" data-ask="read"><span class="dai-ic">💬</span>'+
