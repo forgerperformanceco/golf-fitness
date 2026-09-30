@@ -238,7 +238,7 @@ sides, full rest, "modest evidence — the add-on, not the main event."
   Russian KB swing 5×5 (hinge), rotational throw 4×4/side (pull/rotate). Gives
   3-4×/week speed exposure with no metabolic fatigue (NUTRITION §10).
 - **RIR/rest copy** (035:295-299): heavy or ≤6 reps → "RIR 2(–3) · rest 2–3 min";
-  ≥13 reps → "RIR 1 · rest ~75s"; else "RIR 1–2 · rest ~90s". Rest-timer
+  ≥13 reps → "RIR 1 · rest ~90s"; else "RIR 1–2 · rest ~90s". Rest-timer
   defaults: 120 s between sets, 180 s between lifts (045-inline-logger…js:11).
 - **Warm-ups** (`warmupBase`/`warmupList`, 302-324): 5-min day-specific
   mobility list + ramp-up sets; the mobility screen routes targeted fixes in
@@ -515,7 +515,8 @@ edit either.
 - **RIR** — reps in reserve: clean reps left short of failure. "RIR 2" = stop
   2 shy. Each lift shows target RIR + rest.
 - **Hard set** — a working set taken close to failure (~0–3 RIR). Hypertrophy
-  shows steep diminishing returns past ~10–12 hard sets/muscle/week.
+  keeps rising past ~10–12 hard sets/muscle/week with diminishing returns
+  (Pelland 2025); the steeper ceiling is per SESSION (~11 sets/muscle).
 - **Hypertrophy** — muscle growth; the 💪 accessory work (8–15 reps typical).
 - **Retain mode** — the training consequence of maintain/cut goals: one set
   trimmed from 💪 accessories only.

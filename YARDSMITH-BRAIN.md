@@ -407,6 +407,13 @@ stores; we're a URL). Shipping the app matters more than more docs.
   by §9, already an honest adjunct) and **S3** (add jump/throw volume — already
   inside the §10.2/§10.3 envelope). Thread 7 closed.
 
+- **Hypertrophy, evidence-led (Sep 2026)** — the "bodybuilding" identity stays, and is
+  now justified by evidence rather than taste: train muscles long (overhead triceps,
+  seated leg curls, reclined leg extensions, calf stretch pauses), controlled 1–2 s
+  lowering (not 3 s — slower adds no growth and ≤2 s helps jumps), ≥90 s rest on
+  hypertrophy sets, 10–20 weekly sets with no hard wall at 10–12. Lifting doesn't cost
+  range of motion (Alizadeh 2023). Heavy + ballistic work still leads; hypertrophy sits
+  beside it. Detail + open leads: NUTRITION-AND-TRAINING-REFERENCE.md §9a.
 - **Fuel pass (Sep 2026)** — one "today" card holds the whole daily job (next meal,
   what's left, rate the day); the day's list follows with no second summary or
   header bar; everything set-once lives in "Your plan" folds. Meals per day is a

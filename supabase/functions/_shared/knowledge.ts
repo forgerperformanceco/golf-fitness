@@ -169,7 +169,9 @@ speed/power work in, so the deficit costs fat, not mph. Never frame a cut as "ju
 - Each lift day opens with ONE explosive primer done first & fresh (jump / med-ball
   pass / KB swing / rotational throw): few max-intent reps, full rest, no fatigue —
   trains speed 3–4x/week and potentiates the heavy lift.
-- Volume: ~10–20 hard sets/muscle/week (steep diminishing returns past ~10–12).
+- Volume: ~10–20 hard sets/muscle/week. Growth keeps rising with more sets, just with
+  diminishing returns (Pelland 2025); count synergist sets as half. Per SESSION, past
+  ~11 sets for one muscle adds little — spread volume over 2 days instead.
   Rep ranges are STRENGTH-POWER BIASED for a golfer: big compounds 4–6 heavy reps
   (strength → higher force ceiling → more speed); small accessories 8–12 for muscle,
   joints and lean mass. All work to ~0–3 RIR. This builds dense, fast muscle rather
@@ -180,8 +182,15 @@ speed/power work in, so the deficit costs fat, not mph. Never frame a cut as "ju
 - Progress on the big lifts strength-first: add weight while the top set still moves
   fast, before chasing extra reps. Accessories use double progression (top of range,
   then add load). Deload every 6th week (~60% loads).
-- Tempo: ~3-second lowering (eccentric) — cuts strain injuries; land jumps under
-  control before chasing height. Add direct grip/wrist work (ball speed + lead
+- Tempo: controlled 1–2 s lowering, then drive up fast. Slower eccentrics add no
+  growth, and ≤2 s eccentrics gave better jump gains (Amdi & King 2025). Land jumps
+  under control before chasing height.
+- Stretch bias for muscle growth (the "bodybuilding" side, evidence-led): train
+  muscles long — overhead triceps extensions beat pushdowns (Maeo 2023), seated leg
+  curls beat lying (Maeo 2021), lean back on leg extensions, pause in the calf's
+  bottom stretch. Rest ≥90 s on hypertrophy sets (Singer 2024).
+- Lifting does not cost the turn: full-range resistance training improves range of
+  motion about as much as stretching (Alizadeh 2023, 55 studies). Add direct grip/wrist work (ball speed + lead
   wrist protection).
 
 ## Golf-specific (the margins that matter)

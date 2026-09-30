@@ -253,8 +253,13 @@
 
   // ---- User lift swaps: pick a valid same-muscle replacement; it sticks in the plan ----
   function getSwaps(){ return lsGet("ff_swaps", {}); }
-  function applySwapName(name){ var s=getSwaps(); return s[name] || name; }
-  function setSwap(orig, neu){ var s=getSwaps(); if(!neu || neu===orig) delete s[orig]; else s[orig]=neu; lsSet("ff_swaps", s); }
+  // Plan lifts renamed by an evidence update keep the swap a user chose for the
+  // old name (swaps are keyed by the ORIGINAL plan name); setting or resetting
+  // the new one clears the old key so a reset really returns to the default.
+  var FF_PLAN_RENAMED={ "Cable Overhead Triceps Extension":"Cable Triceps Pushdown" };
+  function applySwapName(name){ var s=getSwaps(), old=FF_PLAN_RENAMED[name]; return s[name] || (old && s[old]) || name; }
+  function setSwap(orig, neu){ var s=getSwaps(); if(FF_PLAN_RENAMED[orig]) delete s[FF_PLAN_RENAMED[orig]];
+    if(!neu || neu===orig) delete s[orig]; else s[orig]=neu; lsSet("ff_swaps", s); }
   // Valid, equally-hard alternatives by movement pattern (no weakling subs).
   // ---- Exercise database — grouped by movement pattern. Powers swap options AND
   // the "Add a lift" picker. Names match the plan/EX entries so swaps resolve gear. ----
