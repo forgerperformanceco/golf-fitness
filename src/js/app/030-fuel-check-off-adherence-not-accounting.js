@@ -25,7 +25,9 @@
   }
   function fuelRate(r){
     var f=fuelLog(), iso=ffISO(), cur=f[iso];
-    if(cur && cur.rating===r){ delete f[iso]; }               // tap again to clear
+    // Tap again to clear — as a NEWER empty record, not a delete: a deleted day
+    // would come back from another device's older copy on the next sync merge.
+    if(cur && cur.rating===r){ f[iso]={ m:{}, rating:null, n:(ffSchedule?ffSchedule.length:4)||4, ts:Date.now() }; }
     else f[iso]={ m:{}, rating:r, n:(ffSchedule?ffSchedule.length:4)||4, ts:Date.now() };
     lsSet("ff_fuel", fuelPrune(f));
   }

@@ -125,7 +125,14 @@
     if(row){ row.classList.toggle("open"); }
   });
   $("resetBtn").addEventListener("click", function(){
-    lsRemove("fairwayfuel");
+    // Reset the CALCULATOR only — training frequency, equipment, prep and the
+    // rest of the saved profile stay; the check-in calorie tuning resets with it.
+    var d=lsGet("fairwayfuel", null);
+    if(d && typeof d==="object"){
+      ["sex","goal","workout","meals","age","weight","heightFt","heightIn","activity"].forEach(function(k){ delete d[k]; });
+      lsSet("fairwayfuel", d);
+    }
+    lsSet("ff_kcal_adj", 0);
     location.href = location.origin + location.pathname;   // drop any share params too
   });
 
@@ -142,25 +149,65 @@
     });
     return location.origin + location.pathname + "?" + p.toString();
   }
-  function applyShareParams(){
-    if(!location.search || location.search==="?") return false;
-    var q=new URLSearchParams(location.search);
-    var get=function(k){ return q.get(k); };
-    ["a:age","wt:weight","hf:heightFt","hi:heightIn","ac:activity"].forEach(function(pair){
-      var k=pair.split(":")[0], id=pair.split(":")[1];
-      if(q.has(k) && $(id)) $(id).value=q.get(k);
-    });
+  // Categorical inputs only accept known values. Anything else — a mangled or
+  // hand-edited share link, an old synced profile — falls back to the default
+  // instead of crashing calc() (GOALS[x].pct / WORKOUT_SLOTS[x].anchor) at boot.
+  function ffHas(o,k){ return k!=null && Object.prototype.hasOwnProperty.call(o,k); }
+  function ffActivityOk(v){
+    var sel=$("activity"); if(!sel) return false;
+    return Array.prototype.some.call(sel.options, function(o){ return o.value===String(v); });
+  }
+  function ffSanitizeState(){
+    var changed=false;
+    if(state.sex!=="male" && state.sex!=="female"){ state.sex="male"; changed=true; }
+    if(!ffHas(GOALS,state.goal)){ state.goal="leanbulk"; changed=true; }
+    if(!ffHas(WORKOUT_SLOTS,state.workout)){ state.workout="morning"; changed=true; }
+    if(state.meals!=null){ var m=parseInt(state.meals,10);
+      if(!(m>=3 && m<=6)){ state.meals=null; changed=true; } else state.meals=m; }
+    if($("activity") && !ffActivityOk($("activity").value)){ $("activity").value="1.55"; changed=true; }
+    if(changed) ffSyncSegs();
+  }
+  function ffSyncSegs(){
     function act(segId, attr, val){
-      var seg=$(segId); if(!seg||val==null) return;
+      var seg=$(segId); if(!seg) return;
       Array.prototype.forEach.call(seg.querySelectorAll("button"), function(b){
         b.classList.toggle("active", b.getAttribute(attr)===String(val)); });
     }
-    if(q.has("s")){ state.sex=get("s"); act("sexSeg","data-sex",get("s")); }
-    if(q.has("w")){ state.workout=get("w"); act("workoutSeg","data-workout",get("w")); }
-    if(q.has("g")){ state.goal=get("g");
-      Array.prototype.forEach.call($("goals").querySelectorAll(".goal"), function(b){
-        b.classList.toggle("active", b.getAttribute("data-goal")===get("g")); }); }
-    if(q.has("m")) state.meals=parseInt(get("m"),10);
+    act("sexSeg","data-sex",state.sex); act("workoutSeg","data-workout",state.workout);
+    if($("goals")) Array.prototype.forEach.call($("goals").querySelectorAll(".goal"), function(b){
+      b.classList.toggle("active", b.getAttribute("data-goal")===state.goal); });
+  }
+  // A shared link pre-fills the calculator for a NEW visitor. It never overwrites a
+  // profile already saved on this device (a friend's numbers would otherwise become
+  // yours, roam via sync, and re-apply on every reload), and the share params are
+  // stripped from the address bar so a reload can't re-apply them either.
+  var SHARE_RANGE = { age:[13,100], weight:[70,600], heightFt:[3,8], heightIn:[0,11.99] };
+  function applyShareParams(){
+    if(!location.search || location.search==="?") return false;
+    var q=new URLSearchParams(location.search);
+    var keys=Object.keys(SHARE_KEYS).filter(function(k){ return q.has(k); });
+    if(!keys.length) return false;
+    try{
+      var rest=new URLSearchParams(location.search);
+      keys.forEach(function(k){ rest.delete(k); });
+      var qs=rest.toString();
+      history.replaceState(history.state, "", location.pathname+(qs?"?"+qs:"")+location.hash);
+    }catch(e){}
+    if(lsGet("fairwayfuel", null)){
+      setTimeout(function(){ try{ ffToast("That link has a friend’s numbers — your own plan is unchanged."); }catch(e){} }, 700);
+      return false;
+    }
+    ["a:age","wt:weight","hf:heightFt","hi:heightIn"].forEach(function(pair){
+      var k=pair.split(":")[0], id=pair.split(":")[1], v=parseFloat(q.get(k)), r=SHARE_RANGE[id];
+      if(q.has(k) && $(id) && !isNaN(v) && v>=r[0] && v<=r[1]) $(id).value=String(v);
+    });
+    if(q.has("ac") && ffActivityOk(q.get("ac"))) $("activity").value=q.get("ac");
+    var s=q.get("s"), g=q.get("g"), w=q.get("w"), m=parseInt(q.get("m"),10);
+    if(s==="male" || s==="female") state.sex=s;
+    if(ffHas(GOALS,g)) state.goal=g;
+    if(ffHas(WORKOUT_SLOTS,w)) state.workout=w;
+    if(m>=3 && m<=6) state.meals=m;
+    ffSyncSegs();
     return true;
   }
   $("shareBtn").addEventListener("click", function(){
@@ -175,6 +222,7 @@
   });
 
   function calc(){
+    ffSanitizeState();
     var age=num("age");
     var weightLb=num("weight");
     var heightCm=(num("heightFt")*12+num("heightIn"))*2.54;
@@ -203,7 +251,7 @@
     // into carbs, leaving the body-size protein/fat anchors stable.
     var kcalAdj = lsGet("ff_kcal_adj", 0);
     var macro=ffMacroTargets({ weightLb:weightLb, heightCm:heightCm, targetKcal:target, kcalAdj:kcalAdj,
-      proteinPerLb:g.proteinPerLb, fatPerLb:g.fatPerLb });
+      proteinPerLb:g.proteinPerLb, fatPerLb:g.fatPerLb, floorKcal:(state.sex==="female"?1200:1500) });
     target=macro.target;
     var proteinG=macro.proteinG, fatG=macro.fatG, carbG=macro.carbG;
     var proteinKcal=macro.proteinKcal, fatKcal=macro.fatKcal, carbKcal=macro.carbKcal;
@@ -298,18 +346,19 @@
       proteinG:proteinG,fatG:fatG,carbG:carbG,
       proteinKcal:proteinKcal,fatKcal:fatKcal,carbKcal:carbKcal,
       goal:g,pct:g.pct, timing:timing, meal:meal, weekly:weekly });
-    updateFoodTargets(proteinG, carbG, mealN);
-    try{ renderFFMeals(); }catch(e){}
-    try{ renderFuelToday(); }catch(e){}
-    try{ applyCalcCollapse(); }catch(e){}
-    updatePlanCopy();                 // keep the Train-tab framing in step with the goal
-    // Stash the computed targets so the AI coach can use the user's exact numbers.
+    // Stash the computed targets (the coach, the example day and Today all read
+    // them) BEFORE the renders below, so nothing draws last calculation's fat/kcal.
     try {
       lsSet("ff_targets", {
         goal: g.label, kcal: Math.round(target/5)*5, proteinG: proteinG, carbG: carbG, fatG: fatG,
         mealN: mealN, tdee: Math.round(tdee)
       });
     } catch(e){}
+    updateFoodTargets(proteinG, carbG, mealN);
+    try{ renderFFMeals(); }catch(e){}
+    try{ renderFuelToday(); }catch(e){}
+    try{ applyCalcCollapse(); }catch(e){}
+    updatePlanCopy();                 // keep the Train-tab framing in step with the goal
     persist();
   }
   function placeholder(){ return '<div class="placeholder"><div class="big">⛳</div>Enter your details to see your calorie target and macros.</div>'; }
@@ -457,7 +506,7 @@
     {id:"gummies", n:"Fruit gummies",  e:"🐻", cat:"snack", p:0,c:22,f:0, serv:"handful",  tags:[]},
     {id:"popcorn", n:"Popcorn",        e:"🍿", cat:"snack", p:3,c:19,f:3, serv:"3 cups air",tags:[]},
     // fats & nuts
-    {id:"avocado", n:"Avocado",        e:"🥑", cat:"fat", p:2,c:9,f:15, serv:"½",          tags:[]},
+    {id:"avocado", n:"Avocado",        e:"🥑", cat:"fat", p:2,c:9,f:15, serv:"½ whole",    tags:[]},
     {id:"pb",      n:"Peanut butter",  e:"🥜", cat:"fat", p:7,c:6,f:16, serv:"2 tbsp",     tags:["nuts"]},
     {id:"almonds", n:"Almonds",        e:"🌰", cat:"fat", p:6,c:6,f:14, serv:"1 oz",       tags:["nuts"]},
     {id:"oliveoil",n:"Olive oil",      e:"🫒", cat:"fat", p:0,c:0,f:14, serv:"1 tbsp",     tags:[]},
@@ -792,6 +841,18 @@
   // (breakfast foods at breakfast; the biggest, fastest carbs around training).
   function ffPlanDay(p,t,roll){
     var n=Math.max(1,Math.min(6,t.m||4)), names=ffMealNames(n);
+    // Mirror today's schedule when it exists: same meals, same labels, same
+    // post-workout slot, and a separate pre snack only if the schedule has one.
+    // Each plate remembers its schedule index (si) so its ✓ writes the right slot.
+    var schedMeal=null, schedPre=-1;
+    try{
+      if(typeof ffSchedule!=="undefined" && ffSchedule && ffSchedule.length){
+        schedMeal=[];
+        ffSchedule.forEach(function(sl,i){ if(sl.kind==="pre") schedPre=i; else schedMeal.push(i); });
+        if(schedMeal.length){ n=schedMeal.length; names=schedMeal.map(function(i){ return ffSchedule[i].label; }); }
+        else schedMeal=null;
+      }
+    }catch(e){ schedMeal=null; }
     // Rest day: no workout, so no "around training" carb-loaded meal and no
     // pre-workout snack — the example day is just evenly-built meals. Detected
     // off today's schedule (rest days carry no isPost slot) with a plan-day
@@ -811,8 +872,9 @@
     // instead of a fixed position in the meal list.
     if(!restDay) try{
       if(typeof ffSchedule!=="undefined" && ffSchedule){
-        var postLbl=null; ffSchedule.forEach(function(sl){ if(sl.isPost) postLbl=sl.label; });
-        if(postLbl){ var gi=names.indexOf(postLbl); if(gi>=0) postIdx=gi; }
+        if(schedMeal){ schedMeal.forEach(function(si,j){ if(ffSchedule[si].isPost) postIdx=j; }); }
+        else { var postLbl=null; ffSchedule.forEach(function(sl){ if(sl.isPost) postLbl=sl.label; });
+          if(postLbl){ var gi=names.indexOf(postLbl); if(gi>=0) postIdx=gi; } }
       }
     }catch(e){}
     var w=[]; for(var i=0;i<n;i++) w.push(i===postIdx?1.6:(names[i]==="Snack"?0.7:1));
@@ -822,7 +884,7 @@
     // Whole-food servings round up, so fixed per-meal aims drift OVER; here each meal aims at
     // what's left ÷ meals remaining, the last meal absorbs the remainder, and a meal with the
     // carb budget already spent gets no forced carb. ~30g of carbs is held back for the pre snack.
-    var pLeft=t.p, fLeft=(t.f||60), preReserve=(n>=3 && postIdx>=0?30:0), cLeft=Math.max(0,t.c-preReserve), wLeft=wsum;
+    var pLeft=t.p, fLeft=(t.f||60), preReserve=(n>=3 && postIdx>=0 && (!schedMeal || schedPre>=0)?30:0), cLeft=Math.max(0,t.c-preReserve), wLeft=wsum;
     // Pass 1 — protein + carbs per meal (each carries its own natural fat)
     for(var j=0;j<n;j++){
       var isPost=(j===postIdx), mealsLeft=n-j, ctx=ffMealCtx(names[j]);
@@ -849,7 +911,7 @@
       var P=(ps?ps.P:0)+(veg?veg.p:0), C=protC+combo.sum+(veg?veg.c:0), F=protF+carbF+(veg?veg.f:0);
       totP+=P; totC+=C; totF+=F;
       pLeft-=P; cLeft-=C; wLeft-=w[j]; fLeft-=F;
-      slots.push({ name:names[j], items:labels, foods:foods, P:P, C:C, F:F, post:isPost });
+      slots.push({ name:names[j], items:labels, foods:foods, P:P, C:C, F:F, post:isPost, si:(schedMeal?schedMeal[j]:-1) });
     }
     // Pass 1b — top up CARBS toward target if a few-meal day undershot (high per-meal carb
     // targets can outrun the liked foods). Adds into the biggest-carb meals until on target.
@@ -881,7 +943,7 @@
       }
     }
     // Split training fuel into a small PRE-workout fast-carb snack + the POST-workout meal.
-    if(n>=3){
+    if(n>=3 && (!schedMeal || schedPre>=0)){
       var pidx=-1; for(var pi=0;pi<slots.length;pi++){ if(slots[pi].post){ pidx=pi; break; } }
       if(pidx>=0){
         var fastPool=ffRoleList(p,'snack',null).filter(function(f){ return f.cat==='fast'||f.cat==='fruit'; });
@@ -890,7 +952,7 @@
         if(pre.picks.length){
           var preF=pre.picks.reduce(function(a,f){return a+f.f;},0), preP=pre.picks.reduce(function(a,f){return a+f.p;},0);
           slots.splice(pidx, 0, { name:"Pre-workout", items:pre.picks.map(ffLabel),
-            foods:pre.picks.map(function(f){return {food:f, servings:1};}), P:preP, C:pre.sum, F:preF, pre:true });
+            foods:pre.picks.map(function(f){return {food:f, servings:1};}), P:preP, C:pre.sum, F:preF, pre:true, si:schedPre });
           totP+=preP; totC+=pre.sum; totF+=preF;
         }
       }
@@ -937,16 +999,17 @@
       return { food:a.food, qty:ps.qty*a.servings, unit:ps.unit, servings:a.servings };
     });
   }
+  // Count units read "1 slice" / "2 slices" whichever form the food's serving was
+  // written in; measures (oz, tbsp) and "whole" stay as written.
+  var FF_COUNT_UNIT=/^(cup|date|cake|slice|scoop|bottle|can|bar|treat|block|stick|packet|piece|tortilla|egg|waffle|link|patty)s?$/;
   function ffPlural(unit,q){
-    if(q<=1) return unit;
-    if(unit==="cup") return "cups";
-    if(/^(date|cake|slice|scoop|bottle|can|bar|treat|block)$/.test(unit)) return unit+"s";
-    return unit;
+    var m=FF_COUNT_UNIT.exec(unit||""); if(!m) return unit;
+    return q>1 ? m[1]+"s" : m[1];
   }
   function ffQtyLabel(it){
     if(!it.unit){ var s=Math.max(1,Math.round(it.servings)); return s>1?("×"+s):"1"; }
     var measure=(it.unit==="oz"||it.unit==="cup"||it.unit==="tbsp");
-    var q=measure ? Math.round(it.qty*2)/2 : Math.max(1,Math.round(it.qty));
+    var q=measure ? Math.max(0.25, Math.round(it.qty*4)/4) : Math.max(1,Math.round(it.qty));   // never "0 cup"
     return ffFmtQty(q)+" "+ffPlural(it.unit,q);
   }
   function ffTotCell(label,val,target,cls){
@@ -1003,6 +1066,7 @@
       var schedUsed={};
       var schedIdx=plan.slots.map(function(s){
         if(typeof ffSchedule==="undefined" || !ffSchedule) return -1;
+        if(s.si!=null && s.si>=0 && s.si<ffSchedule.length && !schedUsed[s.si]){ schedUsed[s.si]=true; return s.si; }
         for(var i=0;i<ffSchedule.length;i++){
           if(schedUsed[i]) continue;
           var sl=ffSchedule[i];

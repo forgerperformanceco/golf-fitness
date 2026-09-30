@@ -52,6 +52,24 @@
     if(!(n>0)||band!=="recharge") return null;
     return Math.max(5,Math.round((n*.75)/5)*5);
   }
+  // A session's effective readiness band ("Keep the original session" = ready).
+  function ffSessBand(sess){ var r=sess&&sess.readiness; return r?(r.original?"ready":r.band):null; }
+  // THE prescribed-load read for one lift, shared by the player, the inline logger
+  // and the modal logger so a recovery-dose day can never show full loads (or an
+  // "add 5 lb" nudge) on one surface and the recovery load on another.
+  //   lastW — the reference weight (a set's last weight, or last time's top)
+  //   x     — the session exercise { name, target }
+  //   lx    — its lastSessionFor entry (null = never logged)
+  // Returns { w: load to prefill or null, bump: may the add-weight nudge show }.
+  function ffDose(lastW,x,lx,week,sess){
+    var band=ffSessBand(sess);
+    if(lx&&lx._reduced) return {w:null,bump:false,band:band};   // only a deload/recovery log to go on
+    var bump=band!=="recharge"&&progressReady(lx,x.target);
+    var w=prescribeW(lastW,x.name,bump,waveFor(week));
+    var rl=ffReadinessLoad(lastW,band);
+    if(rl!=null) w=(w!=null&&w<rl)?w:rl;   // a recovery dose never lifts above a deload load
+    return {w:w,bump:bump,band:band};
+  }
   function ffReadinessSave(original){
     if(!ffReadyDraft) return null;
     var score=ffReadyDraft.sleep+ffReadyDraft.body+ffReadyDraft.energy;

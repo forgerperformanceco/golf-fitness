@@ -94,6 +94,7 @@ the `is_subscribed` RPC already honors `trialing` + `trial_ends_at`.
 
 ## Cost control once live
 - The coach's knowledge base is sent as a **cached** system block → ~0.1× on reads.
-- Swap `AI_COACH_MODEL` to `claude-sonnet-4-6` or `claude-haiku-4-5` for cheaper
-  high-volume turns if needed (`supabase secrets set AI_COACH_MODEL=...`).
-- Add per-user rate limits before a public launch; track tokens/user vs. revenue.
+- The coach runs on `claude-sonnet-5-5` by default; swap with
+  `supabase secrets set AI_COACH_MODEL=...` (e.g. `claude-haiku-4-5` for cheaper turns).
+- Per-user limits (5/min, 50/day) and a global ceiling (1000 coach turns/day,
+  migration `20260930110636`) are in place; track tokens/user vs. revenue.

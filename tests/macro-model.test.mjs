@@ -28,3 +28,12 @@ test("fat target respects practical clamps", () => {
   assert.equal(targets({ weightLb: 500, heightCm: 240, targetKcal: 5000,
     proteinPerLb: 0.9, fatPerLb: 0.35 }).fatG, 100);
 });
+
+test("calorie target never drops below the safety floor or protein+fat", () => {
+  const small = targets({ weightLb: 115, heightCm: 157, targetKcal: 1150, kcalAdj: -600,
+    proteinPerLb: 1.0, fatPerLb: 0.3, floorKcal: 1200 });
+  assert.ok(small.target >= 1200 && small.target <= 1205);
+  assert.equal(small.target >= small.proteinKcal + small.fatKcal, true);
+  const noFloor = targets({ weightLb: 115, heightCm: 157, targetKcal: 700, proteinPerLb: 1.0, fatPerLb: 0.3 });
+  assert.ok(noFloor.target >= noFloor.proteinKcal + noFloor.fatKcal);
+});

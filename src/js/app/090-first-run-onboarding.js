@@ -88,9 +88,19 @@
       try{ persist(); }catch(e){}
     }
     // Seed or update today's baseline through the shared deduping writer.
+    // On a re-run every field is PREFILLED from saved numbers, so only the ones
+    // the user actually changed are new measurements — re-logging an untouched
+    // old speed/driver as today's row faked a "+0" trend and reset the
+    // speed-test clock. Unchanged fields go through as "" (logBodyEntry skips them).
     function pushBaseline(){
-      var changed=!ob.revisit || ob.weight!==ob.original.weight || ob.speed!==ob.original.speed || ob.drive!==ob.original.drive;
-      if(changed && (ob.weight || ob.speed || ob.drive)) logBodyEntry(ob.weight||"",ob.speed||"",ob.drive||"");
+      if(ob.revisit){
+        var o=ob.original||{};
+        var obNew=function(k){ var v=String(ob[k]||"").trim(); return (v && v!==String(o[k]||"").trim()) ? v : ""; };
+        var nw=obNew("weight"), ns=obNew("speed"), nd=obNew("drive");
+        if(nw || ns || nd) logBodyEntry(nw, ns, nd);
+        return;
+      }
+      if(ob.weight || ob.speed || ob.drive) logBodyEntry(ob.weight||"",ob.speed||"",ob.drive||"");
     }
     function finish(startNow){
       applyProfile(); pushBaseline(); lsSet("ff_onboarded", true);
@@ -316,6 +326,7 @@
       if(now === ffLastDay) return;   // same day — nothing to roll over
       ffLastDay = now;
       try{ calc(); }catch(_){}          // rebuild macros + meal schedule for the new day (rest vs train)
+      focusDay=null;                    // yesterday's pinned day must not stay featured
       renderPhase();
       if(typeof renderDash==="function") renderDash();
       try{ ffNotifReschedule(); }catch(_){}   // reminders follow the new week/day

@@ -11,8 +11,8 @@ var ASSETS = [
   './privacy.html',
   './delete-account.html',
   './product-health.js?v=5',
-  './cloud-sync.js?v=117',
-  './coach.js?v=90',
+  './cloud-sync.js?v=118',
+  './coach.js?v=91',
   './manifest.webmanifest',
   './logo-dark-mark.png',
   // og-image.png intentionally NOT precached — it's only ever fetched by social scrapers.
@@ -84,8 +84,12 @@ self.addEventListener('fetch', function (e) {
       (/\/delete-account\.html$/.test(path) ? './delete-account.html' : './index.html');
     e.respondWith(
       fetch(e.request.url, { cache: 'no-store', credentials: 'same-origin' }).then(function (res) {
-        var copy = res.clone();
-        caches.open(CACHE).then(function (c) { c.put(htmlKey, copy); });
+        // Only a real page becomes the offline copy — one 404/5xx (a mistyped
+        // URL, a Pages hiccup) must never replace the app shell.
+        if (res.ok && !res.redirected) {
+          var copy = res.clone();
+          caches.open(CACHE).then(function (c) { c.put(htmlKey, copy); });
+        }
         return res;
       }).catch(function () { return caches.match(htmlKey).then(function (h) { return h || caches.match('./'); }); })
     );

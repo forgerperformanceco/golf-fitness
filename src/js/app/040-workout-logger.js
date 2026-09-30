@@ -66,6 +66,11 @@
     var today = new Date(); today.setHours(0,0,0,0);
     return Math.max(0, Math.round((today.getTime() - start.getTime()) / 864e5));
   }
+  // The plan is 20 weeks = 140 days. Past that, curWeek() still clamps to 20 for
+  // display math, but the season is OVER: no new logging may be handed a week-20
+  // key (it would reopen/overwrite finished week-20 sessions and their history).
+  // Train shows the season-complete card; startPlayer/openLogger refuse new work.
+  function seasonComplete(){ var d=daysSinceStart(); return d!=null && d>=140; }
   function curWeek(){
     if(planStart()!=null){
       return Math.max(1, Math.min(20, Math.floor(daysSinceStart()/7) + 1));
@@ -131,9 +136,14 @@
   // Full plan reset: start date + logged workouts (keeps body/speed history +
   // calculator). Tombstone every wiped session FIRST — without them the next
   // cloud-sync merge would resurrect the old season's log from the server.
+  // Everything keyed "week|day" is season-scoped and goes too: rest check-offs
+  // (ff_rest) and skip marks — else week 1 of the new season opens pre-checked —
+  // plus a paused-player marker pointing at a session that no longer exists.
+  // (cloud-sync drops ff_rest/ff_skipped_sessions entries older than the new
+  // ff_start on merge, so the old season's marks can't come back.)
   function resetPlanFull(){
     try{ Object.keys(getLog()).forEach(function(k){ ffTomb("L:"+k); }); }catch(e){}
-    ["ff_start","ff_log","ff_week","ff_planview","ff_skipped_sessions"].forEach(lsRemove);
+    ["ff_start","ff_log","ff_week","ff_planview","ff_skipped_sessions","ff_rest","ff_pl_paused"].forEach(lsRemove);
     try{ window.dispatchEvent(new Event("ff-data-changed")); }catch(e){}
     focusDay=null;
     renderPhase();
@@ -148,7 +158,10 @@
   function sessionFinished(s){ return !!(s && s.finishedAt); }
   function sessionInProgress(s){ return !!(s && !s.finishedAt); }
   function getSkippedSessions(){ var s=lsGet("ff_skipped_sessions",{}); return (s&&typeof s==="object")?s:{}; }
-  function sessionSkipped(w,d){ return !!getSkippedSessions()[w+"|"+d]; }
+  // Values are timestamps: >0 = skipped at that time, <0 = un-skipped at |t|.
+  // Removal is a NEGATIVE stamp, never a delete — the sync union keeps the
+  // newest |ts| per key, so a delete would be resurrected by another device.
+  function sessionSkipped(w,d){ return getSkippedSessions()[w+"|"+d] > 0; }
   function skipSession(w,d){
     var s=getSkippedSessions(), k=w+"|"+d;
     s[k]=Date.now();
@@ -160,14 +173,16 @@
     // A completed workout wins over an earlier skip on every device.
     if(sessionFinished(s)){
       var skipped=getSkippedSessions(), k=w+"|"+d;
-      if(skipped[k]){ delete skipped[k]; lsSet("ff_skipped_sessions",skipped); }
+      if(skipped[k] > 0){ skipped[k]=-Date.now(); lsSet("ff_skipped_sessions",skipped); }
     }
   }
   // Rest-day check-off — kept in its OWN key so it never counts as a training
   // session (Octane, streaks, leaderboard all read ff_log, not this).
   function getRest(){ var r=lsGet("ff_rest",{}); return (r&&typeof r==="object")?r:{}; }
-  function restDone(w,d){ return !!getRest()[w+"|"+d]; }
-  function toggleRestDone(w,d){ var r=getRest(), k=w+"|"+d; if(r[k]) delete r[k]; else r[k]=Date.now(); lsSet("ff_rest",r); }
+  // Same timestamp convention as skips: >0 = checked off, <0 = undone at |t|
+  // (an undo must out-stamp the check-off on every device, so never delete).
+  function restDone(w,d){ return getRest()[w+"|"+d] > 0; }
+  function toggleRestDone(w,d){ var r=getRest(), k=w+"|"+d; r[k]=(r[k] > 0) ? -Date.now() : Date.now(); lsSet("ff_rest",r); }
   // Every rest day shares the display name "Rest / Play 18", so key its check-off
   // by the day's slot position in the week — otherwise both rest days would toggle
   // as one. Training days have unique names, so they key by name as before.
@@ -175,11 +190,35 @@
   function parseSets(t){ var m=String(t).match(/(\d+)\s*[×x]/); return m?Math.min(8,Math.max(1,parseInt(m[1],10))):3; }
   function findDay(name){ var f=null; activeDays().forEach(function(d){ if(d.name===name) f=d; }); return f; }
   function todayStr(){ try{ return new Date().toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"}); }catch(e){ return ""; } }
+  // What progression reads from: per exercise, its most recent FULL-DOSE earlier
+  // log. Deload weeks (~60% loads) and recovery-dose readiness sessions (~75%) are
+  // skipped — progressing off them made the week after a deload prescribe ~60%.
+  // Same-day entries win; an exercise never logged on this day falls back to its
+  // latest occurrence on ANY day (a 4<->5 days/week switch renames the days, which
+  // used to reset every lift to "first time"). Only if no full-dose entry exists
+  // does a reduced one serve, flagged _reduced so no load is prescribed off it.
+  // Returns a composite session { ex:[…] } — callers match x.name as before.
   function lastSessionFor(day, beforeW){
-    var L=getLog(), best=null, bw=-1;
-    Object.keys(L).forEach(function(k){ var i=k.indexOf("|"); var w=parseInt(k.slice(0,i),10), dn=k.slice(i+1);
-      if(dn===day && w<beforeW && w>bw){ bw=w; best=L[k]; } });
-    return best;
+    var L=getLog(), same={}, any={}, low={}, names=[];
+    Object.keys(L).forEach(function(k){
+      var i=k.indexOf("|"); if(i<0) return;
+      var w=parseInt(k.slice(0,i),10), dn=k.slice(i+1), s=L[k];
+      if(!(w<beforeW) || !s || !s.ex) return;
+      var rd=s.readiness, full=(s.wave||waveFor(w))!=="deload" && !(rd && rd.band==="recharge" && !rd.original);
+      s.ex.forEach(function(x){
+        if(!x || !x.name || !(x.sets||[]).some(function(st){ return st && (st.w||st.r); })) return;
+        var bucket=!full ? low : (dn===day ? same : any), cur=bucket[x.name];
+        if(names.indexOf(x.name)<0) names.push(x.name);
+        if(!cur || w>cur.w || (w===cur.w && dn===day)) bucket[x.name]={ w:w, x:x };
+      });
+    });
+    if(!names.length) return null;
+    return { ex: names.map(function(n){
+      var hit=same[n]||any[n];
+      if(hit) return hit.x;
+      var lx=low[n].x;
+      return { name:lx.name, orig:lx.orig, target:lx.target, sets:lx.sets, _reduced:true };
+    }) };
   }
   function topReps(t){ var m=String(t).match(/[×x]\s*(\d+)/); return m?parseInt(m[1],10):null; }
   // A movement measured by DISTANCE, not reps — its authored target reads
@@ -196,7 +235,7 @@
   function incNum(name){ return /Squat|Deadlift|Hinge|Lunge|Hip Thrust|Leg Press|Romanian|Swing|Carry/i.test(name) ? 5 : 2.5; }
   // Ready to add weight = last session hit the top of the rep range on every working set.
   function progressReady(lx, target){
-    var top=topReps(target); if(!top||!lx) return false;
+    var top=topReps(target); if(!top||!lx||lx._reduced) return false;   // never progress off a deload/recovery load
     var working=lx.sets.filter(function(st){ return st.r!==""&&st.r!=null&&!isNaN(parseInt(st.r,10)); });
     if(working.length<2) return false;
     return working.every(function(st){ return parseInt(st.r,10)>=top; });
@@ -244,12 +283,12 @@
     if(/Carry|Farmer|Suitcase|Wrist|Forearm|Plate Pinch|Dead Hang|Wrist Roller|Towel Pull/i.test(n)) return "Grip / carries";
     if(/Triceps|Pushdown|Skull|Close.?Grip|Kickback|Diamond Push|JM Press|Tate Press/i.test(n)) return "Triceps";
     if(/Pallof|Wood.?chop|\bChop\b|Landmine Rotation|Rotation|Russian Twist|\bPlank\b|Dead ?Bug|Bird ?Dog|Hollow|Ab Wheel|Crunch|Leg Raise|Knee Raise|Sit.?up|Copenhagen|Anti.?Rotation/i.test(n)) return "Core / anti-rotation";
-    if(/Curl/i.test(n) && !/Leg Curl|Ham|Nordic|Wrist/i.test(n)) return "Biceps";
+    if(/Curl/i.test(n) && !/Leg Curl|\bHam(string)?\b|Nordic|Wrist/i.test(n)) return "Biceps";   // \bHam\b: "Hammer Curl" IS biceps
     if(/Lunge|Split Squat|Step.?up|Bulgarian|Pistol|Skater|Cossack/i.test(n)) return "Single-leg / lunge";
     if(/Deadlift|Romanian|\bRDL\b|Trap.?Bar|Sumo|Rack Pull|Good ?Morning|Hip Thrust|Glute|Leg Curl|Nordic|Back Extension|Hyperext|Reverse Hyper|Kettlebell Swing|\bSwing\b|Pull.?Through|Hinge/i.test(n)) return "Hinge / posterior chain";
     if(/Squat|Leg Press|Hack|Leg Extension|Sissy|Belt Squat|Pendulum/i.test(n)) return "Quads — squat pattern";
-    if(/Overhead Press|Shoulder Press|Military|OHP|Arnold|Push Press|Z.?Press|Lateral Raise|Rear.?Delt|Reverse Pec Deck|Face Pull|Front Raise|Y.?Raise|Upright Row/i.test(n)) return "Push — shoulders (vertical)";
-    if(/Bench|Incline.*Press|Decline|Chest Press|\bDip\b|Push.?up|\bFly\b|Crossover|Pec Deck|Svend|Floor Press|Landmine Press/i.test(n)) return "Push — chest (horizontal)";
+    if(/Overhead Press|Shoulder Press|Military|OHP|Arnold|Push Press|Z.?Press|Lateral Raise|Rear.?Delt|Reverse Pec Deck|Face Pull|Front Raise|Y.?Raise|Upright Row|Standing .*Press/i.test(n)) return "Push — shoulders (vertical)";
+    if(/Bench|Incline.*Press|Decline|Chest Press|\bDip\b|Push.?up|\bFly\b|Crossover|Pec Deck|Svend|Floor Press|Landmine Press|Flat .*Press|Floor .*Press/i.test(n)) return "Push — chest (horizontal)";
     if(/Pull.?up|Chin.?up|Pulldown|Pullover|\bLat\b/i.test(n)) return "Pull — lats (vertical)";
     if(/Row|Meadows|Kroc|Pendlay/i.test(n)) return "Pull — back (horizontal)";
     return null;
@@ -271,17 +310,23 @@
         var n=parseSets(tgt), sets=[]; for(var i=0;i<n;i++) sets.push({w:"",r:"",done:false});
         return { name:base, orig:e[0], target:tgt, sets:sets }; });
     } else {
-      ex = day.ex.map(function(row){ var base=applySwapName(row[0]);   // user swap first
-        var r=resolveEx(base,row[1]); var nm=(r.status==="swap")?r.name:base;
+      var rs=resolveDay(day.ex);   // user swaps + gear subs, deduped across the day (same as the card)
+      ex = day.ex.map(function(row, ri){ var base=applySwapName(row[0]);   // user swap first
+        var r=rs[ri]; var nm=(r.status==="swap")?r.name:base;
         var tgt=effTarget(r.sr||row[1], nm, week);   // Retain trim + wave shift — log to match
         var n=parseSets(tgt), sets=[]; for(var i=0;i<n;i++) sets.push({w:"",r:"",done:false});
         return { name:nm, orig:row[0], target:tgt, sets:sets }; });
     }
-    var built={ date:"", ex:ex };
+    // wave = the wave this session was RUN at. An event taper re-anchors waves only
+    // until the recovery week ends, so waveFor(week) later forgets that week was a
+    // deload — lastSessionFor reads this stamp first so it still skips those loads.
+    var built={ date:"", wave:waveFor(week), ex:ex };
     return (typeof ffApplyReadiness==="function")?ffApplyReadiness(built,day,week):built;
   }
   function openLogger(dayName,readinessChecked){
     var day=findDay(dayName); if(!day) return;
+    // Past day 140 the season is over — never hand out a week-20 key for new work.
+    if(seasonComplete()){ ffSeasonOverNudge(); return; }
     if(!readinessChecked && typeof ffReadinessNeedsCheck==="function" && ffReadinessNeedsCheck(day)){
       ffReadinessOpen(dayName,"manual"); return;
     }
@@ -308,14 +353,20 @@
     s.ex.forEach(function(x, xi){
       var lx=null;
       if(last){ last.ex.forEach(function(e){ if(e.name===x.name) lx=e; }); }
+      // Same load read as the player + inline logger (077 ffDose): deload ~60%,
+      // recovery dose ~75% with no add-weight nudge, progression-ready +1 jump.
+      var topLast=0; if(lx) lx.sets.forEach(function(st){ var w=parseFloat(st.w); if(w>topLast) topLast=w; });
+      var dose=ffDose(topLast||null, x, lx, week, s);
       var ref="";
-      if(wv==="deload" && lx){
+      if(dose.band==="recharge" && lx){
+        ref='<div class="logx-nudge">🌱 Recovery dose — '+(dose.w!=null?'about <b>'+dose.w+' lb</b>':'70–80% of normal')+', no PR chasing.</div>';
+      } else if(wv==="deload" && lx){
         ref='<div class="logx-nudge">🪫 Deload — run ~60% of last week’s loads, one set less. Recovery is the workout.</div>';
-      } else if(progressReady(lx, x.target)){
-        ref='<div class="logx-nudge">✅ Hit all reps last week — go up ~'+incFor(x.name)+' this session</div>';
+      } else if(dose.bump){
+        ref='<div class="logx-nudge">✅ Hit all reps last time — go up ~'+incFor(x.name)+' this session</div>';
       } else if(lx){
         var d=lx.sets.filter(function(st){return st.w||st.r;}).map(function(st){return (st.w||"–")+"×"+(st.r||"–");}).join(", ");
-        if(d) ref='<div class="logx-last">Last week: '+d+'</div>';
+        if(d) ref='<div class="logx-last">Last time: '+ffEsc(d)+'</div>';
       }
       var hasLastW = !!(lx && lx.sets.some(function(st){return st.w;}));
       var dist=isDistEx(x.target), bw=isBodyweightEx(x.name);
@@ -323,12 +374,14 @@
         '<div class="setlabels"><div>Set</div><div>'+(bw?"Load":"Weight")+'</div><div>'+(dist?"Yards":"Reps")+'</div><div></div></div>';
       x.sets.forEach(function(st, si){
         var lsW = (lx && lx.sets[si] && lx.sets[si].w) ? lx.sets[si].w : "–";
+        var sw = (lsW!=="–") ? ffDose(lsW, x, lx, week, s).w : null;   // prescribed load leads the placeholder
+        if(sw!=null) lsW=String(sw);
         var lsR = (lx && lx.sets[si] && lx.sets[si].r) ? lx.sets[si].r : (dist ? repSeed(x.target) : "–");
         html+='<div class="setrow'+(st.done?" is-done":"")+'">'+
           '<div class="snum">'+(si+1)+'</div>'+
           (bw ? '<div class="setbw" aria-label="bodyweight">BW</div>'
-              : '<input type="number" inputmode="decimal" placeholder="'+escAttr(lsW)+'" value="'+(st.w||"")+'" data-x="'+xi+'" data-s="'+si+'" data-f="w" />')+
-          '<input type="number" inputmode="numeric" placeholder="'+escAttr(lsR)+'" value="'+(st.r||"")+'" data-x="'+xi+'" data-s="'+si+'" data-f="r" />'+
+              : '<input type="number" inputmode="decimal" placeholder="'+escAttr(lsW)+'" value="'+escAttr(st.w||"")+'" data-x="'+xi+'" data-s="'+si+'" data-f="w" />')+
+          '<input type="number" inputmode="numeric" placeholder="'+escAttr(lsR)+'" value="'+escAttr(st.r||"")+'" data-x="'+xi+'" data-s="'+si+'" data-f="r" />'+
           '<button class="donebtn'+(st.done?" on":"")+'" data-x="'+xi+'" data-s="'+si+'" data-done="1" aria-label="set done">✓</button></div>';
       });
       html+='<div class="logx-foot"><button class="addset" data-x="'+xi+'" data-add="1">+ Add set</button>'+

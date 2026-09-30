@@ -119,13 +119,14 @@
         v.setAttribute("aria-hidden", selected ? "false" : "true");
       });
       var context=$("appbarContext"); if(context) context.textContent=contextNames[view]||"Yardsmith";
-      document.title=(viewNames[view]||"Yardsmith")+" Â· Yardsmith";
+      document.title=(viewNames[view]||"Yardsmith")+" · Yardsmith";
       if(view==="dash") { try{ renderDash(); }catch(e){} }
       if(view==="calc") { try{ ffRefreshCalcTrainTime(); }catch(e){} }
       if(view==="account") { try{ renderAccount(); }catch(e){} }
       if(view==="progress") { try{ renderProgress(); }catch(e){} }
       if(view==="gameday") { try{ renderGameDay(); }catch(e){} }
       try{ showTipFor(view); }catch(e){}
+      try { persist(); } catch(e){}   // inside apply: the view transition runs it async
     };
     // Cross-fade between tabs — an instant swap reads cheap. Falls back to the
     // plain swap where the View Transitions API is missing or motion is reduced.
@@ -142,7 +143,6 @@
       if(announcer) setTimeout(function(){ announcer.textContent=(viewNames[view]||"Screen")+" screen"; }, 180);
       try{ ffTick(7); }catch(e){}
     }
-    try { persist(); } catch(e){}
   }
   [tabs, mobileTabs].forEach(function(bar){
     bar.addEventListener("click", function(e){

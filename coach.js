@@ -97,7 +97,7 @@
       + 'align-items:center;justify-content:space-between;}'
       + '.ffc-head h3{margin:0;font-size:15px;display:flex;align-items:center;gap:8px;}'
       + '.ffc-head .ffc-ctx{margin:2px 0 0;font-size:11px;color:#bfe6cd;}'
-      + '.ffc-memory{margin:5px 0 0;padding:0;border:0;background:none;color:#7fe2a2;font:750 10px system-ui;cursor:pointer;text-decoration:underline;text-underline-offset:2px;}'
+      + '.ffc-memory{margin:5px 0 0;padding:0;border:0;background:none;color:#7fe2a2;font:750 11px system-ui;cursor:pointer;text-decoration:underline;text-underline-offset:2px;}'
       + '.ffc-x{background:rgba(255,255,255,.16);border:0;color:#fff;width:32px;height:32px;border-radius:50%;font-size:17px;cursor:pointer;}'
       + '.ffc-log{flex:1;overflow-y:auto;padding:18px 16px;display:flex;flex-direction:column;gap:14px;}'
       + '.ffc-msg{font-size:14.5px;line-height:1.62;}'
@@ -116,6 +116,17 @@
       + '.ffc-send:disabled{opacity:.5;}'
       + '.ffc-dots span{display:inline-block;width:6px;height:6px;margin:0 1px;border-radius:50%;background:#9bbfa9;animation:ffcb 1s infinite;}'
       + '.ffc-dots span:nth-child(2){animation-delay:.2s;}.ffc-dots span:nth-child(3){animation-delay:.4s;}'
+      // The composer clears the iPhone home indicator; the sheet follows the
+      // app theme (explicit dark, or the system when the theme is Auto).
+      + '.ffc-in{padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));}'
+      + 'html[data-theme="dark"] .ffc-sheet{background:#0f1a13;}'
+      + 'html[data-theme="dark"] .ffc-msg.bot{color:#e3f0e7;border-left-color:#2b4a36;}'
+      + 'html[data-theme="dark"] .ffc-msg.bot strong{color:#8ceab0;}'
+      + 'html[data-theme="dark"] .ffc-msg.bot code{background:#1c2b21;color:#e3f0e7;}'
+      + 'html[data-theme="dark"] .ffc-msg.note{background:#17261c;color:#b6d3c0;}'
+      + 'html[data-theme="dark"] .ffc-in{background:#132019;border-top-color:#24372b;}'
+      + 'html[data-theme="dark"] .ffc-in textarea{background:#0f1a13;color:#e3f0e7;border-color:#2e4a38;}'
+      + '@media (prefers-color-scheme:dark){html:not([data-theme]) .ffc-sheet{background:#0f1a13;}html:not([data-theme]) .ffc-msg.bot{color:#e3f0e7;border-left-color:#2b4a36;}html:not([data-theme]) .ffc-msg.bot strong{color:#8ceab0;}html:not([data-theme]) .ffc-msg.bot code{background:#1c2b21;color:#e3f0e7;}html:not([data-theme]) .ffc-msg.note{background:#17261c;color:#b6d3c0;}html:not([data-theme]) .ffc-in{background:#132019;border-top-color:#24372b;}html:not([data-theme]) .ffc-in textarea{background:#0f1a13;color:#e3f0e7;border-color:#2e4a38;}}'
       + '@keyframes ffcb{0%,80%,100%{opacity:.3;}40%{opacity:1;}}';
     var s = document.createElement("style"); s.textContent = css; document.head.appendChild(s);
   }
@@ -197,6 +208,18 @@
   }
   function close() { wrap.classList.remove("open"); document.body.style.overflow = ""; }
 
+  // Keep the request well under the coach's 32 KB limit: long past answers are
+  // trimmed, and the oldest turns drop first if the thread is still too big.
+  function trimHistory(h) {
+    var out = h.map(function (m) { return { role: m.role, content: String(m.content || "").slice(0, 3000) }; });
+    var total = function () { return out.reduce(function (n, m) { return n + m.content.length; }, 0); };
+    while (out.length && total() > 12000) out.shift();
+    while (out.length && out[0].role !== "user") out.shift();
+    return out;
+  }
+  // One answer at a time. A new contextual ask while one is streaming aborts
+  // the old stream and runs next (it used to be silently dropped).
+  var inflight = null, queued = null;
   async function send(explicit) {
     if (busy) return;
     var text = (explicit != null ? explicit : (input.value || "")).trim();
@@ -207,15 +230,16 @@
     busy = true; sendBtn.disabled = true;
     var typing = bubble("bot", "");
     typing.innerHTML = '<span class="ffc-dots"><span></span><span></span><span></span></span>';
-    var acc = "", started = false;
+    var acc = "", started = false, stop = null;
     try {
       var token = await window.FF.getAccessToken();
       if (!token) { typing.textContent = "Your session expired — sign in again on the You tab."; busy = false; return; }
       var ctx = context();
+      inflight = new AbortController();
       var res = await fetch(window.FF.supabaseUrl + FN_PATH, {
-        method: "POST",
+        method: "POST", signal: inflight.signal,
         headers: { "Authorization": "Bearer " + token, "apikey": window.FF.anonKey, "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text, history: history.slice(0, -1).slice(-8),
+        body: JSON.stringify({ message: text, history: trimHistory(history.slice(0, -1).slice(-8)),
           profile: ctx.profile, targets: ctx.targets, score: ctx.score, recentLog: ctx.recentLog,
           brain: ctx.brain, readiness: ctx.readiness, memory: ctx.memory })
       });
@@ -233,10 +257,8 @@
         busy = false; return;
       }
       if (!res.ok || !res.body) {
-        var errBody = "";
-        try { errBody = (await res.text()).slice(0, 160); } catch (e) {}
         typing.classList.remove("bot"); typing.classList.add("note");
-        typing.textContent = "Coach error (HTTP " + res.status + ")" + (errBody ? ": " + errBody : "") + ".";
+        typing.textContent = "The coach hit a problem (" + res.status + ") — try again in a moment.";
         busy = false; return;
       }
       var reader = res.body.getReader(), dec = new TextDecoder(), buf = "";
@@ -251,19 +273,27 @@
             var ev = JSON.parse(line);
             if (ev.text) { if (!started) { typing.textContent = ""; started = true; } acc += ev.text; typing.innerHTML = mdToHtml(acc); log.scrollTop = log.scrollHeight; }
             else if (ev.error && !started) typing.textContent = "Sorry — the coach hit an error. Try again.";
+            else if (ev.done) stop = ev.stop || null;
           } catch (e) {}
         }
       }
-      if (!acc) typing.textContent = "Sorry — I didn't catch that. Try rephrasing?";
+      if (!acc) typing.textContent = stop === "refusal" ? "I can't help with that one — try asking it another way." : "Sorry — I didn't catch that. Try rephrasing?";
       else {
+        if (stop === "max_tokens") typing.innerHTML = mdToHtml(acc + "\n\n*(Cut short — ask me to keep going.)*");
+        else if (stop === "refusal") typing.innerHTML = mdToHtml(acc + "\n\n*(I can't help with that one — try asking it another way.)*");
         history.push({ role: "assistant", content: acc });
         rememberTurn(sheet.querySelector(".ffc-ctx").textContent, text, acc);
       }
     } catch (e) {
       typing.classList.remove("bot"); typing.classList.add("note");
-      typing.innerHTML = "Couldn't reach the coach (network/CORS). If you've deployed it, re-run the deploy after the latest fix, and check the function is set to <b>verify_jwt = false</b>.";
+      typing.textContent = (e && e.name === "AbortError") ? "Stopped." : "Couldn't reach the coach — check your connection and try again.";
     } finally {
+      // A send that got no answer must not leave a dangling user turn: the next
+      // request's history would then open or double up wrongly.
+      if (!acc && history.length && history[history.length - 1].role === "user" && history[history.length - 1].content === text) history.pop();
+      inflight = null;
       busy = false; sendBtn.disabled = false; if (!input.disabled) input.focus();
+      if (queued != null) { var q = queued; queued = null; send(q); }
     }
   }
 
@@ -301,7 +331,11 @@
         history = [];                 // fresh contextual thread
         wrap.classList.add("open"); document.body.style.overflow = "hidden";
         setCtx(label || "Personal to your plan");
-        if (signedIn() && backendReady()) { log.innerHTML = ""; setComposer(true); send(prompt); }
+        if (signedIn() && backendReady()) {
+          log.innerHTML = ""; setComposer(true);
+          if (busy) { queued = prompt; if (inflight) inflight.abort(); }
+          else send(prompt);
+        }
         else degradedState();         // signed out / not deployed → explain, don't blank
       }
     };

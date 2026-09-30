@@ -17,7 +17,7 @@
 
   // Everything the app persists to localStorage — the full progress blob.
   // ff_start = the plan's start date (so the calendar/week follows you across devices).
-  var KEYS = ["fairwayfuel", "ff_week", "ff_log", "ff_body", "ff_start", "ff_planview", "ff_swaps", "ff_onboarded", "ff_handle", "ff_kcal_adj", "ff_lastcheckin", "ff_gameday", "ff_foodprefs", "ff_insights_seen", "ff_region", "ff_zip", "ff_tips_seen", "ff_history", "ff_deleted", "ff_rest", "ff_skipped_sessions", "ff_goalyds", "ff_speedtest", "ff_mobility", "ff_event", "ff_fuel", "ff_rounds", "ff_coach_memory", "ff_weekly_reviews", "ff_readiness"];
+  var KEYS = ["fairwayfuel", "ff_week", "ff_log", "ff_body", "ff_start", "ff_planview", "ff_swaps", "ff_onboarded", "ff_handle", "ff_kcal_adj", "ff_lastcheckin", "ff_gameday", "ff_foodprefs", "ff_insights_seen", "ff_region", "ff_zip", "ff_tips_seen", "ff_history", "ff_deleted", "ff_rest", "ff_skipped_sessions", "ff_goalyds", "ff_speedtest", "ff_mobility", "ff_event", "ff_fuel", "ff_rounds", "ff_coach_memory", "ff_weekly_reviews", "ff_readiness", "ff_opening_round_complete"];
 
   // Disabled until configured.
   if (!SUPABASE_URL || !SUPABASE_ANON) return;
@@ -87,7 +87,25 @@
     ensureSb().then(function () { try { openModal(); } catch (e) {} })
       .catch(function () { alert("Couldn\u2019t reach the sign-in service \u2014 check your connection and try again."); });
   };
-  window.FF.signOut = function () { if (sb) try { sb.auth.signOut(); } catch (e) {} };
+  // Sign-out also removes this browser's reminder subscription (the server would
+  // otherwise keep pushing the signed-out user's reminders here). Local data and
+  // its owner mark stay: the same user signing back in merges as usual, and a
+  // DIFFERENT user is asked before anything is combined (see syncOnLogin).
+  window.FF.signOut = async function () {
+    try {
+      if (user && "serviceWorker" in navigator) {
+        var reg = await Promise.race([navigator.serviceWorker.ready, new Promise(function (r) { setTimeout(r, 1500); })]);
+        var sub = reg && reg.pushManager ? await reg.pushManager.getSubscription() : null;
+        if (sub) { await window.FF.pushRemove(sub.endpoint); try { await sub.unsubscribe(); } catch (e) {} }
+      }
+    } catch (e) {}
+    try {                                    // this browser no longer has server reminders
+      localStorage.removeItem("ff_push_on"); localStorage.removeItem("ff_push_sig");
+      window.dispatchEvent(new Event("ff-external-write"));
+    } catch (e) {}
+    loginSynced = null;
+    if (sb) try { await sb.auth.signOut(); } catch (e) {}
+  };
 
   // Permanently delete the account + all synced data (App Store requirement).
   // Server-side deletion (auth user + cascaded rows) happens in the
@@ -131,17 +149,20 @@
   // Reads work for anyone (anon read of opted-in rows via RLS); writes require
   // a signed-in user and only ever touch that user's own row.
   window.FF.leaderboard = {
-    list: async function (board, limit) {
+    list: async function (board, limit, weekStart) {
       var col = board === "speed" ? "speed"
               : board === "streak" ? "streak"
               : board === "week" ? "week_sessions"
               : "score";
       try {
         await ensureSb();
-        var r = await sb.from("leaderboard")
+        var q = sb.from("leaderboard")
           .select("handle,score,speed,streak,sessions,goal,speed_gain,week_sessions,week_start")
-          .eq("opted_in", true).not(col, "is", null)
-          .order(col, { ascending: false }).limit(limit || 50);
+          .eq("opted_in", true).not(col, "is", null);
+        // The weekly board only ranks THIS week's rows — otherwise last week's
+        // high counts fill the top 50 every Monday and the board reads empty.
+        if (board === "week" && weekStart) q = q.eq("week_start", weekStart);
+        var r = await q.order(col, { ascending: false }).limit(limit || 50);
         return r.error ? [] : (r.data || []);
       } catch (e) { return []; }
     },
@@ -198,6 +219,8 @@
   var lastRev = null;        // profiles.rev we last saw (null = not read yet)
   var revMode = true;        // false → the project's schema predates the rev column: legacy blind upsert
   var pushing = false;
+  var loginSynced = null;    // uid whose login merge has completed on this page — pushes wait for it
+  var loginSyncing = null;   // in-flight syncOnLogin promise (never run two at once)
 
   // Supabase/PostgREST error for a column the schema doesn't have yet — the
   // signal to fall back to the pre-rev sync path until schema.sql is re-applied.
@@ -234,11 +257,42 @@
     return JSON.stringify(blob);
   }
 
+  // ---- Settings base (three-way merge) ----
+  // Settings (keys without a MERGE entry) used to be "cloud wins" on every
+  // conflict, which silently reverted a change made on this device whenever ANY
+  // other device had pushed in between. Now each device remembers a fingerprint
+  // of every setting as of its last agreed sync (ff_sync_base, device-local):
+  // if the cloud still holds that base value and this device changed it, the
+  // local edit wins; if the cloud changed it, the cloud wins.
+  var BASE_KEY = "ff_sync_base", OWNER_KEY = "ff_sync_owner";
+  function fp(v) {                       // small stable fingerprint (djb2 over key-sorted JSON)
+    if (v === undefined) return null;
+    var str = stable(v), h = 5381;
+    for (var i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) | 0;
+    return str.length + ":" + h;
+  }
+  function isSetting(k) { return !MERGE[k] && k !== "ff_deleted"; }
+  function baseFrom(obj) {
+    var b = {};
+    KEYS.forEach(function (k) { if (isSetting(k)) b[k] = fp(obj[k]); });
+    return b;
+  }
+  function loadBase() {
+    try {
+      var b = JSON.parse(localStorage.getItem(BASE_KEY) || "null");
+      return (b && user && b.uid === user.id && b.h) ? b.h : null;
+    } catch (e) { return null; }
+  }
+  function saveBase(obj) {
+    try { if (user) localStorage.setItem(BASE_KEY, JSON.stringify({ uid: user.id, h: baseFrom(obj) })); } catch (e) {}
+  }
+
   function writeBlob(str) {
     try {
       var blob = JSON.parse(str) || {};
       KEYS.forEach(function (k) {
         if (blob[k] != null) localStorage.setItem(k, JSON.stringify(blob[k]));
+        else localStorage.removeItem(k);   // a setting another device deliberately cleared (e.g. plan restart)
       });
       // The app memoizes parsed reads (lsGet cache) — tell it these keys just
       // changed underneath it, or a post-merge render could show stale data.
@@ -254,7 +308,10 @@
   // from silently overwriting each other between logins — before this guard,
   // whichever device pushed last erased the other's changes wholesale.
   async function push() {
-    if (!user || pushing) return;
+    // Never push before this page's login merge: a cold open with an expired
+    // token emits TOKEN_REFRESHED/INITIAL_SESSION (not SIGNED_IN), and pushing
+    // then would overwrite the cloud with this device's stale, unmerged state.
+    if (!user || pushing || loginSynced !== user.id) return;
     if (snapshot() === lastSnapshot) return;
     pushing = true;
     lastPushAt = Date.now();
@@ -266,7 +323,7 @@
           var res = await sb.from("profiles").upsert({
             id: user.id, data: JSON.parse(snap), updated_at: new Date().toISOString()
           });
-          if (!res.error) { lastSnapshot = snap; noteSync(true); }
+          if (!res.error) { lastSnapshot = snap; saveBase(JSON.parse(snap)); noteSync(true); }
           else noteSync(false, res.error);
           break;
         }
@@ -276,7 +333,7 @@
           if (pre.error) { if (isMissingRev(pre.error)) { revMode = false; continue; } noteSync(false, pre.error); break; }
           if (!pre.data) {         // no row yet (very old account / trigger raced) → seed one
             var ins = await sb.from("profiles").insert({ id: user.id, data: JSON.parse(snap), rev: 1 }).select("rev");
-            if (!ins.error) { lastRev = 1; lastSnapshot = snap; noteSync(true); break; }
+            if (!ins.error) { lastRev = 1; lastSnapshot = snap; saveBase(JSON.parse(snap)); noteSync(true); break; }
             if (isMissingRev(ins.error)) { revMode = false; continue; }
             continue;              // row appeared concurrently → retry via the guarded path
           }
@@ -292,13 +349,13 @@
           if (isMissingRev(r.error)) { revMode = false; continue; }
           noteSync(false, r.error); break;
         }
-        if (r.data && r.data.length) { lastRev = base + 1; lastSnapshot = snap; noteSync(true); break; }
+        if (r.data && r.data.length) { lastRev = base + 1; lastSnapshot = snap; saveBase(JSON.parse(snap)); noteSync(true); break; }
 
         // Conflict: pull the newer cloud blob, merge additively, retry with the result.
         var cur = await sb.from("profiles").select("data,rev").eq("id", user.id).maybeSingle();
         if (cur.error || !cur.data) { noteSync(false, (cur && cur.error) || new Error("conflict re-read failed")); break; }
         var localObj; try { localObj = JSON.parse(snapshot()); } catch (e) { localObj = {}; }
-        writeBlob(JSON.stringify(mergeBlob(localObj, cur.data.data || {})));
+        writeBlob(JSON.stringify(mergeBlob(localObj, cur.data.data || {}, loadBase())));
         lastRev = cur.data.rev || 0;
         if (attempt === 2) noteSync(false, new Error("sync conflict persisted — will retry"));
       }
@@ -349,7 +406,9 @@
     cloud = (cloud && typeof cloud === "object") ? cloud : {};
     var out = {};
     Object.keys(cloud).forEach(function (k) { out[k] = cloud[k]; });
-    Object.keys(local).forEach(function (k) { if (!(k in out) || local[k] > out[k]) out[k] = local[k]; });
+    // Values are timestamps; a NEGATIVE value is a timestamped "unset" (e.g. a rest
+    // day un-checked), so the most recent action — set or unset — wins by magnitude.
+    Object.keys(local).forEach(function (k) { if (!(k in out) || Math.abs(local[k]) > Math.abs(out[k])) out[k] = local[k]; });
     return out;
   }
   // Canonical per-day key for a body entry: the schema-v1 `iso` field when
@@ -370,11 +429,14 @@
     local = Array.isArray(local) ? local : [];
     cloud = Array.isArray(cloud) ? cloud : [];
     var byDate = {}, loose = [];
-    cloud.concat(local).forEach(function (e) {           // local last → its fields win
+    // Same day on both sides: fields merge, and the NEWER edit (ts) wins a field
+    // both sides set — so a same-day correction on one device isn't undone by a
+    // stale copy on another. Ties keep local (the order below).
+    cloud.concat(local).forEach(function (e) {
       if (!e) return;
       if (!e.date && !e.iso) { loose.push(e); return; }
-      var k = bodyKey(e);
-      byDate[k] = Object.assign({}, byDate[k], e);
+      var k = bodyKey(e), prev = byDate[k];
+      byDate[k] = (prev && (prev.ts || 0) > (e.ts || 0)) ? Object.assign({}, e, prev) : Object.assign({}, prev, e);
       if (!byDate[k].iso && /^\d{4}-\d{2}-\d{2}$/.test(k)) byDate[k].iso = k;   // backfill canonical identity
     });
     var out = Object.keys(byDate).map(function (k) { return byDate[k]; });
@@ -394,7 +456,9 @@
       if (!byId[id] || (e.ts || 0) >= (byId[id].ts || 0)) byId[id] = e;
     });
     var out = Object.keys(byId).map(function (k) { return byId[k]; });
-    out.sort(function (a, b) { return (b.ts || 0) - (a.ts || 0); });
+    // Newest finish first: doneTs is the real finish time when an entry was later
+    // re-saved or restored (ts then only marks the last edit, for merges).
+    out.sort(function (a, b) { return (b.doneTs || b.ts || 0) - (a.doneTs || a.ts || 0); });
     return out;
   }
   // Generic additive series: array of timestamped entries — union by key, newer
@@ -464,15 +528,27 @@
     ff_fuel:      unionFuel,
     ff_weekly_reviews: unionWeeklyReviews
   };
-  function mergeBlob(local, cloud) {
+  function mergeBlob(local, cloud, base) {
     local = local || {}; cloud = cloud || {};
     var out = {};
     KEYS.forEach(function (k) {
-      if (MERGE[k]) out[k] = MERGE[k](local[k], cloud[k]);
-      else if (cloud[k] !== undefined) out[k] = cloud[k];   // settings: cloud wins on conflict
-      else if (local[k] !== undefined) out[k] = local[k];
+      if (MERGE[k]) { out[k] = MERGE[k](local[k], cloud[k]); return; }
+      var lf = fp(local[k]), cf = fp(cloud[k]), v;
+      if (lf === cf) v = cloud[k];
+      // Only THIS device changed it since the last agreed sync → keep the local
+      // edit (including a deliberate removal). Otherwise the cloud wins.
+      else if (base && Object.prototype.hasOwnProperty.call(base, k) && cf === base[k]) v = local[k];
+      else v = (cloud[k] !== undefined) ? cloud[k] : local[k];
+      if (v !== undefined) out[k] = v;
     });
-    Object.keys(local).forEach(function (k) { if (out[k] === undefined) out[k] = local[k]; });
+    Object.keys(local).forEach(function (k) { if (KEYS.indexOf(k) === -1 && out[k] === undefined) out[k] = local[k]; });
+    // Rest check-offs and skip marks are keyed "week|day": anything recorded before
+    // the current plan's start belongs to an earlier season and must not reappear.
+    var startTs = out.ff_start ? Date.parse(out.ff_start) : NaN;
+    if (!isNaN(startTs)) ["ff_rest", "ff_skipped_sessions"].forEach(function (k) {
+      if (!out[k] || typeof out[k] !== "object") return;
+      Object.keys(out[k]).forEach(function (wk) { if (Math.abs(out[k][wk]) < startTs) delete out[k][wk]; });
+    });
     // Apply deletions last so a cleared workout stays gone across devices — unless it was
     // re-logged / re-finished AFTER the delete (a newer timestamp beats the tombstone).
     var del = unionDeleted(local.ff_deleted, cloud.ff_deleted);
@@ -493,35 +569,89 @@
     return out;
   }
 
-  // On login: seed the cloud from this device if empty, otherwise pull the cloud down.
+  // Does this device hold real app data (not just defaults)?
+  function localHasData() {
+    return ["ff_log", "ff_history", "ff_body", "ff_start", "fairwayfuel"].some(function (k) {
+      return localStorage.getItem(k) != null;
+    });
+  }
+  function wipeLocal() {
+    try {
+      var drop = [];
+      for (var i = 0; i < localStorage.length; i++) {
+        var k = localStorage.key(i);
+        if (k === "fairwayfuel" || k.indexOf("ff_") === 0) drop.push(k);
+      }
+      drop.forEach(function (k) { localStorage.removeItem(k); });
+      window.dispatchEvent(new Event("ff-external-write"));
+    } catch (e) {}
+  }
+
+  // On login (and on every page's first authenticated event): seed the cloud from
+  // this device if empty, otherwise merge both sides. Runs once at a time; pushes
+  // stay blocked until it has finished for this user.
+  function runLoginSync() {
+    if (!user || loginSyncing) return loginSyncing;
+    loginSyncing = syncOnLogin().catch(function (e) { noteSync(false, e); })
+      .then(function () { loginSyncing = null; });
+    return loginSyncing;
+  }
   async function syncOnLogin() {
+    var uid = user.id;
+    // A different account's data on this device is never merged silently into
+    // this account (that used to copy one person's workouts, weight and coach
+    // memory into another's cloud row on a shared phone).
+    var owner = null; try { owner = localStorage.getItem(OWNER_KEY); } catch (e) {}
+    if (owner && owner !== uid && localHasData()) {
+      var ok = confirm("This device has Yardsmith data from a different account.\n\n" +
+        "OK: replace it with this account\u2019s data (the other account keeps its own synced copy).\n" +
+        "Cancel: sign out and leave this device as it is.");
+      if (!ok) { try { await sb.auth.signOut(); } catch (e) {} return; }
+      wipeLocal();
+      try { localStorage.setItem(OWNER_KEY, uid); } catch (e) {}
+      try { sessionStorage.removeItem("ff_synced_once"); } catch (e) {}
+      location.reload();   // the page still holds the other account's state in memory
+      return;
+    }
+
     var row;
     try {
-      var r = await sb.from("profiles").select("data,rev").eq("id", user.id).maybeSingle();
+      var r = await sb.from("profiles").select("data,rev").eq("id", uid).maybeSingle();
       if (r.error && isMissingRev(r.error)) {   // schema not migrated yet → pre-rev select
         revMode = false;
-        r = await sb.from("profiles").select("data").eq("id", user.id).maybeSingle();
+        r = await sb.from("profiles").select("data").eq("id", uid).maybeSingle();
       }
       if (r.error) { noteSync(false, r.error); return; }
       row = r.data;
     } catch (e) { noteSync(false, e); return; }
+    if (!user || user.id !== uid) return;      // signed out / switched while reading
     lastRev = row ? (row.rev || 0) : null;
+    try { localStorage.setItem(OWNER_KEY, uid); } catch (e) {}
 
-    if (!row || row.data == null) {            // first login anywhere → seed from local
-      lastSnapshot = null; await push();
+    // A backup restore is the user's explicit choice: push it as-is (CAS on the
+    // current rev) instead of merging, so cloud tombstones and cloud settings
+    // can't undo the restore.
+    var restoring = false; try { restoring = !!sessionStorage.getItem("ff_restore_pending"); } catch (e) {}
+    if (restoring) try { sessionStorage.removeItem("ff_restore_pending"); } catch (e) {}
+
+    if (!row || row.data == null || restoring) { // first login anywhere (or a restore) → local is the truth
+      loginSynced = uid; lastSnapshot = null; await push();
       return;
     }
     var localObj; try { localObj = JSON.parse(snapshot()); } catch (e) { localObj = {}; }
     if (stable(row.data) === stable(localObj)) { // already in sync (ignoring key order)
-      lastSnapshot = JSON.stringify(row.data);
+      lastSnapshot = snapshot();                 // local serialization — jsonb reorders keys
+      saveBase(localObj);
+      loginSynced = uid;
       noteSync(true);
       return;
     }
     // Merge (don't overwrite): union the additive logs so a completed workout or body
     // entry on EITHER side survives, then push the merged result so the cloud catches up.
-    var mergedObj = mergeBlob(localObj, row.data);
+    var mergedObj = mergeBlob(localObj, row.data, loadBase());
     var localChanged = stable(mergedObj) !== stable(localObj);
     writeBlob(JSON.stringify(mergedObj));
+    loginSynced = uid;
     lastSnapshot = null;                        // force the merged state up to the cloud
     await push();
     // Only reload if the merge actually changed what's on this device — and only once,
@@ -675,7 +805,12 @@
     closeModal();
     // Let coach.js (and anything else) react to login/logout.
     try { window.dispatchEvent(new CustomEvent("ff-auth", { detail: { user: user } })); } catch (e) {}
-    if (event === "SIGNED_IN" && user) syncOnLogin();
+    if (!user) { loginSynced = null; return; }
+    if (loginSynced && loginSynced !== user.id) loginSynced = null;
+    // SIGNED_IN (fresh login / refocus) always re-merges; INITIAL_SESSION and
+    // TOKEN_REFRESHED (a cold open with a stored or expired session) merge once per page.
+    if (event === "SIGNED_IN" || ((event === "INITIAL_SESSION" || event === "TOKEN_REFRESHED") && loginSynced !== user.id))
+      runLoginSync();
   }
   // Boot: only wake the SDK when there's something for it to do — a stored
   // session to restore, or magic-link tokens in the URL to consume. A fresh
@@ -701,7 +836,11 @@
 
   // Safety net only — real changes arrive via ff-data-changed, so this just
   // catches anything that slipped past the event (30s is plenty).
-  setInterval(function () { if (user) push(); }, 30000);
+  setInterval(function () {
+    if (!user) return;
+    if (loginSynced !== user.id) runLoginSync();   // an earlier login merge failed (offline) → retry
+    else push();
+  }, 30000);
   window.addEventListener("pagehide", function () { if (user) push(); });
   document.addEventListener("visibilitychange", function () {
     if (document.visibilityState === "hidden" && user) push();

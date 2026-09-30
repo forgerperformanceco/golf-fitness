@@ -40,8 +40,24 @@ Deno.serve(async(req)=>{
   if(req.method==="OPTIONS") return preflight(req);
   if(req.method!=="POST") return json(req,{error:"POST only"},405);
   if(Number(req.headers.get("content-length")||0)>2048) return json(req,{error:"too_large"},413);
+  // Read with a hard byte cap (chunked uploads carry no content-length), and
+  // accept only a JSON object — `null` or an array would crash the field reads.
   let raw:Record<string,unknown>;
-  try{raw=await req.json();}catch(_){return json(req,{error:"invalid_json"},400);}
+  try{
+    const chunks:Uint8Array[]=[]; let size=0;
+    const reader=req.body?req.body.getReader():null;
+    while(reader){
+      const r=await reader.read(); if(r.done) break;
+      size+=r.value.byteLength;
+      if(size>2048){ try{ await reader.cancel(); }catch(_){}; return json(req,{error:"too_large"},413); }
+      chunks.push(r.value);
+    }
+    const buf=new Uint8Array(size); let off=0;
+    for(const c of chunks){ buf.set(c,off); off+=c.byteLength; }
+    const parsed=JSON.parse(new TextDecoder().decode(buf));
+    if(!parsed||typeof parsed!=="object"||Array.isArray(parsed)) return json(req,{error:"invalid_json"},400);
+    raw=parsed as Record<string,unknown>;
+  }catch(_){return json(req,{error:"invalid_json"},400);}
   const event=token(raw.event);
   if(typeof event!=="string"||!EVENTS.has(event)) return json(req,{error:"invalid_event"},400);
   const properties:Record<string,string|number|boolean>={};

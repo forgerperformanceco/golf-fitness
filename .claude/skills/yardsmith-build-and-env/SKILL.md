@@ -345,7 +345,7 @@ placeholder-only template with four sections:
 2. **Supabase service role, SERVER ONLY** — `SUPABASE_SERVICE_ROLE_KEY`
    (bypasses RLS; set via `supabase secrets set`, used by paddle-webhook).
 3. **Anthropic, SERVER ONLY** — `ANTHROPIC_API_KEY`, `AI_COACH_MODEL`
-   (default `claude-opus-4-8`; cheaper options noted in-file).
+   (default `claude-sonnet-5-5`; other options noted in-file).
 4. **Paddle** — `PADDLE_WEBHOOK_SECRET` (server only), `PADDLE_CLIENT_TOKEN`
    (browser-safe), `PADDLE_ENV` (sandbox/production), monthly/annual price
    IDs.

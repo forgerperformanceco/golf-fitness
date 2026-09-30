@@ -159,13 +159,14 @@ functions)" → Run workflow).
 1. **Hard-fails without the `SUPABASE_ACCESS_TOKEN` repo secret** (lines
    29–32). Detects optional `ANTHROPIC_API_KEY` (lines 34–42) — missing is a
    warning, not an error.
-2. **Applies `supabase/schema.sql` via the Supabase Management API** (lines
-   48–61): `jq -Rs` wraps the whole file as one query and POSTs it to
-   `https://api.supabase.com/v1/projects/tbwmckmyzoxzhpqlomsp/database/query`
-   with the access token as Bearer — deliberately **no database password**
-   anywhere. `schema.sql` is written idempotent (`IF NOT EXISTS` / `ADD COLUMN
-   IF NOT EXISTS`), so re-applying the whole file on every push is the
-   intended path. HTTP ≥ 300 fails the job with the response printed.
+2. **Does NOT apply the database schema** (changed in #74, "Use MCP for
+   database deployments"). Schema changes ship as files in
+   `supabase/migrations/` (mirrored into the idempotent `supabase/schema.sql`)
+   and are applied to the live project by hand (Supabase MCP `apply_migration`
+   or the SQL editor). CI's `quality.yml` database job does run every migration
+   against a local Supabase (`supabase start` + `supabase test db`), so a broken
+   migration fails the PR. **Check `list_migrations` on the live project after
+   merging any migration.**
 3. **Deploys Edge Functions via the Supabase CLI** (`supabase/setup-cli@v1`):
    - `delete-account` — **always** (needs no extra secret; Supabase injects
      SUPABASE_URL / ANON / SERVICE_ROLE into every function).
@@ -351,7 +352,7 @@ placeholders only.
 | `PADDLE_CLIENT_TOKEN` | browser-safe (future) | Not wired yet — for Paddle.js checkout when billing turns on |
 | `SUPABASE_SERVICE_ROLE_KEY` | server-only | Injected into Edge Functions by Supabase automatically; never in client code |
 | `ANTHROPIC_API_KEY` | server-only | Edge Function secret (set by deploy-functions.yml from the repo secret) |
-| `AI_COACH_MODEL` | server-only config | Function secret; default `claude-opus-4-8` (`.env.example`) |
+| `AI_COACH_MODEL` | server-only config | Function secret; default `claude-sonnet-5-5` in code (`.env.example`) |
 | `ALLOWED_ORIGIN` | server-only config | Function secret; CORS origin override, defaults to `https://yardsmith.golf` (`supabase/functions/_shared/cors.ts:11`) |
 | `PADDLE_WEBHOOK_SECRET` | server-only | Function secret for `paddle-webhook` (manual, when billing turns on) |
 | `VAPID_PRIVATE_KEY` | server-only | `push-daily` function secret ONLY. Not in the repo, not in `.env.example`. PUSH-SETUP.md: "handed over in the build session that shipped this" — i.e. it exists only in Supabase secrets (+ a past chat). |

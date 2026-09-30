@@ -58,6 +58,8 @@ jobs:
 
       - name: Deploy every Edge Function
         run: |
-          for fn in delete-account ai-coach paddle-webhook push-daily product-health; do
+          # paddle-webhook is left out until billing launches and its secret exists
+          # (deployed without PADDLE_WEBHOOK_SECRET it can only ever return 500).
+          for fn in delete-account ai-coach push-daily product-health; do
             supabase functions deploy "$fn" --project-ref "$PROJECT_REF"
           done

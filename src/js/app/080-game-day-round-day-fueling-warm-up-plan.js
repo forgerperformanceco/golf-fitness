@@ -73,6 +73,7 @@
     var date=new Date(); date.setDate(date.getDate()+offset);
     var dop=dayOfPlan(), slots=stripDays(), wk=curWeek();
     if(dop==null) return {skip:true,kind:"none",d:ffLocalISO(date)};
+    if(typeof seasonComplete==="function" && seasonComplete()) return {skip:true,kind:"none",d:ffLocalISO(date)};   // season over: no plan nudges
     var day=slots[(dop-1+offset)%7]||{}, rest=day.type==="rest";
     var planWeek=Math.min(20,wk+Math.floor((Math.max(1,dop)+offset-1)/7));
     if(offset===0){
@@ -206,7 +207,7 @@
         return r;
       });
     }).then(function(r){
-      if(r && r.ok){ lsSet("ff_push_on", true); return true; }
+      if(r && r.ok){ if(lsGet("ff_push_on",false)!==true) lsSet("ff_push_on", true); return true; }   // write only on change: every lsSet fires ff-data-changed, which resyncs
       return false;
     });
   }
@@ -223,6 +224,19 @@
         .then(function(){ return sub.unsubscribe(); });
     }).catch(function(){});
   }
+  // Finishing or skipping a session, checking off rest or logging a round changes
+  // what today's reminder should say (or whether it should fire at all). Rebuild
+  // both schedules shortly after any data change — the push payload is
+  // hash-deduped, so unchanged schedules cost nothing.
+  var ffRemindTimer=null;
+  window.addEventListener("ff-data-changed", function(){
+    if(ffRemindTimer) clearTimeout(ffRemindTimer);
+    ffRemindTimer=setTimeout(function(){
+      ffRemindTimer=null;
+      try{ ffNotifReschedule(); }catch(e){}
+      try{ ffPushResync(); }catch(e){}
+    }, 4000);
+  });
   // Keep the server's 7-day schedule fresh (mirrors ffNotifReschedule for Capacitor).
   function ffPushResync(){
     if(!lsGet("ff_push_on",false) || !ffPushCapable() || Notification.permission!=="granted") return Promise.resolve();
@@ -392,11 +406,24 @@
         if(!looksRight){ alert("That file doesn't look like a Yardsmith backup."); return; }
         var when=(obj&&obj.exported)?(" from "+String(obj.exported).slice(0,10)):"";
         if(!confirm("Restore the backup"+when+"?\n\nThis replaces the data on this device with the file's contents."+
-          ((window.FF&&window.FF.user)?" It then syncs to your account (workout history merges, it isn't lost).":""))) return;
+          ((window.FF&&window.FF.user)?" It then replaces what's saved in your account, too.":""))) return;
+        // A restore is the user's explicit choice, so it must beat newer cloud state:
+        // restored workouts get fresh edit stamps (older delete tombstones can't
+        // remove them again), history keeps its real finish time in doneTs, and the
+        // next sync pushes this state as-is instead of merging (cloud-sync.js).
+        // Sync bookkeeping (ff_sync_*) is never taken from a file.
+        var now=Date.now();
+        if(data.ff_log && typeof data.ff_log==="object") Object.keys(data.ff_log).forEach(function(k){
+          var s=data.ff_log[k]; if(s && typeof s==="object") s._ts=now; });
+        if(Array.isArray(data.ff_history)) data.ff_history.forEach(function(h){
+          if(h && typeof h==="object"){ if(h.doneTs==null) h.doneTs=h.ts; h.ts=now; } });
+        data.ff_deleted={};
         Object.keys(data).forEach(function(k){
           if(k!=="fairwayfuel" && k.indexOf("ff_")!==0) return;
+          if(k.indexOf("ff_sync_")===0) return;
           try{ localStorage.setItem(k, JSON.stringify(data[k])); }catch(e){}
         });
+        try{ sessionStorage.setItem("ff_restore_pending","1"); }catch(e){}
         try{ window.dispatchEvent(new Event("ff-external-write")); }catch(e){}   // bust the lsGet cache (raw writes above)
         try{ window.dispatchEvent(new Event("ff-data-changed")); }catch(e){}
         alert("Backup restored ✓");
@@ -659,7 +686,13 @@
       renderAccount(); try{ renderPhase(); }catch(_){} try{ renderDash(); }catch(_){}
     }
     var evd=$("acctEvDate"); if(evd) evd.onchange=evSave;
-    var evn=$("acctEvName"); if(evn) evn.onchange=evSave;
+    // Typing a name before picking a date must not save (no date = no event) or
+    // re-render — that wiped the name and swallowed the tap on the date field.
+    // With a date already set, the name updates quietly in place.
+    var evn=$("acctEvName"); if(evn) evn.onchange=function(){
+      var d=($("acctEvDate")||{}).value||"";
+      if(d) lsSet("ff_event", { date:d, name:(evn.value||"").trim() });
+    };
     var evc=$("acctEvClear"); if(evc) evc.onclick=function(){ lsRemove("ff_event");
       renderAccount(); try{ renderPhase(); }catch(_){} try{ renderDash(); }catch(_){} };
     var th=$("acctTheme"); if(th) th.onclick=function(ev){

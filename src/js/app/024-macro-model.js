@@ -15,7 +15,14 @@
     var referenceLb=Math.min(weightLb,bmi30Lb||weightLb);
     var proteinG=ffRound5(referenceLb*proteinPerLb);
     var fatG=ffRound5(ffClamp(referenceLb*fatPerLb,45,100));
+    // Safety floor: check-in nudges and small bodies must never prescribe below a
+    // sane minimum (input.floorKcal, e.g. 1200 women / 1500 men). And the shown
+    // target is never below protein+fat alone, so screen, stored targets and the
+    // coach all agree on one number.
+    var floorKcal=Math.max(0,Number(input.floorKcal)||0);
+    target=Math.max(target,floorKcal);
     var carbG=ffRound5(Math.max(0,(target-proteinG*4-fatG*9)/4));
-    return { target:target, referenceLb:referenceLb, proteinG:proteinG, fatG:fatG, carbG:carbG,
+    target=Math.max(target,proteinG*4+fatG*9+carbG*4);
+    return { target:target, floored:floorKcal>0 && target===floorKcal, referenceLb:referenceLb, proteinG:proteinG, fatG:fatG, carbG:carbG,
       proteinKcal:proteinG*4, fatKcal:fatG*9, carbKcal:carbG*4 };
   }

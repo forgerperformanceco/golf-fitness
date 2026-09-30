@@ -91,9 +91,10 @@ chatbot output.
   recent `ff_log`/`ff_body`/clubhead-speed trend are passed as a compact context
   block in the user turn. The coach can then say "you're 15g under your carb target
   and your 7-iron speed stalled two weeks — here's the fix," not platitudes.
-- **Model:** default `claude-opus-4-8` for quality; `claude-sonnet-4-6` /
-  `claude-haiku-4-5` are drop-in cheaper options for high-volume/low-stakes turns
-  (noted in the function). Adaptive thinking on; streaming for long answers.
+- **Model:** default `claude-sonnet-5-5` (fast, strong, half Opus's price) with
+  server-side refusal fallback; `claude-opus-5-5` for more depth or
+  `claude-haiku-4-5` for cheaper turns via `AI_COACH_MODEL`. Adaptive thinking on
+  at medium effort; streaming; cut-off and declined answers are flagged to the user.
 
 **Use cases that justify the subscription:**
 - "Build me today's meals from my macros and what's in my fridge."

@@ -1,6 +1,9 @@
   /* ===================== INLINE LOGGER (log as you train, in the card) ===================== */
   var ilog=null, restEnd=0, restTimer=null, openWhy={};
-  function isBarbell(n){ return /Back Squat|Front Squat|Barbell|Bench Press|Deadlift|Overhead Press|Romanian|Hip Thrust|Pendlay|Bent.?Over Row|Hang Power Clean/i.test(n) && !/\bDB\b|Dumbbell|Cable|Machine|Smith|Band/i.test(n); }
+  // Plate math only for real barbell lifts: a "Kettlebell Deadlift" is not one. "A / B"
+  // names are primary / fallback, so only the primary part is classified.
+  function isBarbell(n){ n=String(n||"").split(" / ")[0];
+    return /Back Squat|Front Squat|Barbell|Bench Press|Deadlift|Overhead Press|Romanian|Hip Thrust|Pendlay|Bent.?Over Row|Hang Power Clean/i.test(n) && !/\bDB\b|Dumbbell|Cable|Machine|Smith|Band|Kettlebell|\bKB\b/i.test(n); }
   function platesFor(total){
     var per=(parseFloat(total)-45)/2; if(!(per>0)) return parseFloat(total)===45?"just the bar":"";
     var plates=[45,35,25,10,5,2.5], out=[], rem=per;
@@ -14,28 +17,30 @@
     var wv=waveFor(week);
     s.ex.forEach(function(x, xi){
       var lx=null; if(last) last.ex.forEach(function(e){ if(e.name===x.name) lx=e; });
-      var ready=progressReady(lx, x.target);
+      // Same load read as the player + modal logger (077 ffDose): on a recovery-dose
+      // day the placeholders drop to ~75% and the "add weight" nudge stays hidden.
+      var ready=ffDose(null, x, lx, week, s).bump;
       var hasLastW=!!(lx && lx.sets.some(function(st){ return st.w; }));
       var bw=isBodyweightEx(x.name);   // box/broad/squat jumps etc. — no weight field
       var setsHtml="";
       x.sets.forEach(function(st, si){
         tot++; if(st.done) done++;
         var pw=(lx&&lx.sets[si]&&lx.sets[si].w)?lx.sets[si].w:null, pr=(lx&&lx.sets[si]&&lx.sets[si].r)?lx.sets[si].r:null;
-        var prev = bw ? (pr?(pr+' reps'):'–') : (pw ? (pw+' × '+(pr||'–')) : '–');
+        var prev = ffEsc(bw ? (pr?(pr+' reps'):'–') : (pw ? (pw+' × '+(pr||'–')) : '–'));
         // Prescribed load leads: the weight placeholder shows what to lift TODAY
         // (deload ~60%, progression-ready last + one jump); PREVIOUS keeps the raw history.
-        var sug=prescribeW(pw, x.name, ready, wv);
+        var sug=ffDose(pw, x, lx, week, s).w;
         var pm=(!bw&&isBarbell(x.name)&&st.w)?platesFor(st.w):"";
         setsHtml+='<div class="il-set'+(st.done?" done":"")+'">'+
           '<span class="il-sn">'+(si+1)+'</span>'+
           '<button class="il-prev" data-x="'+xi+'" data-s="'+si+'" data-prevfill="1"'+((pw||(bw&&pr))?'':' disabled')+'>'+prev+'</button>'+
           (bw ? '<span class="il-in il-bw" aria-label="bodyweight">BW</span>'
-              : '<input class="il-in" type="number" inputmode="decimal" placeholder="'+escAttr(sug!=null?sug:(pw||""))+'" value="'+(st.w||"")+'" data-x="'+xi+'" data-s="'+si+'" data-f="w"/>')+
-          '<input class="il-in" type="number" inputmode="numeric" placeholder="'+escAttr(pr!=null?pr:(isDistEx(x.target)?repSeed(x.target):""))+'" value="'+(st.r||"")+'" data-x="'+xi+'" data-s="'+si+'" data-f="r"/>'+
+              : '<input class="il-in" type="number" inputmode="decimal" placeholder="'+escAttr(sug!=null?sug:(pw||""))+'" value="'+escAttr(st.w||"")+'" data-x="'+xi+'" data-s="'+si+'" data-f="w"/>')+
+          '<input class="il-in" type="number" inputmode="numeric" placeholder="'+escAttr(pr!=null?pr:(isDistEx(x.target)?repSeed(x.target):""))+'" value="'+escAttr(st.r||"")+'" data-x="'+xi+'" data-s="'+si+'" data-f="r"/>'+
           '<button class="il-check'+(st.done?" on":"")+'" data-x="'+xi+'" data-s="'+si+'" data-idone="1" aria-label="set done">✓</button></div>'+
           (pm?'<div class="il-plates">🏋️ '+pm+'</div>':'');
       });
-      var rx = (wv==="deload" && hasLastW)
+      var rx = (wv==="deload" && hasLastW && !lx._reduced)
         ? ' · <button class="il-up" data-deloadfill="'+xi+'" title="Fill every set with ~60% of last time’s top weight">🪫 fill deload loads — tap</button>'
         : (ready ? ' · <button class="il-up" data-bumpfill="'+xi+'" title="Fill last time’s weight + '+incNum(x.name)+' lb">↑ add '+incNum(x.name)+' lb — tap to fill</button>' : '');
       html+='<div class="il-ex">'+
@@ -45,7 +50,7 @@
             '<button class="il-why" data-exhist="'+escAttr(x.name)+'" aria-label="Lift history">📊</button>'+
             '<button class="il-swap" data-swapx="'+escAttr(x.orig||x.name)+'" data-swapcur="'+escAttr(x.name)+'" data-swapix="'+xi+'" title="Swap this lift">⇄ Swap</button>'+
           '</div></div>'+
-        '<div class="il-sub">'+x.target+rx+'</div>'+
+        '<div class="il-sub">'+ffEsc(x.target)+rx+'</div>'+
         '<div class="il-why-box"'+(openWhy[xi]?"":" hidden")+'>'+whyHtml(x.name)+'</div>'+
         '<div class="il-cols"><span>SET</span><span>PREVIOUS</span><span>'+(bw?'LOAD':'LBS')+'</span><span>'+repWord(x.target).toUpperCase()+'</span><span></span></div>'+
         setsHtml+

@@ -56,6 +56,30 @@ function safeUrl(value: unknown, kind: string): string {
     : `./?go=dash&src=push&kind=${kind}`;
 }
 
+// Only real browser push services are valid destinations. Anything else in
+// push_subs (a user can write their own rows) could stall the hourly run with a
+// slow endpoint or turn this function into a VAPID-signed POST relay.
+const PUSH_HOSTS = [
+  /^fcm\.googleapis\.com$/, /^android\.googleapis\.com$/,
+  /^([a-z0-9-]+\.)*push\.services\.mozilla\.com$/,
+  /^web\.push\.apple\.com$/, /^([a-z0-9-]+\.)*notify\.windows\.com$/,
+];
+function allowedEndpoint(endpoint: string): boolean {
+  try {
+    const u = new URL(endpoint);
+    return u.protocol === "https:" && PUSH_HOSTS.some((re) => re.test(u.hostname));
+  } catch {
+    return false;
+  }
+}
+// Constant-time string compare for the cron secret.
+function sameSecret(a: string, b: string): boolean {
+  const x = new TextEncoder().encode(a), y = new TextEncoder().encode(b);
+  let diff = x.length ^ y.length;
+  for (let i = 0; i < Math.max(x.length, y.length); i++) diff |= (x[i] ?? 0) ^ (y[i] ?? 0);
+  return diff === 0;
+}
+
 function localNow(tz: string): { date: string; hour: number } | null {
   try {
     const parts = new Intl.DateTimeFormat("en-CA", {
@@ -76,7 +100,7 @@ Deno.serve(async (req: Request) => {
   if (!cronSecret) {
     return new Response(JSON.stringify({ error: "PUSH_CRON_SECRET is not configured" }), { status: 500 });
   }
-  if (req.headers.get("x-cron-secret") !== cronSecret) {
+  if (!sameSecret(req.headers.get("x-cron-secret") ?? "", cronSecret)) {
     return new Response(JSON.stringify({ error: "forbidden" }), { status: 403 });
   }
 
@@ -92,15 +116,12 @@ Deno.serve(async (req: Request) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
 
-  const { data, error } = await admin.from("push_subs").select("*");
-  if (error) {
-    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
-  }
+  let sent = 0, gone = 0, skipped = 0, failed = 0, blocked = 0;
 
-  let sent = 0, gone = 0, skipped = 0, failed = 0;
-  for (const s of (data ?? []) as SubRow[]) {
+  async function handle(s: SubRow): Promise<void> {
     const now = localNow(s.tz || "UTC");
-    if (!now || now.hour !== s.hour || s.last_sent === now.date) { skipped++; continue; }
+    if (!now || now.hour !== s.hour || s.last_sent === now.date) { skipped++; return; }
+    if (!allowedEndpoint(s.endpoint)) { blocked++; return; }
 
     const week: DayMsg[] = Array.isArray(s.week) ? (s.week as DayMsg[]) : [];
     const today = week.find((m) => m && m.d === now.date);
@@ -108,7 +129,7 @@ Deno.serve(async (req: Request) => {
     if (today?.skip) {
       skipped++;
       await admin.from("push_subs").update({ last_sent: now.date }).eq("endpoint", s.endpoint);
-      continue;
+      return;
     }
     const kind = safeKind(msg.kind);
     const title = safeText(msg.title, FALLBACK.title, 80);
@@ -119,7 +140,7 @@ Deno.serve(async (req: Request) => {
       await webpush.sendNotification(
         { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
         JSON.stringify({ title, body, kind, url, tag: `ff-${kind}` }),
-        { TTL: 3600 },   // stale reminders are worse than none
+        { TTL: 3600, timeout: 10000 },   // stale reminders are worse than none; no endpoint may stall the run
       );
       sent++;
       console.log(JSON.stringify({ kind:"push_sent", message_kind:kind }));
@@ -136,7 +157,24 @@ Deno.serve(async (req: Request) => {
     }
   }
 
-  return new Response(JSON.stringify({ sent, gone, skipped, failed }), {
+  // Page through every subscription (a single select stops at the API row cap)
+  // and send in small parallel batches.
+  const PAGE = 500, BATCH = 20;
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await admin.from("push_subs").select("*")
+      .order("endpoint", { ascending: true }).range(from, from + PAGE - 1);
+    if (error) {
+      console.error(JSON.stringify({ kind: "push_read_failed", message: error.message }));
+      return new Response(JSON.stringify({ error: "read failed" }), { status: 500 });
+    }
+    const rows = (data ?? []) as SubRow[];
+    for (let i = 0; i < rows.length; i += BATCH) {
+      await Promise.allSettled(rows.slice(i, i + BATCH).map(handle));
+    }
+    if (rows.length < PAGE) break;
+  }
+
+  return new Response(JSON.stringify({ sent, gone, skipped, failed, blocked }), {
     headers: { "content-type": "application/json" },
   });
 });

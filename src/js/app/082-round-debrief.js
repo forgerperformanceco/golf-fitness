@@ -13,6 +13,7 @@
   var RD_DRIVING={ bomb:"Bombing it", norm:"Normal", short:"Short" };
   var RD_ENERGY={ strong:"Strong all 18", faded:"Faded late", gassed:"Gassed" };
   var rdSel={ driving:null, energy:null };
+  var DRIVE_MIN=50, DRIVE_MAX=450;   // plausible driver carry/total, yds
 
   function rdEnsure(){
     if($("rdModal")) return;
@@ -49,6 +50,7 @@
       '</div>'+
       '<div class="rd-lbl">How was the driving?</div>'+rdChips("driving", RD_DRIVING)+
       '<div class="rd-lbl">How did the body hold up?</div>'+rdChips("energy", RD_ENERGY)+
+      '<div class="ff-inerr" id="rdErr" role="alert" hidden></div>'+
       '<button type="button" class="rd-save" id="rdSave">✓ Bank the round</button>'+
       '<div class="rd-foot">Your longest drive feeds the driver-carry trend on Home & Stats.</div>';
   }
@@ -57,19 +59,33 @@
     var ex=roundToday();
     rdSel.driving=ex?ex.driving||null:null;
     rdSel.energy=ex?ex.energy||null:null;
+    // Reseed the inputs from TODAY's round (or blank): rdRender keeps whatever
+    // the fields hold, which after midnight was yesterday's score and drive.
+    if($("rdScore")) $("rdScore").value=(ex&&ex.score!=null)?ex.score:"";
+    if($("rdDrive")) $("rdDrive").value=(ex&&ex.drive!=null)?ex.drive:"";
     rdRender();
     $("rdModal").hidden=false;
   }
   function rdSave(){
-    var score=parseInt($("rdScore").value,10), drive=parseFloat($("rdDrive").value);
+    var score=parseInt($("rdScore").value,10), driveRaw=($("rdDrive").value||"").trim(), drive=parseFloat(driveRaw);
     if(isNaN(score)) score=null;
-    if(isNaN(drive)||drive<=0) drive=null;
+    // The longest drive feeds the driver-carry trend (ff_body `d`) — reject 0,
+    // negatives and typos with an inline note instead of silently banking them.
+    var err=$("rdErr");
+    if(driveRaw!=="" && !(drive>=DRIVE_MIN && drive<=DRIVE_MAX)){
+      if(err){ err.textContent="Longest drive should be "+DRIVE_MIN+"–"+DRIVE_MAX+" yds — check for a typo."; err.hidden=false; }
+      var di=$("rdDrive"); if(di) di.focus();
+      return;
+    }
+    if(err) err.hidden=true;
+    if(isNaN(drive)) drive=null;
     if(score==null && drive==null && !rdSel.driving && !rdSel.energy){ ffToast("Add at least one thing about the round"); return; }
     // On-course PR? Compare against every driver-carry entry BEFORE writing.
     var prevBest=0; try{ driveList().forEach(function(e){ if(e.y>prevBest) prevBest=e.y; }); }catch(e){}
     var rounds=ffRounds(), today=todayStr(), ex=null;
     rounds.forEach(function(e){ if(e && e.date===today) ex=e; });
     if(!ex){ ex={ id:"r"+Date.now(), ts:Date.now(), date:today }; rounds.push(ex); }
+    else ex.ts=Date.now();   // an edit is newer data: bump ts (id stays) so a stale device can't win the sync merge
     ex.score=score; ex.drive=drive; ex.driving=rdSel.driving; ex.energy=rdSel.energy;
     if(rounds.length>60) rounds=rounds.slice(rounds.length-60);
     lsSet("ff_rounds", rounds);
