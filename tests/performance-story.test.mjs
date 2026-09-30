@@ -33,7 +33,14 @@ test("story supplies confidence, drivers, one opportunity, and reassessment", ()
   assert.match(stats, /Clear trend/);
   assert.match(stats, /Trend forming/);
   assert.match(stats, /Too early to tell/);
-  assert.match(stats, /What’s working/);
+  // Sep 2026 Stats pass: the story no longer repeats Octane's pillars; it
+  // carries the 6-week outlook as one line, and the evidence follows under
+  // "The details" (Octane first, then the full outlook card).
+  assert.doesNotMatch(stats, /What’s working/);
+  assert.match(stats, /outlookLine\(\)/);
+  const details = stats.indexOf("The details</div>");
+  assert.ok(details > -1 && details < stats.indexOf("html += renderScoreCard()"), "The details heading precedes Octane");
+  assert.ok(stats.indexOf("html += brainForecastHtml()") > stats.indexOf("html += renderScoreCard()"), "full outlook card sits under the details");
   assert.match(stats, /WORK ON NEXT/);
   assert.match(stats, /STORY_ACTIONS/);
   assert.match(stats, /Speed test due/);

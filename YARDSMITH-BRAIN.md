@@ -553,11 +553,10 @@ publishable key + VAPID public key ship client.
    exposure grows. Discipline that makes it work: separate banking, no
    commingling, holdco never guarantees opco debts, holdco stays passive.
    Optional upgrade then: holdco owns the trademarks, licenses to the opcos.
-9. **Simplification, remaining tabs (Sep 2026).** Home ✓ (pass 1) and Fuel ✓
-   (pass 2) are done. Rule for the rest: one clear thing on top, everything else
-   folded — not Home's one-button treatment. Next, in order: **Stats** (merge the
-   6-week outlook into the progress story; fold the rest under "See the
-   details"), **Train** (tuck manual logging, "Coach this week", history and the
+9. **Simplification, remaining tabs (Sep 2026).** Home ✓ (pass 1), Fuel ✓
+   (pass 2) and Stats ✓ (pass 3: story + this week first, then "The details")
+   are done. Rule for the rest: one clear thing on top, everything else
+   folded — not Home's one-button treatment. Next, in order: **Train** (tuck manual logging, "Coach this week", history and the
    playbook/settings folds under one "More"), **You** (group into account,
    reminders, app settings, data). Tab merging stays deferred.
 

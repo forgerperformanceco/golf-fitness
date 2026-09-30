@@ -216,7 +216,7 @@
      Octane hub and quick-log never fold; Speed opens; everything else starts
      as a headline. The stat only renders on the CLOSED row — the open card
      already says it bigger. */
-  var PF_DEFAULTS={ speed:true };
+  var PF_DEFAULTS={};
   function pfIsOpen(key){
     var st=lsGet("ff_statsfold",null)||{};
     return (key in st) ? !!st[key] : !!PF_DEFAULTS[key];
@@ -279,14 +279,6 @@
     if(!pick) pick=r.parts[0];
     return { part:pick, action:STORY_ACTIONS[pick.key]||STORY_ACTIONS.consistency };
   }
-  function storySignalText(p){
-    if(p.key==="consistency") return p.detail+" — showing up is what moves this most.";
-    if(p.key==="speed") return p.detail+" — the number closest to distance on the course.";
-    if(p.key==="strength") return p.detail+" — more strength to turn into swing speed.";
-    if(p.key==="p2w") return p.detail+" — faster for every pound you carry.";
-    if(p.key==="mobility") return p.detail+" — staying loose while you add muscle.";
-    return p.detail+" — your meals are backing up the work.";
-  }
   function performanceStoryHtml(){
     var r=ffScore(), body=lsGet("ff_body",[]), d=driveStats(), lifts=bigLiftStats();
     var speeds=body.map(function(e){ return parseFloat(e.s); }).filter(function(v){ return v>0; });
@@ -325,15 +317,6 @@
       tone="start";
     }
 
-    var signalParts=r.parts.filter(function(p){ return p.have; }).sort(function(a,b){
-      return (b.pts/b.max)-(a.pts/a.max);
-    }).slice(0,2);
-    var signalHtml=signalParts.length ? signalParts.map(function(p){
-      var pct=Math.round(p.pts/p.max*100);
-      return '<div class="ps-signal"><span class="ps-sicon">'+(p.key==="speed"?"⚡":p.key==="strength"?"🏋️":p.key==="consistency"?"✓":p.key==="mobility"?"↻":p.key==="fuel"?"●":"↗")+'</span>'+
-        '<span><b>'+p.label.replace(" (e1RM)","")+'</b><small>'+storySignalText(p)+'</small></span><em>'+pct+'%</em></div>';
-    }).join("") : '<div class="ps-signal empty"><span class="ps-sicon">＋</span><span><b>Nothing yet</b><small>Do today’s workout to start the read.</small></span></div>';
-
     var evidence=0;
     if(d&&d.n>=2) evidence++;
     if(speeds.length>=2) evidence++;
@@ -359,7 +342,8 @@
         '<div class="ps-result"><strong>'+value+'</strong><span>'+unit+'</span></div></div>'+
       '<div class="ps-proof"><span class="ps-proof-dot"></span><span><b>'+(d&&d.n>=2?"Measured":"So far")+'</b>'+proof+'</span>'+
         (spGain!=null&&!(d&&d.n>=2)?'<i>Estimate: ~2 yds of 7-iron carry per 1 mph</i>':'')+'</div>'+
-      '<div class="ps-grid"><div class="ps-drivers"><h4>What’s working</h4>'+signalHtml+'</div>'+
+      outlookLine()+
+      '<div class="ps-grid one">'+
         '<div class="ps-next"><span class="ps-next-kick">WORK ON NEXT</span><h4>'+opp.part.label.replace(" (e1RM)","")+'</h4>'+
           '<p>'+FF_LEVER[opp.part.key]+'.</p><button type="button" class="ps-cta" '+opp.action.attr+'>'+opp.action.label+' <span>→</span></button></div></div>'+
       (milestones.length?'<div class="ps-milestones">'+milestones.slice(0,3).map(function(m){ return '<span>'+m+'</span>'; }).join("")+'</div>':'')+
@@ -374,15 +358,19 @@
   // which used to snap the forecast's "Why this range" shut and throw the
   // season map back to its default scroll.
   var psProofOpen=false, psSeasonX=null, psSeasonAuto=null;
+  // The outlook's headline, folded into the story (Sep 2026 Stats pass) — the
+  // full range, reasoning and coach button stay in the card under "The details".
+  function outlookLine(){
+    if(!window.FFBrain || !window.FFBrain.forecast) return "";
+    var f=null; try{ f=window.FFBrain.forecast(); }catch(_){}
+    if(!f || f.status!=="ready") return "";
+    return '<div class="ps-outlook"><span>📈</span><span>Next 6 weeks, if you keep this up: <b>'+f.projected7Iron.low+'–'+f.projected7Iron.high+' mph</b> 7-iron'+
+      ' <em>· '+String(f.confidence).toLowerCase()+' confidence</em></span></div>';
+  }
   function brainForecastHtml(){
     if(!window.FFBrain || !window.FFBrain.forecast) return "";
     var f=window.FFBrain.forecast();
-    if(!f || f.status!=="ready"){
-      return '<section class="brain-forecast building" aria-label="Six-week forecast">'+
-        '<div class="bf-kick">6-WEEK OUTLOOK · BUILDING</div><div class="bf-build">'+
-        '<span class="bf-orb">'+ffIcon("target",18)+'</span><span><b>Your forecast needs one more clean signal</b>'+
-        '<small>'+(f&&f.next?f.next:"Run two dated Speed Tests to unlock a personal outlook.")+'</small></span></div></section>';
-    }
+    if(!f || f.status!=="ready") return "";
     function signed(v){ return (v>0?"+":"")+v; }
     return '<section class="brain-forecast" aria-labelledby="bfTitle">'+
       '<div class="bf-top"><span class="bf-kick">6-WEEK OUTLOOK</span><span class="bf-conf">'+f.confidence+' confidence</span></div>'+
@@ -415,7 +403,8 @@
     var html='';
     html += performanceStoryHtml();
     html += weeklyFlightHtml();   // this week's three jobs + the week review (moved from Home, Sep 2026)
-    html += brainForecastHtml();
+    // Everything below is evidence, not the answer (Sep 2026 Stats pass).
+    html += '<div class="stats-details-h" role="heading" aria-level="2">The details</div>';
     // The Story card names the biggest lever when it renders its "next" block;
     // flag it so the Octane card doesn't print the same advice twice on one
     // screen. (Shared-scope flag, set and reset around the one call, so the
@@ -423,6 +412,7 @@
     ffStatsStoryLever = html.indexOf('ps-next')>-1;
     html += renderScoreCard();
     ffStatsStoryLever = false;
+    html += brainForecastHtml();
 
     // Consolidation pass (Stats 3.0): the page tells THREE stories below the
     // Octane hub — ⚡ speed (the north star, open), ⛳ the course (proof), and
