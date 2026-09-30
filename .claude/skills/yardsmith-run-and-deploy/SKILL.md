@@ -2,8 +2,8 @@
 name: yardsmith-run-and-deploy
 description: >
   Run and operate Yardsmith: serve the app locally; understand exactly what
-  happens on merge to main (deploy.yml Pages publish, deploy-functions.yml
-  Supabase apply); verify a deploy landed (Actions -> live site -> in-app App
+  happens on merge to main (deploy.yml Pages publish, Supabase GitHub-integration
+  function deploys); verify a deploy landed (Actions -> live site -> in-app App
   version card / FF_BUILD); explain and debug the PWA update path for stale
   devices; ship the native Android (.aab, Windows/Android Studio) and iOS
   (Codemagic) builds; the full secrets inventory (browser-safe vs server-only
@@ -90,13 +90,13 @@ Gotchas:
 
 ## 3. What happens on merge to `main` — `.github/workflows/deploy.yml`
 
-Only two workflows exist in `.github/workflows/`: `deploy.yml` (Pages) and
-`deploy-functions.yml` (Supabase). Neither runs tests, lint, or a build.
+`.github/workflows/` holds `deploy.yml` (Pages), `quality.yml` (tests + the
+database migration job, on PRs and `main`) and `push-reminders.yml` (the hourly
+sender trigger). Nothing on the deploy path builds.
 Walkthrough of `deploy.yml` (84 lines):
 
-**Triggers (lines 7–24):** push to `main` — plus a leftover Era-1 branch
-`claude/golf-macro-calculator-j2e9vk` (line 11, harmless legacy — that branch
-no longer exists on the remote as of 2026-07-08) — and manual `workflow_dispatch`.
+**Triggers:** push to `main` (the legacy Era-1 branch trigger was removed Sep
+2026) and manual `workflow_dispatch`.
 
 **`paths-ignore` (lines 12–23):** a push does NOT deploy if it only touches
 `**.md`, `supabase/**`, `android/**`, `ios/**`, `assets/**`, `scripts/**`,
@@ -148,49 +148,34 @@ updates promptly).
 
 ---
 
-## 4. Backend deploys — `.github/workflows/deploy-functions.yml`
+## 4. Backend deploys — Supabase GitHub integration
 
-**Triggers:** push to `main` touching `supabase/**` or the workflow file
-itself, plus `workflow_dispatch` (Actions tab → "Deploy Supabase (schema +
-functions)" → Run workflow).
+**Edge functions:** Supabase's GitHub integration redeploys every function in
+`supabase/functions/` when a merge to `main` changes them (verified Sep 30 2026:
+all five functions showed the merge commit's code minutes after #99 merged).
+All five keep `verify_jwt = false` from `supabase/config.toml`, each with a
+documented reason: browser-called functions (`ai-coach`, `delete-account`,
+`product-health`) would have their CORS preflight (OPTIONS, no token) 401'd by
+the gateway before their own auth runs; server-called ones (`paddle-webhook`,
+`push-daily`) verify a Paddle signature / `x-cron-secret` header themselves.
 
-**Steps, in order:**
+The old `.github/workflows/deploy-functions.yml` was **removed (Sep 2026)**: its
+`SUPABASE_ACCESS_TOKEN` had expired (every run since late July failed
+"Unauthorized") and it only duplicated the integration.
 
-1. **Hard-fails without the `SUPABASE_ACCESS_TOKEN` repo secret** (lines
-   29–32). Detects optional `ANTHROPIC_API_KEY` (lines 34–42) — missing is a
-   warning, not an error.
-2. **Does NOT apply the database schema** (changed in #74, "Use MCP for
-   database deployments"). Schema changes ship as files in
-   `supabase/migrations/` (mirrored into the idempotent `supabase/schema.sql`)
-   and are applied to the live project by hand (Supabase MCP `apply_migration`
-   or the SQL editor). CI's `quality.yml` database job does run every migration
-   against a local Supabase (`supabase start` + `supabase test db`), so a broken
-   migration fails the PR. **Check `list_migrations` on the live project after
-   merging any migration.**
-3. **Deploys Edge Functions via the Supabase CLI** (`supabase/setup-cli@v1`):
-   - `delete-account` — **always** (needs no extra secret; Supabase injects
-     SUPABASE_URL / ANON / SERVICE_ROLE into every function).
-   - `ai-coach` — **only if `ANTHROPIC_API_KEY` is set as a repo secret**; the
-     workflow first runs `supabase secrets set ANTHROPIC_API_KEY=…` so the
-     function has its server-side key.
-   - `paddle-webhook` — **never auto-deployed**: billing is off during early
-     access (`supabase/README.md`). Manual: `supabase functions deploy
-     paddle-webhook` + set `PADDLE_WEBHOOK_SECRET`, per `GO-LIVE-CHECKLIST.md` §3.
-   - `push-daily` — **never auto-deployed**: it's a one-time manual setup with
-     secrets + a pg_cron schedule, per `PUSH-SETUP.md` (steps 2–4 there).
+**Function secrets** live in Supabase (Dashboard → Edge Functions → Secrets, or
+`supabase secrets set NAME=value`): `ANTHROPIC_API_KEY`, optional
+`AI_COACH_MODEL`, `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY`, `PUSH_CRON_SECRET`,
+and `PADDLE_WEBHOOK_SECRET` once billing launches (until then paddle-webhook
+fails closed with a 500).
 
-All four functions have `verify_jwt = false` in `supabase/config.toml`, each
-with a documented reason: browser-called functions (`ai-coach`,
-`delete-account`) would have their CORS preflight (OPTIONS, no token) 401'd by
-the gateway before their own Bearer/getUser auth runs; server-called ones
-(`paddle-webhook`, `push-daily`) verify a Paddle signature / `x-cron-secret`
-header themselves.
-
-Whether this workflow has ever run green, and whether the repo secrets are
-actually configured, **cannot be proven from the repo** — `supabase/README.md`
-says the leaderboard push was "already done", implying at least one successful
-run, but treat live Actions/DB state as unverified until you check the Actions
-tab.
+**Database:** nothing applies the schema automatically. Schema changes ship as
+files in `supabase/migrations/` (mirrored into the idempotent
+`supabase/schema.sql`); `quality.yml`'s database job runs every migration
+against a local Supabase (`supabase start` + `supabase test db`) on each PR.
+Apply to the live project by hand (Supabase MCP `apply_migration` or the SQL
+editor), then check `list_migrations` — and name the repo file after the
+version the live project records so the two histories agree.
 
 ---
 
@@ -351,13 +336,13 @@ placeholders only.
 | VAPID public key | browser-safe | `FF_PUSH_PUB`, `cloud-sync.js:170` (`BHhvzZKW…`); must equal the `VAPID_PUBLIC_KEY` function secret |
 | `PADDLE_CLIENT_TOKEN` | browser-safe (future) | Not wired yet — for Paddle.js checkout when billing turns on |
 | `SUPABASE_SERVICE_ROLE_KEY` | server-only | Injected into Edge Functions by Supabase automatically; never in client code |
-| `ANTHROPIC_API_KEY` | server-only | Edge Function secret (set by deploy-functions.yml from the repo secret) |
+| `ANTHROPIC_API_KEY` | server-only | Edge Function secret, set in Supabase |
 | `AI_COACH_MODEL` | server-only config | Function secret; default `claude-sonnet-5-5` in code (`.env.example`) |
 | `ALLOWED_ORIGIN` | server-only config | Function secret; CORS origin override, defaults to `https://yardsmith.golf` (`supabase/functions/_shared/cors.ts:11`) |
 | `PADDLE_WEBHOOK_SECRET` | server-only | Function secret for `paddle-webhook` (manual, when billing turns on) |
 | `VAPID_PRIVATE_KEY` | server-only | `push-daily` function secret ONLY. Not in the repo, not in `.env.example`. PUSH-SETUP.md: "handed over in the build session that shipped this" — i.e. it exists only in Supabase secrets (+ a past chat). |
 | `PUSH_CRON_SECRET` | server-only | `push-daily` function secret; pg_cron sends it back as `x-cron-secret` |
-| `SUPABASE_ACCESS_TOKEN` | GitHub Actions repo secret | **Required** by deploy-functions.yml (schema apply + CLI deploys) |
+| `SUPABASE_ACCESS_TOKEN` | not needed | Was only used by the removed deploy-functions.yml; safe to delete from repo secrets |
 | `ANTHROPIC_API_KEY` | GitHub Actions repo secret | **Optional** — gates the ai-coach deploy step |
 
 **VAPID rotation warning** (`scripts/gen-vapid.mjs` header, verified): the
@@ -411,7 +396,7 @@ git ls-files \
   | grep -vE '\.md$|(^|/)(\.env[^/]*|\.gitignore|package\.json|package-lock\.json|capacitor\.config\.json|codemagic\.yaml|logo-source[^/]*\.png)$'
 
 # Supabase project ref + function JWT posture:
-grep -n project .github/workflows/deploy-functions.yml supabase/config.toml | head
+grep -n project supabase/config.toml | head
 
 # Local-serve smoke still green (needs the global playwright at /opt/node22/…
 # and Chromium at /opt/pw-browsers/ — both environment-provided, may drift;

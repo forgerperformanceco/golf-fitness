@@ -246,7 +246,7 @@ COACH-PERSONA.md:6 declares it "mirrored into the live system prompt
 the persona block. There is no tooling enforcing the mirror; it is manual
 discipline. Any edit to COACH-PERSONA.md or coaching-relevant facts in the two
 reference docs must be reflected in knowledge.ts in the same change (pushes
-touching `supabase/**` auto-deploy the function via deploy-functions.yml — see
+touching `supabase/**` auto-deploy the function via Supabase's GitHub integration — see
 `yardsmith-run-and-deploy`).
 
 ---
