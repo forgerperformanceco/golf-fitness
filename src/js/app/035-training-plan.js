@@ -637,8 +637,7 @@
               '<span class="sl-tx"><b>'+ffEsc(x.name)+'</b><span>'+ffEsc(x.target)+'</span></span>'+
               '<span class="sl-go">›</span></button>';
           }).join("")+
-          '<div class="sl-note">Tap a lift for its history. Swaps, cues &amp; logging live in the <b>player</b>.</div>'+
-          '<button type="button" class="sl-manual" data-manuallog="1">⌨️ Prefer typing? Log manually here</button></div>';
+          '<div class="sl-note">Tap a lift for its history. Swaps, cues &amp; logging live in the <b>player</b>.</div></div>';
       }
       return '<div class="day-focus">'+
         '<button class="pl-start" data-startplayer="'+escAttr(d.name)+'" type="button"><span class="pls-go">›</span>'+
@@ -836,14 +835,20 @@
   // Below the week (every Train state): coach, history, playbook, settings.
   function trainFootHtml(wk){
     var html="", retain=trainRetain();
-    html+='<button class="train-ai" data-ask="train"><span>💬 <b>Coach this week</b></span><span class="tai-go">Adjust ›</span></button>';
-
-    // Workout history stays; the Stats-tab shortcut is gone — the Stats tab and
-    // the hero's week progress bar already cover "see your progress."
-    html+='<button class="train-link" data-gohistory="1"><span>📖 Workout history</span><span class="tl-go">All time ›</span></button>';
+    // Everything under the day's workout is secondary: one "More" group of
+    // matching rows (Sep 2026 Train pass) instead of five different styles.
+    html+='<div class="train-more-h" role="heading" aria-level="2">More</div><div class="home-rows train-more">';
+    // Manual logging is opt-in (the player is the default); the row only offers
+    // it on a workout day that can be logged, and never while it's already on.
+    var dop=dayOfPlan(), today=dop?stripDays()[dop-1]:null;
+    if(planViewMode()==="today" && !lsGet("ff_manual_log", false) && !seasonComplete() && today && today.type!=="rest")
+      html+=homeRow("⌨️","Log by typing instead","Enter sets yourself — no player",' data-manuallog="1"');
+    html+=homeRow("💬","Adjust this week","Ask the coach to rework it",' data-ask="train"');
+    html+=homeRow("📖","Workout history","Every session, all time",' data-gohistory="1"');
+    html+='</div>';
 
     // Learn: the three reference reads grouped under ONE playbook fold.
-    html+='<details class="fold playbook"><summary>📚 Coaching playbook</summary><div class="fold-body">'+
+    html+='<details class="fold playbook"><summary>📚 How the plan works</summary><div class="fold-body">'+
       '<div class="pb-sec"><h4>🌀 Why this builds clubhead speed</h4>'+phaseWhy()+'</div>'+
       '<div class="pb-sec"><h4>📈 How the plan progresses for you</h4>'+
         '<p><b>The weeks.</b> Every 6 weeks the plan itself shifts: <b>Build</b> (wks 1–3) — targets as written, build reps to the top of each range · <b>Heavy</b> (wks 4–5) — big-lift rep targets drop ~2 so the loads climb, accessories drop a set · <b>Easy</b> (wks 6, 12, 18) — one set less everywhere and the logger pre-suggests ~60% loads · <b>Peak</b> (wks 19–20) — volume cut nearly in half, intensity stays heavy. You don’t manage any of it — the day cards and logger update themselves.</p>'+
@@ -857,7 +862,7 @@
       '</div></details>';
 
     // Configure: settings + equipment (open state preserved across re-renders).
-    html+='<details class="fold" id="setFold"'+(planState.settingsOpen?' open':'')+'><summary>⚙️ Plan &amp; settings</summary><div class="fold-body settings-body">'+
+    html+='<details class="fold" id="setFold"'+(planState.settingsOpen?' open':'')+'><summary>⚙️ Plan settings</summary><div class="fold-body settings-body">'+
       '<div class="set-row"><span class="set-lbl">Training days / week</span><div class="seg sm" id="freqSeg">'+
         '<button type="button" data-freq="4" '+(planState.freq===4?'class="active"':'')+'>4</button>'+
         '<button type="button" data-freq="5" '+(planState.freq===5?'class="active"':'')+'>5</button></div></div>'+

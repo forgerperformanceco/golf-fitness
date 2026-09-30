@@ -134,6 +134,7 @@ CORE = [
     ('input, select, textarea', 'background:#101b14; color:var(--ink);'),
     ('.logbtn:hover', 'background:#15803d;'),
     ('.modal-foot button', 'background:#15803d;'),
+    ('.train-today-cta.recovery small', 'color:#8fd6a8;'),
     ('.mobile-tabbar', 'background:rgba(16,24,19,.94); border-top:1px solid #28402f; box-shadow:0 -4px 20px rgba(0,0,0,.45);'),
 ]
 
@@ -165,6 +166,10 @@ def main():
         if '.nu-cta' in sel: continue
         # Fuel's Today's-meals card (.ftoday / .ft-*) is dark in both themes too.
         if '.ftoday' in sel or '.ft-' in sel: continue
+        # Train's main Start button is the tab's one primary action: keep its
+        # bright fill and dark label in dark mode (the .recovery variant is a
+        # light surface and still darkens; its caption is pinned in CORE).
+        if sel in ('.train-today-cta', '.train-today-cta small'): continue
         ch = transform_rule(decls)
         if not ch: continue
         if media: medias.setdefault(media, []).append((sel, '; '.join(ch) + ';'))

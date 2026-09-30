@@ -1,5 +1,37 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## Train pass — the workout on top, one "More" group below (Sep 30, 2026)
+
+Train's top already worked (the workout, Start, the week strip, the lift list).
+Below the list sat five items in five styles: a dashed "Prefer typing? Log
+manually here" link, a green "Coach this week · Adjust" bar, a "Workout history"
+link, and two folds.
+
+1. **"More" group.** A quiet "MORE" heading, then matching rows (Home's
+   `.home-row` via `homeRow()`): **Log by typing instead** (moved out of the lift
+   list; only offered on a loggable day, and hidden while manual mode is on —
+   the existing "Hide manual logging" link still turns it off), **Adjust this
+   week** (the coach, `data-ask="train"`), **Workout history**. The two folds
+   follow, dressed as rows: **How the plan works** (was "Coaching playbook")
+   and **Plan settings** (was "Plan & settings"; `#setFold` id kept).
+2. **Dark mode:** the main Start button (`.train-today-cta`) kept its bright
+   fill — the generator had been darkening it into a dull green card. Excluded
+   in `gen-dark-theme.py`; the lighter recovery-day variant still darkens, with
+   its caption pinned in `CORE`.
+3. Dead CSS (`.train-ai`, `.train-link`) removed.
+
+Page height is about the same (1,630 → 1,760px on the active seed: taller,
+tappable rows replace thin links); the gain is one consistent look and a clear
+split between "today's workout" and "everything else".
+
+**Verified:** `npm test` 62/62; `check-release` 4/4; data contract; claims-lint
+clean; audit-train 18/18 (includes rest/recovery states in both themes);
+audit-scroll 16/16; audit-contrast clean; audit-type only the known `.ft-bank`
+flag; smoke functional checks pass. Headless: More shows 3 rows, "Log by typing
+instead" switches to the manual logger and hides itself, the way back works,
+history opens, Plan settings opens with its controls, zero page errors; light +
+dark captures.
+
 ## Stats pass — the answer first, then "The details" (Sep 30, 2026)
 
 Third tab under the "one clear thing on top, the rest folded" rule. Three big
