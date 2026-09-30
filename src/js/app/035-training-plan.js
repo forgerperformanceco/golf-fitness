@@ -131,7 +131,7 @@
     "Back Squat":{needs:["barbell"],subs:[{needs:["dumbbells"],name:"Goblet Squat"},{needs:["bodyweight"],name:"Tempo Bodyweight Squat (3-1-1, +1.5 reps)"}]},
     "Front Squat":{needs:["barbell"],subs:[{needs:["dumbbells"],name:"Goblet Squat"},{needs:["bodyweight"],name:"Tempo Bodyweight Squat"}]},
     "Romanian Deadlift":{needs:["barbell"],subs:[{needs:["dumbbells"],name:"DB Romanian Deadlift"},{needs:["kettlebell"],name:"Kettlebell RDL"},{needs:["bodyweight"],name:"Single-leg RDL"}]},
-    "Leg Press":{needs:["legpress"],subs:[{needs:["dumbbells"],name:"Goblet Squat"},{needs:["bodyweight"],name:"Walking Lunge"}]},
+    "Leg Press":{needs:["legpress"],subs:[{needs:["dumbbells"],name:"Goblet Squat"},{needs:["bodyweight"],name:"Walking Lunge"},{needs:["bodyweight"],name:"Tempo Bodyweight Squat (3-1-1, +1.5 reps)"}]},
     "Hanging Leg Raise":{needs:["pullupbar"],subs:[{needs:["bodyweight"],name:"Lying Leg Raise"}]},
     "Incline DB Press":{needs:["dumbbells"],subs:[{needs:["bodyweight"],name:"Decline / Feet-elevated Push-up"}]},
     "Flat Barbell Bench":{needs:["barbell","bench"],subs:[{needs:["dumbbells","bench"],name:"Flat DB Bench Press"},{needs:["dumbbells"],name:"Floor DB Press"},{needs:["bodyweight"],name:"Push-up (weighted / feet-elevated)"}]},
@@ -152,10 +152,10 @@
     "Farmer Carry":{needs:["dumbbells"],subs:[{needs:["kettlebell"],name:"Kettlebell Carry"},{needs:["bodyweight"],name:"Loaded Carry (backpack / any heavy object)"}]},
     "Weighted Pull-up":{needs:["pullupbar"],subs:[{needs:["latpulldown"],name:"Lat Pulldown"},{needs:["bands"],name:"Band Lat Pulldown"},{needs:["dumbbells"],name:"DB Row"},{needs:["bodyweight"],name:"Inverted Row (under a sturdy table)"}]},
     "Pull-up":{needs:["pullupbar"],subs:[{needs:["latpulldown"],name:"Lat Pulldown"},{needs:["bands"],name:"Band Lat Pulldown"},{needs:["dumbbells"],name:"DB Row"},{needs:["bodyweight"],name:"Inverted Row"}]},
-    "Chest-Supported Row":{needs:["dumbbells"],subs:[{needs:["bands"],name:"Band Row"},{needs:["bodyweight"],name:"Inverted Row"}]},
-    "Single-Arm DB Row":{needs:["dumbbells"],subs:[{needs:["kettlebell"],name:"Single-Arm Kettlebell Row"},{needs:["bands"],name:"Single-Arm Band Row"},{needs:["bodyweight"],name:"Inverted Row"}]},
+    "Chest-Supported Row":{needs:["dumbbells"],subs:[{needs:["bands"],name:"Band Row"},{needs:["bodyweight"],name:"Inverted Row"},{needs:["bodyweight"],name:"Doorframe Row"}]},
+    "Single-Arm DB Row":{needs:["dumbbells"],subs:[{needs:["kettlebell"],name:"Single-Arm Kettlebell Row"},{needs:["bands"],name:"Single-Arm Band Row"},{needs:["bodyweight"],name:"Inverted Row"},{needs:["bodyweight"],name:"Single-Arm Doorframe Row"}]},
     "Wrist Curl + Reverse":{needs:["dumbbells"],subs:[{needs:["barbell"],name:"Barbell Wrist Curl + Reverse"},{needs:["bands"],name:"Band Wrist Curl"},{needs:["bodyweight"],name:"Towel / Plate Pinch Hold"}]},
-    "Lat Pulldown":{needs:["latpulldown"],subs:[{needs:["pullupbar"],name:"Pull-up / Band-assisted Pull-up"},{needs:["bands"],name:"Band Lat Pulldown"},{needs:["bodyweight"],name:"Inverted Row"}]},
+    "Lat Pulldown":{needs:["latpulldown"],subs:[{needs:["pullupbar"],name:"Pull-up / Band-assisted Pull-up"},{needs:["bands"],name:"Band Lat Pulldown"},{needs:["bodyweight"],name:"Inverted Row"},{needs:["bodyweight"],name:"Sliding Floor Lat Pull"}]},
     "Face Pull":{needs:["cable"],subs:[{needs:["bands"],name:"Band Face Pull"},{needs:["dumbbells"],name:"Rear-Delt Raise"},{needs:["bodyweight"],name:"Prone Y-T-W Raises"}]},
     "DB Curl":{needs:["dumbbells"],subs:[{needs:["bands"],name:"Band Curl"}]},
     "Hammer Curl":{needs:["dumbbells"],subs:[{needs:["bands"],name:"Band Hammer Curl"}]},
@@ -223,14 +223,39 @@
     if(m==="field" || m==="gym") return m;
     return have("barbell") ? "gym" : "field";
   }
-  function resolveEx(rawName, sr){
+  // used (optional): normName(lowercased) → true for lifts already on the day. The
+  // first valid sub NOT already used wins; if every valid sub is taken, the first
+  // valid one is kept (a repeat beats dropping the slot).
+  function resolveEx(rawName, sr, used){
     var e = EX[normName(rawName)];
     if(!e) return { name:rawName, sr:sr, status:"ok" };
     if(e.needs.every(have)) return { name:rawName, sr:sr, status:"ok" };
+    var first=null;
     for(var i=0;i<e.subs.length;i++){
-      if(e.subs[i].needs.every(have)) return { name:e.subs[i].name, sr:e.subs[i].sr||sr, status:"swap" };
+      if(!e.subs[i].needs.every(have)) continue;
+      var hit={ name:e.subs[i].name, sr:e.subs[i].sr||sr, status:"swap" };
+      if(!used || !used[normName(hit.name).toLowerCase()]) return hit;
+      if(!first) first=hit;
     }
-    return { name:rawName, sr:sr, status:"skip", need:e.needs };
+    return first || { name:rawName, sr:sr, status:"skip", need:e.needs };
+  }
+  // Resolve a whole day's rows at once (user swap first, then gear subs) so the
+  // Minimal/Bodyweight presets can't put the same lift in a day twice — e.g. Leg
+  // Press → Walking Lunge on a day that already programs Walking Lunge. Lifts that
+  // run as written claim their names first; each sub then takes the next valid
+  // option nobody on the day has used. buildSession (040) and dayCardHtml both read
+  // THIS, so the card and the logged session always agree. Aligned with rows.
+  function resolveDay(rows){
+    var bases=(rows||[]).map(function(row){ return applySwapName(row[0]); });
+    var res=bases.map(function(b, i){ return resolveEx(b, rows[i][1]); });
+    var used={};
+    res.forEach(function(r){ if(r.status==="ok") used[normName(r.name).toLowerCase()]=true; });
+    return res.map(function(r, i){
+      if(r.status!=="swap") return r;
+      var alt=resolveEx(bases[i], rows[i][1], used);
+      used[normName(alt.name).toLowerCase()]=true;
+      return alt;
+    });
   }
 
   var planState = { phase: 0, freq: 4, equip: {}, machOpen: false, settingsOpen: false };
@@ -364,8 +389,9 @@
   function purposeFor(n){
     if(/Single-Arm/i.test(n)) return "🌀";
     // Rotation before power, so rotational throws/chops stay 🌀. "Landmine Press" is a
-    // chest press, not rotation — excluded so the wave doesn't shield it from intensify.
-    if(/Wood-?chop|\bChop\b|Rotation|Rotational|Pallof|Landmine(?! Press)|Punch|Russian Twist/i.test(n)) return "🌀";
+    // chest press and "Landmine Squat" a squat, not rotation — excluded so the wave
+    // doesn't shield them from intensify.
+    if(/Wood-?chop|\bChop\b|Rotation|Rotational|Pallof|Landmine(?! Press| Squat)|Punch|Russian Twist/i.test(n)) return "🌀";
     // Ballistic/velocity work: throws, tosses, cleans and "Speed X" lifts are ⚡ — the wave
     // must never hand them the 🏋️ "drop reps, go heavier" prescription or trim them like
     // 💪 accessories. They hold full doses and only ease at deload/peak.
@@ -382,16 +408,17 @@
   function isBallistic(n){
     return purposeFor(n)==="⚡" || /Throw|Toss|Slam|Chest Pass|\bChop\b|Punch/i.test(n);
   }
-  // A drill loaded by BODYWEIGHT only — box/broad/squat/tuck jumps, bounds,
-  // depth/drop jumps, plyo push-ups, pogos, skaters. Logged by reps (height ×
-  // intent), never a weight, so the loggers drop the load field and the
-  // prescription copy. Anything explicitly loaded is excluded (trap-bar,
-  // dumbbell/DB, barbell/bar, kettlebell/KB, weighted, med-ball, sled, band) —
-  // so a Trap-bar jump or KB swing keeps its weight field.
+  // A drill with NO load to log — box/broad/squat/tuck jumps, bounds, depth/drop
+  // jumps, plyo push-ups, pogos, skaters, ground-force footwork, and overspeed
+  // swings (a light stick at max speed — the "weight" is fixed by the implement).
+  // Logged by reps (height/speed × intent), never a weight, so the loggers drop
+  // the load field and the prescription copy. Anything explicitly loaded is
+  // excluded (trap-bar, dumbbell/DB, barbell/bar, kettlebell/KB, weighted,
+  // med-ball, sled, band) — so a Trap-bar jump or KB swing keeps its weight field.
   function isBodyweightEx(n){
     n=n||"";
     if(/Trap-?bar|Dumbbell|\bDB\b|Barbell|\bBar\b|Kettlebell|\bKB\b|Weighted|Med-?ball|Medicine|Landmine|Cable|Band|Sled/i.test(n)) return false;
-    return /\bJump\b|\bBound\b|Plyo|Pogo|\bHop\b|Skater|Broad/i.test(n);
+    return /\bJump\b|\bBound\b|Plyo|Pogo|\bHop\b|Skater|Broad|Overspeed|Footwork/i.test(n);
   }
   // Build vs Retain: derived from the macro goal. Build = full volume (gaining).
   // Retain = trim ONE set off hypertrophy accessories (💪 only) to fit lower recovery
@@ -433,18 +460,22 @@
   function eventInfo(){
     var ev=lsGet("ff_event", null); if(!ev || !ev.date) return null;
     var t=new Date(ev.date+"T12:00:00").getTime(); if(isNaN(t)) return null;
-    var out={ ts:t, date:ev.date, name:(ev.name||"").slice(0,40), week:null, past:t < (Date.now()-864e5) };
+    var out={ ts:t, date:ev.date, name:(ev.name||"").slice(0,40), week:null, past:t < (Date.now()-864e5), taper:false };
     var st=planStart();
     if(st){
       var start=new Date(st); start.setHours(0,0,0,0);
       var days=Math.floor((t-start.getTime())/864e5);
       if(days>=0 && days<140) out.week=Math.floor(days/7)+1;
+      // The event re-anchors the wave until the END of the recovery week after it
+      // (week ev.week+1) — gating on `past` alone switched the override off the
+      // day after the event, so the promised post-event deload never happened.
+      if(out.week) out.taper = !out.past || Math.floor((Date.now()-start.getTime())/864e5) < (out.week+1)*7;
     }
     return out;
   }
   function waveFor(week){
     var ev=eventInfo();
-    if(ev && ev.week && !ev.past){
+    if(ev && ev.week && ev.taper){
       if(week===ev.week || week===ev.week-1) return "peak";
       if(week===ev.week+1) return "deload";
     }
@@ -512,7 +543,7 @@
         var id="why"+(whyId++);
         var base=applySwapName(e[0]), swapped=base!==e[0];
         var note=swapped ? ('⚡ '+liftWhy(base).cue) : e[2];
-        return '<tr'+(swapped?' class="swap"':'')+'><td><button class="exwhy-btn" type="button" data-whyrow="'+id+'" aria-expanded="false"><span class="exname-main">'+ffPurposeIc(base)+' '+base+'</span>'+
+        return '<tr'+(swapped?' class="swap"':'')+'><td><button class="exwhy-btn" type="button" data-whyrow="'+id+'" aria-expanded="false"><span class="exname-main">'+ffPurposeIc(base)+' '+ffEsc(base)+'</span>'+
                (swapped?' <span class="swap-badge">⇄ your swap</span>':'')+' <span class="exwhy-i">ⓘ</span></button>'+
                '<div class="exnote">'+note+'</div></td>'+
                '<td class="sets">'+speedDrillTarget(base, e[1], curWeek())+'</td></tr>'+
@@ -570,15 +601,16 @@
           '<b>'+ffIcon("play",13)+' Start speed session</b><span class="pls-sub">Guided player — warm-up, max-intent drills, full rest</span></button></div>'+
         logFoot(d.name)+'</div>';
     }
-    var rows = d.ex.map(function(row){
+    var resolved = resolveDay(d.ex);   // the SAME dedupe buildSession logs with
+    var rows = d.ex.map(function(row, ri){
       var base = applySwapName(row[0]);
-      var r = resolveEx(base, row[1]);
+      var r = resolved[ri];
       var eff = '<div class="effort">'+effortNote(row[1], base)+'</div>';
       var pe = ffPurposeIc(base)+' ';
       var us = base!==row[0] ? ' <span class="swap-badge">⇄ your swap</span>' : '';
       if(r.status==="ok"){ var c=exNameCell(pe, base, us); return '<tr>'+c.cell+'<td class="sets">'+effTarget(row[1],base,curWeek())+eff+'</td></tr>'+c.row; }
       if(r.status==="swap"){ var cs=exNameCell(pe, r.name, ' <span class="swap-badge">⇄ subbed for '+escAttr(base)+' (your gear)</span>'); return '<tr class="swap">'+cs.cell+'<td class="sets">'+effTarget(r.sr,r.name,curWeek())+eff+'</td></tr>'+cs.row; }
-      return '<tr class="skip"><td class="exname"><span class="nm">'+pe+base+'</span><span class="need">needs '+r.need.map(eqLabel).join(" + ")+'</span></td><td class="sets">'+row[1]+'</td></tr>';
+      return '<tr class="skip"><td class="exname"><span class="nm">'+pe+ffEsc(base)+'</span><span class="need">needs '+r.need.map(eqLabel).join(" + ")+'</span></td><td class="sets">'+row[1]+'</td></tr>';
     }).join("");
     var warmPrimer = warmupHtml(d.name, true, showPrimerNote);
     if(interactive){
@@ -667,6 +699,50 @@
       return;
     }
 
+    if(seasonComplete()){
+      // Day 140+: the 20 weeks are done. No week strip / day cards / Start buttons
+      // — those would hand out week-20 keys and reopen finished sessions. One card,
+      // one move: start season 2 (history, PRs and trends all carry over).
+      html+=seasonCompleteHtml();
+    } else {
+      html+=trainWeekHtml(p, shown, wk);
+    }
+    html+=trainFootHtml(wk);
+    $("phaseDetail").innerHTML=html;
+    trainWireSettings();
+  }
+  // How many workouts the finished season banked (from the week|day log — the
+  // plan's own record; ff_history keeps every season beyond this one).
+  function seasonCompleteHtml(){
+    var n=0; try{ n=sessionsByWeek().length; }catch(e){}
+    var st=planStart(), since="";
+    try{ since=new Date(st).toLocaleDateString(undefined,{month:"short",day:"numeric"}); }catch(e){}
+    return '<div class="lift-hero season-done"><div class="lh-l">'+
+        '<div class="lh-week">WEEK 20 / 20 · 🏁 SEASON COMPLETE'+(goalYds()?' · MISSION +'+goalYds()+' YDS':'')+'</div>'+
+        '<h2 class="lh-name">Season complete</h2>'+
+        '<div class="lh-sub">20 weeks'+(since?' since '+ffEsc(since):'')+' <span class="lh-dot">·</span> <b class="lh-done">'+n+' workout'+(n===1?'':'s')+' banked</b></div>'+
+        '<div class="lh-prog"><span style="width:100%"></span></div></div></div>'+
+      '<div class="upcoming-banner">🏁 <b>You finished the 20-week plan.</b> Run your 7-iron speed test to close the book on this season, then start season 2 — a fresh week 1 built on the strength you have now. Your workout history, PRs, bodyweight and speed trends all stay.</div>'+
+      '<button type="button" class="train-today-cta" data-newseason="1">'+
+        '<span><small>WHAT’S NEXT</small><b>Start season 2</b></span><i>›</i></button>';
+  }
+  // Refuse new work after day 140 (every Start/Log entry point funnels here).
+  function ffSeasonOverNudge(){
+    try{ if(typeof setView==="function") setView("plan"); }catch(e){}
+    try{ renderPhase(); }catch(e){}
+    try{ ffToast("🏁 Season complete — start season 2 on the Train tab."); }catch(e){}
+  }
+  document.addEventListener("click", function(e){
+    if(!e.target.closest("[data-newseason]")) return;
+    if(!confirm("Start season 2? Week 1 starts today. Your workout history, PRs, bodyweight and 7-iron trends all stay — only this season’s week-by-week plan log resets.")) return;
+    resetPlanFull();
+    startPlanAtWeek(1);
+  });
+  // The normal in-season Train body: hero, Today CTA, week strip + featured day
+  // (or the full week). Split out of renderPhase so the season-complete state can
+  // swap it wholesale.
+  function trainWeekHtml(p, shown, wk){
+    var html="";
     var retain=trainRetain(), mode=planViewMode(), wd=weekDoneCount();
     // Focus is tracked by dayKey (not name) so the two identically-named rest days
     // don't both resolve/highlight as the focused day.
@@ -754,6 +830,11 @@
       });
     }
 
+    return html;
+  }
+  // Below the week (every Train state): coach, history, playbook, settings.
+  function trainFootHtml(wk){
+    var html="", retain=trainRetain();
     html+='<button class="train-ai" data-ask="train"><span>💬 <b>Coach this week</b></span><span class="tai-go">Adjust ›</span></button>';
 
     // Workout history stays; the Stats-tab shortcut is gone — the Stats tab and
@@ -789,8 +870,11 @@
       '<button class="sb-link" data-reset="1">↺ Restart from week 1</button>'+
       '<div id="equipBar" class="settings-equip"></div>'+
       '</div></details>';
-
-    $("phaseDetail").innerHTML=html;
+    return html;
+  }
+  // Re-attached after every render (the sanctioned exception — these nodes are
+  // rebuilt by each innerHTML swap).
+  function trainWireSettings(){
     if($("equipBar")) renderEquip();   // equipment lives inside Plan & settings now
     var setFold=$("setFold");
     if(setFold) setFold.addEventListener("toggle", function(){ planState.settingsOpen=setFold.open; });

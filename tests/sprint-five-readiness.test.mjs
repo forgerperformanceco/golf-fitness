@@ -75,7 +75,12 @@ test("readiness gates only new sessions and remains visible across the product",
   assert.match(home, /ffReadinessHomeHtml/);
   assert.match(brain, /readiness:readiness\?/);
   assert.match(coachFn, /recentReadiness:\s*body\.readiness/);
-  assert.match(player, /ffReadinessLoad/);
+  // One dose helper applies the readiness load on every logging surface.
+  assert.match(readiness, /function ffDose\(/);
+  assert.match(readiness, /ffReadinessLoad/);
+  assert.match(player, /ffDose\(/);
+  assert.match(logger, /ffDose\(/);
+  assert.match(readFileSync(new URL("../src/js/app/045-inline-logger-log-as-you-train-in-the-ca.js", import.meta.url), "utf8"), /ffDose\(/);
   assert.match(css, /\.ready-modal/);
   assert.match(css, /\.pl-ready/);
 });

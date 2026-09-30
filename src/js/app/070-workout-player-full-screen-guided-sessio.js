@@ -5,12 +5,18 @@
      saving on every change — exit any time, nothing is lost. Always dark (focus mode). */
   var player=null, plRestTimer=null, plRestEnd=0, plRestTotal=0;
   function plLiftBase(day){ return (day.type==="speed") ? 1 : 2; }   // stations before the first lift
-  function startPlayer(dayName,readinessChecked){
+  // resumeWeek: the pause bar passes the paused session's OWN week — after a week
+  // rollover, curWeek() would open a blank new-week session and orphan the paused one.
+  function startPlayer(dayName,readinessChecked,resumeWeek){
     var day=findDay(dayName); if(!day || day.type==="rest") return;
-    if(!readinessChecked && typeof ffReadinessNeedsCheck==="function" && ffReadinessNeedsCheck(day)){
+    var resume=resumeWeek!=null && sessionInProgress(getSession(resumeWeek, day.name));
+    var week=resume ? resumeWeek : curWeek();
+    // Past day 140 the season is over: only an already-started session may be
+    // finished — never a new (or replayed) week-20 session.
+    if(!resume && seasonComplete() && !sessionInProgress(getSession(week, day.name))){ ffSeasonOverNudge(); return; }
+    if(!resume && !readinessChecked && typeof ffReadinessNeedsCheck==="function" && ffReadinessNeedsCheck(day)){
       ffReadinessOpen(dayName); return;
     }
-    var week=curWeek();
     var sess=buildSession(day, week);
     var prevBest={}; bigLiftStats().forEach(function(L){ prevBest[L.name]=L.best; });
     var stations=[{type:"warmup"}];
@@ -133,12 +139,11 @@
     }
     if(st.type==="lift"){
       var x=player.sess.ex[st.xi], lx=plLastFor(x.name), wv=waveFor(player.week);
-      var ready=progressReady(lx, x.target);
       var topLast=0; if(lx) lx.sets.forEach(function(s){ var w=parseFloat(s.w); if(w>topLast) topLast=w; });
-      var presc=prescribeW(topLast||null, x.name, ready, wv);
-      var readyBand=player.sess.readiness&&player.sess.readiness.original?"ready":(player.sess.readiness&&player.sess.readiness.band);
-      var recoveryLoad=(typeof ffReadinessLoad==="function")?ffReadinessLoad(topLast,readyBand):null;
-      if(recoveryLoad!=null) presc=recoveryLoad;
+      // One load read for all three logging surfaces (077 ffDose): deload ~60%,
+      // recovery dose via ffReadinessLoad (~75%, no progression), else +1 jump when earned.
+      var dose=ffDose(topLast||null, x, lx, player.week, player.sess);
+      var presc=dose.w, readyBand=dose.band, ballistic=isBallistic(x.name);
       var cue=liftWhy(x.name).cue;
       // This session's values carry forward: the nearest EARLIER set with data
       // ghosts into later empty sets, and tapping ✓ on an empty set commits it.
@@ -177,13 +182,19 @@
         (lsGet("ff_hint_press",false)?'':'<span class="pl-setops-hint">✋ hold a set to remove it · hold the name to reorder</span>')+'</div>';
       var livePr=(player.prHit && player.prHit[x.name])
         ? '<div class="pl-livepr">🚀 e1RM PR — <b>'+Math.round(player.prHit[x.name])+'</b> lb</div>' : '';
+      // Speed-day drills get speed copy — "2 reps in reserve" is strength language
+      // and meaningless for a max-intent throw; overspeed/footwork carry no load.
       var prescLine = readyBand==="recharge"
         ? (bw?'🌱 Recovery dose — move cleanly and stop well before fatigue.':'🌱 Recovery dose — about <b>'+(presc!=null?presc+" lb":"70–80% of normal")+'</b>, no PR chasing.')
         : bw
-        ? '⚡ <b>Bodyweight</b> — every rep max height, land soft, full rest. Log the reps.'
+        ? (/Overspeed/i.test(x.name) ? '⚡ <b>Light stick</b> — every swing at max speed, both sides, full rest. Log the reps.'
+          : (/Footwork/i.test(x.name) ? '⚡ <b>Bodyweight</b> — drive hard into the ground every rep, full rest. Log the reps.'
+          : '⚡ <b>Bodyweight</b> — every rep max height, land soft, full rest. Log the reps.'))
         : (presc!=null
           ? (wv==="deload" ? '🪫 Deload — today: <b>'+presc+' lb</b> (~60% of last week)' : '📈 Progression earned — today: <b>'+presc+' lb</b>')
-          : (topLast ? 'Last time’s top: <b>'+topLast+' lb</b> — beat the reps, then the load follows.' : 'First time — find a weight you can own with 2 reps in reserve.'));
+          : (ballistic
+            ? (topLast ? '⚡ Last time: <b>'+topLast+' lb</b> — keep every rep fast; add load only while it stays explosive.' : '⚡ <b>Light and fast</b> — pick a load you can move explosively. The set ends the moment a rep slows.')
+            : (topLast ? 'Last time’s top: <b>'+topLast+' lb</b> — beat the reps, then the load follows.' : 'First time — find a weight you can own with 2 reps in reserve.')));
       var whyOpen=!!(player.whyOpen && player.whyOpen[st.xi]);
       var acts='<div class="pl-acts">'+
         '<button type="button" class="'+(whyOpen?'on':'')+'" data-plwhy="'+st.xi+'">'+ffIcon("info",13)+' Why</button>'+
@@ -196,8 +207,8 @@
         : '';
       return '<div class="pl-skick">Lift '+(st.xi+1)+' of '+player.sess.ex.length+'</div>'+
         '<div class="pl-exname">'+ffPurposeIc(x.name,17)+' '+ffEsc(x.name)+'</div>'+
-        '<span class="pl-target">'+x.target+'</span>'+
-        '<span class="pl-target dim">'+(isBallistic(x.name)?"max intent · full rest":effortNote(x.target, x.name))+'</span>'+
+        '<span class="pl-target">'+ffEsc(x.target)+'</span>'+
+        '<span class="pl-target dim">'+(ballistic?"max intent · full rest":effortNote(x.target, x.name))+'</span>'+
         '<div class="pl-presc">'+prescLine+'</div>'+
         '<div class="pl-cue">⚡ '+cue+'</div>'+
         acts+whyBox+livePr+
@@ -220,8 +231,8 @@
     return '<div class="pl-recap">'+
       '<div class="pl-recap-kick">Session complete</div>'+
       '<div class="pl-recap-big">'+(vol>0?('<span data-countup="'+vol+'" data-cu-fmt="locale">'+vol.toLocaleString()+'</span><span style="font-size:18px;color:#9fc4ac"> lb moved</span>'):'Work banked 💪')+'</div>'+
-      prs.map(function(p){ return '<div class="pl-pr">🚀 PR — '+p.name+' e1RM '+p.e1+' lb</div>'; }).join(" ")+
-      (firsts.length?'<div class="pl-first">📌 Benchmarks set: '+firsts.join(", ")+'</div>':'')+
+      prs.map(function(p){ return '<div class="pl-pr">🚀 PR — '+ffEsc(p.name)+' e1RM '+p.e1+' lb</div>'; }).join(" ")+
+      (firsts.length?'<div class="pl-first">📌 Benchmarks set: '+firsts.map(ffEsc).join(", ")+'</div>':'')+
       '<div class="pl-statrow">'+
         '<div class="pl-stat"><div class="v" data-countup="'+done+'">'+done+'</div><div class="k">sets logged</div></div>'+
         '<div class="pl-stat"><div class="v">'+mins+'m</div><div class="k">session time</div></div>'+
@@ -335,10 +346,7 @@
           for(var ci=si-1;ci>=0;ci--){ if(x.sets[ci]&&x.sets[ci][f]){ carry=parseFloat(x.sets[ci][f]); break; } }
           if(carry!=null && !isNaN(carry)){ cur=carry; if(dir<0) cur+=(f==="w"?incNum(x.name):1); }
           else if(f==="w"){ var lx=plLastFor(x.name), top=0; if(lx) lx.sets.forEach(function(ls){ var w=parseFloat(ls.w); if(w>top) top=w; });
-            var presc=prescribeW(top||null, x.name, progressReady(lx, x.target), waveFor(player.week));
-            var rb=player.sess.readiness&&!player.sess.readiness.original&&player.sess.readiness.band;
-            var rload=(typeof ffReadinessLoad==="function")?ffReadinessLoad(top,rb):null;
-            if(rload!=null) presc=rload;
+            var presc=ffDose(top||null, x, lx, player.week, player.sess).w;   // same read as the placeholder
             cur=(presc!=null?presc:(top||45));
             if(dir<0) cur+= (f==="w"? incNum(x.name):1);   // first minus lands on the seed itself
           } else { var m=String(x.target).match(/[×x]\s*(\d+)/); cur=m?parseInt(m[1],10):8; if(dir<0) cur+=1; }
@@ -592,7 +600,7 @@
       bar.id="plPauseBar"; bar.type="button"; bar.className="pl-pausebar"; bar.hidden=true;
       bar.addEventListener("click", function(){
         var st=lsGet("ff_pl_paused", null);
-        if(st && st.day) startPlayer(st.day);
+        if(st && st.day) startPlayer(st.day, false, st.week);
       });
       document.body.appendChild(bar);
     }
@@ -668,14 +676,16 @@
 
     var parts = [];
 
-    // 1) Consistency (35) — sessions logged vs. expected over the weeks you've been at it.
+    // 1) Consistency (35) — finished sessions vs. expected over the RECENT window
+    // (the last min(week,8) plan weeks). Counting all-time sessions against an
+    // 8-week expectation meant the pillar could never decay once it filled.
     var weeksIn = Math.max(1, Math.min(week, 8));
     var expected = freq * weeksIn;
-    var done = sess.length;
-    if(done > 0){
+    var done = sess.filter(function(s){ return s.w > week-weeksIn && s.w <= week; }).length;
+    if(sess.length > 0){
       var cons = clamp(done/expected, 0, 1);
       parts.push({ key:"consistency", label:"Consistency", have:true, max:35,
-        pts: Math.round(35*cons), detail: done+" session"+(done===1?"":"s")+" logged" });
+        pts: Math.round(35*cons), detail: done+" session"+(done===1?"":"s")+" logged · last "+weeksIn+" wk" });
     } else {
       parts.push({ key:"consistency", label:"Consistency", have:false, max:35, pts:0,
         detail:"Log a workout to start" });
@@ -888,8 +898,9 @@
     var ws=weekStartDateCal(), freq=(typeof planState!=="undefined"&&planState.freq)||4;
     var byDay={};
     lsGet("ff_history",[]).forEach(function(h){
-      if(!h || !h.ts) return;
-      var d=new Date(h.ts); d.setHours(0,0,0,0); byDay[d.getTime()]=true;
+      var t=h && (h.doneTs || h.ts);   // doneTs = original finish; ts moves on re-save/restore
+      if(!t) return;
+      var d=new Date(t); d.setHours(0,0,0,0); byDay[d.getTime()]=true;
     });
     var today=new Date(); today.setHours(0,0,0,0);
     var n=0, dots='';
@@ -921,7 +932,7 @@
     if(p.key==="strength"){
       var lifts=bigLiftStats().slice(0,3);
       return '<div class="fd-tx"><b>'+p.detail+'</b> — estimated 1RM on the big lifts, first session vs best. Force is the raw material for speed.</div>'+
-        lifts.map(function(L){ return '<div class="fd-sparkrow">'+(L.n>=2?pcMiniSpark(L.series,"#8be9ac"):'')+'<span class="n">'+L.name+' · '+Math.round(L.last)+' lb</span></div>'; }).join("")+
+        lifts.map(function(L){ return '<div class="fd-sparkrow">'+(L.n>=2?pcMiniSpark(L.series,"#8be9ac"):'')+'<span class="n">'+ffEsc(L.name)+' · '+Math.round(L.last)+' lb</span></div>'; }).join("")+
         '<button type="button" class="fd-act" data-goview="plan">Go lift ›</button>';
     }
     if(p.key==="p2w"){
@@ -991,11 +1002,13 @@
   /* ----- Dashboard (home overview) ----- */
   function nextWorkout(){
     var wk=curWeek(), days=activeDays(), L=getLog();
+    // A session the user explicitly skipped is resolved — never offer it as next.
+    function skipped(n){ return typeof sessionSkipped==="function" && sessionSkipped(wk, n); }
     // Resume the first unfinished workout before offering a new one. A partial
     // session must never advance the plan or disappear behind the next day.
-    for(var p=0;p<days.length;p++){ if(days[p].type==="rest") continue;
+    for(var p=0;p<days.length;p++){ if(days[p].type==="rest" || skipped(days[p].name)) continue;
       var pending=L[wk+"|"+days[p].name]; if(sessionInProgress(pending)) return days[p].name; }
-    for(var i=0;i<days.length;i++){ if(days[i].type==="rest") continue; if(!L[wk+"|"+days[i].name]) return days[i].name; }
+    for(var i=0;i<days.length;i++){ if(days[i].type==="rest" || skipped(days[i].name)) continue; if(!L[wk+"|"+days[i].name]) return days[i].name; }
     for(var j=0;j<days.length;j++){ if(days[j].type!=="rest") return days[j].name; }   // all logged → first workout
     return null;
   }

@@ -11,7 +11,7 @@
       h.ex.forEach(function(x){ if(x.name===name && x.sets && x.sets.length) hit=x; });
       if(!hit) return;
       seen[(h.week||"")+"|"+(h.day||"")]=true;
-      out.push({ ts:h.ts||0, date:h.date||"", week:h.week, sets:hit.sets, note:h.note||"" });
+      out.push({ ts:h.doneTs||h.ts||0, date:h.date||"", week:h.week, sets:hit.sets, note:h.note||"" });   // doneTs = real finish time
     });
     var L=getLog();
     Object.keys(L).forEach(function(k){
@@ -119,7 +119,7 @@
     opts.forEach(function(o){ (equipOk(o)?owned:missing).push(o); });
     function opt(o, flagged){
       var active=(o===cur);
-      return '<button class="swap-opt'+(active?" cur":"")+(flagged?" nogear":"")+'" data-swapchoose="'+escAttr(o)+'">'+ffPurposeIc(o)+' '+o+
+      return '<button class="swap-opt'+(active?" cur":"")+(flagged?" nogear":"")+'" data-swapchoose="'+escAttr(o)+'">'+ffPurposeIc(o)+' '+ffEsc(o)+
         (active?' <span class="swap-now">current</span>':'')+
         (flagged?' <span class="swap-need">needs '+equipNeedsLabel(o)+'</span>':'')+'</button>';
     }
@@ -129,7 +129,7 @@
       html+='<div class="swap-divide">Needs gear you haven’t added — still selectable</div>'+
         missing.map(function(o){ return opt(o,true); }).join("");
     }
-    if(cur!==orig) html+='<button class="swap-opt reset" data-swapchoose="'+escAttr(orig)+'">↩ Reset to original ('+orig+')</button>';
+    if(cur!==orig) html+='<button class="swap-opt reset" data-swapchoose="'+escAttr(orig)+'">↩ Reset to original ('+ffEsc(orig)+')</button>';
     html+='<button class="swap-coach" data-swapcoach="1">💬 Ask the coach for another idea</button>';
     $("swapBody").innerHTML=html; $("swapTitle").textContent="Swap "+cur;
     var m=$("swapModal"); m.hidden=false; document.body.style.overflow="hidden";
@@ -156,7 +156,7 @@
       if(!items.length) return;
       html+='<div class="add-group">'+g+'</div>';
       items.forEach(function(o){ var ok=equipOk(o);
-        html+='<button class="swap-opt'+(ok?"":" nogear")+'" data-addchoose="'+escAttr(o)+'">'+ffPurposeIc(o)+' '+o+
+        html+='<button class="swap-opt'+(ok?"":" nogear")+'" data-addchoose="'+escAttr(o)+'">'+ffPurposeIc(o)+' '+ffEsc(o)+
           (ok?'':' <span class="swap-need">needs '+equipNeedsLabel(o)+'</span>')+'</button>'; });
     });
     return html || '<div class="swap-sub">Type a name above, then tap “Add as a custom lift”.</div>';
@@ -195,16 +195,24 @@
     return btn + (logged ? '<button class="clear-workout" data-clearworkout="1">↺ Clear / reset this workout</button>' : '');
   }
   function ffTomb(key){ var d=lsGet("ff_deleted",{}); if(!d||typeof d!=="object") d={}; d[key]=Date.now(); lsSet("ff_deleted",d); }
-  // Clear the active day: wipe its week log + any matching history entry, and drop a tombstone
+  // Clear the active day: wipe its week log + THIS session's history entry, and drop a tombstone
   // so the deletion holds through cloud sync (re-logging later re-creates it with a newer stamp).
+  // Only the entry this session produced goes: same week+day alone also matches every
+  // EARLIER season's "week 3 · Day 1", and ff_history is the permanent all-seasons record.
+  // Ours = id "<session date> · <day>" (pushHistory's key), or finished at/after the
+  // session's last save (doneTs — ts itself moves on re-save/restore).
   function clearWorkoutFor(wk, day){
     if(wk==null || !day) return;
-    var L=getLog();
-    if(L[wk+"|"+day]!==undefined){ delete L[wk+"|"+day]; lsSet("ff_log",L); }
+    var L=getLog(), sess=L[wk+"|"+day];
+    if(sess!==undefined){ delete L[wk+"|"+day]; lsSet("ff_log",L); }
     ffTomb("L:"+wk+"|"+day);
     var hist=lsGet("ff_history",[]);
-    if(Array.isArray(hist)){
-      var kept=[]; hist.forEach(function(h){ if(h&&h.day===day&&h.week===wk){ ffTomb("H:"+h.id); } else kept.push(h); });
+    if(sess && Array.isArray(hist)){
+      var hid=sess.date ? (sess.date+" · "+day) : null, since=sess._ts||0;
+      var kept=[]; hist.forEach(function(h){
+        var mine=h && h.day===day && h.week===wk && ((hid && h.id===hid) || (since && (h.doneTs||h.ts||0)>=since));
+        if(mine) ffTomb("H:"+h.id); else kept.push(h);
+      });
       if(kept.length!==hist.length) lsSet("ff_history",kept);
     }
     focusDay=day;
@@ -228,11 +236,15 @@
     (sess.ex||[]).forEach(function(x){ (x.sets||[]).forEach(function(s){
       if(s.w||s.r||s.done) setCount++;
       var w=parseFloat(s.w), r=parseFloat(s.r); if(w>0&&r>0) vol+=w*r; }); });
-    var entry={ id:id, ts:Date.now(), date:date, day:day, week:week, sets:setCount, volume:Math.round(vol),
+    var idx=-1; for(var k=0;k<hist.length;k++){ if(hist[k] && hist[k].id===id){ idx=k; break; } }
+    // ts = last write (sync merge + tombstones compare it); doneTs = the ORIGINAL
+    // finish time, kept across re-saves so week counts / strips / history order
+    // don't pull an old workout into this week when it's re-saved.
+    var prev=idx>=0?hist[idx]:null, now=Date.now();
+    var entry={ id:id, ts:now, doneTs:(prev && (prev.doneTs||prev.ts)) || now, date:date, day:day, week:week, sets:setCount, volume:Math.round(vol),
       note:(sess.note||"").slice(0,240),
       ex:(sess.ex||[]).map(function(x){ return { name:x.name, target:x.target,
         sets:(x.sets||[]).filter(function(s){ return s.w||s.r||s.done; }).map(function(s){ return {w:s.w,r:s.r}; }) }; }) };
-    var idx=-1; for(var k=0;k<hist.length;k++){ if(hist[k].id===id){ idx=k; break; } }
     if(idx>=0) hist[idx]=entry; else hist.push(entry);
     lsSet("ff_history", hist);
   }
@@ -254,7 +266,7 @@
     setTimeout(function(){ t.classList.remove("show"); setTimeout(function(){ t.remove(); }, 320); }, 2400);
   }
   function historyRowsHtml(){
-    var hist=(lsGet("ff_history", [])||[]).slice().sort(function(a,b){ return (b.ts||0)-(a.ts||0); });
+    var hist=(lsGet("ff_history", [])||[]).slice().sort(function(a,b){ return ((b&&(b.doneTs||b.ts))||0)-((a&&(a.doneTs||a.ts))||0); });
     if(!hist.length) return '<div class="swap-sub">No finished workouts yet. Tap <b>✓ Finish workout</b> at the bottom of a session to lock it into your history — kept for good.</div>';
     return hist.map(function(h){
       var nm=String(h.day||"").replace(/Days? [\d–-]+ — /,"").replace(/Day \d+ — /,"");
