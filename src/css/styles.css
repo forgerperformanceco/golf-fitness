@@ -186,33 +186,58 @@
   .ft-rem-grid span:last-child{ border-right:0; }
   .ft-rem-grid b{ display:block; color:#fff; font:700 16px/1.15 'FF Numeral',system-ui,sans-serif; }
   .ft-rem-grid small{ display:block; margin-top:3px; color:#9fc4ad; font-size:11px; text-transform:uppercase; letter-spacing:.04em; }
-  .ft-plan-link{ width:100%; margin-top:13px; padding:8px 2px 0; border:0; border-top:1px solid rgba(255,255,255,.09);
-    background:none; color:#9ee8b9; text-align:left; font:750 12px system-ui; cursor:pointer; }
-  .ft-plan-link span{ float:right; font-size:17px; line-height:.7; }
   .ftoday.done{ display:flex; align-items:center; gap:12px; padding:17px; background:linear-gradient(145deg,#123c25,#0b2818); }
   .ftoday.done .ft-tx b{ font-size:17px; }
-  .ftoday.done .ft-plan-link{ width:auto; margin:0 0 0 auto; padding:9px 0 9px 12px; border:0; white-space:nowrap; }
 
-  /* Progressive disclosure: live meals, then targets, then reference/configuration. */
-  .fuel-meals-card{ order:1; }
-  .fuel-targets{ order:2; padding:0; overflow:hidden; }
-  .fuel-food-guide{ order:3; }
-  .fuel-details-card{ order:4; }
+  /* Progressive disclosure (Sep 2026 Fuel pass): today's meals, then "Your plan"
+     — slim folds for everything you set once and look up rarely. */
+  #view-calc .grid{ gap:10px; }
+  .fuel-meals-card{ order:1; margin-bottom:6px; }
+  .fuel-plan-h{ order:2; margin:10px 2px 0; color:var(--muted); font:800 12px system-ui; letter-spacing:.1em; text-transform:uppercase; }
+  .fuel-targets{ order:3; padding:0; overflow:hidden; }
+  .fuel-timing{ order:4; overflow:hidden; }
+  .fuel-food-guide{ order:5; overflow:hidden; }
+  .card.fuel-timing, .card.fuel-food-guide{ padding:0; }   /* beats the phone .card padding */
+  .fuel-details-card{ order:6; }
+  .fuel-timing[open] .fuel-targets-chevron{ transform:rotate(180deg); }
+  .fuel-timing .timing{ margin:0; border:0; box-shadow:none; }
+  .fuel-food-guide > .foodfold{ margin:0; border:0; border-radius:0; background:none; }
+  .fuel-food-guide > .foodfold > summary{ min-height:56px; padding:15px 14px; color:var(--ink); font-size:14px; font-weight:800; }
+  .fuel-details-card h2{ margin-top:0; }
+  /* The day's list: a plain heading, not a second dark header bar. */
+  .fuel-meals-card .meals{ margin-top:0; border:0; border-radius:0; box-shadow:none; overflow:visible; }
+  .fuel-meals-card .meals-head{ background:none; color:var(--ink); padding:0 0 10px; font-size:16px; font-weight:800;
+    flex-direction:column; align-items:flex-start; gap:2px; }
+  .meals-sub{ color:var(--muted); font:600 12px system-ui; white-space:nowrap; }
+  .fuel-meals-card .meals-body{ padding:0; }
+  .meals-per-day{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin:14px 0 4px; padding:12px 0;
+    border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
+  .meals-per-day b{ display:block; color:var(--ink); font-size:14px; }
+  .meals-per-day small{ display:block; margin-top:2px; color:var(--muted); font-size:12px; }
+  .meals-per-day .seg{ width:auto; flex:0 0 auto; }
+  .meals-per-day .seg button{ min-width:44px; min-height:44px; }
+  /* Today's meals card extras: first-day hint, streak, and the whole-day rating. */
+  .ft-hint{ margin:10px 2px 0; color:#b9d9c5; font-size:13px; }
+  .ft-streak{ display:inline-flex; align-items:center; gap:4px; margin-right:9px; color:#ffcf87; }
+  .ftoday.done .ft-streak{ margin:0 0 0 auto; white-space:nowrap; }
+  .ft-rated{ margin-top:12px; color:#d9f3e2; font-size:13px; }
+  .ft-rated b{ color:#fff; }
+  .ftoday .frate{ margin-top:12px; border-top:1px solid rgba(255,255,255,.1); }
+  .ftoday .frate-lbl{ flex-basis:100%; color:#9fc4ad; }
+  .ftoday .frate-chip{ min-height:44px; border-color:rgba(255,255,255,.16); background:rgba(255,255,255,.06); color:#dff1e4; }
+  .ftoday .frate-chip.on{ border-color:#7ef0a8; background:#7ef0a8; color:#0b2616; }
   .fuel-targets-summary{ display:flex; align-items:center; gap:13px; padding:17px 18px; cursor:pointer; list-style:none; }
   .fuel-targets-summary::-webkit-details-marker{ display:none; }
   .fuel-targets-copy{ flex:1; min-width:0; }
   .fuel-targets-copy .kicker{ display:block; margin:0 0 3px; }
   .fuel-targets-copy b{ display:block; font-size:15px; color:var(--ink); }
+  .fuel-targets-copy small{ display:block; margin-top:2px; color:var(--muted); font-size:12px; }
   .fuel-targets-macros{ flex:0 1 auto; color:var(--muted); font-size:12px; text-align:right; white-space:nowrap; }
   .fuel-targets-macros b{ color:var(--green-800); font-size:14px; }
   .fuel-targets-macros span{ opacity:.45; }
   .fuel-targets-chevron{ color:var(--green-700); font-size:19px; transition:transform .18s; }
   .fuel-targets[open] .fuel-targets-chevron{ transform:rotate(180deg); }
   .fuel-targets-body{ border-top:1px solid var(--line); padding:20px 22px 24px; }
-  .fuel-timing-fold{ margin-top:14px; }
-  .fuel-timing-fold > summary{ display:flex; justify-content:space-between; gap:12px; }
-  .fuel-timing-fold > summary span{ color:var(--muted); font-size:11px; font-weight:650; }
-  .fuel-timing-fold .timing{ margin:0; border:0; box-shadow:none; }
   .golf-note.slim{ font-size:13px; padding:9px 12px; }
   /* Train Today: compact session list (the player logs; the spreadsheet is opt-in). */
   .sess-list{ margin-top:10px; }
@@ -390,20 +415,11 @@
     background:linear-gradient(160deg, var(--green-800), #1c6b3a); color:#eafff1; padding:13px 17px; font-size:14px; font-weight:700;
     display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;
   }
-  .meal-pick { display:flex; align-items:center; gap:8px; }
-  .meal-pick-lbl { font-size:12px; font-weight:600; opacity:.85; }
   @media (max-width:480px){
-    .meal-pick-lbl{ display:none; }
-    .seg.meal-seg button{ min-height:40px; min-width:40px; padding:5px 9px; }
     .meals-head{ flex-wrap:nowrap; }
-    .meals-head > span:first-child{ white-space:nowrap; }
   }
-  .seg.meal-seg { width:auto; background:rgba(255,255,255,.15); padding:3px; }
-  .seg.meal-seg button { padding:5px 11px; color:#d6f3e0; font-size:13px; }
-  .seg.meal-seg button.active { background:#fff; color:#14532d; }
   .meals-body { padding:15px 16px; }
   .meal-each { font-size:13px; color:#2b3a30; margin-bottom:12px; }
-  .rec { color:var(--muted); font-size:13px; font-weight:500; }
   .meal-macros { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
   .mm { border-radius:14px; padding:13px 12px; text-align:center; border:1.5px solid var(--line); }
   .mm.p { background:#fdf1f1; border-color:#f6d6d6; }
@@ -414,8 +430,6 @@
   .mm-l { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:#4a5a50; margin-top:2px; }
   .meal-foot { margin-top:13px; font-size:12px; color:#5b6b60; line-height:1.5; }
   .meal-foot b { color:#243a2c; }
-  .sched-title { margin:16px 0 8px; font-size:13px; font-weight:700; color:#243a2c; }
-  .sched-title b { color:var(--green-700); }
   .sched { border:1px solid var(--line); border-radius:12px; overflow:hidden; }
   .sched-row { display:flex; align-items:center; gap:12px; padding:10px 14px; }
   .sched-row + .sched-row { border-top:1px solid var(--line); }
@@ -738,10 +752,13 @@
   .ffp-reg { font:800 13px system-ui; color:var(--green-700); }
 
   /* ---- Meal ideas from your favorites (Fuel) ---- */
-  .ffm-cta { display:flex; align-items:center; gap:13px; }
-  .ffm-cta-ic { font-size:30px; flex:0 0 auto; }
+  .ffm-cta { display:flex; align-items:center; gap:12px; width:100%; min-height:56px; margin-top:14px; padding:11px 14px;
+    border:1px solid var(--line); border-radius:14px; background:var(--card); color:inherit; text-align:left; font:inherit; cursor:pointer; }
+  .ffm-cta:active { transform:translateY(1px); }
+  .ffm-cta-ic { font-size:22px; flex:0 0 auto; }
+  .ffm-cta-go { flex:0 0 auto; color:#9db8a5; font-size:20px; }
   .ffm-cta-tx { flex:1; min-width:0; display:flex; flex-direction:column; }
-  .ffm-cta-tx b { color:var(--green-800); font-size:15px; }
+  .ffm-cta-tx b { color:var(--green-800); font-size:14.5px; }
   .ffm-cta-tx span { color:var(--muted); font-size:13px; margin-top:2px; line-height:1.45; }
   .ffm-cta-btn { flex:0 0 auto; background:#11643a; color:#fff; border:0; border-radius:10px; padding:10px 14px; font:800 13px system-ui; cursor:pointer; }
   .ffm-head { display:flex; align-items:center; justify-content:space-between; gap:10px; }
@@ -1674,7 +1691,7 @@
     .card { padding: 20px 16px 22px; border-radius: 16px; }
     .card.fuel-targets{ padding:0; }
     .fuel-targets-summary{ gap:9px; padding:15px 14px; }
-    .fuel-targets-copy b{ font-size:13px; }
+    .fuel-targets-copy b{ font-size:14px; }
     .fuel-targets-macros{ font-size:11px; }
     .fuel-targets-macros b{ font-size:12px; }
     .fuel-targets-body{ padding:18px 15px 21px; }
@@ -1827,17 +1844,6 @@
     border-radius:13px; color:#e9f5ec; font:600 14px/1.5 inherit; font-family:inherit; padding:12px 13px; resize:none; outline:none; }
   .pl-notes::placeholder{ color:#87a893; }
   /* fuel check-off */
-  .fuel-sum{ margin:12px 0 4px; padding:15px; border-radius:14px; background:#f2f8f4; border:1px solid #d5e8db; }
-  .fuel-sum.rated-on{ background:#e9f8ee; border-color:#bfe0c8; }
-  .fuel-sum.rated-close{ background:#fff6e3; border-color:#edd9a8; }
-  .fuel-sum.rated-off{ background:#fdf0ee; border-color:#eccfc9; }
-  .fuel-sum-top{ display:flex; justify-content:space-between; align-items:baseline; gap:10px; }
-  .fuel-sum-t{ font-weight:800; font-size:14.5px; color:#123f28; }
-  .fuel-streak{ font-size:13px; font-weight:800; color:#8a5a08; }
-  .fuel-sum-line{ margin-top:6px; font-size:14.5px; line-height:1.5; color:#33564a; }
-  .fuel-nums{ margin-top:7px; font-size:13.5px; color:#123f28; }
-  .fuel-numbtn{ margin-top:8px; border:0; background:none; color:#16a34a; font-weight:800; font-size:13px;
-    cursor:pointer; padding:6px 4px; margin-left:-4px; text-decoration:underline; text-underline-offset:2px; }
   .frate{ display:flex; align-items:center; gap:7px; flex-wrap:wrap; margin-top:10px; padding-top:10px; border-top:1px dashed #d5e8db; }
   .frate-lbl{ font-size:13px; font-weight:700; color:#5b7a68; }
   .frate-chip{ border:1px solid #cfe0d5; background:#fff; border-radius:999px; padding:7px 12px;
@@ -2286,7 +2292,6 @@
   html:not([data-theme="light"]) .kicker{ background:#142417; border:1px solid #25422e; }
   html:not([data-theme="light"]) .brand-kicker .ball{ background:radial-gradient(circle at 35% 30%, #1a1a1a, #212d21); }
   html:not([data-theme="light"]) .tabs button.active{ background:#1a1a1a; }
-  html:not([data-theme="light"]) .ft-progress i{ background:linear-gradient(90deg,#35d879,#274934); }
   html:not([data-theme="light"]) label.field > span.lbl{ color:#caded2; }
   html:not([data-theme="light"]) input[type="number"], html:not([data-theme="light"]) input[type="text"], html:not([data-theme="light"]) input[type="date"], html:not([data-theme="light"]) input[type="time"], html:not([data-theme="light"]) select{ background:#141f14; }
   html:not([data-theme="light"]) .seg{ background:#182518; }
@@ -2320,7 +2325,6 @@
   html:not([data-theme="light"]) .twin .tclock{ color:#c8d1cb; }
   html:not([data-theme="light"]) .timing-foot{ color:#e1dac1; }
   html:not([data-theme="light"]) .timing-foot b{ color:#e4dec6; }
-  html:not([data-theme="light"]) .seg.meal-seg button.active{ background:#1a1a1a; color:#c4e3d0; }
   html:not([data-theme="light"]) .meal-each{ color:#cddad2; }
   html:not([data-theme="light"]) .mm.p{ background:#211212; border-color:#402424; }
   html:not([data-theme="light"]) .mm.c{ background:#252014; border-color:#463d27; }
@@ -2329,7 +2333,6 @@
   html:not([data-theme="light"]) .mm-l{ color:#cad4ce; }
   html:not([data-theme="light"]) .meal-foot{ color:#c8d1cb; }
   html:not([data-theme="light"]) .meal-foot b{ color:#caded2; }
-  html:not([data-theme="light"]) .sched-title{ color:#caded2; }
   html:not([data-theme="light"]) .sched-row.pre{ background:#252014; }
   html:not([data-theme="light"]) .sched-name{ color:#caded2; }
   html:not([data-theme="light"]) .sched-macros b{ color:#cddad2; }
@@ -2510,15 +2513,6 @@
   html:not([data-theme="light"]) .xh-pr .k{ color:#c4d3ca; }
   html:not([data-theme="light"]) .xh-row.live{ border-color:#2f543c; }
   html:not([data-theme="light"]) .xh-top em{ color:#bcdfc9; }
-  html:not([data-theme="light"]) .fuel-sum{ background:#132318; border:1px solid #26442f; }
-  html:not([data-theme="light"]) .fuel-sum.rated-on{ background:#14261a; border-color:#2a4a33; }
-  html:not([data-theme="light"]) .fuel-sum.rated-close{ background:#252014; border-color:#4d432b; }
-  html:not([data-theme="light"]) .fuel-sum.rated-off{ background:#221512; border-color:#452c27; }
-  html:not([data-theme="light"]) .fuel-sum-t{ color:#c7e4d5; }
-  html:not([data-theme="light"]) .fuel-streak{ color:#e1d5c0; }
-  html:not([data-theme="light"]) .fuel-sum-line{ color:#c5ddd5; }
-  html:not([data-theme="light"]) .fuel-nums{ color:#c7e4d5; }
-  html:not([data-theme="light"]) .fuel-numbtn{ color:#bcdfc9; }
   html:not([data-theme="light"]) .frate{ border-top:1px dashed #26442f; }
   html:not([data-theme="light"]) .frate-lbl{ color:#c4d3ca; }
   html:not([data-theme="light"]) .frate-chip{ border:1px solid #2b4334; background:#1a1a1a; color:#c5ddd5; }
@@ -2581,7 +2575,6 @@
   html[data-theme="dark"] .kicker{ background:#142417; border:1px solid #25422e; }
   html[data-theme="dark"] .brand-kicker .ball{ background:radial-gradient(circle at 35% 30%, #1a1a1a, #212d21); }
   html[data-theme="dark"] .tabs button.active{ background:#1a1a1a; }
-  html[data-theme="dark"] .ft-progress i{ background:linear-gradient(90deg,#35d879,#274934); }
   html[data-theme="dark"] label.field > span.lbl{ color:#caded2; }
   html[data-theme="dark"] input[type="number"], html[data-theme="dark"] input[type="text"], html[data-theme="dark"] input[type="date"], html[data-theme="dark"] input[type="time"], html[data-theme="dark"] select{ background:#141f14; }
   html[data-theme="dark"] .seg{ background:#182518; }
@@ -2615,7 +2608,6 @@
   html[data-theme="dark"] .twin .tclock{ color:#c8d1cb; }
   html[data-theme="dark"] .timing-foot{ color:#e1dac1; }
   html[data-theme="dark"] .timing-foot b{ color:#e4dec6; }
-  html[data-theme="dark"] .seg.meal-seg button.active{ background:#1a1a1a; color:#c4e3d0; }
   html[data-theme="dark"] .meal-each{ color:#cddad2; }
   html[data-theme="dark"] .mm.p{ background:#211212; border-color:#402424; }
   html[data-theme="dark"] .mm.c{ background:#252014; border-color:#463d27; }
@@ -2624,7 +2616,6 @@
   html[data-theme="dark"] .mm-l{ color:#cad4ce; }
   html[data-theme="dark"] .meal-foot{ color:#c8d1cb; }
   html[data-theme="dark"] .meal-foot b{ color:#caded2; }
-  html[data-theme="dark"] .sched-title{ color:#caded2; }
   html[data-theme="dark"] .sched-row.pre{ background:#252014; }
   html[data-theme="dark"] .sched-name{ color:#caded2; }
   html[data-theme="dark"] .sched-macros b{ color:#cddad2; }
@@ -2805,15 +2796,6 @@
   html[data-theme="dark"] .xh-pr .k{ color:#c4d3ca; }
   html[data-theme="dark"] .xh-row.live{ border-color:#2f543c; }
   html[data-theme="dark"] .xh-top em{ color:#bcdfc9; }
-  html[data-theme="dark"] .fuel-sum{ background:#132318; border:1px solid #26442f; }
-  html[data-theme="dark"] .fuel-sum.rated-on{ background:#14261a; border-color:#2a4a33; }
-  html[data-theme="dark"] .fuel-sum.rated-close{ background:#252014; border-color:#4d432b; }
-  html[data-theme="dark"] .fuel-sum.rated-off{ background:#221512; border-color:#452c27; }
-  html[data-theme="dark"] .fuel-sum-t{ color:#c7e4d5; }
-  html[data-theme="dark"] .fuel-streak{ color:#e1d5c0; }
-  html[data-theme="dark"] .fuel-sum-line{ color:#c5ddd5; }
-  html[data-theme="dark"] .fuel-nums{ color:#c7e4d5; }
-  html[data-theme="dark"] .fuel-numbtn{ color:#bcdfc9; }
   html[data-theme="dark"] .frate{ border-top:1px dashed #26442f; }
   html[data-theme="dark"] .frate-lbl{ color:#c4d3ca; }
   html[data-theme="dark"] .frate-chip{ border:1px solid #2b4334; background:#1a1a1a; color:#c5ddd5; }

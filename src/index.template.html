@@ -94,9 +94,11 @@
     <div id="fuelToday"></div>
     <div class="grid">
 
+      <div class="fuel-plan-h" role="heading" aria-level="2">Your plan</div>
+
       <details class="card fuel-targets" id="fuelTargetsFold">
         <summary class="fuel-targets-summary">
-          <span class="fuel-targets-copy"><span class="kicker">⛳ Daily targets</span><b>Your nutrition game plan</b></span>
+          <span class="fuel-targets-copy"><b>Daily targets</b><small>and meals per day</small></span>
           <span id="fuelTargetSummary" class="fuel-targets-macros">Calculated live</span>
           <span class="fuel-targets-chevron" aria-hidden="true">⌄</span>
         </summary>
@@ -110,9 +112,17 @@
         <div id="ffMeals" class="ffm"></div>
       </section>
 
+      <details class="card fuel-timing" id="fuelTimingFold" hidden>
+        <summary class="fuel-targets-summary">
+          <span class="fuel-targets-copy"><b>Carb timing around training</b></span>
+          <span class="fuel-targets-chevron" aria-hidden="true">⌄</span>
+        </summary>
+        <div class="fuel-targets-body" id="fuelTimingBody"></div>
+      </details>
+
       <section class="card card-full fuel-food-guide">
         <details class="fold foodfold">
-          <summary>🍽️ What do I eat to hit these numbers?</summary>
+          <summary>What do I eat to hit these numbers?</summary>
           <div class="fold-body">
             <div id="foodDynamic" class="fooddyn"></div>
             <p class="foodintro">Targets get easy once you know what common foods carry. Meat weights are <b>cooked</b>. Mix and match to reach your daily carb &amp; protein numbers.</p>
@@ -198,8 +208,7 @@
       </section>
 
       <section class="card fuel-details-card" aria-label="Your details">
-        <div class="kicker">⛳ On the Tee</div>
-        <h2>Your Numbers</h2>
+        <h2>Your details</h2>
         <div id="calcSummary" class="calc-sum" hidden></div>
         <div id="calcForm">
 

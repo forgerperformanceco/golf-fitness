@@ -125,7 +125,12 @@ function seeds() {
 const INTERACTIONS = [
   { name: 'home-meal-check', view: 'dash', sel: '#dashBody [data-fuelmeal]', node: 'window' },
   { name: 'fuel-meal-check', view: 'calc', sel: '#view-calc .fchk-b[data-fuelval="a"]:not(.on)', node: 'window' },
-  { name: 'fuel-show-numbers', view: 'calc', sel: '.fuel-numbtn[data-fuelnums]', node: 'window' },
+  // Meals-per-day re-runs calc() and rebuilds the whole Fuel view (replaced the
+  // "Show the numbers" toggle, removed in the Sep 2026 Fuel pass). Taps the
+  // ACTIVE count: a different count adds/removes a meal row above the picker,
+  // and scroll anchoring then (correctly) shifts scrollY by that row's height.
+  { name: 'fuel-meals-per-day', view: 'calc', sel: '#fuelTargetsFold [data-meals].active', node: 'window',
+    pre: () => { const f = document.getElementById('fuelTargetsFold'); if (f) f.open = true; } },
   { name: 'fuel-day-rating', view: 'calc', sel: '.frate-chip[data-fuelrate="on"]', node: 'window' },
   { name: 'stats-fold-open', view: 'progress', sel: '.pf-head[data-pftoggle]', node: 'window' },
   { name: 'stats-fold-close', view: 'progress', sel: '.pf-head[data-pftoggle]', node: 'window', clicks: 2 },

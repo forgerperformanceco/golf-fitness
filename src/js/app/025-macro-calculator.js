@@ -1055,9 +1055,9 @@
     if(!hasPrefs){
       // 2a. The generic per-meal split (the schedule the calculator builds) + an upgrade nudge.
       if(lastMealPlan && lastMealPlan.meal){ try{ html+=mealBlock(lastMealPlan.meal); }catch(e){} }
-      html+='<div class="ffm-cta"><div class="ffm-cta-ic">🍽️</div>'+
-        '<div class="ffm-cta-tx"><b>Make these meals yours</b><span>Swap the example foods for the ones you actually eat — we’ll rebuild this split and a shopping list around them.</span></div>'+
-        '<button type="button" class="ffm-cta-btn" data-ffaction="edit">Pick my foods</button></div>';
+      html+='<button type="button" class="ffm-cta" data-ffaction="edit"><span class="ffm-cta-ic">🥗</span>'+
+        '<span class="ffm-cta-tx"><b>Use foods you actually eat</b><span>We’ll rebuild these meals and a shopping list around them</span></span>'+
+        '<span class="ffm-cta-go" aria-hidden="true">›</span></button>';
     } else {
       // 2b. The same per-meal split, built from foods you love, with a one-day shopping list.
       var plan=ffPlanDay(p,t,ffRoll);
@@ -1075,11 +1075,8 @@
         }
         return -1;
       });
-      html+='<div class="meals"><div class="meals-head"><span>🍽️ Your Meals</span>'+
-        '<span class="meal-pick"><span class="meal-pick-lbl">meals/day</span><span class="seg meal-seg">'+
-          [3,4,5,6].map(function(n){ return '<button type="button" data-meals="'+n+'"'+((t.m||4)===n?' class="active"':'')+'>'+n+'</button>'; }).join("")+
-        '</span></span></div><div class="meals-body">';
-      try{ if(lastMealPlan && lastMealPlan.meal) html+=fuelSummaryHtml(lastMealPlan.meal); }catch(e){}
+      var lm=(lastMealPlan && lastMealPlan.meal)||{};
+      html+='<div class="meals">'+fuelListHead(t.m||4, lm.rest, lm.slot)+'<div class="meals-body">';
       var fdNow=fuelDay(ffISO())||{ m:{} };
       var nChk=0; plan.slots.forEach(function(_,k){ var si=schedIdx[k]; if(si>=0&&fdNow.m&&fdNow.m[si]) nChk++; });
       // The sample menu is reference, not a daily read — it folds; the header
@@ -1119,19 +1116,19 @@
       html+='</div></details>';
       html+='</div></div>';
     }
-    // Timing is useful context, but the next meal and today's meal plan are the
-    // primary jobs. Keep the sports-nutrition detail one tap away below them.
-    if(lastMealPlan && lastMealPlan.timing){
-      try{ html+='<details class="fold fuel-timing-fold"><summary>⚡ Carb timing around training <span>View windows</span></summary><div class="fold-body">'+timingBlock(lastMealPlan.timing)+'</div></details>'; }catch(e){}
-    }
     el.innerHTML=html;
+    // Carb timing is reference, not a daily job — it lives with the other plan
+    // folds under "Your plan" (Sep 2026 Fuel pass), not under today's meals.
+    var tf=$("fuelTimingFold"), tb=$("fuelTimingBody");
+    if(tf && tb){
+      var tHtml=""; try{ if(lastMealPlan && lastMealPlan.timing) tHtml=timingBlock(lastMealPlan.timing); }catch(e){}
+      tb.innerHTML=tHtml; tf.hidden=!tHtml;
+    }
     if(!ffMealsBound && card){
       ffMealsBound=true;
       card.addEventListener("click", function(e){
         var row=e.target.closest(".sched-row.tappable");
         if(row){ row.classList.toggle("open"); return; }   // tap a meal for a food example
-        var mb=e.target.closest("[data-meals]");
-        if(mb){ state.meals=parseInt(mb.getAttribute("data-meals"),10); calc(); return; }
         var b=e.target.closest("[data-ffaction]"); if(!b) return;
         var act=b.getAttribute("data-ffaction");
         if(act==="edit") openFoodPrefs();
@@ -1315,6 +1312,11 @@
       macroCard("c","Carbs",r.carbG,r.carbKcal,cPct)+
       macroCard("f","Fat",r.fatG,r.fatKcal,fPct)+'</div>';
     html+='<div class="golf-note slim">'+scaleLine+'</div>';
+    if(r.meal){
+      var mN=r.meal.n, mRec=r.meal.recommended;
+      html+='<div class="meals-per-day"><span><b>Meals per day</b><small>'+(mN===mRec?'recommended for your plan':'we recommend '+mRec)+'</small></span>'+
+        '<span class="seg">'+[3,4,5,6].map(function(n){ return '<button type="button" data-meals="'+n+'"'+(n===mN?' class="active"':'')+'>'+n+'</button>'; }).join("")+'</span></div>';
+    }
     html+='<details class="fold"><summary>How this is calculated — and how fast the scale should move</summary><div class="fold-body breakdown">'+
       targetBand(r.weekly,r.goal)+
       '<div class="golf-note"><b>⛳ '+r.goal.label+':</b> '+r.goal.note+'</div>'+
