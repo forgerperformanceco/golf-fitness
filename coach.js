@@ -97,7 +97,7 @@
       + 'align-items:center;justify-content:space-between;}'
       + '.ffc-head h3{margin:0;font-size:15px;display:flex;align-items:center;gap:8px;}'
       + '.ffc-head .ffc-ctx{margin:2px 0 0;font-size:11px;color:#bfe6cd;}'
-      + '.ffc-memory{margin:5px 0 0;padding:0;border:0;background:none;color:#7fe2a2;font:750 10px system-ui;cursor:pointer;text-decoration:underline;text-underline-offset:2px;}'
+      + '.ffc-memory{margin:5px 0 0;padding:0;border:0;background:none;color:#7fe2a2;font:750 11px system-ui;cursor:pointer;text-decoration:underline;text-underline-offset:2px;}'
       + '.ffc-x{background:rgba(255,255,255,.16);border:0;color:#fff;width:32px;height:32px;border-radius:50%;font-size:17px;cursor:pointer;}'
       + '.ffc-log{flex:1;overflow-y:auto;padding:18px 16px;display:flex;flex-direction:column;gap:14px;}'
       + '.ffc-msg{font-size:14.5px;line-height:1.62;}'
