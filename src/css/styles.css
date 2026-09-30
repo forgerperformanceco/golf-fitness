@@ -1072,13 +1072,6 @@
   .bf-coach{ width:100%; margin-top:11px; padding:10px 2px 0; border:0; border-top:1px solid rgba(255,255,255,.09);
     background:none; color:#9ee8b9; text-align:left; font:800 12px system-ui; cursor:pointer; }
   .bf-coach span{ float:right; font-size:16px; }
-  .brain-forecast.building{ padding:14px 16px; background:linear-gradient(145deg,#173b27,#10291c); }
-  .bf-build{ display:flex; align-items:center; gap:11px; margin-top:8px; }
-  .bf-build b,.bf-build small{ display:block; }
-  .bf-build b{ color:#fff; font-size:13.5px; }
-  .bf-build small{ margin-top:3px; color:#a9c7b4; font-size:11px; line-height:1.4; }
-  .bf-orb{ display:flex; align-items:center; justify-content:center; width:36px; height:36px; flex:0 0 auto;
-    color:#7ef0a8; border-radius:50%; background:rgba(126,240,168,.1); }
   @media(max-width:520px){
     .bf-main{ align-items:flex-start; }
     .bf-main h3{ font-size:28px; }
@@ -1092,16 +1085,15 @@
   .ps-proof b{ display:block; margin-bottom:1px; color:#eaf8ef; font-size:11px; text-transform:uppercase; letter-spacing:.05em; }
   .ps-proof i{ flex:0 0 auto; max-width:150px; color:#7fa58c; font-size:11px; font-style:normal; text-align:right; }
   .ps-grid{ display:grid; grid-template-columns:minmax(0,1.25fr) minmax(190px,.75fr); gap:12px; margin-top:12px; }
-  .ps-drivers,.ps-next{ border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:13px; background:rgba(0,0,0,.13); }
-  .ps-drivers h4,.ps-next h4{ margin:0 0 9px; color:#e8f7ed; font:800 12px/1.25 system-ui; }
-  .ps-signal{ display:grid; grid-template-columns:28px minmax(0,1fr) auto; gap:9px; align-items:center; padding:8px 0;
-    border-top:1px solid rgba(255,255,255,.07); }
-  .ps-signal:first-of-type{ border-top:0; padding-top:1px; }
-  .ps-sicon{ display:grid; place-items:center; width:26px; height:26px; border-radius:8px; color:#9aefba;
-    background:rgba(110,225,153,.1); font:800 12px system-ui; }
-  .ps-signal b{ display:block; color:#e6f5eb; font:750 12px/1.2 system-ui; }
-  .ps-signal small{ display:block; margin-top:2px; color:#8faf9a; font:550 11px/1.35 system-ui; }
-  .ps-signal em{ color:#8fd7aa; font:800 11px system-ui; font-style:normal; }
+  .ps-grid.one{ grid-template-columns:1fr; }
+  .ps-outlook{ display:flex; gap:9px; align-items:flex-start; margin-top:10px; padding:10px 12px; border-radius:12px;
+    background:rgba(0,0,0,.13); border:1px solid rgba(255,255,255,.08); color:#cfe8d8; font:600 13px/1.4 system-ui; }
+  .ps-outlook b{ color:#fff; }
+  .ps-outlook em{ color:#8faf9a; font-style:normal; }
+  /* Stats: the answer (story + this week) first, then one "The details" section. */
+  .stats-details-h{ margin:18px 2px 8px; color:var(--muted); font:800 12px system-ui; letter-spacing:.1em; text-transform:uppercase; }
+  .ps-next{ border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:13px; background:rgba(0,0,0,.13); }
+  .ps-next h4{ margin:0 0 9px; color:#e8f7ed; font:800 12px/1.25 system-ui; }
   .ps-next{ display:flex; flex-direction:column; background:linear-gradient(145deg,rgba(100,223,146,.11),rgba(100,223,146,.035)); }
   .ps-next-kick{ margin-bottom:5px; color:#74ca94; font:800 11px/1.2 system-ui; letter-spacing:.11em; }
   .ps-next h4{ margin-bottom:5px; color:#fff; font-size:16px; }

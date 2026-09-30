@@ -1,5 +1,36 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## Stats pass — the answer first, then "The details" (Sep 30, 2026)
+
+Third tab under the "one clear thing on top, the rest folded" rule. Three big
+dark cards in a row (the progress story, the 6-week outlook, the Octane gauge)
+all answered "is it working?", and the story repeated Octane's pillars in its
+own "What's working" list.
+
+1. **The story is the answer.** Its "What's working" pillar list is gone (the
+   same pillars are one tap away in Octane). It gains one line from the 6-week
+   outlook: "Next 6 weeks, if you keep this up: 80.2–82.3 mph 7-iron · low
+   confidence" — only when the forecast is ready.
+2. **This week** stays second (the weekly plan card from the Home pass).
+3. **"The details"** heading, then the evidence: Octane first ("See the
+   details ↓" still jumps there), the full outlook card (range, reasoning,
+   coach button), then speed / gym / season / unlocks / leaderboard / coach.
+   The clubhead-speed card now starts closed like the others (`PF_DEFAULTS`
+   empty); the story already shows the number. The outlook's "building" card
+   (not enough tests yet) is no longer shown — the story already says the next
+   test sharpens the read.
+4. Dead CSS for the removed pieces deleted.
+
+Result on the active seed: 2,690 → 2,347px, 330 → 292 words.
+
+**Verified:** `npm test` 62/62 (performance-story test asserts no pillar list in
+the story, the outlook line, and the details order); `check-release` 4/4; data
+contract; claims-lint clean; audit-train 18/18; audit-scroll 16/16;
+audit-contrast clean; audit-type only the known `.ft-bank` flag; smoke functional
+checks pass. Headless: outlook line present with data and absent without, "See
+the details" lands on Octane, speed card opens on tap, "Why this range" opens,
+zero page errors.
+
 ## Fuel pass — one "today" card, then "Your plan" (Sep 30, 2026)
 
 User, after the Home pass: "should we take a similar approach to the other
