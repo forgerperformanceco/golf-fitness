@@ -162,7 +162,8 @@ const SURFACES = [
   { name: 'fuel', go: async () => page.click('#mobileTabs button[data-view="calc"]') },
   { name: 'train', go: async () => page.click('#mobileTabs button[data-view="plan"]') },
   { name: 'stats', go: async () => page.click('#mobileTabs button[data-view="progress"]') },
-  { name: 'account', go: async () => page.click('#mobileTabs button[data-view="account"]') },
+  { name: 'account', go: async () => { await page.click('#mobileTabs button[data-view="account"]');
+      await page.evaluate(() => document.querySelectorAll('details.acct-group').forEach(d => { d.open = true; })); } },
   { name: 'round', go: async () => page.evaluate(() => { const b = document.createElement('button');
       b.setAttribute('data-goview', 'gameday'); document.body.appendChild(b); b.click(); b.remove(); }) },
   { name: 'player', go: async () => { await page.click('#mobileTabs button[data-view="plan"]');

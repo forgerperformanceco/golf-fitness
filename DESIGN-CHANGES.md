@@ -1,5 +1,45 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## You pass — sign-in on top, four folded groups (Sep 30, 2026)
+
+The last tab in the simplification series, and the longest: 15 separate cards
+in one scroll (4,053px, 538 words on the active seed).
+
+1. **Layout.** The sign-in / account card stays on top. Everything else is in
+   four folded groups (`<details class="acct-group">`), each a row with a
+   one-line summary so you can read your settings without opening anything:
+   - **Your plan** — "Lean Bulk · 5 days · morning": your numbers + re-run
+     setup, training setup (mission, days, time, big event), favorite foods,
+     mobility screen, start the plan over.
+   - **Reminders & look** — "Reminders off · Auto theme": smart reminders,
+     appearance.
+   - **Your data** — "On this phone / Synced · backup, privacy": backup &
+     export, product-health toggle, delete account (signed in).
+   - **Help & app** — "How it works, app updates": install the app, show me
+     around, app version / force refresh, full access.
+   Feedback / Privacy / Delete-account links stay at the bottom.
+2. **State.** Every setting change re-renders the tab, so open groups are held
+   in `acctOpen` (toggle captured, written back at render — the Home-fold
+   pattern). Deep links open their group first: the Stats season card's "Set
+   your event date" now carries `data-acctopen="plan" data-acctfocus="acctEvDate"`
+   and lands on the field.
+3. **Dark mode:** the sign-in card's bright button was being dimmed by the
+   generator; `.acct-card.hero` rules are now excluded (the card is dark in both
+   themes).
+4. **Audits:** audit-scroll's four You cases, audit-contrast and audit-type now
+   open the groups before tapping/measuring, so coverage is unchanged.
+
+Result: 4,053 → 1,134px and 538 → 98 words when folded; the same controls one
+tap away.
+
+**Verified:** `npm test` 63/63 (new You-tab test); `check-release` 4/4; data
+contract; claims-lint clean; audit-train 18/18; audit-scroll 16/16; audit-contrast
+clean (You groups opened); audit-type only the known `.ft-bank` flag; smoke
+functional checks pass. Headless: 4 groups folded with sign-in on top, a group
+stays open after a setting re-renders the tab, summaries update (days, theme),
+the event-date deep link opens Your plan and scrolls the field into view, zero
+page errors; light + dark captures.
+
 ## Train pass — the workout on top, one "More" group below (Sep 30, 2026)
 
 Train's top already worked (the workout, Start, the week strip, the lift list).

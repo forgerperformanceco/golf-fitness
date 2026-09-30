@@ -205,6 +205,8 @@ for (const theme of ['light', 'dark']) {
     } else {
       await page.click(`#mobileTabs button[data-view="${v}"]`);
     }
+    // The You tab's groups are folded by default (Sep 2026) — check their contents too.
+    if (v === 'account') await page.evaluate(() => document.querySelectorAll('details.acct-group').forEach(d => { d.open = true; }));
     await page.waitForTimeout(300);
     const res = await page.evaluate(walk);
     checked += res.checked; skipped += res.skippedImageBg;

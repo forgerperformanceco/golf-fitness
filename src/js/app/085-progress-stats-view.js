@@ -164,7 +164,7 @@
         (ev ? (ev.week && !ev.past
                 ? ' <br><b>🏆 '+ffEsc(ev.name||"Your event")+' — week '+ev.week+'.</b> The taper re-anchors to it: weeks '+(ev.week-1)+'–'+ev.week+' peak (volume down, intensity heavy), week '+(ev.week+1)+' recovers.'
                 : (ev.past ? '' : ' <br>🏆 '+ffEsc(ev.name||"Your event")+' falls outside this 20-week block.'))
-             : ' <br>🏆 Peaking for something? <button type="button" class="stest-link" data-goview="account" style="color:#8be9ac">Set your event date</button> and the taper re-anchors to it.')+
+             : ' <br>🏆 Peaking for something? <button type="button" class="stest-link" data-goview="account" data-acctopen="plan" data-acctfocus="acctEvDate" style="color:#8be9ac">Set your event date</button> and the taper re-anchors to it.')+
       '</div>'+
       '<div class="pc-sec">'+ffTerm('scorecard','🗒️ Sunday Scorecard')+' <small>Wk '+wk+'</small></div>'+
       '<div class="sc-grid">'+scRows.map(function(r){

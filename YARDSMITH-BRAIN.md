@@ -27,7 +27,8 @@ deeper doc when there is one.
 > **Simplification pass DONE (Sep 30 2026)** — Home is one big button + quiet
 > rows; a Welcome-back screen greets anyone back after 14+ quiet days; setup
 > ends by starting the first workout; plain words throughout (DESIGN-CHANGES
-> "Simplification pass"). Tab merge + You-tab grouping deferred (§10).
+> "Simplification pass"); then Fuel, Stats, Train and You got the same
+> treatment the same day (one clear thing on top, the rest folded).
 > **The web app is now a modular `src/` codebase with a build step** (see §3) —
 > the committed root files are generated build outputs. Service worker cache is
 > **content-hash stamped** (no manual version bumps).
@@ -553,12 +554,12 @@ publishable key + VAPID public key ship client.
    exposure grows. Discipline that makes it work: separate banking, no
    commingling, holdco never guarantees opco debts, holdco stays passive.
    Optional upgrade then: holdco owns the trademarks, licenses to the opcos.
-9. **Simplification, remaining tabs (Sep 2026).** Home ✓ (pass 1), Fuel ✓
-   (pass 2), Stats ✓ (pass 3: story + this week first, then "The details") and
-   Train ✓ (pass 4: workout on top, one "More" group) are done. Rule: one clear
-   thing on top, everything else folded — not Home's one-button treatment.
-   Next: **You** (group into account, reminders, app settings, data). Tab
-   merging stays deferred.
+9. **Simplification of all five tabs: DONE (Sep 30 2026).** Home (one big
+   button), Fuel (one "today" card + "Your plan"), Stats (answer first, then
+   "The details"), Train (workout on top, one "More" group), You (sign-in on
+   top, four folded groups). Rule going forward: one clear thing on top,
+   everything else folded; don't add a card without removing or folding one.
+   Tab merging stays deferred — revisit only if real usage says people get lost.
 
 ---
 

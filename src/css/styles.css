@@ -1287,6 +1287,16 @@
   .acct-synced { font-size:13px; color:var(--green-700); margin-top:2px; }
   .acct-synced.warn { color:#b45309; font-weight:700; }
   .acct-head { font-size:14px; font-weight:800; color:var(--green-800); margin-bottom:6px; }
+  /* You tab groups (Sep 2026 pass): sign-in on top, then four folds — each a row
+     with a one-line summary; the cards inside lose their own chrome. */
+  .acct-group{ margin:0 0 10px; border:1px solid var(--line); border-radius:16px; background:var(--card); box-shadow:var(--shadow-sm); overflow:hidden; }
+  .acct-group > summary{ list-style:none; display:flex; align-items:center; gap:12px; min-height:64px; padding:12px 14px; cursor:pointer; }
+  .acct-group > summary::-webkit-details-marker{ display:none; }
+  .acct-chev{ flex:0 0 auto; color:var(--green-700); font-size:19px; transition:transform .18s; }
+  .acct-group[open] .acct-chev{ transform:rotate(180deg); }
+  .acct-group-body{ border-top:1px solid var(--line); }
+  .acct-group-body > .acct-card{ margin:0; border:0; border-radius:0; box-shadow:none; background:none; }
+  .acct-group-body > .acct-card + .acct-card{ border-top:1px solid var(--line); }
   .acct-p { margin:0 0 12px; font-size:13px; color:var(--muted); line-height:1.5; }
   .acct-p.mini{ margin:8px 2px 0; font-size:12px; }
   .acct-plan { font-size:13px; color:var(--ink); margin-bottom:12px; }
@@ -2416,8 +2426,6 @@
   html:not([data-theme="light"]) .hist-del.arm{ background:#241414; }
   html:not([data-theme="light"]) .acct-synced.warn{ color:#dfcbbc; }
   html:not([data-theme="light"]) .acct-btn.ghost{ background:#142417; border:1px solid #274531; }
-  html:not([data-theme="light"]) .acct-card.hero .acct-ava{ background:#274934; color:#cae6d6; }
-  html:not([data-theme="light"]) .acct-card.hero .acct-btn{ background:#274934; color:#cae6d6; }
   html:not([data-theme="light"]) .acct-btn.danger{ background:#1a1a1a; color:#ddbdb8; border:1.5px solid #472c28; }
   html:not([data-theme="light"]) .acct-btn.danger:active{ background:#241613; }
   html:not([data-theme="light"]) .calc-trainref{ background:#172014; }
@@ -2696,8 +2704,6 @@
   html[data-theme="dark"] .hist-del.arm{ background:#241414; }
   html[data-theme="dark"] .acct-synced.warn{ color:#dfcbbc; }
   html[data-theme="dark"] .acct-btn.ghost{ background:#142417; border:1px solid #274531; }
-  html[data-theme="dark"] .acct-card.hero .acct-ava{ background:#274934; color:#cae6d6; }
-  html[data-theme="dark"] .acct-card.hero .acct-btn{ background:#274934; color:#cae6d6; }
   html[data-theme="dark"] .acct-btn.danger{ background:#1a1a1a; color:#ddbdb8; border:1.5px solid #472c28; }
   html[data-theme="dark"] .acct-btn.danger:active{ background:#241613; }
   html[data-theme="dark"] .calc-trainref{ background:#172014; }
