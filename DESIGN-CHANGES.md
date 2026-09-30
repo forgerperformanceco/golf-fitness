@@ -1,5 +1,81 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## Pre-launch review — six-area bug sweep (Sep 30, 2026)
+
+User: "We've never gone live because I don't think this is quite ready. Do a
+code review and ensure all bugs are gone." Six parallel reviewers (data/sync,
+training, Fuel, Home/shell/account, Stats/sharing, backend/security) reported
+about 80 findings, most proved headless or in a vm sandbox. Every finding was
+checked against the code before fixing. What changed, by area:
+
+1. **Sync (cloud-sync.js v=118).** The login merge ran only on `SIGNED_IN`, so a
+   cold open with an expired token (`TOKEN_REFRESHED`/`INITIAL_SESSION`) pushed
+   stale local state over the cloud. It now merges on the first authenticated
+   event of every page, and pushes wait for it. Settings merge three-way against
+   a device-local base (`ff_sync_base`), so one device's push no longer reverts
+   another's setting change. A different account signing in is asked before
+   anything is combined (`ff_sync_owner`). Rest/skip "undo" is a timestamped
+   negative marker; check-offs older than the plan start drop on merge. Body days
+   take the newer edit; backup restore pushes as authoritative. Sign-out drops
+   this browser's push subscription.
+2. **Training.** Weeks after a deload no longer prescribe ~60% loads
+   (progression reads the last full-dose session). Day 140+ shows "Season
+   complete" and never reuses week-20 keys. Pause/resume across a week rollover
+   keeps the session. The event taper keeps its post-event deload. One dose helper
+   (`ffDose`) covers the player, inline and modal loggers. Clearing a workout no
+   longer deletes earlier seasons' history. Also: no duplicate substitutes, speed
+   copy on ballistic drills, Octane consistency decays, classifier fixes, and a
+   `doneTs` finish time on history.
+3. **Fuel.** A malformed shared link (`?g=foo`) crashed boot and could persist
+   through sync; values are now validated, and a link never overwrites a saved
+   profile. There's a calorie safety floor (1200 women / 1500 men), targets are
+   written before the renders that read them, the example day mirrors today's
+   schedule so ✓ hits the right slot, shopping-list units are fixed, and reset
+   covers the calculator only.
+4. **Home/shell/account.** Finishing a workout reschedules reminders (no stale
+   "next rep" nudge), with a loop guard on `ff_push_on`. The SW never caches a
+   404/5xx as the offline shell. Home folds keep their open state. Other fixes:
+   tab-title encoding, the saved view (async transitions, Game Day), the midnight
+   featured day, the event-name field, round-log pre-fill, coach queueing and
+   dark/safe-area styling, and the onboarding link clearing the home indicator.
+5. **Stats/sharing.** Re-running setup no longer fakes a "measured" speed/drive
+   row. Other fixes: the live leaderboard streak and week-filtered board, dates
+   from ts/iso (locale-safe), range-checked quick-log/round/speed-test inputs,
+   season map scoped to the current plan, and the evidence button always opens.
+   Forecast and season-map state survive re-renders, share failures fall back to
+   download/clipboard, and zero baselines are ignored (no "+Infinity%").
+6. **Backend/security.** push-daily: host allow-list, 10s timeouts, paging,
+   batches, constant-time cron secret. Migration `20260930120000`:
+   push_subs bounds and a 10-per-user cap, anon can't read leaderboard
+   `user_id`, and a global 1000/day AI ceiling. The coach knowledge base drops
+   banned performance claims. ai-coach: user-first history, room for thinking,
+   stop reason forwarded, no error-detail leaks. The coach model is now
+   `claude-sonnet-5-5` with server-side refusal fallback. product-health reads
+   bodies with a byte cap; paddle-webhook is out of auto-deploy; the legacy
+   Pages branch is removed. Every user-text sink (lift names, event name,
+   handle, notes) is escaped.
+7. **Type scale.** 24 off-band sizes were snapped to 11/12/13/13.5.
+
+**Verified:** `check-release.mjs` 4/4; `npm run check`; `npm test` 55/55;
+`check-data-contract` holds; `claims-lint` clean; audit-train 18/18,
+audit-scroll 16/16, audit-contrast clean (1494 nodes, both themes); audit-type
+has 1 flag, the intentional icon-only `.ft-bank` on narrow screens. Yardsmith
+card test ALL GREEN. The reviewers' repro scripts were re-run after the fixes:
+sync proofs P1/P4/P8 no longer reproduce, and P2/P3 are fixed by design with
+new proofs. Fuel t1/t2/t7/t9 are clean, and Home t1/t4/t6/t8/t10/t12/t14/t15
+are fixed. A runtime XSS sweep (script payloads in every free-text field,
+every tab and fold, both themes) fired nothing, and in-app checks for the
+calorie floor and midnight round log pass. The migration applied and
+re-applied cleanly on a local Postgres, with the cap, HTTPS check, anon column
+grant and global AI ceiling all exercised. The coach stream call type-checks
+against SDK 0.111.0. smoke.mjs is red only on the sandbox-blocked boot-time
+`product-health` request (same on `main`).
+
+**Known and deferred (low):** a plant-only cut plan runs 25–35% short on
+protein; Fuel check-offs are keyed by schedule position; paddle-webhook user
+binding waits for billing; the CSP still allows inline script; OTP sign-up has
+no captcha.
+
 ## The Yardsmith card — a player card built from your own numbers (Sep 28, 2026)
 
 User: "build the Yardsmith card." It's our answer to DRVN's pre-release player

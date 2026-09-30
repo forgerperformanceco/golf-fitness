@@ -671,8 +671,10 @@
     var sess = sessionsByWeek();
     var loggedWeeks = {}; sess.forEach(function(s){ loggedWeeks[s.w]=(loggedWeeks[s.w]||0)+1; });
     var body = lsGet("ff_body", []);
-    var speeds = body.map(function(e){ return parseFloat(e.s); }).filter(function(v){ return !isNaN(v); });
-    var weights = body.map(function(e){ return parseFloat(e.w); }).filter(function(v){ return !isNaN(v); });
+    // Positive values only: a stray 0 (saved before input validation) would
+    // divide by zero into "+Infinity%" as a baseline.
+    var speeds = body.map(function(e){ return parseFloat(e.s); }).filter(function(v){ return v>0; });
+    var weights = body.map(function(e){ return parseFloat(e.w); }).filter(function(v){ return v>0; });
 
     var parts = [];
 
@@ -798,7 +800,7 @@
   // Driver-carry distance (yards) — the hero outcome. Stored on ff_body entries as `d` so it
   // rides the same sync/merge: works for a launch-monitor carry OR an eyeballed "how far I hit it".
   function driveList(){
-    return lsGet("ff_body",[]).filter(function(e){ return e && e.d!=null && e.d!=="" && !isNaN(parseFloat(e.d)); })
+    return lsGet("ff_body",[]).filter(function(e){ return e && e.d!=null && e.d!=="" && parseFloat(e.d)>0; })
       .map(function(e){ return { date:e.date, y:parseFloat(e.d) }; });
   }
   function driveStats(){
@@ -1043,12 +1045,18 @@
      change to the goal's intended rate and suggest a calorie nudge (into carbs). */
   function weightTrend(){
     var now=Date.now();
-    var pts=lsGet("ff_body",[]).map(function(e){ return { t:(e.ts || new Date(e.date).getTime()), w:parseFloat(e.w) }; })
-      .filter(function(p){ return !isNaN(p.w) && !isNaN(p.t) && (now-p.t)<=32*864e5; })
+    // Only weigh-ins since the last check-in count: a window that still holds
+    // the weeks BEFORE the last calorie change re-suggests the same change
+    // (it over-corrected). Dates come from ts/iso, never the locale string.
+    var since=lsGet("ff_lastcheckin",0)||0;
+    var pts=lsGet("ff_body",[]).map(function(e){
+        var t=e.ts || (e.iso ? new Date(e.iso+"T12:00:00").getTime() : new Date(e.date).getTime());
+        return { t:t, w:parseFloat(e.w) }; })
+      .filter(function(p){ return p.w>0 && !isNaN(p.t) && (now-p.t)<=32*864e5 && p.t>=since; })
       .sort(function(a,b){ return a.t-b.t; });
     if(pts.length<2) return null;
     var spanDays=(pts[pts.length-1].t - pts[0].t)/864e5;
-    if(spanDays<10) return null;                       // need a real 10+ day window
+    if(spanDays<(since?7:10)) return null;             // need a real window (7+ days after a check-in)
     var n=pts.length, t0=pts[0].t, sx=0,sy=0,sxy=0,sxx=0;
     pts.forEach(function(p){ var x=(p.t-t0)/864e5; sx+=x; sy+=p.w; sxy+=x*p.w; sxx+=x*x; });
     var denom=(n*sxx - sx*sx); if(denom===0) return null;
@@ -1065,7 +1073,11 @@
     var onTrack = Math.abs(error) <= tol;
     var delta = 0;
     if(!onTrack){ delta = -Math.round(error*500/50)*50; delta = Math.max(-250, Math.min(250, delta)); }
-    return { rate:tr.ratePerWeek, desired:desired, onTrack:onTrack, deltaKcal:delta, deltaCarb:Math.round(delta/4), goalLabel:g.label };
+    // Goal-aware wording: on a cut, being lighter than planned means LOSING FASTER.
+    var pace = desired>0 ? (error<0?"gaining slower than planned":"gaining faster than planned")
+      : (desired<0 ? (error<0?"losing faster than planned":"losing slower than planned")
+      : (error>0?"drifting up":"drifting down"));
+    return { rate:tr.ratePerWeek, desired:desired, onTrack:onTrack, deltaKcal:delta, deltaCarb:Math.round(delta/4), goalLabel:g.label, pace:pace };
   }
   function adaptiveDue(){ return !!weightTrend() && (Date.now() - lsGet("ff_lastcheckin",0)) >= 10*864e5; }
   function renderAdaptiveCard(){
@@ -1082,7 +1094,7 @@
     var verb = a.deltaKcal<0 ? 'trim' : 'add';
     var absK=Math.abs(a.deltaKcal), absC=Math.abs(a.deltaCarb);
     return '<div class="adapt"><div class="adapt-h">📊 Metabolism check-in</div>'+
-      '<p>Your ~3-week trend is <b>'+rateStr+'</b> (target ~<b>'+tgtStr+'</b> for '+a.goalLabel+') — trending '+(a.deltaKcal<0?'a bit fast':'a bit slow')+'. '+
+      '<p>Your ~3-week trend is <b>'+rateStr+'</b> (target ~<b>'+tgtStr+'</b> for '+a.goalLabel+') — '+a.pace+'. '+
       'The calculator was a starting guess; your scale is the real metabolism meter, so let’s tune it.</p>'+
       '<div class="adapt-sugg">'+(a.deltaKcal<0?'▼':'▲')+' '+verb+' <b>'+absK+' kcal/day</b> ('+(a.deltaKcal<0?'−':'+')+absC+'g carbs)</div>'+
       '<div class="adapt-btns"><button class="adapt-btn" data-adapt="apply">Apply '+(a.deltaKcal<0?'−':'+')+absK+' kcal</button>'+

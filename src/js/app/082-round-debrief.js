@@ -59,6 +59,10 @@
     var ex=roundToday();
     rdSel.driving=ex?ex.driving||null:null;
     rdSel.energy=ex?ex.energy||null:null;
+    // Reseed the inputs from TODAY's round (or blank): rdRender keeps whatever
+    // the fields hold, which after midnight was yesterday's score and drive.
+    if($("rdScore")) $("rdScore").value=(ex&&ex.score!=null)?ex.score:"";
+    if($("rdDrive")) $("rdDrive").value=(ex&&ex.drive!=null)?ex.drive:"";
     rdRender();
     $("rdModal").hidden=false;
   }

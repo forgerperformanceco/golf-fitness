@@ -365,7 +365,7 @@ Jul 3). What this means in practice (interpretation from observed repo state,
 
 - No "built by Claude/Opus/…" in app copy, code comments, docs content, share
   cards, or marketing files. Verified: model names appear in tracked files
-  *only* as the AI-coach product configuration (`claude-opus-4-8` etc. in
+  *only* as the AI-coach product configuration (`claude-sonnet-5-5` etc. in
   ROADMAP.md, `.env.example`, `supabase/functions/ai-coach/`) — that is the
   product's model choice, not authoring identity, and is fine.
 - Git *commit trailers* (`Co-Authored-By: Claude …`, `Claude-Session: …`) are

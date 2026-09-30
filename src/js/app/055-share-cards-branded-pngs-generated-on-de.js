@@ -116,7 +116,7 @@
     var out=[];
     lsGet("ff_body",[]).forEach(function(e){
       var v=e ? parseFloat(e[key]) : NaN;
-      if(!isNaN(v)) out.push({ v:v, iso:(e.iso||"") });
+      if(v>0) out.push({ v:v, iso:(e.iso||"") });
     });
     return out;
   }

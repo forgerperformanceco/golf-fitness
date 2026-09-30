@@ -162,8 +162,8 @@
       '<span><i style="background:#4d685a"></i>Deload</span><span><i style="background:#f4c542"></i>Peak</span><span>⛳ speed test (mph)</span>'+(ev&&ev.week?'<span>🏆 your event</span>':'')+'</div>'+
       '<div class="season-foot"><b>Week '+wk+' · '+wave2.label+'.</b> '+wave2.strap+
         (ev ? (ev.week && !ev.past
-                ? ' <br><b>🏆 '+(ev.name||"Your event")+' — week '+ev.week+'.</b> The taper re-anchors to it: weeks '+(ev.week-1)+'–'+ev.week+' peak (volume down, intensity heavy), week '+(ev.week+1)+' recovers.'
-                : (ev.past ? '' : ' <br>🏆 '+(ev.name||"Your event")+' falls outside this 20-week block.'))
+                ? ' <br><b>🏆 '+ffEsc(ev.name||"Your event")+' — week '+ev.week+'.</b> The taper re-anchors to it: weeks '+(ev.week-1)+'–'+ev.week+' peak (volume down, intensity heavy), week '+(ev.week+1)+' recovers.'
+                : (ev.past ? '' : ' <br>🏆 '+ffEsc(ev.name||"Your event")+' falls outside this 20-week block.'))
              : ' <br>🏆 Peaking for something? <button type="button" class="stest-link" data-goview="account" style="color:#8be9ac">Set your event date</button> and the taper re-anchors to it.')+
       '</div>'+
       '<div class="pc-sec">'+ffTerm('scorecard','🗒️ Sunday Scorecard')+' <small>Wk '+wk+'</small></div>'+
@@ -289,7 +289,7 @@
   }
   function performanceStoryHtml(){
     var r=ffScore(), body=lsGet("ff_body",[]), d=driveStats(), lifts=bigLiftStats();
-    var speeds=body.map(function(e){ return parseFloat(e.s); }).filter(function(v){ return !isNaN(v); });
+    var speeds=body.map(function(e){ return parseFloat(e.s); }).filter(function(v){ return v>0; });
     var spBase=speeds.length?speeds[0]:null, spNow=speeds.length?speeds[speeds.length-1]:null;
     var spGain=speeds.length>=2 ? spNow-spBase : null;
     var sessions=sessionsByWeek().length, opp=storyOpportunity(r);
@@ -347,7 +347,7 @@
     if(d&&d.n>=2&&d.gain>0) milestones.push("🏁 +"+d.gain+" verified driver yds");
     if(spGain!=null&&spNow===Math.max.apply(null,speeds)&&spGain>0) milestones.push("⚡ New 7-iron speed high");
     var bestLift=lifts.filter(function(L){ return L.n>=2 && L.last>=L.best; })[0];
-    if(bestLift) milestones.push("🏆 "+bestLift.name+" at "+Math.round(bestLift.best)+" lb e1RM");
+    if(bestLift) milestones.push("🏆 "+ffEsc(bestLift.name)+" at "+Math.round(bestLift.best)+" lb e1RM");
     if(sessions) milestones.push("✓ "+sessions+" session"+(sessions===1?"":"s")+" banked");
     var reassess=speedTestDue() ? '<button type="button" class="ps-retest due" data-speedtest="1">🎯 Speed reassessment due</button>'
       : (mobDue()?'<button type="button" class="ps-retest due" data-mobscreen="1">↻ Mobility reassessment due</button>'
@@ -406,8 +406,8 @@
     var body=lsGet("ff_body",[]);
     var spF=[], spD=[], wtF=[], wtD=[];
     body.forEach(function(e){
-      var s=parseFloat(e.s); if(!isNaN(s)){ spF.push(s); spD.push(e.date||""); }
-      var w=parseFloat(e.w); if(!isNaN(w)){ wtF.push(w); wtD.push(e.date||""); }
+      var s=parseFloat(e.s); if(s>0){ spF.push(s); spD.push(e.date||""); }
+      var w=parseFloat(e.w); if(w>0){ wtF.push(w); wtD.push(e.date||""); }
     });
     var sess=sessionsByWeek().length, lifts=bigLiftStats();
     var hasAny = sess>0 || spF.length>0 || wtF.length>0;
@@ -476,7 +476,7 @@
         if(lifts.length) g+='<div class="pc-sec'+(g?'':' first')+'">🏋️ Strength <small>'+ffTerm('e1rm','est. 1RM')+'</small></div>'+
           lifts.slice(0,5).map(function(L){
             var d = L.first>0 ? (L.last-L.first)/L.first*100 : null;
-            return '<button type="button" class="lr" data-exhist="'+escAttr(L.name)+'"><div class="lr-name">'+L.name+'</div>'+
+            return '<button type="button" class="lr" data-exhist="'+escAttr(L.name)+'"><div class="lr-name">'+ffEsc(L.name)+'</div>'+
               '<div class="lr-spark">'+(L.n>=2?pcMiniSpark(L.series,"#16a34a"):'<span class="lr-one">'+L.n+' set'+(L.n===1?"":"s")+'</span>')+'</div>'+
               '<div class="lr-val">'+Math.round(L.last)+'<small>lb</small>'+(L.n>=2&&d!=null?pcDelta(d,"%"):"")+'</div></button>';
           }).join("")+

@@ -19,6 +19,11 @@ deeper doc when there is one.
 > launch: business bank account (Cert + EIN + DBA in hand), then Apple Developer
 > + Google Play enrollment as an **Organization** under Long Game Labs LLC →
 > TestFlight/internal testing → store submission.
+> **Pre-launch review DONE (Sep 30 2026)** — six-area bug sweep, all fixes in
+> DESIGN-CHANGES "Pre-launch review". **One manual step:** apply migration
+> `supabase/migrations/20260930120000_prelaunch_review_hardening.sql` to the live
+> project (CI tests migrations but doesn't apply them). AI coach now defaults to
+> **`claude-sonnet-5-5`** (override: `AI_COACH_MODEL` function secret).
 > **The web app is now a modular `src/` codebase with a build step** (see §3) —
 > the committed root files are generated build outputs. Service worker cache is
 > **content-hash stamped** (no manual version bumps).
@@ -352,6 +357,10 @@ stores; we're a URL). Shipping the app matters more than more docs.
 - **Speed day** — Gym ↔ Field, Speed 101, structured overspeed ramp, biweekly
   **Speed Test** ritual. **Mobility screen** (3-move) as Octane's 5th pillar.
 - **Fuel check-off** adherence loop (day rating + streak) as Octane's 6th pillar.
+- **Season end is explicit** (Sep 2026): day 140+ shows "Season complete" and
+  a Start-season-2 reset; nothing reuses week-20 keys. **Sync settings merge
+  three-way** (device-local base) and a different account on a device is asked
+  before any merge — don't revert to cloud-wins.
 - **Yardsmith card** (Sep 2026) — a shareable player card from the golfer's own
   data: progress since their start, never a rank or tier. The mission bar stays
   hidden until there's a gain, and drops are never shown as gains.
