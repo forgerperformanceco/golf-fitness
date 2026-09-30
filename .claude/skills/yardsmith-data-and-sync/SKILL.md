@@ -380,9 +380,10 @@ device's changes until it next writes or re-signs-in.
   are scaffolded but commented out (:267-287) — do not uncomment casually;
   moving off the blob is a roadmap phase, not a cleanup.
 
-Schema deploys: pushing changes under `supabase/**` triggers
-`.github/workflows/deploy-functions.yml`, which re-applies the whole
-schema.sql — details in `yardsmith-run-and-deploy`. The client's `revMode`
+Schema deploys: nothing applies the schema automatically. Changes ship as
+files in `supabase/migrations/` (CI runs them against a local Supabase), then
+someone applies them to the live project by hand — details in
+`yardsmith-run-and-deploy`. The client's `revMode`
 fallback (§8) exists precisely so a client shipped before a schema apply
 degrades to blind-upsert instead of breaking.
 

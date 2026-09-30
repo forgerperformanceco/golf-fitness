@@ -11,34 +11,19 @@ supabase/
     paddle-webhook/index.ts       # writes subscription state (service-role)
 ```
 
-## Deploys itself from GitHub (hands-off)
+## How it deploys
 
-`.github/workflows/deploy-functions.yml` runs on every push that touches
-`supabase/**` (and can be run manually from the Actions tab). It:
-
-1. **Applies `schema.sql`** through the Supabase **Management API** using the
-   `SUPABASE_ACCESS_TOKEN` secret — no database password needed. The schema is
-   idempotent, so it's safe to re-apply on every push.
-2. **Deploys the `delete-account` function** — always (it needs no extra secret;
-   Supabase injects the service-role key into every function).
-3. **Deploys the `ai-coach` function** and sets its `ANTHROPIC_API_KEY` secret —
-   *only if* `ANTHROPIC_API_KEY` is configured as a repo secret. If it isn't, the
-   schema still applies (so the leaderboard works) and the coach step is skipped
-   with a warning.
-
-### Repo secrets it uses
-| Secret                  | Required | Purpose                                        |
-|-------------------------|----------|------------------------------------------------|
-| `SUPABASE_ACCESS_TOKEN` | yes      | Apply SQL + deploy functions (your PAT)        |
-| `ANTHROPIC_API_KEY`     | optional | Deploy + power the AI coach (server-side only) |
-
-So to bring up the leaderboard you push (already done) — nothing manual. To turn
-on the coach, add `ANTHROPIC_API_KEY` in **Settings → Secrets and variables →
-Actions** and re-run the workflow.
-
-> `paddle-webhook` is **not** auto-deployed (billing is off during early access).
-> When you turn billing back on: `supabase functions deploy paddle-webhook` and
-> set `PADDLE_WEBHOOK_SECRET`.
+- **Edge functions** deploy automatically through **Supabase's GitHub
+  integration**: every merge to `main` that changes `supabase/functions/**`
+  redeploys them (each keeps `verify_jwt = false` from `config.toml`).
+- **Function secrets** (`ANTHROPIC_API_KEY`, `AI_COACH_MODEL`, the VAPID pair,
+  `PUSH_CRON_SECRET`, later `PADDLE_WEBHOOK_SECRET`) are set once in Supabase:
+  Dashboard → Edge Functions → Secrets, or `supabase secrets set NAME=value`.
+- **Database changes** ship as files in `supabase/migrations/` (mirrored into the
+  idempotent `schema.sql`). CI (`quality.yml`) runs every migration against a
+  local Supabase on each PR; applying one to the live project is a manual step
+  (Supabase MCP `apply_migration` or the SQL editor) — then check
+  `list_migrations`.
 
 ## What stays secret
 

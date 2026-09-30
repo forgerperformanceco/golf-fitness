@@ -440,15 +440,16 @@ Co), **not** Yardsmith's publisher. Account type can't be switched later.
 committed outputs are what ships — so **always rebuild and commit `src/` + the
 generated outputs together.**
 
-**Two GitHub Actions workflows:**
+**GitHub Actions** (plus Supabase's GitHub integration for functions):
 - **`deploy.yml`** — GitHub Pages. `concurrency` with **cancel-in-progress: true**
   (latest push wins, no queue-timeout), **paths-ignore** for docs/backend/native,
   and **stages only served files** (rsync deny-list into `_site/`, CNAME kept) so
   `.md` strategy docs / `src/` / `social/` / tooling are **not** published to the
   app domain.
-- **`deploy-functions.yml`** — applies `supabase/schema.sql` + deploys the edge
-  functions on any push touching `supabase/**` (delete-account/push-daily always;
-  ai-coach when `ANTHROPIC_API_KEY` is set). Hands-off.
+- **Edge functions** deploy through **Supabase's GitHub integration** on merge to
+  `main` (the old `deploy-functions.yml` workflow was removed Sep 2026 — its
+  access token had expired and it only duplicated the integration). Function
+  secrets live in Supabase; DB migrations are applied by hand after CI tests them.
 
 **Release discipline (every served-file change):**
 1. **Edit `src/`, not the root files.** Run `node scripts/build.mjs`.

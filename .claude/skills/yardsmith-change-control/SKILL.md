@@ -46,15 +46,16 @@ build hash `04f691fff1`, manual pins `cloud-sync.js?v=112` / `coach.js?v=88`.
 ## 1. Change classification — know what your diff triggers
 
 There are exactly two workflows in `.github/workflows/`: `deploy.yml`
-(GitHub Pages) and `deploy-functions.yml` (Supabase). **Neither builds
+(GitHub Pages) and `quality.yml` (tests); Supabase edge functions deploy via
+Supabase's own GitHub integration. **Nothing on the deploy path builds
 anything and neither runs tests** (verified 2026-07-08 by reading both files).
 Classify every change before you commit:
 
 | Class | Paths touched | CI triggered on push to `main` | What actually ships |
 |---|---|---|---|
 | **Served-files change** | `src/**` **plus** the regenerated root outputs (`index.html`, `app.js`, `styles.css`, `sw.js`), and/or other served root files (`manifest.webmanifest`, `privacy.html`, icons, `fonts/`, `splash/`, `cloud-sync.js`, `coach.js`, `CNAME`) | `deploy.yml` → full Pages deploy of the repo root minus a deny-list | The **committed** root files, byte-for-byte. CI does not rebuild. |
-| **Docs-only** | any `**.md` | **Nothing.** Both workflows skip (`deploy.yml` has `paths-ignore: '**.md'`; `deploy-functions.yml` only watches `supabase/**`) | Nothing changes on the live site. Safe to push freely. |
-| **Backend** | `supabase/**` (or `.github/workflows/deploy-functions.yml` itself) | `deploy-functions.yml`: sets function secrets and deploys `delete-account`, `ai-coach`, `push-daily` and `product-health` (`paddle-webhook` is left out until billing launches). It does **not** apply the schema: migrations in `supabase/migrations/` are applied to the live project by hand (MCP `apply_migration` / SQL editor) and are tested in CI by `quality.yml`'s database job (→ `yardsmith-run-and-deploy`) | Edge functions (schema only when someone applies the migration) |
+| **Docs-only** | any `**.md` | **Nothing.** `deploy.yml` skips (`paths-ignore: '**.md'`); the Supabase integration only watches `supabase/functions/**` | Nothing changes on the live site. Safe to push freely. |
+| **Backend** | `supabase/**` | Supabase's GitHub integration redeploys every edge function on merge to `main` (secrets live in Supabase, not the repo). It does **not** apply the schema: migrations in `supabase/migrations/` are applied to the live project by hand (MCP `apply_migration` / SQL editor) after `quality.yml`'s database job tests them (→ `yardsmith-run-and-deploy`) | Edge functions (schema only when someone applies the migration) |
 | **Native** | `android/**`, `ios/**`, `codemagic.yaml`, `capacitor.config.json`, `package.json` | **Nothing** in this repo (all in `deploy.yml` `paths-ignore`). Native builds run externally on Codemagic (→ `yardsmith-run-and-deploy`) | Nothing, until a Codemagic build is triggered |
 | **`.claude/**` (skills)** | `.claude/skills/**` | `*.md` files: nothing. **Any non-`.md` file (e.g. a skill's `scripts/*.mjs`) triggers a full Pages redeploy** — `.claude` is not in `paths-ignore` | Redeploy of unchanged content (harmless). Publication nuance below. |
 
@@ -386,7 +387,7 @@ anything that can drift:
 git -C /home/user/golf-fitness log --oneline -1                     # HEAD
 grep -o 'FF_BUILD="[^"]*"' index.html                               # current build hash
 grep -n 'cloud-sync.js?v=\|coach.js?v=' src/index.template.html src/sw.template.js   # pins (112/88 as of 2026-07-08)
-ls .github/workflows/                                               # still exactly deploy.yml + deploy-functions.yml?
+ls .github/workflows/                                               # deploy.yml, quality.yml, push-reminders.yml
 grep -n 'paths-ignore' -A 12 .github/workflows/deploy.yml           # ignore list (src/**, scripts/**, *.md …)
 grep -n 'exclude' .github/workflows/deploy.yml                      # rsync deny-list
 grep -n 'var KEYS' cloud-sync.js                                    # synced-key list (26 keys at line 20)

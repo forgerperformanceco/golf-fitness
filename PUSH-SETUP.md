@@ -35,8 +35,10 @@ Repository Settings → Secrets and variables → Actions:
 
 ## 3 · Deploy and schedule
 
-`.github/workflows/deploy-functions.yml` requires all three secrets, copies them
-to Supabase, and deploys the function whenever backend code changes.
+Set all three as **function secrets** in Supabase (Dashboard → Edge Functions →
+Secrets, or `supabase secrets set VAPID_PUBLIC_KEY=... VAPID_PRIVATE_KEY=...
+PUSH_CRON_SECRET=...`). The functions themselves deploy automatically through
+Supabase's GitHub integration whenever `supabase/functions/**` changes on `main`.
 `.github/workflows/push-reminders.yml` calls the protected sender at minute five
 of every hour and can also be run manually for verification.
 
