@@ -44,3 +44,15 @@ test("Train puts the next action ahead of methodology", () => {
   assert.match(train, /TODAY’S WORKOUT · ~/);
   assert.match(train, /function sessionMinutes\(d\)/);
 });
+
+test("You tab: sign-in on top, then four folded groups with summaries", () => {
+  const account = readFileSync(new URL("../src/js/app/080-game-day-round-day-fueling-warm-up-plan.js", import.meta.url), "utf8");
+  for (const g of ['acctGroup("plan"', 'acctGroup("remind"', 'acctGroup("data"', 'acctGroup("help"'])
+    assert.ok(account.includes(g), `missing ${g}`);
+  // Open state survives the re-render every setting change triggers.
+  assert.match(account, /var acctOpen=\{\};/);
+  assert.match(account, /\(acctOpen\[key\]\?' open':''\)/);
+  // Deep links into a folded setting open its group first.
+  assert.match(account, /\[data-acctopen\]/);
+  assert.match(css, /\.acct-group\{/);
+});

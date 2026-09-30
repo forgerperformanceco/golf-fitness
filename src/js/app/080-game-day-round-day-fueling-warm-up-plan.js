@@ -464,10 +464,32 @@
   var FF_WK_LABEL = { morning:"Morning", midday:"Midday", afternoon:"Afternoon", evening:"Evening" };
   function ffRefreshCalcTrainTime(){ var el=$("calcTrainTime");
     if(el) el.textContent = FF_WK_LABEL[(typeof state!=="undefined" && state.workout) || "morning"] || "—"; }
+  // You tab (Sep 2026 pass): sign-in on top, then four folded groups. Open
+  // state lives here (every change re-renders the tab), written back at render.
+  var acctOpen={};
+  document.addEventListener("toggle", function(e){
+    var k=e.target && e.target.getAttribute && e.target.getAttribute("data-acctgroup");
+    if(k) acctOpen[k]=e.target.open;
+  }, true);
+  // Deep links into a folded group (e.g. Stats → "Set your event date"): open
+  // it BEFORE the navigator renders the tab (capture phase), then scroll the
+  // target field into view once the tab is up.
+  document.addEventListener("click", function(e){
+    var b=e.target.closest && e.target.closest("[data-acctopen]"); if(!b) return;
+    acctOpen[b.getAttribute("data-acctopen")]=true;
+    var f=b.getAttribute("data-acctfocus");
+    if(f) setTimeout(function(){ var el=$(f); if(el) try{ el.scrollIntoView({behavior:"smooth",block:"center"}); }catch(_){} },450);
+  }, true);
+  function acctGroup(key, ic, title, sub, inner){
+    if(!inner) return "";
+    return '<details class="acct-group" data-acctgroup="'+key+'"'+(acctOpen[key]?' open':'')+'>'+
+      '<summary><span class="hr-ic" aria-hidden="true">'+ic+'</span><span class="hr-tx"><b>'+title+'</b><small>'+sub+'</small></span>'+
+      '<span class="acct-chev" aria-hidden="true">⌄</span></summary><div class="acct-group-body">'+inner+'</div></details>';
+  }
   function renderAccount(){
     var el=$("accountBody"); if(!el) return;
     var user = window.FF && window.FF.user;
-    var html='';
+    var html='', G={ plan:'', remind:'', data:'', help:'' };
     if(user){
       var email=user.email||'your account', initial=(email[0]||'⛳').toUpperCase();
       html+='<div class="acct-card hero"><div class="acct-id"><div class="acct-ava">'+ffEsc(initial)+'</div>'+
@@ -483,20 +505,20 @@
     // Install-to-home-screen — only when not already running as an installed app.
     if(!ffStandalone()){
       if(ffIsIOS()){
-        html+='<div class="acct-card"><div class="acct-head">📲 Install the app</div>'+
+        G.help+='<div class="acct-card"><div class="acct-head">📲 Install the app</div>'+
           '<p class="acct-p">Get the full-screen app: tap the <b>Share</b> icon (□ with ↑) in Safari, then <b>“Add to Home Screen.”</b> It opens like a native app and works offline.</p></div>';
       } else if(ffDeferredPrompt){
-        html+='<div class="acct-card"><div class="acct-head">📲 Install the app</div>'+
+        G.help+='<div class="acct-card"><div class="acct-head">📲 Install the app</div>'+
           '<p class="acct-p">Add Yardsmith to your home screen — full-screen, offline, one tap away.</p>'+
           '<button class="acct-btn" id="acctInstall">Install app</button></div>';
       } else {
-        html+='<div class="acct-card"><div class="acct-head">📲 Install the app</div>'+
+        G.help+='<div class="acct-card"><div class="acct-head">📲 Install the app</div>'+
           '<p class="acct-p">In your browser menu, tap <b>“Install app”</b> / <b>“Add to Home Screen”</b> to run Yardsmith full-screen and offline.</p></div>';
       }
     }
     if(ffNotifPlugin()){
       var non=ffNotifOn();
-      html+='<div class="acct-card notif-card"><div class="acct-head">🔔 Smart reminders</div>'+
+      G.remind+='<div class="acct-card notif-card"><div class="acct-head">🔔 Smart reminders</div>'+
         '<p class="acct-p">Yardsmith checks what is actually unfinished before nudging. One useful job, no streak guilt, no notification pileup.</p>'+
         ffReminderSettingsHtml(non,"on this phone")+
         '<button class="acct-btn'+(non?' ghost':'')+'" id="acctNotif">'+(non?"Reminders on — tap to turn off":"Turn on reminders")+'</button></div>';
@@ -504,7 +526,7 @@
       var nonW=ffNotifOn() && Notification.permission==="granted";
       var pushReady=("PushManager" in window) && !!(window.FF && window.FF.pushKey);
       var pushLive=nonW && lsGet("ff_push_on",false);
-      html+='<div class="acct-card notif-card"><div class="acct-head">🔔 Smart reminders</div>'+
+      G.remind+='<div class="acct-card notif-card"><div class="acct-head">🔔 Smart reminders</div>'+
         '<p class="acct-p">Yardsmith checks what is actually unfinished before nudging. '+
         (pushLive ? '<b>Delivered even when the app is closed.</b>'
          : (pushReady && user ? 'Turn them on for delivery even when the app is closed.'
@@ -514,13 +536,13 @@
         '<button class="acct-btn'+(nonW?' ghost':'')+'" id="acctNotifWeb">'+(nonW?"Reminders on — tap to turn off":"Turn on reminders")+'</button></div>';
     }
     var curTheme=ffTheme();
-    html+='<div class="acct-card"><div class="acct-head">🌗 Appearance</div>'+
+    G.remind+='<div class="acct-card"><div class="acct-head">🌗 Appearance</div>'+
       '<p class="acct-p">Auto follows your phone’s light/dark setting.</p>'+
       '<div class="seg" id="acctTheme">'+[["auto","Auto"],["light","Light"],["dark","Dark"]].map(function(o){
         return '<button type="button" data-th="'+o[0]+'" class="'+(curTheme===o[0]?'active':'')+'">'+o[1]+'</button>'; }).join("")+'</div></div>';
     var t=lsGet("ff_targets",null), prof=lsGet("fairwayfuel",null);
     if(prof || t){
-      html+='<div class="acct-card"><div class="acct-head">Your numbers</div><div class="acct-list">'+
+      G.plan+='<div class="acct-card"><div class="acct-head">Your numbers</div><div class="acct-list">'+
         acctRow('Goal', t?t.goal:((prof&&prof.goal)||'—'))+
         acctRow('Bodyweight', (prof&&prof.weight)?prof.weight+' lb':'—')+
         acctRow('Daily target', t?t.kcal+' kcal':'—')+
@@ -533,7 +555,7 @@
     var gy=goalYds();
     var curFreq=(typeof planState!=="undefined" && planState.freq)||((prof&&prof.freq)||4);
     var curWk=(typeof state!=="undefined" && state.workout)||((prof&&prof.workout)||"morning");
-    html+='<div class="acct-card"><div class="acct-head">🎯 Your training setup</div>'+
+    G.plan+='<div class="acct-card"><div class="acct-head">🎯 Your training setup</div>'+
       '<div class="acct-set"><div class="acct-set-lbl">Distance mission <small>yards to add in 20 weeks</small></div>'+
         '<div class="goal-chips" id="acctGoalChips">'+[5,10,15,20,25,30].map(function(y){
           return '<button type="button" data-gy="'+y+'" class="'+(gy===y?'on':'')+'">+'+y+'</button>'; }).join("")+'</div></div>'+
@@ -559,44 +581,52 @@
       })()+
       '</div>';
     var lmA=(typeof lastMob==="function")?lastMob():null;
-    html+='<div class="acct-card"><div class="acct-head">🧭 Mobility screen</div>'+
+    G.plan+='<div class="acct-card"><div class="acct-head">🧭 Mobility screen</div>'+
       '<p class="acct-p">'+(lmA
         ? ('Last screen: <b>'+lmA.score+'/100</b> · '+lmA.date+'. Re-screen every 4 weeks — it keeps the muscle you’re adding from costing you rotation.')
         : 'A 3-move self-check (~3 min, no gear): trunk rotation, hips, deep squat. It becomes the 5th pillar of your Octane and tunes your warm-ups to what’s tight.')+'</p>'+
       '<button class="acct-btn ghost" data-mobscreen="1">'+(lmA?'↻ Re-run the screen':'Take the screen')+'</button></div>';
-    html+='<div class="acct-card"><div class="acct-head">💾 Backup &amp; export</div>'+
+    G.data+='<div class="acct-card"><div class="acct-head">💾 Backup &amp; export</div>'+
       '<p class="acct-p">'+(user
         ? 'Your data syncs to your account — a downloaded copy is your belt-and-suspenders. Every workout, weigh-in, round and setting in one file you own.'
         : 'Your data lives only on this device. Download a copy — every workout, weigh-in, round and setting in one file — so a lost phone can’t take your history with it.')+'</p>'+
       '<button class="acct-btn ghost" id="acctExport">⬇ Export my data</button>'+
       '<button class="acct-btn ghost" id="acctImport">Restore from a backup</button></div>';
-    html+='<div class="acct-card"><div class="acct-head">🍽️ Your favorite foods</div>'+
+    G.plan+='<div class="acct-card"><div class="acct-head">🍽️ Your favorite foods</div>'+
       '<p class="acct-p">Tell us what you actually eat and your meal ideas + day plans get built around it. Set it once, tweak anytime.</p>'+
       '<button class="acct-btn ghost" id="acctFoods">Edit my foods</button></div>';
-    html+='<div class="acct-card"><div class="acct-head">🔄 App version</div>'+
+    G.help+='<div class="acct-card"><div class="acct-head">🔄 App version</div>'+
       '<p class="acct-p">You’re on build <b>'+lbEsc(window.FF_BUILD||"—")+'</b>. The app updates itself in the background, but if the home-screen version ever looks stuck on an old layout, force a clean reload — it clears the offline cache and pulls the newest build. Your data stays put.</p>'+
       '<button class="acct-btn ghost" id="acctForceUpdate">↻ Force refresh to the latest</button></div>';
     var healthOn=!!(window.FFHealth&&window.FFHealth.enabled());
-    html+='<div class="acct-card"><div class="acct-head">Product health</div>'+
+    G.data+='<div class="acct-card"><div class="acct-head">Product health</div>'+
       '<p class="acct-p">Help improve Yardsmith with anonymous feature-use and crash signals. No account ID, email, health values, workout values, notes, URLs or advertising trackers.</p>'+
       '<button class="acct-btn ghost" id="acctHealth">'+(healthOn?'On — tap to turn off':'Off — tap to turn on')+'</button></div>';
-    html+='<div class="acct-card"><div class="acct-head">↺ Start the plan over</div>'+
+    G.plan+='<div class="acct-card"><div class="acct-head">↺ Start the plan over</div>'+
       '<p class="acct-p">Clears your plan start date and logged workouts so the plan resets to week 1. Your bodyweight &amp; 7-iron history and your calculator stay put.</p>'+
       '<button class="acct-btn danger" id="acctResetPlan">↺ Reset plan</button></div>';
-    html+='<div class="acct-card"><div class="acct-head">Show me around</div>'+
+    G.help+='<div class="acct-card"><div class="acct-head">Show me around</div>'+
       '<p class="acct-p">The system in one picture, every Yardsmith term in plain English, and the tab-by-tab tips — whenever you want a refresher.</p>'+
       '<button class="acct-btn ghost" data-ffloop="1">🔁 How Yardsmith works</button>'+
       '<button class="acct-btn ghost" data-termall="1">📖 What the terms mean</button>'+
       '<button class="acct-btn ghost" id="acctReplayTips">↻ Replay the tips</button></div>';
     if(user){
-      html+='<div class="acct-card"><div class="acct-head">⚠️ Delete account</div>'+
+      G.data+='<div class="acct-card"><div class="acct-head">⚠️ Delete account</div>'+
         '<p class="acct-p">Permanently delete your account and <b>all</b> synced data — workouts, bodyweight &amp; 7-iron history, Octane and any leaderboard entry. This can’t be undone.</p>'+
         '<button class="acct-btn danger" id="acctDelete">Delete my account</button></div>';
     }
     // Read-once reassurance lives at the bottom — it never outranks the settings.
-    html+='<div class="acct-card"><div class="acct-head">⛳ Full access — unlocked</div>'+
+    G.help+='<div class="acct-card"><div class="acct-head">⛳ Full access — unlocked</div>'+
       '<p class="acct-p">You’ve got everything: AI coaching, the full training plan, macro tuning, progress tracking and the leaderboard. No paywall.</p>'+
       '<div class="acct-plan">Plan: <b>Full access</b> · free</div></div>';
+    var remOn=false; try{ remOn=!!ffNotifOn(); }catch(_){}
+    var thLbl={auto:"Auto",light:"Light",dark:"Dark"}[curTheme]||"Auto";
+    var planSub=[(t&&t.goal)||null, curFreq+" days", (FF_WK_LABEL[curWk]||"").toLowerCase()]
+      .filter(Boolean).join(" · ");
+    html+=acctGroup("plan","🎯","Your plan",planSub,G.plan)+
+      acctGroup("remind","🔔","Reminders & look",(remOn?"Reminders on":"Reminders off")+" · "+thLbl+" theme",G.remind)+
+      acctGroup("data","💾","Your data",(user?"Synced":"On this phone")+" · backup, privacy",G.data)+
+      acctGroup("help","❓","Help & app","How it works, app updates",G.help);
     html+='<div class="acct-links">'+
       '<a href="mailto:bobbydenisclay@gmail.com?subject=Yardsmith%20feedback">✉ Send feedback</a>'+
       '<span>·</span>'+
