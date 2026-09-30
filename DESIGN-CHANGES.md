@@ -45,7 +45,7 @@ checked against the code before fixing. What changed, by area:
    Forecast and season-map state survive re-renders, share failures fall back to
    download/clipboard, and zero baselines are ignored (no "+Infinity%").
 6. **Backend/security.** push-daily: host allow-list, 10s timeouts, paging,
-   batches, constant-time cron secret. Migration `20260930120000`:
+   batches, constant-time cron secret. Migration `20260930110636`:
    push_subs bounds and a 10-per-user cap, anon can't read leaderboard
    `user_id`, and a global 1000/day AI ceiling. The coach knowledge base drops
    banned performance claims. ai-coach: user-first history, room for thinking,

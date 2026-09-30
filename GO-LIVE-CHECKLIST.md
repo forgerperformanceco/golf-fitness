@@ -97,4 +97,4 @@ the `is_subscribed` RPC already honors `trialing` + `trial_ends_at`.
 - The coach runs on `claude-sonnet-5-5` by default; swap with
   `supabase secrets set AI_COACH_MODEL=...` (e.g. `claude-haiku-4-5` for cheaper turns).
 - Per-user limits (5/min, 50/day) and a global ceiling (1000 coach turns/day,
-  migration `20260930120000`) are in place; track tokens/user vs. revenue.
+  migration `20260930110636`) are in place; track tokens/user vs. revenue.

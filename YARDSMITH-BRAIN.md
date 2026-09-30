@@ -20,9 +20,9 @@ deeper doc when there is one.
 > + Google Play enrollment as an **Organization** under Long Game Labs LLC →
 > TestFlight/internal testing → store submission.
 > **Pre-launch review DONE (Sep 30 2026)** — six-area bug sweep, all fixes in
-> DESIGN-CHANGES "Pre-launch review". **One manual step:** apply migration
-> `supabase/migrations/20260930120000_prelaunch_review_hardening.sql` to the live
-> project (CI tests migrations but doesn't apply them). AI coach now defaults to
+> DESIGN-CHANGES "Pre-launch review". Migration
+> `20260930110636_prelaunch_review_hardening` is APPLIED to the live project
+> (Sep 30 2026, via Supabase MCP; CI tests migrations but never applies them). AI coach now defaults to
 > **`claude-sonnet-5-5`** (override: `AI_COACH_MODEL` function secret).
 > **The web app is now a modular `src/` codebase with a build step** (see §3) —
 > the committed root files are generated build outputs. Service worker cache is
