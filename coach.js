@@ -197,6 +197,15 @@
   }
   function close() { wrap.classList.remove("open"); document.body.style.overflow = ""; }
 
+  // Keep the request well under the coach's 32 KB limit: long past answers are
+  // trimmed, and the oldest turns drop first if the thread is still too big.
+  function trimHistory(h) {
+    var out = h.map(function (m) { return { role: m.role, content: String(m.content || "").slice(0, 3000) }; });
+    var total = function () { return out.reduce(function (n, m) { return n + m.content.length; }, 0); };
+    while (out.length && total() > 12000) out.shift();
+    while (out.length && out[0].role !== "user") out.shift();
+    return out;
+  }
   async function send(explicit) {
     if (busy) return;
     var text = (explicit != null ? explicit : (input.value || "")).trim();
@@ -207,7 +216,7 @@
     busy = true; sendBtn.disabled = true;
     var typing = bubble("bot", "");
     typing.innerHTML = '<span class="ffc-dots"><span></span><span></span><span></span></span>';
-    var acc = "", started = false;
+    var acc = "", started = false, stop = null;
     try {
       var token = await window.FF.getAccessToken();
       if (!token) { typing.textContent = "Your session expired — sign in again on the You tab."; busy = false; return; }
@@ -215,7 +224,7 @@
       var res = await fetch(window.FF.supabaseUrl + FN_PATH, {
         method: "POST",
         headers: { "Authorization": "Bearer " + token, "apikey": window.FF.anonKey, "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text, history: history.slice(0, -1).slice(-8),
+        body: JSON.stringify({ message: text, history: trimHistory(history.slice(0, -1).slice(-8)),
           profile: ctx.profile, targets: ctx.targets, score: ctx.score, recentLog: ctx.recentLog,
           brain: ctx.brain, readiness: ctx.readiness, memory: ctx.memory })
       });
@@ -233,10 +242,8 @@
         busy = false; return;
       }
       if (!res.ok || !res.body) {
-        var errBody = "";
-        try { errBody = (await res.text()).slice(0, 160); } catch (e) {}
         typing.classList.remove("bot"); typing.classList.add("note");
-        typing.textContent = "Coach error (HTTP " + res.status + ")" + (errBody ? ": " + errBody : "") + ".";
+        typing.textContent = "The coach hit a problem (" + res.status + ") — try again in a moment.";
         busy = false; return;
       }
       var reader = res.body.getReader(), dec = new TextDecoder(), buf = "";
@@ -251,18 +258,23 @@
             var ev = JSON.parse(line);
             if (ev.text) { if (!started) { typing.textContent = ""; started = true; } acc += ev.text; typing.innerHTML = mdToHtml(acc); log.scrollTop = log.scrollHeight; }
             else if (ev.error && !started) typing.textContent = "Sorry — the coach hit an error. Try again.";
+            else if (ev.done) stop = ev.stop || null;
           } catch (e) {}
         }
       }
       if (!acc) typing.textContent = "Sorry — I didn't catch that. Try rephrasing?";
       else {
+        if (stop === "max_tokens") typing.innerHTML = mdToHtml(acc + "\n\n*(Cut short — ask me to keep going.)*");
         history.push({ role: "assistant", content: acc });
         rememberTurn(sheet.querySelector(".ffc-ctx").textContent, text, acc);
       }
     } catch (e) {
       typing.classList.remove("bot"); typing.classList.add("note");
-      typing.innerHTML = "Couldn't reach the coach (network/CORS). If you've deployed it, re-run the deploy after the latest fix, and check the function is set to <b>verify_jwt = false</b>.";
+      typing.textContent = "Couldn't reach the coach — check your connection and try again.";
     } finally {
+      // A send that got no answer must not leave a dangling user turn: the next
+      // request's history would then open or double up wrongly.
+      if (!acc && history.length && history[history.length - 1].role === "user" && history[history.length - 1].content === text) history.pop();
       busy = false; sendBtn.disabled = false; if (!input.disabled) input.focus();
     }
   }

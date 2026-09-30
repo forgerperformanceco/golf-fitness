@@ -392,11 +392,24 @@
         if(!looksRight){ alert("That file doesn't look like a Yardsmith backup."); return; }
         var when=(obj&&obj.exported)?(" from "+String(obj.exported).slice(0,10)):"";
         if(!confirm("Restore the backup"+when+"?\n\nThis replaces the data on this device with the file's contents."+
-          ((window.FF&&window.FF.user)?" It then syncs to your account (workout history merges, it isn't lost).":""))) return;
+          ((window.FF&&window.FF.user)?" It then replaces what's saved in your account, too.":""))) return;
+        // A restore is the user's explicit choice, so it must beat newer cloud state:
+        // restored workouts get fresh edit stamps (older delete tombstones can't
+        // remove them again), history keeps its real finish time in doneTs, and the
+        // next sync pushes this state as-is instead of merging (cloud-sync.js).
+        // Sync bookkeeping (ff_sync_*) is never taken from a file.
+        var now=Date.now();
+        if(data.ff_log && typeof data.ff_log==="object") Object.keys(data.ff_log).forEach(function(k){
+          var s=data.ff_log[k]; if(s && typeof s==="object") s._ts=now; });
+        if(Array.isArray(data.ff_history)) data.ff_history.forEach(function(h){
+          if(h && typeof h==="object"){ if(h.doneTs==null) h.doneTs=h.ts; h.ts=now; } });
+        data.ff_deleted={};
         Object.keys(data).forEach(function(k){
           if(k!=="fairwayfuel" && k.indexOf("ff_")!==0) return;
+          if(k.indexOf("ff_sync_")===0) return;
           try{ localStorage.setItem(k, JSON.stringify(data[k])); }catch(e){}
         });
+        try{ sessionStorage.setItem("ff_restore_pending","1"); }catch(e){}
         try{ window.dispatchEvent(new Event("ff-external-write")); }catch(e){}   // bust the lsGet cache (raw writes above)
         try{ window.dispatchEvent(new Event("ff-data-changed")); }catch(e){}
         alert("Backup restored ✓");

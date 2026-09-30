@@ -55,7 +55,10 @@ Deno.serve(async (req) => {
 
   // Delete the auth identity itself — this is the part the browser cannot do.
   const { error: delErr } = await admin.auth.admin.deleteUser(user.id);
-  if (delErr) return json(req, { error: "delete_failed", detail: delErr.message }, 500);
+  if (delErr) {
+    console.error(JSON.stringify({ kind: "delete_account_failed", message: delErr.message }));
+    return json(req, { error: "delete_failed" }, 500);
+  }
 
   return json(req, { ok: true });
 });

@@ -46,8 +46,13 @@ const DEVICE_LOCAL = {
   ff_push_sig:      "transient — push schedule payload-hash dedupe (080)",
   ff_milestones:    "device-local milestone toasts (070)",
   ff_hint_press:    "device-local one-time gesture hint (070)",
-  // ff_sync_status is also device-local but written by cloud-sync.js with raw
-  // localStorage.setItem (not lsSet), so it never appears in the lsSet scan.
+  ff_score_hist:    "derived — local daily Octane trace; can't be recomputed, accumulates forward (070)",
+  ff_activation_events: "device-local telemetry dedupe (075)",
+  ff_reminder_mode: "device reminder preference (080)",
+  ff_reminder_lead: "device reminder preference (080)",
+  // ff_sync_status, ff_sync_base (settings fingerprints for the three-way merge)
+  // and ff_sync_owner (which account this device's data belongs to) are also
+  // device-local but written by cloud-sync.js with raw localStorage.setItem.
 };
 
 let fails = 0;

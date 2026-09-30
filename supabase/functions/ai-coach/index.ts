@@ -109,6 +109,9 @@ Deno.serve(async (req) => {
   const cleanHistory = Array.isArray(body.history) ? body.history.slice(-8).filter((m) =>
     m && (m.role === "user" || m.role === "assistant") && typeof m.content === "string"
   ).map((m) => ({ role: m.role, content: m.content.slice(0, MAX_HISTORY_CHARS) })) : [];
+  // The conversation must open with a user turn: slicing the last 8 (or a failed
+  // send that left no reply) can leave an assistant turn first, which the API rejects.
+  while (cleanHistory.length && cleanHistory[0].role !== "user") cleanHistory.shift();
   const cleanMemory = Array.isArray(body.memory) ? body.memory.slice(-8).filter((m) =>
     m && typeof m === "object"
   ).map((m) => ({
@@ -150,8 +153,11 @@ Deno.serve(async (req) => {
   try {
     const stream = anthropic.messages.stream({
       model: MODEL,
-      max_tokens: 1500,
+      // Thinking tokens count against max_tokens, so leave room for both; effort
+      // keeps a chat reply's thinking (and cost) proportionate.
+      max_tokens: 4000,
       thinking: { type: "adaptive" },   // adaptive thinking on 4.6+ models
+      output_config: { effort: "medium" },
       system,
       messages,
     });
@@ -160,14 +166,20 @@ Deno.serve(async (req) => {
     const sse = new ReadableStream({
       async start(controller) {
         try {
+          let stopReason: string | null = null;
           for await (const event of stream) {
             if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
               controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: event.delta.text })}\n\n`));
+            } else if (event.type === "message_delta" && event.delta.stop_reason) {
+              stopReason = event.delta.stop_reason;
             }
           }
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`));
+          // Tell the client when the answer was cut short or declined, instead of
+          // silently ending mid-sentence.
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true, stop: stopReason })}\n\n`));
         } catch (e) {
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: String(e) })}\n\n`));
+          console.error(JSON.stringify({ kind: "coach_stream_failed", message: String(e) }));
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: "coach_failed" })}\n\n`));
         } finally {
           controller.close();
         }
@@ -178,6 +190,7 @@ Deno.serve(async (req) => {
       headers: { ...corsFor(req), "Content-Type": "text/event-stream", "Cache-Control": "no-cache" },
     });
   } catch (e) {
-    return json(req, { error: "coach_failed", detail: String(e) }, 500);
+    console.error(JSON.stringify({ kind: "coach_failed", message: String(e) }));
+    return json(req, { error: "coach_failed" }, 500);
   }
 });
