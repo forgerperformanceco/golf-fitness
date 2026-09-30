@@ -125,7 +125,11 @@
   function seasonCardHtml(){
     if(!planStart()) return '';
     var wk=curWeek(), gy=goalYds();
-    var tests={}; speedTests().forEach(function(t){ if(t.week && (tests[t.week]==null || t.best>tests[t.week])) tests[t.week]=t.best; });
+    // Only THIS season's tests fly flags: speed tests survive a plan restart
+    // (resetPlanFull keeps trends), and their stored `week` is last season's.
+    var ps0=new Date(planStart()); ps0.setHours(0,0,0,0);
+    var tests={}; speedTests().forEach(function(t){ if(!t.week || !((t.ts||0)>=ps0.getTime())) return;
+      if(tests[t.week]==null || t.best>tests[t.week]) tests[t.week]=t.best; });
     var ev=eventInfo();
     var segW=46, pad=26, NW=20, width=pad*2+NW*segW, H=118;
     var colors={ accumulate:"#2f9e5d", intensify:"#e0a33a", deload:"#4d685a", peak:"#f4c542" };
@@ -171,10 +175,12 @@
   /* ----- Sunday Scorecard: the week as a golf card — one ritual close per week ----- */
   function weekCard(){
     var ws=weekStartDateCal().getTime(), freq=(typeof planState!=="undefined"&&planState.freq)||4;
-    var hist=lsGet("ff_history",[]).filter(function(h){ return h && (h.ts||0)>=ws; });
+    // doneTs = the session's original finish time (a re-saved old workout keeps
+    // it); fall back to ts for entries written before it existed.
+    var hist=lsGet("ff_history",[]).filter(function(h){ return h && (h.doneTs||h.ts||0)>=ws; });
     var vol=hist.reduce(function(a,h){ return a+(h.volume||0); },0);
     var weighs=lsGet("ff_body",[]).filter(function(e){ if(!e || !e.w) return false;
-      var t=e.ts || new Date(e.date).getTime(); return !isNaN(t) && t>=ws; }).length;
+      var t=e.ts || stDayStart(e.iso); return t!=null && !isNaN(t) && t>=ws; }).length;   // never parse the locale `date`
     var stw=speedTests().filter(function(t){ return (t.ts||0)>=ws; });
     var fOn=0, fLog=0, dws=weekStartDateCal(), today=new Date();
     for(var i=0;i<7;i++){
@@ -242,10 +248,15 @@
   document.addEventListener("click", function(e){
     var b=e.target.closest("[data-pftoggle]"); if(!b) return;
     var k=b.getAttribute("data-pftoggle");
+    // data-pfopen marks a "take me there" link (the story's "See the evidence"):
+    // it always OPENS its fold and scrolls to it — it never closes an open one.
+    var openOnly=b.hasAttribute("data-pfopen");
     var st=lsGet("ff_statsfold",null)||{};
-    st[k]=!pfIsOpen(k);
+    st[k]=openOnly ? true : !pfIsOpen(k);
     lsSet("ff_statsfold", st);
     renderProgress();
+    if(openOnly){ var tgt=document.querySelector("#progressBody .ffscore");
+      if(tgt) tgt.scrollIntoView({behavior:"smooth", block:"start"}); }
   });
 
   /* ----- Performance Story: the answer before the analytics.
@@ -354,10 +365,15 @@
       (milestones.length?'<div class="ps-milestones">'+milestones.slice(0,3).map(function(m){ return '<span>'+m+'</span>'; }).join("")+'</div>':'')+
       // The Yardsmith card (055) — offered once there's a real number to post.
       ((r.score!=null||d||speeds.length||sessions)?'<button type="button" class="ps-share" data-yscard="1">'+ffIcon("share",16)+'<span>Share my Yardsmith card</span></button>':'')+
-      '<div class="ps-foot">'+reassess+'<button type="button" class="ps-evidence" data-pftoggle="pillars">See the evidence <span>↓</span></button></div>'+
+      '<div class="ps-foot">'+reassess+'<button type="button" class="ps-evidence" data-pftoggle="pillars" data-pfopen="1">See the evidence <span>↓</span></button></div>'+
     '</section>';
   }
 
+  // Held across renderProgress's innerHTML swaps (architecture contract,
+  // scroll-preservation patterns 1+2): any tap on Stats re-renders the page,
+  // which used to snap the forecast's "Why this range" shut and throw the
+  // season map back to its default scroll.
+  var psProofOpen=false, psSeasonX=null, psSeasonAuto=null;
   function brainForecastHtml(){
     if(!window.FFBrain || !window.FFBrain.forecast) return "";
     var f=window.FFBrain.forecast();
@@ -375,7 +391,7 @@
         '<div class="bf-gain"><b>'+signed(f.projectedGain.low)+' to '+signed(f.projectedGain.high)+'</b><span>mph vs now</span></div></div>'+
       '<div class="bf-carry"><span>'+ffIcon("gauge",17)+'</span><span><b>'+signed(f.estimated7IronCarryGainYards.low)+' to '+signed(f.estimated7IronCarryGainYards.high)+' yards</b>'+
         '<small>estimated 7-iron carry change · ~2 yards per mph</small></span></div>'+
-      '<details class="bf-proof"><summary>Why this range <span>↓</span></summary><ul>'+
+      '<details class="bf-proof"'+(psProofOpen?' open':'')+'><summary>Why this range <span>↓</span></summary><ul>'+
         f.basis.map(function(x){ return '<li>'+x+'</li>'; }).join("")+'</ul><p>'+f.disclaimer+'</p></details>'+
       '<button type="button" class="bf-coach" data-ask="forecast">💬 Coach me toward the high end <span>→</span></button>'+
     '</section>';
@@ -383,6 +399,10 @@
 
   function renderProgress(){
     var el=$("progressBody"); if(!el) return;
+    // Read the outgoing DOM's fold/scroll state BEFORE building the new html.
+    var bfp=el.querySelector("details.bf-proof"); if(bfp) psProofOpen=bfp.open;
+    var ss0=el.querySelector(".season-scroll");
+    if(ss0 && ss0.clientWidth>0) psSeasonX=(ss0.scrollLeft!==psSeasonAuto) ? ss0.scrollLeft : null;   // null = never scrolled by hand
     var body=lsGet("ff_body",[]);
     var spF=[], spD=[], wtF=[], wtD=[];
     body.forEach(function(e){
@@ -492,7 +512,10 @@
 
     el.innerHTML=html;
     var ss=el.querySelector(".season-scroll");
-    if(ss) ss.scrollLeft=Math.max(0, (curWeek()-3)*46);
+    if(ss){
+      if(psSeasonX!=null) ss.scrollLeft=psSeasonX;
+      else { ss.scrollLeft=Math.max(0, (curWeek()-3)*46); psSeasonAuto=ss.scrollLeft; }
+    }
     if(pfIsOpen('lb')) loadLeaderboard();   // async fill only when the fold is open
   }
 
@@ -503,7 +526,7 @@
     return d.getFullYear()+"-"+(m<10?"0":"")+m+"-"+(dd<10?"0":"")+dd; }
   function thisWeekStats(){
     var ws=weekStartDateCal().getTime(), wsStr=weekStartStr();
-    var n=lsGet("ff_history",[]).filter(function(h){ return h && (h.ts||0)>=ws; }).length;
+    var n=lsGet("ff_history",[]).filter(function(h){ return h && (h.doneTs||h.ts||0)>=ws; }).length;   // doneTs: see weekCard
     var body=lsGet("ff_body",[]), spdIn=[], wtIn=[], spdPrev=null, wtPrev=null;
     body.forEach(function(e){
       if(!e || !e.date) return;
@@ -523,19 +546,18 @@
   var lbBoard = "score";
   function lbReady(){ return !!(window.FF && window.FF.leaderboard); }
   function lbSignedIn(){ return !!(window.FF && window.FF.user); }
-  function lbEsc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
-  function lbStreak(){
-    var per={}; sessionsByWeek().forEach(function(s){ per[s.w]=true; });
-    var weeks=Object.keys(per).map(Number); if(!weeks.length) return 0;
-    var w=Math.max.apply(null,weeks), streak=0;
-    while(per[w]){ streak++; w--; }
-    return streak;
-  }
+  // Safe in text AND attribute values (the join input's value="…" uses it).
+  function lbEsc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;").replace(/'/g,"&#39;"); }
+  // The LIVE streak (055's ycStreak: counted back from this week, or last week
+  // while this week's first session is ahead). Counting back from the last
+  // week that had sessions meant a lapsed streak never broke on the board.
+  function lbStreak(){ return ycStreak(); }
   function myLBStats(){
     var r=ffScore(), body=lsGet("ff_body",[]);
     var sp=body.map(function(e){ return parseFloat(e.s); }).filter(function(v){ return !isNaN(v); });
     var speed = sp.length ? sp[sp.length-1] : null;
-    var gain = sp.length>=2 ? Math.round((sp[sp.length-1]-sp[0])/sp[0]*1000)/10 : null;
+    var gain = (sp.length>=2 && sp[0]>0) ? Math.round((sp[sp.length-1]-sp[0])/sp[0]*1000)/10 : null;   // 0 baseline → no %
     return { score:r.score, speed:speed, speed_gain:gain,
       sessions:sessionsByWeek().length, streak:lbStreak(),
       week_sessions:thisWeekStats().sessions, week_start:weekStartStr(),
@@ -553,17 +575,25 @@
     if(lbBoard==="week")   return lbWeekSessions(r)+" this wk";
     return r.score!=null ? r.score : "—";
   }
+  // Leaderboard load bookkeeping. lbReq tags each load so a slow response for
+  // a board the user already tapped away from is dropped (tab-switch race);
+  // lbHtml keeps the last painted board so Stats re-renders (every fold/pillar
+  // tap) repaint it instantly instead of flashing "Loading…"; lbPubErr/lbPubFail
+  // surface a failed publish and stop it being retried on every tap.
+  var lbReq=0, lbHtml={}, lbPubBusy=null, lbPubErr=null, lbPubFail=null;
   function renderLeaderboardCard(){
     var seg=["week","score","speed","streak"].map(function(b){
       return '<button data-lb="'+b+'" class="'+(lbBoard===b?"on":"")+'">'+
         ({week:"This week",score:"Score",speed:"Speed",streak:"Streak"}[b])+'</button>'; }).join("");
     return pfCard('lb','🏆 Leaderboard','',
       '<div class="lb-seg lb-seg-top" id="lbSeg">'+seg+'</div>'+
-      '<div id="lbBody"><div class="pc-need">Loading the board…</div></div>', 'pcard lb');
+      '<div id="lbBody">'+(lbHtml[lbBoard]||'<div class="pc-need">Loading the board…</div>')+'</div>', 'pcard lb');
   }
   function lbMedal(i){ return i===0?"🥇":(i===1?"🥈":(i===2?"🥉":(i+1))); }
   function lbListHtml(rows, mine){
-    if(!rows.length) return '<div class="pc-need">No one’s on this board yet — be the first to claim a spot.</div>';
+    if(!rows.length) return lbBoard==="week"
+      ? '<div class="pc-need">No sessions on the board yet this week — finish a workout and the top spot is yours.</div>'
+      : '<div class="pc-need">No one’s on this board yet — be the first to claim a spot.</div>';
     var myHandle = mine && mine.handle;
     return '<div class="lb-list">'+rows.map(function(r,i){
       var me = myHandle && r.handle===myHandle;
@@ -586,44 +616,73 @@
   }
   async function loadLeaderboard(){
     var el=$("lbBody"); if(!el) return;
+    var req=++lbReq, board=lbBoard;
+    function stale(){ return req!==lbReq || board!==lbBoard; }
     if(!lbReady()){ el.innerHTML='<div class="pc-need">The leaderboard needs an internet connection — reconnect and reopen this tab.</div>'; return; }
     var mine=null;
     if(lbSignedIn()){
       mine = await window.FF.leaderboard.getMine();
+      if(stale()) return;
       if(mine){                                   // already in → refresh my stats if they changed
-        var stats=myLBStats(), sig=JSON.stringify(stats);
-        if(sessionStorage.getItem("ff_lb_pub")!==sig){
-          stats.handle=mine.handle;
-          await window.FF.leaderboard.publish(stats);
-          try{ sessionStorage.setItem("ff_lb_pub", sig); }catch(e){}
+        var stats=myLBStats(), sig=JSON.stringify(stats), last=null;
+        try{ last=sessionStorage.getItem("ff_lb_pub"); }catch(e){}
+        // Publish only when the signature changed — and not again while that
+        // same signature is in flight, or for a minute after it just failed.
+        var recentFail=lbPubFail && lbPubFail.sig===sig && (Date.now()-lbPubFail.at)<60000;
+        if(last!==sig && lbPubBusy!==sig && !recentFail){
+          stats.handle=mine.handle; lbPubBusy=sig;
+          var res=null;
+          try{ res=await window.FF.leaderboard.publish(stats); }catch(e){ res={ error:String(e&&e.message||e) }; }
+          lbPubBusy=null;
+          if(res && res.ok){                        // cache the signature ONLY once it actually landed
+            try{ sessionStorage.setItem("ff_lb_pub", sig); }catch(e){}
+            lbPubErr=null; lbPubFail=null;
+          } else {
+            lbPubErr=(res && res.error) || "no response"; lbPubFail={ sig:sig, at:Date.now() };
+          }
+          if(stale()) return;
         }
       }
     }
     if(!$("lbBody")) return;                        // user navigated away mid-fetch
-    var rows = await window.FF.leaderboard.list(lbBoard, 50);
-    if(lbBoard==="week"){
-      // Rows published in an earlier calendar week count as 0 — zero them and re-rank.
-      rows = rows.map(function(r){ return r; }).sort(function(a,b){ return lbWeekSessions(b)-lbWeekSessions(a); })
-        .filter(function(r){ return lbWeekSessions(r)>0; });
+    // 3rd arg: the week board is filtered server-side to this calendar week
+    // (older cloud-sync builds ignore it — the client-side filter below stays).
+    var rows = await window.FF.leaderboard.list(board, 50, board==="week" ? weekStartStr() : undefined);
+    if(stale()) return;                             // a newer tab tap owns #lbBody now
+    rows = Array.isArray(rows) ? rows : [];
+    if(board==="week"){
+      // Rows published in an earlier calendar week count as 0 — drop them and re-rank.
+      rows = rows.filter(function(r){ return lbWeekSessions(r)>0; });
+      // Make sure you see yourself once you've trained this week, even if an
+      // unfiltered top-50 was crowded out by stale weeks.
+      var mySess=mine ? thisWeekStats().sessions : 0;
+      if(mine && mySess>0 && !rows.some(function(r){ return r.handle===mine.handle; }))
+        rows.push({ handle:mine.handle, goal:mine.goal, week_sessions:mySess, week_start:weekStartStr() });
+      rows.sort(function(a,b){ return lbWeekSessions(b)-lbWeekSessions(a); });
     }
-    var box=$("lbBody"); if(box) box.innerHTML = lbJoinHtml(mine) + lbListHtml(rows, mine);
+    var err = (mine && lbPubErr)
+      ? '<div class="ff-inerr" role="alert">Couldn’t update your spot on the board ('+lbEsc(lbPubErr)+'). It’ll retry shortly.</div>' : '';
+    var html = err + lbJoinHtml(mine) + lbListHtml(rows, mine);
+    var box=$("lbBody"); if(box){ box.innerHTML = html; lbHtml[board]=html; }
   }
   async function lbJoin(){
     var inp=$("lbHandle"); if(!inp) return;
     var h=(inp.value||"").trim().replace(/\s+/g," ");
     if(h.length<2){ inp.focus(); return; }
     lsSet("ff_handle", h);
-    var stats=myLBStats(); stats.handle=h;
+    var stats=myLBStats(), sig=JSON.stringify(stats); stats.handle=h;
     var btn=$("lbJoin"); if(btn){ btn.disabled=true; btn.textContent="Joining…"; }
     var res = await window.FF.leaderboard.publish(stats);
-    try{ sessionStorage.setItem("ff_lb_pub", JSON.stringify(myLBStats())); }catch(e){}
-    if(res && res.error){ if(btn){ btn.disabled=false; btn.textContent="Join"; } alert("Couldn’t join: "+res.error); return; }
+    if(!res || res.error){ if(btn){ btn.disabled=false; btn.textContent="Join"; } alert("Couldn’t join: "+((res && res.error) || "no response")); return; }
+    try{ sessionStorage.setItem("ff_lb_pub", sig); }catch(e){}   // only once it landed
+    lbPubErr=null; lbPubFail=null;
     loadLeaderboard();
   }
   async function lbLeave(){
     if(!confirm("Leave the leaderboard? Your spot is removed.")) return;
     await window.FF.leaderboard.leave();
     try{ sessionStorage.removeItem("ff_lb_pub"); }catch(e){}
+    lbHtml={}; lbPubErr=null; lbPubFail=null;
     loadLeaderboard();
   }
 
@@ -852,6 +911,7 @@
       if(weighOnly){
         sheet.innerHTML='<div class="qsheet-card"><div class="qsheet-grab"></div>'+
           quickLogHtml("q","Same scale, same time — feeds your weight trend & Octane.", true)+
+          '<div class="ff-inerr" id="qErr" role="alert" hidden></div>'+
           '</div>';
         sheet.hidden=false; document.body.style.overflow="hidden"; return;
       }
@@ -871,6 +931,7 @@
       sheet.innerHTML='<div class="qsheet-card"><div class="qsheet-grab"></div>'+
         '<div class="qsheet-h">＋ Log anything</div>'+
         quickLogHtml("q","Weight, 7-iron &amp; driver feed your trends, Octane and the board.")+
+        '<div class="ff-inerr" id="qErr" role="alert" hidden></div>'+
         '<div class="qsheet-acts">'+
         (train?('<button type="button" class="qsheet-act" data-startplayer="'+escAttr(d.name)+'">'+ffIcon("barbell",18)+'<span>Start today’s workout<span class="qa-sub">'+d.name.replace(/^Day \d+ — /,"")+' · guided player</span></span><span class="qa-go">›</span></button>'):'')+
         mealRow+
@@ -881,6 +942,13 @@
       sheet.hidden=false; document.body.style.overflow="hidden";
     }
     function closeSheet(){ sheet.hidden=true; document.body.style.overflow=""; }
+    var QL_WT_MIN=60, QL_WT_MAX=600;   // lb; speed + driver bounds live with their features (060 / 082)
+    function qlVal(id){ var i=$(id); return i ? String(i.value||"").trim() : ""; }
+    function qlBad(v, lo, hi, label, unit, id){
+      if(v==="") return null;
+      var n=parseFloat(v);
+      return (!isNaN(n) && n>=lo && n<=hi) ? null : { msg:label+" should be "+lo+"–"+hi+" "+unit+" — check for a typo.", id:id };
+    }
     fab.addEventListener("click", function(){ openSheet(false); });
     // The Home "Morning weigh-in" row opens the scale-only variant.
     document.addEventListener("click", function(e){
@@ -889,7 +957,21 @@
     sheet.addEventListener("click", function(e){
       if(e.target===sheet){ closeSheet(); return; }
       if(e.target.id==="qAdd"){
-        if(!logBodyEntry($("qBody")&&$("qBody").value, $("qSpeed")&&$("qSpeed").value, $("qDrive")&&$("qDrive").value)) return;
+        var wv=qlVal("qBody"), sv=qlVal("qSpeed"), dv=qlVal("qDrive");
+        // Range-check before anything lands in ff_body (logBodyEntry trusts its
+        // input): 0, negatives and fat-finger typos would poison every trend.
+        var bad=qlBad(wv, QL_WT_MIN, QL_WT_MAX, "Weight", "lb", "qBody") ||
+                qlBad(sv, SPEED_MIN, SPEED_MAX, "7-iron speed", "mph", "qSpeed") ||
+                qlBad(dv, DRIVE_MIN, DRIVE_MAX, "Driver carry", "yds", "qDrive");
+        if(!bad && !wv && !sv && !dv) bad={ msg:"Enter a number first.", id:"qBody" };
+        var qe=$("qErr");
+        if(bad){
+          if(qe){ qe.textContent=bad.msg; qe.hidden=false; }
+          var bi=$(bad.id); if(bi) bi.focus();
+          return;
+        }
+        if(qe) qe.hidden=true;
+        if(!logBodyEntry(wv, sv, dv)) return;
         try{ sessionStorage.removeItem("ff_lb_pub"); }catch(e2){}
         closeSheet(); ffToast("Logged 📈");
         try{ renderDash(); }catch(e2){}

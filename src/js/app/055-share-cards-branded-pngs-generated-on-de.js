@@ -57,27 +57,42 @@
     ffCardBlob(c, cb);
   }
   // Delivery for any card maker: native share sheet → PNG download → copied text.
+  // Each rung falls through to the next on failure — a rejected share (other
+  // than the user cancelling the sheet) or a blocked download must never end
+  // silently with nothing shared and no word why.
+  function ffShareCopy(textFallback){
+    try{
+      navigator.clipboard.writeText(textFallback)
+        .then(function(){ ffToast("Copied — paste it anywhere 📋"); })
+        .catch(function(){ ffToast("Couldn’t share on this device."); });
+    }catch(e){ ffToast("Couldn’t share on this device."); }
+  }
+  function ffShareDownload(blob){
+    try{
+      var url=URL.createObjectURL(blob), a=document.createElement("a");
+      a.href=url; a.download="yardsmith-card.png";
+      document.body.appendChild(a); a.click();
+      setTimeout(function(){ try{ URL.revokeObjectURL(url); a.remove(); }catch(e2){} },1500);
+      ffToast("Card saved as an image — post it anywhere 📤");
+      return true;
+    }catch(e){ return false; }
+  }
   function ffShareBlob(make, textFallback){
     make(function(blob){
       if(blob){
         try{
           var file=new File([blob],"yardsmith-card.png",{type:"image/png"});
           if(navigator.canShare && navigator.canShare({files:[file]}) && navigator.share){
-            navigator.share({ files:[file], text:textFallback }).catch(function(){});
+            navigator.share({ files:[file], text:textFallback }).catch(function(err){
+              if(err && err.name==="AbortError") return;          // user closed the sheet — not a failure
+              if(!ffShareDownload(blob)) ffShareCopy(textFallback);
+            });
             return;
           }
         }catch(e){}
-        try{
-          var url=URL.createObjectURL(blob), a=document.createElement("a");
-          a.href=url; a.download="yardsmith-card.png";
-          document.body.appendChild(a); a.click();
-          setTimeout(function(){ try{ URL.revokeObjectURL(url); a.remove(); }catch(e2){} },1500);
-          ffToast("Card saved as an image — post it anywhere 📤");
-          return;
-        }catch(e){}
+        if(ffShareDownload(blob)) return;
       }
-      try{ navigator.clipboard.writeText(textFallback).then(function(){ ffToast("Copied — paste it anywhere 📋"); }); }
-      catch(e){ ffToast("Couldn’t share on this device."); }
+      ffShareCopy(textFallback);
     });
   }
   function ffShareImage(o, textFallback){ ffShareBlob(function(cb){ ffMakeCard(o, cb); }, textFallback); }

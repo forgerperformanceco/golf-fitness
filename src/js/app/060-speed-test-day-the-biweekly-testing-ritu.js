@@ -8,15 +8,34 @@
   function lastSpeedTest(){ var t=speedTests(); return t.length?t[t.length-1]:null; }
   // Days since the newest speed number of ANY kind — a guided test or a manual/
   // onboarding entry — so a baseline logged today doesn't immediately demand a retest.
+  // Counted in CALENDAR days (local midnights), from locale-proof fields only:
+  // an ff_body row's `iso` (YYYY-MM-DD) or `ts`. Never `new Date(e.date)` — the
+  // display date is locale text ("30 sept 2026") and parses as NaN outside
+  // English, which silently dropped the baseline and made the test "due".
+  function stDayStart(v){
+    var m=/^(\d{4})-(\d{2})-(\d{2})/.exec(typeof v==="string"?v:"");
+    var d=m ? new Date(+m[1], +m[2]-1, +m[3]) : new Date(v);
+    if(isNaN(d.getTime())) return null;
+    d.setHours(0,0,0,0); return d.getTime();
+  }
   function daysSinceTest(){
-    var t=null, lt=lastSpeedTest(); if(lt) t=lt.ts;
+    var t=null, lt=lastSpeedTest(); if(lt && lt.ts) t=stDayStart(lt.ts);
     var body=lsGet("ff_body",[]);
     for(var i=body.length-1;i>=0;i--){ var e=body[i];
-      if(e && e.s!=null && e.s!==""){ var ts=new Date(e.date).getTime(); if(!isNaN(ts)) t=Math.max(t||0, ts); break; } }
-    return t==null ? null : Math.max(0, Math.floor((Date.now()-t)/864e5));
+      if(e && e.s!=null && e.s!==""){ var ts=stDayStart(e.iso || e.ts); if(ts!=null) t=Math.max(t||0, ts); break; } }
+    if(t==null) return null;
+    var today=new Date(); today.setHours(0,0,0,0);
+    return Math.max(0, Math.round((today.getTime()-t)/864e5));   // round: DST days are 23/25h
   }
   var SPEEDTEST_EVERY = 14;   // days — the biweekly cadence
-  function speedTestDue(){ var d=daysSinceTest(); return d==null || d>=(SPEEDTEST_EVERY-1); }
+  // Due from day 13 (a test on a Monday is due again by the Sunday before the
+  // two-week mark), so the countdown on the Train card counts to THAT day.
+  var SPEEDTEST_DUE_AT = SPEEDTEST_EVERY-1;
+  function speedTestDue(){ var d=daysSinceTest(); return d==null || d>=SPEEDTEST_DUE_AT; }
+  // Plausible 7-iron clubhead speeds (mph) — rejects 0, negatives and typos
+  // like 850 before they land in ff_body, Octane and the board.
+  var SPEED_MIN=20, SPEED_MAX=200;
+  function speedInRange(n){ return !isNaN(n) && n>=SPEED_MIN && n<=SPEED_MAX; }
   function speedTestCardHtml(){
     var lt=lastSpeedTest(), d=daysSinceTest();
     if(speedTestDue()){
@@ -26,7 +45,7 @@
         ' The retest is the scoreboard that proves the plan.</div>'+
         '<button class="stest-go" data-speedtest="1">'+ffIcon("play",13)+' Run today’s test</button></div>';
     }
-    var left=Math.max(1, SPEEDTEST_EVERY-d);
+    var left=Math.max(1, SPEEDTEST_DUE_AT-d);   // same threshold speedTestDue() uses
     return '<div class="stest-card"><div class="stest-b">'+ffIcon("target",14)+' Next speed test in <b>'+left+'</b> day'+(left===1?'':'s')+
       (lt?(' · last best <b>'+lt.best+' mph</b>'):'')+' — <button class="stest-link" data-speedtest="1">test early</button></div></div>';
   }
@@ -63,12 +82,19 @@
     try{ renderPhase(); }catch(e){} try{ renderDash(); }catch(e){}
     try{ if($("view-progress") && $("view-progress").classList.contains("active")) renderProgress(); }catch(e){}
   }
+  // Any filled-in swing outside the plausible range blocks the save (a typo
+  // would otherwise become an all-time PR and a fake trend).
+  function stBad(){
+    if(!stState) return false;
+    return stState.swings.some(function(v){ return String(v||"").trim()!=="" && !speedInRange(parseFloat(v)); });
+  }
   function stBest(){
-    if(!stState) return null;
-    var v=stState.swings.map(parseFloat).filter(function(n){ return n>0; });
+    if(!stState || stBad()) return null;
+    var v=stState.swings.map(parseFloat).filter(speedInRange);
     return v.length?Math.max.apply(null,v):null;
   }
   function stBestHtml(){
+    if(stBad()) return '<span class="ff-inerr" role="alert">7-iron speed should be '+SPEED_MIN+'–'+SPEED_MAX+' mph — check for a typo.</span>';
     var best=stBest();
     return best ? ('Best of the day: <b>'+best+' mph</b>') : 'Enter at least one swing.';
   }
