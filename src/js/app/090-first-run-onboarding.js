@@ -103,7 +103,7 @@
       if(ob.weight || ob.speed || ob.drive) logBodyEntry(ob.weight||"",ob.speed||"",ob.drive||"");
     }
     function finish(startNow){
-      applyProfile(); pushBaseline(); lsSet("ff_onboarded", true);
+      applyProfile(); pushBaseline(); lsSet("ff_onboarded", true); ffStampFreeWeek();
       lsSet("ff_goalyds", parseInt(ob.goalyds,10)||15);
       // Targets exist now — the first-visit brand hero on Home steps aside.
       var dh=document.querySelector(".dash-hero"); if(dh) dh.hidden=true;
@@ -297,7 +297,7 @@
           (s===6&&firstDay()?'<button type="button" class="ob-later" id="obHome">Later — take me to Home</button>':'')+
         '</div></div>';
 
-      var skip=$("obSkip"); if(skip) skip.onclick=function(){ lsSet("ff_onboarded",true); close();
+      var skip=$("obSkip"); if(skip) skip.onclick=function(){ lsSet("ff_onboarded",true); ffStampFreeWeek(); close();
         try{ if(window.FFHealth) window.FFHealth.track("onboarding_skipped"); }catch(e){} };
       var back=$("obBack"); if(back) back.onclick=function(){ readStep(s); ob.step--; render(); };
       var later=$("obLater"); if(later) later.onclick=function(){ finish(false); };
@@ -374,4 +374,5 @@
     }
   }catch(e){}
   maybeOnboard(sharedLink);   // first-run guided setup (no-op for returning users)
+  ffAccessBoot();             // free-week clock + Pro status (036; inert while billing is off)
   ffWelcomeBackBoot(sharedLink);   // back after 14+ quiet days → one "where do you want to start?" screen

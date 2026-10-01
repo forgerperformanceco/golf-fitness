@@ -615,10 +615,9 @@
         '<p class="acct-p">Permanently delete your account and <b>all</b> synced data — workouts, bodyweight &amp; 7-iron history, Octane and any leaderboard entry. This can’t be undone.</p>'+
         '<button class="acct-btn danger" id="acctDelete">Delete my account</button></div>';
     }
-    // Read-once reassurance lives at the bottom — it never outranks the settings.
-    G.help+='<div class="acct-card"><div class="acct-head">⛳ Full access — unlocked</div>'+
-      '<p class="acct-p">You’ve got everything: AI coaching, the full training plan, macro tuning, progress tracking and the leaderboard. No paywall.</p>'+
-      '<div class="acct-plan">Plan: <b>Full access</b> · free</div></div>';
+    // Early access: read-once reassurance at the bottom. Once billing is on, the
+    // plan status (free week / Pro) leads the plan group instead.
+    if(ffPaywallOn()) G.plan=ffAccessCardHtml()+G.plan; else G.help+=ffAccessCardHtml();
     var remOn=false; try{ remOn=!!ffNotifOn(); }catch(_){}
     var thLbl={auto:"Auto",light:"Light",dark:"Dark"}[curTheme]||"Auto";
     var planSub=[(t&&t.goal)||null, curFreq+" days", (FF_WK_LABEL[curWk]||"").toLowerCase()]

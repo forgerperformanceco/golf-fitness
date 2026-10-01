@@ -170,6 +170,8 @@ def main():
         # bright fill and dark label in dark mode (the .recovery variant is a
         # light surface and still darkens; its caption is pinned in CORE).
         if sel in ('.train-today-cta', '.train-today-cta small'): continue
+        # The Pro sheet's buy button is the same bright primary action.
+        if sel in ('.pw-go', '.pw-opt-tag'): continue
         # You tab's sign-in / account card is dark in both themes too.
         if '.acct-card.hero' in sel: continue
         ch = transform_rule(decls)

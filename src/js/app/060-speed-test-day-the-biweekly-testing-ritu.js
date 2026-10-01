@@ -72,6 +72,7 @@
     });
   }
   function openSpeedTest(){
+    if(!ffCanUse("speedtest")) return;                   // Pro after the free week (036)
     stEnsureModal();
     stState={ swings:["","",""], saved:null };
     renderSpeedTest();

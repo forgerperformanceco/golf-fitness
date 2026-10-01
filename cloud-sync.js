@@ -17,7 +17,7 @@
 
   // Everything the app persists to localStorage — the full progress blob.
   // ff_start = the plan's start date (so the calendar/week follows you across devices).
-  var KEYS = ["fairwayfuel", "ff_week", "ff_log", "ff_body", "ff_start", "ff_planview", "ff_swaps", "ff_onboarded", "ff_handle", "ff_kcal_adj", "ff_lastcheckin", "ff_gameday", "ff_foodprefs", "ff_insights_seen", "ff_region", "ff_zip", "ff_tips_seen", "ff_history", "ff_deleted", "ff_rest", "ff_skipped_sessions", "ff_goalyds", "ff_speedtest", "ff_mobility", "ff_event", "ff_fuel", "ff_rounds", "ff_coach_memory", "ff_weekly_reviews", "ff_readiness", "ff_opening_round_complete", "ff_welcome_back"];
+  var KEYS = ["fairwayfuel", "ff_week", "ff_log", "ff_body", "ff_start", "ff_planview", "ff_swaps", "ff_onboarded", "ff_handle", "ff_kcal_adj", "ff_lastcheckin", "ff_gameday", "ff_foodprefs", "ff_insights_seen", "ff_region", "ff_zip", "ff_tips_seen", "ff_history", "ff_deleted", "ff_rest", "ff_skipped_sessions", "ff_goalyds", "ff_speedtest", "ff_mobility", "ff_event", "ff_fuel", "ff_rounds", "ff_coach_memory", "ff_weekly_reviews", "ff_readiness", "ff_opening_round_complete", "ff_welcome_back", "ff_free_week"];
 
   // Disabled until configured.
   if (!SUPABASE_URL || !SUPABASE_ANON) return;
@@ -526,7 +526,13 @@
     ff_mobility:  function (l, c) { return unionSeries(l, c, function (e) { return e.ts; }, 40); },
     ff_readiness: function (l, c) { return unionSeries(l, c, function (e) { return e.date; }, 60); },
     ff_fuel:      unionFuel,
-    ff_weekly_reviews: unionWeeklyReviews
+    ff_weekly_reviews: unionWeeklyReviews,
+    // When the free week began (036): the EARLIEST device wins, so a fresh
+    // install or a second phone never restarts the free week.
+    ff_free_week: function (l, c) {
+      var a = typeof l === "number" && l > 0 ? l : 0, b = typeof c === "number" && c > 0 ? c : 0;
+      return (a && b) ? Math.min(a, b) : (a || b || undefined);
+    }
   };
   function mergeBlob(local, cloud, base) {
     local = local || {}; cloud = cloud || {};

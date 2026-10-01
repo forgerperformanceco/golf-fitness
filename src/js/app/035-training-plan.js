@@ -679,7 +679,10 @@
     return Math.max(20,Math.min(90,Math.round((5+sets*2.25)/5)*5));
   }
   var focusDay=null;   // which day the Today view is showing (null = auto = next un-logged)
-  function planViewMode(){ return planStart() ? lsGet("ff_planview","today") : "week"; }
+  function planViewMode(){
+    if(!planStart()) return "week";
+    return ffAccess()==="full" ? lsGet("ff_planview","today") : "today";   // free week: one day at a time (036)
+  }
 
   function renderPhase(){
     ilog=null;                       // reset; the interactive day re-sets it
@@ -770,7 +773,13 @@
         (wd.total?(' <span class="lh-dot">·</span> '+(wd.done>=wd.total?'<b class="lh-done">week complete ✓</b>':'<b class="lh-done">'+wd.done+' of '+wd.total+' done</b>')):'')+'</div>'+
       '<div class="lh-prog"><span style="width:'+Math.max(5,Math.round(wk/20*100))+'%"></span></div></div></div>';
 
-    if(mode==="today"){
+    // After the free week without Pro: the plan's week, one card, nothing to browse.
+    var access=ffAccess();
+    if(access==="locked") return html+ffLockedCardHtml("train");
+    // Free week: a day that hasn't arrived is a teaser, not a readable preview.
+    var featLocked=access==="preview" && featured.type!=="rest" && isFutureDay(featured.name);
+
+    if(mode==="today" && !featLocked){
       if(typeof ffReadinessInlineHtml==="function") html+=ffReadinessInlineHtml(featured);
       if(featured.type==="rest"){
         var heroRestDone=restDone(wk,featKey);
@@ -783,8 +792,9 @@
       }
     }
 
-    html+='<div class="planview-seg"><button data-planview="today"'+(mode==="today"?' class="active"':'')+'>Today</button>'+
-      '<button data-planview="week"'+(mode==="week"?' class="active"':'')+'>Full week</button></div>';
+    if(access==="full")
+      html+='<div class="planview-seg"><button data-planview="today"'+(mode==="today"?' class="active"':'')+'>Today</button>'+
+        '<button data-planview="week"'+(mode==="week"?' class="active"':'')+'>Full week</button></div>';
 
     var wvKey=waveFor(wk), wave=WAVES[wvKey];
     if(wvKey!=="accumulate") html+='<div class="deload-banner">'+wave.ic+' <b>'+wave.label+' week.</b> '+wave.strap+' '+ffTerm('wave','How the weeks work ›')+'</div>';
@@ -795,9 +805,10 @@
         var done = d.type==="rest" ? restDone(wk, dayKey(d)) : sessionFinished(getSession(wk, d.name));
         var cd = chipDate(i), isToday = sameDay(cd, todayDate);
         var dateLbl = isToday ? "Today" : (cd ? fmtChipDate(cd) : ("Day "+(i+1)));
-        return '<button class="ws-chip'+(dayKey(d)===featKey?" cur":"")+(done?" done":"")+(isToday?" today":"")+'" data-focusday="'+escAttr(dayKey(d))+'">'+
+        var lockd = access==="preview" && d.type!=="rest" && isFutureDay(d.name);
+        return '<button class="ws-chip'+(dayKey(d)===featKey?" cur":"")+(done?" done":"")+(isToday?" today":"")+(lockd?" locked":"")+'" data-focusday="'+escAttr(dayKey(d))+'">'+
           '<span class="ws-date">'+dateLbl+'</span>'+
-          '<span class="ws-name">'+(done?"✓ ":"")+wsShort(d)+'</span></button>';
+          '<span class="ws-name">'+(done?"✓ ":"")+(lockd?"🔒 ":"")+wsShort(d)+'</span></button>';
       }).join("");
       html+='<div class="weekstrip">'+strip+'</div>';
       // A future day is a PREVIEW, never an active session: rendering it
@@ -806,7 +817,9 @@
       // plan read-only instead, with a note that it opens on the day — and an
       // explicit "log it early" path still available from the card's log button.
       var featFuture = featured.type!=="rest" && isFutureDay(featured.name);
-      if(featFuture){
+      if(featLocked){
+        html+=ffLockedDayHtml(featured);
+      } else if(featFuture){
         var fdt=dayCalDate(featured.name);
         var fwhen=fdt?fdt.toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric"}):"soon";
         html+='<div class="upcoming-banner">📅 <b>Coming up '+fwhen+'.</b> Here’s the plan to preview — opening it won’t start logging. It unlocks on the day; to train it early, use <b>Log workout</b> at the bottom of the card.</div>';
@@ -844,7 +857,7 @@
     // Manual logging is opt-in (the player is the default); the row only offers
     // it on a workout day that can be logged, and never while it's already on.
     var dop=dayOfPlan(), today=dop?stripDays()[dop-1]:null;
-    if(planViewMode()==="today" && !lsGet("ff_manual_log", false) && !seasonComplete() && today && today.type!=="rest")
+    if(planViewMode()==="today" && ffAccess()!=="locked" && !lsGet("ff_manual_log", false) && !seasonComplete() && today && today.type!=="rest")
       html+=homeRow("⌨️","Log by typing instead","Enter sets yourself — no player",' data-manuallog="1"');
     html+=homeRow("💬","Adjust this week","Ask the coach to rework it",' data-ask="train"');
     html+=homeRow("📖","Workout history","Every session, all time",' data-gohistory="1"');
@@ -873,9 +886,10 @@
         (retain?'🔻 <b>Retain mode</b> (auto, from your goal) — accessory volume trimmed; heavy lifts &amp; all speed work stay at full to protect muscle and clubhead speed.'
                :'🏗️ <b>Build mode</b> (auto, from your goal) — full accessory volume to add muscle, with heavy strength and speed work every week.')+'</div>'+
       '<div class="exlegend"><b>What each move builds:</b> 🏋️ strength · 💪 mass · ⚡ power/speed · 🌀 golf rotation</div>'+
+      (ffAccess()!=="full" ? '' :                     // jumping weeks is Pro once billing is on (036)
       '<div class="set-jump"><select id="weekSel" aria-label="Jump to week">'+
         (function(){ var o=""; for(var wi=1;wi<=20;wi++) o+='<option value="'+wi+'"'+(wi===wk?' selected':'')+'>Week '+wi+'</option>'; return o; })()+
-        '</select><button class="sb-go2" data-startweek="sel">Jump to week</button></div>'+
+        '</select><button class="sb-go2" data-startweek="sel">Jump to week</button></div>')+
       '<button class="sb-link" data-reset="1">↺ Restart from week 1</button>'+
       '<div id="equipBar" class="settings-equip"></div>'+
       '</div></details>';

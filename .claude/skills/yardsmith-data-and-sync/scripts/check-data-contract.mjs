@@ -48,6 +48,7 @@ const DEVICE_LOCAL = {
   ff_hint_press:    "device-local one-time gesture hint (070)",
   ff_score_hist:    "derived — local daily Octane trace; can't be recomputed, accumulates forward (070)",
   ff_activation_events: "device-local telemetry dedupe (075)",
+  ff_pro:           "device-local cache of the server's is_subscribed answer — per account, cleared on sign-out (036)",
   ff_reminder_mode: "device reminder preference (080)",
   ff_reminder_lead: "device reminder preference (080)",
   // ff_sync_status, ff_sync_base (settings fingerprints for the three-way merge)

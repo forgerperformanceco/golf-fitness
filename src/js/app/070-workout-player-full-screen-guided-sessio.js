@@ -11,6 +11,7 @@
     var day=findDay(dayName); if(!day || day.type==="rest") return;
     var resume=resumeWeek!=null && sessionInProgress(getSession(resumeWeek, day.name));
     var week=resume ? resumeWeek : curWeek();
+    if(!ffCanStartWorkout(day.name, resume)) return;     // free week / Pro (036)
     // Past day 140 the season is over: only an already-started session may be
     // finished — never a new (or replayed) week-20 session.
     if(!resume && seasonComplete() && !sessionInProgress(getSession(week, day.name))){ ffSeasonOverNudge(); return; }

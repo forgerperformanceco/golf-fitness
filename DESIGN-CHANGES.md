@@ -1,5 +1,45 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## Free week → Yardsmith Pro — built, switched off (Oct 1, 2026)
+
+User: "If I start this thing on Apple Store, won't people download for free?" → "How do
+we just give the first workout as a demo?" → "7 days they can see every workout tho" →
+"Okay but hide as much as possible the first week that makes sense." Pricing and rules
+in YARDSMITH-BRAIN §9. New module `036-access-free-week-and-pro.js`; `FF_PAYWALL=false`
+so **nothing changes for anyone today** except the You tab's old "No paywall" promise,
+now "Free during early access". Preview it with `?paywall=1`.
+
+- **Free week (days 1–7):** Train is Today-only. The Full-week toggle and Jump-to-week are
+  gone. Future workout chips show 🔒, and tapping one shows a dashed teaser card: name,
+  minutes, exercise count, "opens Friday", and "See Yardsmith Pro ›". It never shows the
+  exercise list, and there's no "log it early". Today's workout and past days are fully
+  open.
+- **After the free week:**
+  - Home's one big button becomes "Your free week is done · Keep your plan going".
+  - Train shows the hero plus one card with an "Unlock week N" button. There's no strip,
+    list or Start button.
+  - `startPlayer`, `openSpeedTest` and `FFCoach.open/ask` all route to the Pro sheet.
+  - Resuming a session that was already started is allowed.
+  - Stats, history, Fuel and You stay readable.
+- **The Pro sheet** (a swap-modal shell):
+  - The headline depends on why it opened.
+  - Four ✓ benefits.
+  - Yearly (preselected, "Best value", $6.67/mo · 7-day free trial) and Monthly cards.
+  - The button reads "Start 7-day free trial" or "Continue".
+  - Fine print covering auto-renewal and cancellation.
+  - "Everything you've logged stays yours, Pro or not."
+  - Restore purchases · Terms (Apple standard EULA) · Privacy.
+  - With no `FFBilling` bridge, the buy button only toasts "Subscriptions open soon".
+- **You tab:**
+  - Paywall off: an early-access card at the bottom.
+  - Paywall on: the status card ("Free week · N days left" / "Free plan" / "Yardsmith
+    Pro ✓") leads the "Your plan" group, with Restore purchases.
+- **Dark theme:** `.pw-go` and `.pw-opt-tag` are excluded from the generator (they're the
+  bright primary, like `.train-today-cta`).
+- **Analytics:** `paywall_shown{reason}`, `paywall_buy_tap{plan}` (product-health v7).
+- **Tests:** `tests/paywall.test.mjs`. The scratchpad Playwright run covers all four
+  states (off / free week / locked / Pro): 40/40.
+
 ## Hypertrophy evidence update — six changes (Sep 30, 2026)
 
 User: "any scientific evidence you can find and use towards optimizing lifting for a

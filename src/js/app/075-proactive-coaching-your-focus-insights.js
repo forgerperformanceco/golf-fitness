@@ -132,6 +132,7 @@
         '<div class="nu-kick">🏁 Season complete</div><div class="nu-title">You finished all 20 weeks</div>'+
         '<div class="nu-sub">Start a new season on Train — your history and trends carry over.</div>'+
         nuCta("See what’s next")+'</button>';
+    if(ffAccess()==="locked") return ffLockedCardHtml("home");   // free week over, no Pro (036)
     var wk=curWeek(), missed=missedWorkout(), d=todaySlot();
     if(missed){
       var old=getSession(wk,missed.name), mid=sessionInProgress(old);
