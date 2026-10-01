@@ -1,8 +1,14 @@
   /* ===================== GAME DAY — round-day fueling + warm-up plan =====================
-     Golf is a 4–5 hr endurance event. Given a tee time, build a timed plan: pre-round
-     meal, top-off, a golf-specific first-tee warm-up (mobility + speed primer), on-course
-     fueling cadence, the turn snack, and post-round refuel. This is where the training
-     and the nutrition moat meet the actual round. */
+     A round is 4–5 hours on your feet. Given a tee time, build a timed plan: pre-round
+     meal, top-off, a golf-specific first-tee warm-up (mobility, then build-up and
+     full-speed swings with a real club), on-course carbs and fluids, the turn snack,
+     and post-round refuel. This is where the training and the nutrition moat meet the
+     actual round.
+     Evidence notes (Oct 2026 audit): the golf carb trials (~30–45 g/h) cut late-round
+     fatigue and kept focus, with no measured score effect — so the copy promises
+     fatigue, not strokes. The independent overspeed warm-up studies found no extra
+     ball speed (smash factor fell after a SuperSpeed warm-up), so the warm-up ends
+     with real-club swings and the speed stick is an optional, light add-on. */
   function gdState(){ var g=lsGet("ff_gameday", null); return g || { teeTime:"09:00", holes:18, transport:"walk" }; }
   function gdSave(g){ lsSet("ff_gameday", g); }
   function parseHM(s){ var m=/^(\d{1,2}):(\d{2})$/.exec(s||""); return m ? (+m[1])*60+(+m[2]) : null; }
@@ -19,7 +25,7 @@
     var html=''+
       '<div class="gd-top"><button class="gd-back" data-gdback="1">‹ Home</button></div>'+
       '<div class="gd-hero"><div class="gd-hero-t">⛳ Game Day</div>'+
-        '<div class="gd-hero-sub">Golf is a <b>4–5 hour endurance event.</b> Most golfers fade on the back nine from low fuel and dehydration — not lack of skill. Plan the round and finish as strong as you start.</div></div>'+
+        '<div class="gd-hero-sub">A round is <b>'+(g.holes===9?"2+ hours":"4–5 hours")+' on your feet.</b> Steady carbs and fluids won’t fix a swing, but they cut late-round fatigue and keep your focus sharp to the last hole.</div></div>'+
       ((typeof roundToday==="function"&&roundToday())
         ? '<button type="button" class="gd-loground done" data-roundlog="1">✓ Round logged — tap to edit</button>'
         : '<button type="button" class="gd-loground" data-roundlog="1">🏁 Just played? Log your round — 20 seconds</button>')+
@@ -32,14 +38,14 @@
     html+='<div class="gd-timeline">';
     html+=gdCard(fmtMin(T-150),"🍳","Pre-round meal","A real meal — carbs + lean protein, light on fat. Top off glycogen: oats + eggs + fruit, or rice + chicken. Drink <b>16–20 oz water</b>.");
     html+=gdCard(fmtMin(T-40),"🍌","Top-off snack","Fast carbs + water — a banana, a few dates, or a Rice Krispies treat (~30g carbs). Sip <b>8–12 oz</b>.");
-    var wu=["Leg swings|×10/side","Open-book T-spine|×8/side","Trunk rotations|×10/side","Hip 90/90 switches|×6/side","Band or club rotations|×10/side","Build-up swings|15 · ramp 50→100%","Overspeed primer swings|5–8 at MAX"];
+    var wu=["Leg swings|×10/side","Open-book T-spine|×8/side","Trunk rotations|×10/side","Hip 90/90 switches|×6/side","Band or club rotations|×10/side","Optional: speed stick|3–5 light, smooth swings","Build-up swings|10 · ramp 50→90%","Full-speed swings|3–5 · the club you’ll hit first"];
     var wuHtml='<div class="gd-warm">'+wu.map(function(x){ var p=x.split("|"); return '<button class="wu-row" type="button" data-wu="1"><span class="wu-move">'+p[0]+'</span><span class="wu-dose">'+p[1]+'</span></button>'; }).join("")+'</div>';
-    html+=gdCard(fmtMin(T-20),"🔥","First-tee warm-up","~15 min — mobilize, then prime your speed so the opening drive isn’t cold. Tap to check off:", wuHtml);
+    html+=gdCard(fmtMin(T-20),"🔥","First-tee warm-up","~15 min — mobilize, then build up to full-speed swings with a real club so the opening drive isn’t cold. The speed stick is optional: warm-up studies found no extra ball speed from it. Tap to check off:", wuHtml);
     html+=gdCard(fmtMin(T),"⛳","Tee off — hole 1","You’re fueled and warm. Game on.");
-    html+=gdCard("During","🥤","On the course","<b>Every ~3 holes:</b> a few sips of water + a bite of fast carb (dates, fruit, chews) — don’t wait until you’re hungry or thirsty.<br><b>Hydration:</b> ~1 bottle (16–20 oz) every 6 holes; more when it’s hot — add electrolytes.");
-    html+=gdCard(fmtMin(T+dur/2),"🥪","At the turn (hole "+Math.round(g.holes/2)+")","A real snack — ½ turkey sandwich, jerky + fruit, or a protein bar (~20–30g carbs + protein). This is what keeps your "+(g.holes===9?"finish":"back nine")+" strong.");
+    html+=gdCard("During","🥤","On the course","<b>Carbs:</b> about <b>30–60 g an hour</b>, a bite every ~3 holes — a banana or a granola bar is ~25–30 g; dates and chews work too. It matters most from the turn on, but start before you’re hungry. The turn snack counts.<br><b>Fluids:</b> ~1 bottle (16–20 oz) every 6 holes; more when it’s hot — add electrolytes.");
+    html+=gdCard(fmtMin(T+dur/2),"🥪","At the turn (hole "+Math.round(g.holes/2)+")","A real snack — ½ turkey sandwich, jerky + fruit, or a protein bar (~20–30g carbs + protein). It keeps your "+(g.holes===9?"finish":"back nine")+" fueled.");
     html+=gdCard(fmtMin(T+dur),"🏁","Finish","Strong all "+g.holes+". Nice.");
-    html+=gdCard(fmtMin(T+dur+30),"💪","Refuel + log","Within ~45 min: a solid protein + carb meal — a round is real work, refuel it. Then log your round — and a 7-iron speed test if you hit a launch monitor.");
+    html+=gdCard(fmtMin(T+dur+30),"💪","Refuel + log","Within ~45 min: a solid protein + carb meal — a round is real work, refuel it. Having a drink? Eat that meal first and keep it to one or two — heavy drinking blunts recovery. Then log your round — and a 7-iron speed test if you hit a launch monitor.");
     html+='</div>';
     html+='<div class="gd-pack"><div class="gd-pack-h">🎒 Pack list</div><ul>'+
       '<li>'+(g.holes===18?"2–3":"1–2")+' bottles of water (+ electrolytes if hot)</li>'+
@@ -76,17 +82,21 @@
     if(typeof seasonComplete==="function" && seasonComplete()) return {skip:true,kind:"none",d:ffLocalISO(date)};   // season over: no plan nudges
     var day=slots[(dop-1+offset)%7]||{}, rest=day.type==="rest";
     var planWeek=Math.min(20,wk+Math.floor((Math.max(1,dop)+offset-1)/7));
-    if(offset===0){
+    // After the free week without Pro (036), a workout or speed-test nudge would
+    // land on the lock. Judged on the reminder's OWN day, so a schedule built
+    // during the free week stops at day 8. Week-review and recovery notes stay.
+    var locked=ffAccessAt(date)==="locked";
+    if(offset===0 && !locked){
       var missed=(typeof missedWorkout==="function")?missedWorkout():null;
       if(missed) return {d:ffLocalISO(date),kind:"catchup",title:"Pick up the thread ⛳",
         body:missed.name.replace(/^Day \d+ — /,"")+" is waiting. No reset — one session keeps the plan moving.",
         url:"./?go=plan&src=push&kind=catchup"};
       if(!rest && sessionFinished(getSession(wk,day.name))) rest=true;
     }
-    if(!rest) return {d:ffLocalISO(date),kind:"train",title:"Your next rep is ready ⛳",
+    if(!rest && !locked) return {d:ffLocalISO(date),kind:"train",title:"Your next rep is ready ⛳",
       body:(day.name||"Your session").replace(/^Day \d+ — /,"")+" · Week "+planWeek+" — open straight into the plan.",
       url:"./?go=plan&src=push&kind=train"};
-    if(offset===0 && speedTestDue() && lsGet("ff_body",[]).some(function(e){ return e&&e.s; }))
+    if(offset===0 && !locked && speedTestDue() && lsGet("ff_body",[]).some(function(e){ return e&&e.s&&e.ss!=="g"; }))
       return {d:ffLocalISO(date),kind:"speed",title:"Speed Test Day 🎯",
         body:"Three max-intent 7-iron swings. Best one counts — cash in the work.",
         url:"./?go=plan&src=push&kind=speed"};
@@ -364,6 +374,19 @@
     el.className=tmp.firstChild.className; el.innerHTML=tmp.firstChild.innerHTML;
   });
 
+  // Device-local state never travels in a backup, either way: the Pro cache is
+  // one signed-in account's server answer (036), the rest is sync and push
+  // bookkeeping for THIS device.
+  function ffBackupSkip(k){
+    return k==="ff_pro" || k.indexOf("ff_sync_")===0 || k==="ff_push_on" || k==="ff_push_sig";
+  }
+  // The free-week clock only ever moves EARLIER (the cloud merge's rule too):
+  // a backup can shorten the free week, never extend it.
+  function ffImportFreeWeek(data, now){
+    var fwL=ffStampVal(lsGet("ff_free_week",0)), fwF=ffStampVal(data.ff_free_week);
+    if(fwF && fwF<=now && (!fwL || fwF<fwL)) data.ff_free_week=fwF;
+    else delete data.ff_free_week;
+  }
   // Export: every ff_* key (plus the calculator profile) in one JSON file the
   // user owns. iOS installed apps have no downloads UI, so the share sheet is
   // the reliable path there; everywhere else a plain download works.
@@ -373,6 +396,7 @@
       for(var i=0;i<localStorage.length;i++){
         var k=localStorage.key(i);
         if(k!=="fairwayfuel" && k.indexOf("ff_")!==0) continue;
+        if(ffBackupSkip(k)) continue;
         try{ blob[k]=JSON.parse(localStorage.getItem(k)); }catch(e){}
       }
     }catch(e){}
@@ -411,8 +435,9 @@
         // restored workouts get fresh edit stamps (older delete tombstones can't
         // remove them again), history keeps its real finish time in doneTs, and the
         // next sync pushes this state as-is instead of merging (cloud-sync.js).
-        // Sync bookkeeping (ff_sync_*) is never taken from a file.
+        // Device-local keys (ffBackupSkip) are never taken from a file.
         var now=Date.now();
+        ffImportFreeWeek(data, now);
         if(data.ff_log && typeof data.ff_log==="object") Object.keys(data.ff_log).forEach(function(k){
           var s=data.ff_log[k]; if(s && typeof s==="object") s._ts=now; });
         if(Array.isArray(data.ff_history)) data.ff_history.forEach(function(h){
@@ -420,7 +445,7 @@
         data.ff_deleted={};
         Object.keys(data).forEach(function(k){
           if(k!=="fairwayfuel" && k.indexOf("ff_")!==0) return;
-          if(k.indexOf("ff_sync_")===0) return;
+          if(ffBackupSkip(k)) return;
           try{ localStorage.setItem(k, JSON.stringify(data[k])); }catch(e){}
         });
         try{ sessionStorage.setItem("ff_restore_pending","1"); }catch(e){}
@@ -615,9 +640,12 @@
         '<p class="acct-p">Permanently delete your account and <b>all</b> synced data — workouts, bodyweight &amp; 7-iron history, Octane and any leaderboard entry. This can’t be undone.</p>'+
         '<button class="acct-btn danger" id="acctDelete">Delete my account</button></div>';
     }
-    // Early access: read-once reassurance at the bottom. Once billing is on, the
-    // plan status (free week / Pro) leads the plan group instead.
-    if(ffPaywallOn()) G.plan=ffAccessCardHtml()+G.plan; else G.help+=ffAccessCardHtml();
+    // Early access: read-once reassurance at the bottom. Once billing is on, a
+    // free-week or locked user sees their status (and Restore) right under the
+    // sign-in card; a Pro user's quiet "Pro ✓" card leads the plan group.
+    if(!ffPaywallOn()) G.help+=ffAccessCardHtml();
+    else if(ffAccess()==="full") G.plan=ffAccessCardHtml()+G.plan;
+    else html+=ffAccessCardHtml();
     var remOn=false; try{ remOn=!!ffNotifOn(); }catch(_){}
     var thLbl={auto:"Auto",light:"Light",dark:"Dark"}[curTheme]||"Auto";
     var planSub=[(t&&t.goal)||null, curFreq+" days", (FF_WK_LABEL[curWk]||"").toLowerCase()]

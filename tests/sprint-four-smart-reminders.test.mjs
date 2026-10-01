@@ -36,6 +36,7 @@ function reminderContext(day) {
     getSession: () => null,
     sessionFinished: (s) => !!(s && s.finishedAt),
     speedTestDue: () => false,
+    ffAccessAt: () => "full",   // billing off: every day is open (036)
     lsGet: (key, fallback) => store[key] ?? fallback,
   };
 }

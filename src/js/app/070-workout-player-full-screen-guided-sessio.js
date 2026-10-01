@@ -11,7 +11,9 @@
     var day=findDay(dayName); if(!day || day.type==="rest") return;
     var resume=resumeWeek!=null && sessionInProgress(getSession(resumeWeek, day.name));
     var week=resume ? resumeWeek : curWeek();
-    if(!ffCanStartWorkout(day.name, resume)) return;     // free week / Pro (036)
+    // Free week / Pro (036). A session already under way is always finishable —
+    // even when its pause marker is gone (app killed, typed in, another device).
+    if(!ffCanStartWorkout(day.name, resume || sessionInProgress(getSession(week, day.name)))) return;
     // Past day 140 the season is over: only an already-started session may be
     // finished — never a new (or replayed) week-20 session.
     if(!resume && seasonComplete() && !sessionInProgress(getSession(week, day.name))){ ffSeasonOverNudge(); return; }
@@ -19,7 +21,7 @@
       ffReadinessOpen(dayName); return;
     }
     var sess=buildSession(day, week);
-    var prevBest={}; bigLiftStats().forEach(function(L){ prevBest[L.name]=L.best; });
+    var prevBest=plLifetimeBests();
     var stations=[{type:"warmup"}];
     if(day.type!=="speed") stations.push({type:"primer"});
     sess.ex.forEach(function(x, xi){ stations.push({type:"lift", xi:xi}); });
@@ -39,6 +41,7 @@
       player.st=paused.st; restored=true;
     }
     if(!restored && hasAny){
+      player.st=stations.length-1;   // every set done but never finished → the recap's Finish button
       for(var i=0;i<sess.ex.length;i++){
         if(!sess.ex[i].sets.every(function(s){ return s.done; })){ player.st=plLiftBase(day)+i; break; }
       }
@@ -51,6 +54,18 @@
     plPauseSync();
     try{ if(window.FFHealth) window.FFHealth.track(hasAny?"workout_resumed":"workout_started",
       {kind:day.type==="speed"?"speed":"lift",week:week}); }catch(e){}
+  }
+  // The PR baseline = LIFETIME best e1RM per big lift: every finished workout of
+  // every season (ff_history survives a restart — this season's ff_log alone made
+  // a returner's lighter lift read as a "New ceiling"), plus this season's log.
+  function plLifetimeBests(){
+    var best={};
+    (lsGet("ff_history",[])||[]).forEach(function(h){ if(h && h.ex) h.ex.forEach(function(x){
+      if(!x || !isBigLift(x.name, true)) return;
+      (x.sets||[]).forEach(function(st){ var e=e1RM(st.w, st.r); if(e>(best[x.name]||0)) best[x.name]=e; });
+    }); });
+    bigLiftStats().forEach(function(L){ if(L.best>(best[L.name]||0)) best[L.name]=L.best; });
+    return best;
   }
   function plClose(){
     plStopRest();
@@ -111,6 +126,9 @@
     if(st.type==="lift"){ var x=player.sess.ex[st.xi]; return x && x.sets.length>0 && x.sets.every(function(s){ return s.done; }); }
     return false;
   }
+  // The ± weight step: the lift's progression step, or 2 lb for a med ball
+  // (no auto bump there, but balls do come in 2 lb steps).
+  function plStepW(name){ return incNum(name)||2; }
   function plLastFor(name){
     var last=lastSessionFor(player.dayName, player.week), lx=null;
     if(last) last.ex.forEach(function(e){ if(e.name===name) lx=e; });
@@ -140,7 +158,7 @@
     }
     if(st.type==="lift"){
       var x=player.sess.ex[st.xi], lx=plLastFor(x.name), wv=waveFor(player.week);
-      var topLast=0; if(lx) lx.sets.forEach(function(s){ var w=parseFloat(s.w); if(w>topLast) topLast=w; });
+      var topLast=0, lastReps=0; if(lx) lx.sets.forEach(function(s){ var w=parseFloat(s.w), r=parseInt(s.r,10); if(w>topLast) topLast=w; if(r>lastReps) lastReps=r; });
       // One load read for all three logging surfaces (077 ffDose): deload ~60%,
       // recovery dose via ffReadinessLoad (~75%, no progression), else +1 jump when earned.
       var dose=ffDose(topLast||null, x, lx, player.week, player.sess);
@@ -158,7 +176,8 @@
         var wVal=s2.w||"", rVal=s2.r||"";
         var cw=plCarry(x.sets, si, "w"), cr=plCarry(x.sets, si, "r");
         var wPh=cw!=null?cw:(presc!=null?presc:(pw||"lbs"));
-        var rPh=cr!=null?cr:(pr||repWord(x.target));
+        // A changed rep target (Heavy week / back to Build) ghosts TODAY's reps.
+        var rPh=cr!=null?cr:((repsShifted(lx, x)?repSeed(x.target):pr)||repWord(x.target));
         var pm=(!bw&&isBarbell(x.name)&&s2.w)?platesFor(s2.w):"";
         // Bodyweight drills: the load slot becomes a static "BW" chip (no weight
         // to enter), only reps are logged. Everything else keeps the ± stepper.
@@ -192,10 +211,21 @@
           : (/Footwork/i.test(x.name) ? '⚡ <b>Bodyweight</b> — drive hard into the ground every rep, full rest. Log the reps.'
           : '⚡ <b>Bodyweight</b> — every rep max height, land soft, full rest. Log the reps.'))
         : (presc!=null
-          ? (wv==="deload" ? '🪫 Easy week — today: <b>'+presc+' lb</b> (~60% of last week)' : '📈 You earned more weight — today: <b>'+presc+' lb</b>')
+          ? (wv==="deload" ? '🪫 Easy week — today: <b>'+presc+' lb</b> (~60% of last week)'
+            : dose.back ? '👋 Welcome back — ease in: today <b>'+presc+' lb</b> (~90% of last time). Leave 2 reps in the tank.'
+            : dose.shift==="up" ? '🔥 Fewer reps today, so more weight: <b>'+presc+' lb</b>'
+            : dose.shift==="down" ? '🏗️ More reps today, so a little lighter: <b>'+presc+' lb</b>'
+            : '📈 You earned more weight — today: <b>'+presc+' lb</b>')
           : (ballistic
             ? (topLast ? '⚡ Last time: <b>'+topLast+' lb</b> — keep every rep fast; add load only while it stays explosive.' : '⚡ <b>Light and fast</b> — pick a load you can move explosively. The set ends the moment a rep slows.')
-            : (topLast ? 'Last time’s top: <b>'+topLast+' lb</b> — beat the reps, then the load follows.' : 'First time — find a weight you can own with 2 reps in reserve.')));
+            : (topLast
+              ? (wv==="peak" ? '🏁 Peak week — hold <b>'+topLast+' lb</b>, fewer sets, every rep crisp.' : 'Last time’s top: <b>'+topLast+' lb</b> — beat the reps, then the load follows.')
+              : (lastReps ? 'Last time: <b>'+lastReps+' reps</b> — beat it.' : 'First time — find a weight you can own with 2 reps in reserve.'))));
+      // Effort line in context: never "to failure" on an easy day, a recovery
+      // dose, a peak week, a lift with no weight yet, the first session back, a
+      // beginner's first 2 weeks, or an accessory before a big lift today.
+      var effCtx={ wave:wv, band:readyBand, first:!topLast && !lastReps, easeIn:!!dose.back, onRamp:ffOnRamp(player.week),
+        beforeHeavy:heavyAfter(player.sess.ex.map(function(e2){ return e2.name; }), st.xi) };
       var whyOpen=!!(player.whyOpen && player.whyOpen[st.xi]);
       var acts='<div class="pl-acts">'+
         '<button type="button" class="'+(whyOpen?'on':'')+'" data-plwhy="'+st.xi+'">'+ffIcon("info",13)+' Why</button>'+
@@ -209,7 +239,7 @@
       return '<div class="pl-skick">Lift '+(st.xi+1)+' of '+player.sess.ex.length+'</div>'+
         '<div class="pl-exname">'+ffPurposeIc(x.name,17)+' '+ffEsc(x.name)+'</div>'+
         '<span class="pl-target">'+ffEsc(x.target)+'</span>'+
-        '<span class="pl-target dim">'+(ballistic?"max intent · full rest":effortNote(x.target, x.name))+'</span>'+
+        '<span class="pl-target dim">'+(ballistic?"max intent · full rest":effortNote(x.target, x.name, effCtx))+'</span>'+
         '<div class="pl-presc">'+prescLine+'</div>'+
         '<div class="pl-cue">⚡ '+cue+'</div>'+
         acts+whyBox+livePr+
@@ -224,7 +254,7 @@
       if(top>0){
         var pb=player.prevBest[x.name];
         if(pb!=null && top>pb+0.5) prs.push({ name:x.name, e1:Math.round(top) });
-        else if(pb==null && /Squat|Deadlift|Bench|Press|Row|Romanian|Hinge|Hip Thrust|Pull-?up|Chin/i.test(x.name)) firsts.push(x.name);
+        else if(pb==null && isBigLift(x.name)) firsts.push(x.name);
       }
     });
     var mins=Math.max(1, Math.round(((player.sess.activeMs||0)+(Date.now()-player.startedAt))/60000));
@@ -345,14 +375,14 @@
           // Seed from the prescription / last time so the first tap lands on a real number.
           var carry=null;
           for(var ci=si-1;ci>=0;ci--){ if(x.sets[ci]&&x.sets[ci][f]){ carry=parseFloat(x.sets[ci][f]); break; } }
-          if(carry!=null && !isNaN(carry)){ cur=carry; if(dir<0) cur+=(f==="w"?incNum(x.name):1); }
+          if(carry!=null && !isNaN(carry)){ cur=carry; if(dir<0) cur+=(f==="w"?plStepW(x.name):1); }
           else if(f==="w"){ var lx=plLastFor(x.name), top=0; if(lx) lx.sets.forEach(function(ls){ var w=parseFloat(ls.w); if(w>top) top=w; });
             var presc=ffDose(top||null, x, lx, player.week, player.sess).w;   // same read as the placeholder
             cur=(presc!=null?presc:(top||45));
-            if(dir<0) cur+= (f==="w"? incNum(x.name):1);   // first minus lands on the seed itself
+            if(dir<0) cur+= (f==="w"? plStepW(x.name):1);   // first minus lands on the seed itself
           } else { var m=String(x.target).match(/[×x]\s*(\d+)/); cur=m?parseInt(m[1],10):8; if(dir<0) cur+=1; }
         }
-        var step=(f==="w")?incNum(x.name):1;
+        var step=(f==="w")?plStepW(x.name):1;
         var nv=Math.max(0, Math.round((cur+dir*step)*100)/100);
         s2[f]=String(nv);
         plSave(); plRender(); return;
@@ -478,7 +508,7 @@
     var bests={};
     sessionsByWeek().forEach(function(se){
       (se.s.ex||[]).forEach(function(x){
-        if(!/Squat|Deadlift|Bench|Press|Row|Romanian|Hinge|Hip Thrust|Pull-?up|Chin/i.test(x.name)) return;
+        if(!isBigLift(x.name)) return;
         (x.sets||[]).forEach(function(st){
           var e1=e1RM(st.w,st.r);
           if(e1>0 && (!bests[x.name] || e1>bests[x.name].v)) bests[x.name]={v:e1, d:se.s.date||""};
@@ -488,11 +518,14 @@
     Object.keys(bests).sort(function(a,b){ return bests[b].v-bests[a].v; }).slice(0,3).forEach(function(nm){
       rows.push({ ic:"🏋️", lb:nm+" e1RM", v:Math.round(bests[nm].v), u:"lb", d:bests[nm].d });
     });
-    var sBest=null, dBest=null;
+    // The 7-iron best counts only real numbers (060 ffSpeedRows — no rough
+    // guess, no out-of-range typo); the date shown is that row's own.
+    var sBest=null, dBest=null, shown={};
     (lsGet("ff_body",[])||[]).forEach(function(e){
-      var sv=parseFloat(e.s); if(!isNaN(sv) && (!sBest || sv>sBest.v)) sBest={v:sv, d:e.date||""};
-      var dv=parseFloat(e.d); if(!isNaN(dv) && (!dBest || dv>dBest.v)) dBest={v:dv, d:e.date||""};
+      if(e && e.iso) shown[e.iso]=e.date||"";
+      var dv=parseFloat(e && e.d); if(!isNaN(dv) && (!dBest || dv>dBest.v)) dBest={v:dv, d:e.date||""};
     });
+    ffSpeedRows().forEach(function(r){ if(!sBest || r.s>sBest.v) sBest={v:r.s, d:shown[r.iso]||""}; });
     if(sBest) rows.push({ ic:"⚡", lb:"7-iron speed", v:Math.round(sBest.v), u:"mph", d:sBest.d });
     if(dBest) rows.push({ ic:"⛳", lb:"Longest drive", v:Math.round(dBest.v), u:"yds", d:dBest.d });
     var big=null, hist=lsGet("ff_history",[])||[], vol=0;
@@ -652,9 +685,9 @@
   }
   function strengthGain(){
     // First vs best-recent estimated 1RM on the main compound lifts.
-    var sess=sessionsByWeek(), first={}, best={}, KEY=/Squat|Deadlift|Bench|Press|Row|Romanian|Hinge|Hip Thrust|Pull-?up|Chin/i;
+    var sess=sessionsByWeek(), first={}, best={};
     sess.forEach(function(se){ (se.s.ex||[]).forEach(function(x){
-      if(!KEY.test(x.name)) return;
+      if(!isBigLift(x.name)) return;   // heavy lifts only — no throws, speed work or Pallof
       var top=0; (x.sets||[]).forEach(function(st){ top=Math.max(top, e1RM(st.w, st.r)); });
       if(top<=0) return;
       if(first[x.name]==null) first[x.name]=top;
@@ -671,11 +704,10 @@
     var week = curWeek();
     var sess = sessionsByWeek();
     var loggedWeeks = {}; sess.forEach(function(s){ loggedWeeks[s.w]=(loggedWeeks[s.w]||0)+1; });
-    var body = lsGet("ff_body", []);
-    // Positive values only: a stray 0 (saved before input validation) would
-    // divide by zero into "+Infinity%" as a baseline.
-    var speeds = body.map(function(e){ return parseFloat(e.s); }).filter(function(v){ return v>0; });
-    var weights = body.map(function(e){ return parseFloat(e.w); }).filter(function(v){ return v>0; });
+    // Speed for the speed and power-to-weight pillars: this season's real numbers (060
+    // ffSeasonSpeedRows — no rough guess, no typo) through the noise rule
+    // (ffSpeedSignal), so a good or bad test day can't swing the gauge.
+    var spSig = ffSpeedSignal(ffSeasonSpeedRows());
 
     var parts = [];
 
@@ -696,15 +728,16 @@
         detail:"Log a workout to start" });
     }
 
-    // 2) Speed (30) — 7-iron clubhead speed gain from your first entry.
-    if(speeds.length >= 2){
-      var sg = (speeds[speeds.length-1]-speeds[0])/speeds[0];
+    // 2) Speed (30) — 7-iron gain this season. Scored on the noise-shrunk
+    // change (eff): a move inside test-to-test noise scores ~neutral 15.
+    if(spSig.n >= 2){
+      var sgPct = spSig.change/spSig.base*100;
       parts.push({ key:"speed", label:"Clubhead speed", have:true, max:30,
-        pts: Math.round(clamp(15 + sg*220, 0, 30)),
-        detail: (sg>=0?"+":"")+(sg*100).toFixed(1)+"% 7-iron" });
+        pts: Math.round(clamp(15 + spSig.eff/spSig.base*220, 0, 30)),
+        detail: spSig.verdict==="steady" ? "Steady — within test noise" : (sgPct>=0?"+":"")+sgPct.toFixed(1)+"% 7-iron this season" });
     } else {
       parts.push({ key:"speed", label:"Clubhead speed", have:false, max:30, pts:0,
-        detail: speeds.length===1 ? "Log again to trend" : "Add a 7-iron speed" });
+        detail: spSig.n===1 ? "Log again to trend" : "Add a 7-iron speed" });
     }
 
     // 3) Strength (25) — estimated 1RM progress on the big lifts.
@@ -718,14 +751,12 @@
         detail:"Log weights across weeks" });
     }
 
-    // 4) Power-to-weight (10) — are you getting faster per pound? (speed up vs weight up)
-    if(speeds.length>=2 && weights.length>=2){
-      var sgn=(speeds[speeds.length-1]-speeds[0])/speeds[0];
-      var wgn=(weights[weights.length-1]-weights[0])/weights[0];
-      var edge = sgn - wgn;                       // speed outpacing weight = leaner, faster
-      parts.push({ key:"p2w", label:"Power-to-weight", have:true, max:10,
-        pts: Math.round(clamp(5 + edge*250, 0, 10)),
-        detail: edge>=0 ? "Speed outpacing weight" : "Weight rising faster" });
+    // 4) Power-to-weight (10) — is the weight change paying off in speed?
+    // Goal-aware (ffP2wRead): planned gain on a bulk never costs points, weight
+    // loss alone earns none, and only real speed change moves it off neutral 5.
+    var pw = ffP2wRead(spSig);
+    if(pw){
+      parts.push({ key:"p2w", label:"Power-to-weight", have:true, max:10, pts:pw.pts, detail:pw.detail, lever:pw.lever });
     } else {
       parts.push({ key:"p2w", label:"Power-to-weight", have:false, max:10, pts:0,
         detail:"Track weight + speed" });
@@ -766,11 +797,55 @@
     var score = gotMax>0 ? Math.round(gotPts/gotMax*100) : null;   // rescale to pillars with data
     return { score:score, parts:parts, pillars:have.length };
   }
+  /* ----- Power-to-weight, goal-aware (Oct 2026 audit) -----
+     The old pillar wanted speed % to beat bodyweight % — impossible on the
+     plan's own Lean Bulk pace (0.25–0.5%/wk ≫ the ~4% speed a whole program
+     typically adds), so a compliant bulk sat at 0/10 told to "keep the surplus
+     lean" while the Fuel check-in said "on target"; a cut maxed it from the
+     scale alone even as speed fell. Now:
+       weight — the least-squares pace over the last 8 weeks of this season vs
+         the goal's own plan, with the Fuel check-in's on-track band (024
+         ffCheckin: max(0.5 lb, 60% of the goal rate, 2 SE)). Only gaining
+         FASTER than that counts against you, on any goal; loss earns nothing;
+       speed — the season's noise-shrunk change (spSig.eff), the same number
+         the speed pillar uses.
+     pts = 5 + (speed gain − excess gain, as fractions of bodyweight) × 250. */
+  function ffP2wRead(sig){
+    if(!sig || sig.n<2 || !(sig.base>0)) return null;
+    var from=ffSeasonFrom(), lo=Math.max(from==null?0:from, Date.now()-56*864e5), pts=[];
+    (lsGet("ff_body",[])||[]).forEach(function(e){
+      var w=e?parseFloat(e.w):NaN, t=e?stDayStart(e.iso||e.ts):null;
+      if(w>0 && t!=null && t>=lo) pts.push({ t:t, w:w });
+    });
+    pts.sort(function(a,b){ return a.t-b.t; });
+    if(pts.length<2) return null;
+    var span=(pts[pts.length-1].t-pts[0].t)/864e5; if(span<7) return null;
+    var n=pts.length, t0=pts[0].t, sx=0, sy=0, sxx=0, sxy=0;
+    pts.forEach(function(p){ var x=(p.t-t0)/6048e5; sx+=x; sy+=p.w; sxx+=x*x; sxy+=x*p.w; });
+    var den=n*sxx-sx*sx; if(den<=0) return null;
+    var rate=(n*sxy-sx*sy)/den, a=(sy-rate*sx)/n, se=0;          // lb/week
+    if(n>2){ var rss=0; pts.forEach(function(p){ var r=p.w-(a+rate*(p.t-t0)/6048e5); rss+=r*r; }); se=Math.sqrt(rss/(n-2)/(den/n)); }
+    var w0=sy/n, g=(typeof GOALS!=="undefined" && GOALS[state.goal]) || {};
+    var base=(typeof ffCalcBase!=="undefined")?ffCalcBase:null, hcm=0;
+    try{ hcm=(base && base.heightCm) || (num("heightFt")*12+num("heightIn"))*2.54; }catch(_){}
+    var desired=g.weekly ? ffWeeklyLb((g.weekly[0]+g.weekly[1])/2, w0, hcm) : 0;
+    var tol=Math.max(0.5, Math.abs(desired)*0.6, 2*se);
+    var over=Math.max(0, rate-Math.max(desired,0)-tol);          // lb/wk beyond the plan
+    var excess=over*(span/7)/w0, sEff=sig.eff/sig.base;
+    var p10=Math.round(clamp(5+(sEff-excess)*250, 0, 10));
+    var cut=state.goal==="cut", detail, lever;
+    if(over>0){ detail="Gaining faster than plan"; lever="keep weight gain to your goal’s weekly pace — the Fuel check-in has the number"; }
+    else if(sig.verdict==="down"){ detail="Speed down — retest fresh";
+      lever=cut ? "keep the jumps and throws in so the cut costs fat, not speed" : "retest fresh and rested — this pillar fills as speed climbs"; }
+    else if(sig.verdict==="up") detail="Faster, weight on plan";
+    else detail=cut&&rate<0 ? "Lighter, speed holding" : (desired>0&&rate>0 ? "On plan — fills as speed climbs" : "Speed steady, weight on plan");
+    return { pts:p10, detail:detail, lever:lever||null, rate:rate, desired:desired, weeks:Math.max(1,Math.round(span/7)) };
+  }
   var FF_LEVER = {
     consistency: "log your sessions — showing up is worth the most points",
     speed: "test your 7-iron speed every 2 weeks so the trend can climb",
     strength: "push the big lifts with double progression and log the weights",
-    p2w: "keep the surplus lean so speed outpaces bodyweight",
+    p2w: "keep the jumps and throws sharp — this pillar fills as speed climbs",
     mobility: "run the 3-move mobility screen and hit the warm-up moves it adds",
     fuel: "check off your meals on the Fuel tab — ten seconds a day closes the loop"
   };
@@ -784,8 +859,8 @@
     var have=r.parts.filter(function(p){ return p.have; });
     var weak=have.slice().sort(function(a,b){ return (a.pts/a.max)-(b.pts/b.max); })[0];
     var locked=r.parts.filter(function(p){ return !p.have; }).sort(function(a,b){ return b.max-a.max; })[0];
-    var pick = (locked && (!weak || (weak.pts/weak.max)>0.6)) ? locked : weak;
-    return tone + "Biggest lever now: <b>" + (FF_LEVER[pick.key]||"keep stacking sessions") + "</b>.";
+    var pick = (locked && (!weak || (weak.pts/weak.max)>=0.6)) ? locked : weak;
+    return tone + "Biggest lever now: <b>" + (pick.lever||FF_LEVER[pick.key]||"keep stacking sessions") + "</b>.";
   }
   // The Octane engine gauge — semicircular fuel-style arc (E→F) that fills with the score.
   function octaneGaugeHtml(score){
@@ -813,7 +888,9 @@
   }
   // Single writer for the weight / 7-iron / driver log — merges into one entry per day so the
   // three log spots (dashboard, Stats, Train progress) all behave the same and never dupe a date.
-  function logBodyEntry(wv, sv, dv){
+  // ss = where a 7-iron speed came from (060 ffSpeedRows): "t" guided test,
+  // "m" a measured number (the default), "g" a rough onboarding guess.
+  function logBodyEntry(wv, sv, dv, ss){
     wv=(wv||"").trim(); sv=(sv||"").trim(); dv=(dv||"").trim();
     if(!wv && !sv && !dv) return false;
     // Identity is the ISO day (locale-proof, sorts chronologically, dedupes in
@@ -823,8 +900,9 @@
     for(var bi=body.length-1;bi>=0;bi--){ var e=body[bi];
       if(e && (e.iso===iso || (!e.iso && e.date===today))){ row=e; break; } }
     if(!row){ row={ date:today, iso:iso, ts:Date.now() }; body.push(row); }
+    else row.ts=Date.now();   // a same-day correction is the newer edit (cloud-sync unionBody: newer ts wins)
     if(!row.iso){ row.iso=iso; row.ts=row.ts||Date.now(); }
-    if(wv!=="") row.w=wv; if(sv!=="") row.s=sv; if(dv!=="") row.d=dv;
+    if(wv!=="") row.w=wv; if(sv!==""){ row.s=sv; row.ss=ss||"m"; } if(dv!=="") row.d=dv;
     lsSet("ff_body", body);
     return true;
   }
@@ -860,9 +938,13 @@
         ? { seven:60, drive:160, weight:145, label:"typical 50+ female amateur", range:"~55–65 mph 7-iron" }
         : { seven:65, drive:175, weight:145, label:"typical female amateur",     range:"~60–68 mph 7-iron" };
     }
+    // Typical (not scratch) amateur values — every 7-iron sits inside its own
+    // range string. Male under 50 ≈ 93 mph driver / ~215 yd carry / 75–80 mph
+    // 7-iron (CLUBHEAD-SPEED-REFERENCE.md §5; the coach's knowledge.ts table).
+    // 85 mph / 245 yd were scratch numbers and anchored new users too high.
     return senior
       ? { seven:75, drive:210, weight:185, label:"typical 50+ male amateur", range:"~70–78 mph 7-iron" }
-      : { seven:85, drive:245, weight:180, label:"typical male amateur",     range:"~75–80 mph 7-iron" };
+      : { seven:78, drive:215, weight:180, label:"typical male amateur",     range:"~75–80 mph 7-iron" };
   }
   // The Octane hub: each pillar opens a drill-in — its trend, what it means, and
   // the one action that moves it. The gauge stops being a number and becomes a map.
@@ -874,9 +956,9 @@
         '<button type="button" class="fd-act" data-goview="plan">Open this week ›</button>';
     }
     if(p.key==="speed"){
-      var sp=stSpeedHistory();
-      return '<div class="fd-tx"><b>'+p.detail+'</b> — 7-iron trend vs your first entry. Every <b>+1 mph ≈ +2 yards</b> of carry.</div>'+
-        (sp.length>=2?('<div class="fd-sparkrow">'+pcMiniSpark(sp,"#8be9ac")+'<span class="n">baseline '+sp[0]+' → now '+sp[sp.length-1]+' mph</span></div>'):'')+
+      var srows=ffSeasonSpeedRows(), sp=srows.map(function(r){ return r.s; }), ssg=ffSpeedSignal(srows);
+      return '<div class="fd-tx"><b>'+p.detail+'</b> — 7-iron trend this season. Test days wobble about ±'+(ssg.thr||SPEED_MDC)+' mph, so only bigger moves count. Every real <b>+1 mph ≈ +2 yards</b> of carry.</div>'+
+        (sp.length>=2?('<div class="fd-sparkrow">'+pcMiniSpark(sp,"#8be9ac")+'<span class="n">trend '+ssg.base+' → '+ssg.now+' mph</span></div>'):'')+
         '<button type="button" class="fd-act" data-speedtest="1">🎯 '+(speedTestDue()?'Test due — run it now':'Run a test early')+'</button>';
     }
     if(p.key==="strength"){
@@ -886,12 +968,11 @@
         '<button type="button" class="fd-act" data-goview="plan">Go lift ›</button>';
     }
     if(p.key==="p2w"){
-      var body=lsGet("ff_body",[]);
-      var sp2=body.map(function(e){ return parseFloat(e.s); }).filter(function(v){ return !isNaN(v); });
-      var wt=body.map(function(e){ return parseFloat(e.w); }).filter(function(v){ return !isNaN(v); });
-      var sg=sp2.length>=2?((sp2[sp2.length-1]-sp2[0])/sp2[0]*100).toFixed(1):null;
-      var wg=wt.length>=2?((wt[wt.length-1]-wt[0])/wt[0]*100).toFixed(1):null;
-      return '<div class="fd-tx"><b>'+p.detail+'</b>'+((sg!=null&&wg!=null)?(' — speed '+(sg>=0?'+':'')+sg+'% vs bodyweight '+(wg>=0?'+':'')+wg+'%. Faster per pound = a leaner, harder engine.'):' — track weight AND 7-iron speed to unlock this pillar.')+'</div>'+
+      var psg=ffSpeedSignal(ffSeasonSpeedRows()), pr=ffP2wRead(psg);
+      var lbwk=function(v){ return (v>=0?'+':'−')+Math.abs(Math.round(v*10)/10)+' lb/wk'; };
+      return '<div class="fd-tx"><b>'+p.detail+'</b>'+(pr?(' — weight '+lbwk(pr.rate)+' over the last '+pr.weeks+' wk (your plan: ~'+lbwk(pr.desired)+'), 7-iron '+
+          (psg.verdict==="up"?'up':(psg.verdict==="down"?'down':'steady'))+' this season. Weight on plan never costs points; the pillar fills as speed climbs.')
+        :' — log your weight and 7-iron speed over a couple of weeks to unlock this pillar.')+'</div>'+
         '<button type="button" class="fd-act" data-qopen="1">＋ Log today ›</button>';
     }
     if(p.key==="fuel"){
@@ -990,7 +1071,10 @@
   /* ----- Adaptive nutrition: tune calories to the real weight trend -----
      MacroFactor-style: the calculator is a starting guess; the scale is the
      true metabolism meter. Every ~10 days we compare the measured weekly weight
-     change to the goal's intended rate and suggest a calorie nudge (into carbs). */
+     change to the goal's intended rate and suggest a calorie nudge (into carbs).
+     The math is pure in 024 (ffTrendFit / ffCheckin): a trend needs 6+ weigh-ins
+     over 12+ days, "on track" allows for scale noise, and a nudge the calorie
+     floor would swallow is never offered. */
   function weightTrend(){
     var now=Date.now();
     // Only weigh-ins since the last check-in count: a window that still holds
@@ -1002,30 +1086,28 @@
         return { t:t, w:parseFloat(e.w) }; })
       .filter(function(p){ return p.w>0 && !isNaN(p.t) && (now-p.t)<=32*864e5 && p.t>=since; })
       .sort(function(a,b){ return a.t-b.t; });
-    if(pts.length<2) return null;
-    var spanDays=(pts[pts.length-1].t - pts[0].t)/864e5;
-    if(spanDays<(since?7:10)) return null;             // need a real window (7+ days after a check-in)
-    var n=pts.length, t0=pts[0].t, sx=0,sy=0,sxy=0,sxx=0;
-    pts.forEach(function(p){ var x=(p.t-t0)/864e5; sx+=x; sy+=p.w; sxy+=x*p.w; sxx+=x*x; });
-    var denom=(n*sxx - sx*sx); if(denom===0) return null;
-    var slope=(n*sxy - sx*sy)/denom;                    // lb/day (least-squares)
-    return { ratePerWeek:slope*7, days:Math.round(spanDays), lastW:pts[pts.length-1].w };
+    return ffTrendFit(pts);
   }
   function adaptiveCheck(){
     var g=GOALS[state.goal]; if(!g) return null;
     var tr=weightTrend(); if(!tr) return null;
+    var base=(typeof ffCalcBase!=="undefined")?ffCalcBase:null;
     var weightLb=num("weight")||tr.lastW;
-    var desired = g.weekly ? ((g.weekly[0]+g.weekly[1])/2)*weightLb : 0;   // signed lb/wk
-    var error = tr.ratePerWeek - desired;                                  // + = heavier than intended
-    var tol = Math.max(0.25, Math.abs(desired)*0.6);
-    var onTrack = Math.abs(error) <= tol;
-    var delta = 0;
-    if(!onTrack){ delta = -Math.round(error*500/50)*50; delta = Math.max(-250, Math.min(250, delta)); }
-    // Goal-aware wording: on a cut, being lighter than planned means LOSING FASTER.
-    var pace = desired>0 ? (error<0?"gaining slower than planned":"gaining faster than planned")
-      : (desired<0 ? (error<0?"losing faster than planned":"losing slower than planned")
-      : (error>0?"drifting up":"drifting down"));
-    return { rate:tr.ratePerWeek, desired:desired, onTrack:onTrack, deltaKcal:delta, deltaCarb:Math.round(delta/4), goalLabel:g.label, pace:pace };
+    var heightCm=(base && base.heightCm) || (num("heightFt")*12+num("heightIn"))*2.54;
+    var desired = g.weekly ? ffWeeklyLb((g.weekly[0]+g.weekly[1])/2, weightLb, heightCm) : 0;   // signed lb/wk
+    // Room the target can still move: down to the floor (or the −600 cap), up to +600.
+    var room = base ? { down:base.effAdj-base.lo, up:base.hi-base.effAdj } : null;
+    var a=ffCheckin(tr, desired, room);
+    a.goalLabel=g.label;
+    // The real carb change: re-run the model with the new adjustment (when the
+    // 20% fat floor binds, a little of the change lands on fat, not carbs).
+    if(base && base.macroIn && a.deltaKcal){
+      try{ var nx=ffClamp(base.effAdj+a.deltaKcal, base.lo, base.hi), mi={};
+        Object.keys(base.macroIn).forEach(function(k){ mi[k]=base.macroIn[k]; }); mi.kcalAdj=nx;
+        a.deltaCarb=ffMacroTargets(mi).carbG-base.carbG; }catch(e){}
+    }
+    a.minKcal=base ? Math.round(base.baseTarget+base.lo) : null;   // the lowest target the check-in will set
+    return a;
   }
   function adaptiveDue(){ return !!weightTrend() && (Date.now() - lsGet("ff_lastcheckin",0)) >= 10*864e5; }
   function renderAdaptiveCard(){
@@ -1033,16 +1115,26 @@
     var a=adaptiveCheck(); if(!a) return '';
     var rateStr=(a.rate>=0?'+':'')+(Math.round(a.rate*10)/10)+' lb/wk';
     var tgtStr=(a.desired>=0?'+':'')+(Math.round(a.desired*10)/10)+' lb/wk';
+    var span='Your '+a.days+'-day trend ('+a.n+' weigh-ins)';
     if(a.onTrack){
       return '<div class="adapt ok"><div class="adapt-h">📊 Metabolism check-in</div>'+
-        '<p>Your ~3-week trend is <b>'+rateStr+'</b> — right on target for <b>'+a.goalLabel+'</b>. No change needed. '+
-        'The scale is the real metabolism meter, and yours says keep going.</p>'+
+        '<p>'+span+' is <b>'+rateStr+'</b> — on target for <b>'+a.goalLabel+'</b> once day-to-day scale swings are allowed for. No change needed.</p>'+
         '<div class="adapt-btns"><button class="adapt-btn ghost" data-adapt="snooze">Got it 👍</button></div></div>';
+    }
+    // Off track but the calories can't move that way (the floor, or the ±600
+    // tuning cap): say so — never offer a change that wouldn't change anything.
+    if(a.atLimit){
+      return '<div class="adapt ok"><div class="adapt-h">📊 Metabolism check-in</div>'+
+        '<p>'+span+' is <b>'+rateStr+'</b> (target ~<b>'+tgtStr+'</b> for '+a.goalLabel+') — '+a.pace+'. '+
+        (a.wantDown
+          ? 'Your calories are already as low as we’ll set them'+(a.minKcal?' (<b>'+a.minKcal.toLocaleString()+' kcal</b>)':'')+', so we won’t trim more. Add a daily walk, or take 2–4 weeks at maintenance before the next push.'
+          : 'Your calories are already tuned up as far as the check-in goes. Keep going, and check your activity level in Fuel.')+'</p>'+
+        '<div class="adapt-btns"><button class="adapt-btn ghost" data-adapt="snooze">Got it</button></div></div>';
     }
     var verb = a.deltaKcal<0 ? 'trim' : 'add';
     var absK=Math.abs(a.deltaKcal), absC=Math.abs(a.deltaCarb);
     return '<div class="adapt"><div class="adapt-h">📊 Metabolism check-in</div>'+
-      '<p>Your ~3-week trend is <b>'+rateStr+'</b> (target ~<b>'+tgtStr+'</b> for '+a.goalLabel+') — '+a.pace+'. '+
+      '<p>'+span+' is <b>'+rateStr+'</b> (target ~<b>'+tgtStr+'</b> for '+a.goalLabel+') — '+a.pace+'. '+
       'The calculator was a starting guess; your scale is the real metabolism meter, so let’s tune it.</p>'+
       '<div class="adapt-sugg">'+(a.deltaKcal<0?'▼':'▲')+' '+verb+' <b>'+absK+' kcal/day</b> ('+(a.deltaKcal<0?'−':'+')+absC+'g carbs)</div>'+
       '<div class="adapt-btns"><button class="adapt-btn" data-adapt="apply">Apply '+(a.deltaKcal<0?'−':'+')+absK+' kcal</button>'+

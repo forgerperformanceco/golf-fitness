@@ -130,16 +130,19 @@
     return n;
   }
   function ycData(){
-    var r=ffScore(), d=driveStats(), sp=ycSeries("s"), dr=ycSeries("d"), sess=sessionsByWeek().length;
+    // 7-iron: the numbers that count (060 ffSpeedRows), and a gain only once it
+    // beats test-to-test noise (ffSpeedSignal) — a lucky day isn't posted as progress.
+    var r=ffScore(), d=driveStats(), dr=ycSeries("d"), sess=sessionsByWeek().length;
+    var sp=ffSpeedRows().map(function(x){ return { v:x.s, iso:x.iso }; }), ssg=ffSpeedSignal(ffSpeedRows());
     var sNow=sp.length ? sp[sp.length-1].v : null;
-    var sGain=sp.length>=2 ? Math.round((sNow-sp[0].v)*10)/10 : null;
+    var sGain=ssg.verdict==="up" ? ssg.change : null;
     var dGain=(d && d.n>=2) ? d.gain : null, hero=null;
     if(dGain!=null && dGain>0)
       hero={ kind:"drive", big:"+"+dGain, unit:"yds", kick:"Driver carry since "+ycSince(dr[0].iso),
         proof:d.baseline+" → "+d.latest+" yds", share:"+"+dGain+" yds of driver carry since "+ycSince(dr[0].iso) };
     else if(sGain!=null && sGain>0)
       hero={ kind:"speed", big:"+"+ycNum(sGain), unit:"mph", kick:"7-iron speed since "+ycSince(sp[0].iso),
-        proof:ycNum(sp[0].v)+" → "+ycNum(sNow)+" mph", share:"+"+ycNum(sGain)+" mph of 7-iron speed since "+ycSince(sp[0].iso) };
+        proof:ycNum(ssg.base)+" → "+ycNum(ssg.now)+" mph", share:"+"+ycNum(sGain)+" mph of 7-iron speed since "+ycSince(sp[0].iso) };
     else if(d)
       hero={ kind:"drive", big:String(d.latest), unit:"yds", kick:"Driver carry", share:"driver carry "+d.latest+" yds" };
     else if(sNow!=null)

@@ -80,15 +80,19 @@ Deno.serve(async (req) => {
   // ── 2. Access: Yardsmith Pro once billing is live ─────────────────────────
   // Off until REQUIRE_SUBSCRIPTION=1 is set (the same day the app's FF_PAYWALL
   // switch flips — see YARDSMITH-BRAIN §9). Checked BEFORE the quota so a
-  // locked caller never burns it. Pro = active/trialing or inside a trial;
-  // a new account also gets its free week (7 days from sign-up).
+  // locked caller never burns it. Pro = the billing provider's own status,
+  // the same rule as public.is_subscribed(): active, trialing, or past_due
+  // (the provider is still retrying the card). No date overrides it — a
+  // leftover trial end never keeps a canceled subscription Pro. A new account
+  // also gets its free week (7 days from sign-up).
+  // Only webhook-written statuses count: App Store / Google Play buyers are
+  // Pro here only once a store webhook writes their status (GO-LIVE-CHECKLIST).
   if (REQUIRE_SUBSCRIPTION) {
     const { data: prof, error: profErr } = await admin.from("profiles")
-      .select("subscription_status, trial_ends_at, created_at").eq("id", user.id).maybeSingle();
+      .select("subscription_status, created_at").eq("id", user.id).maybeSingle();
     if (profErr) return json(req, { error: "access_unavailable" }, 503);
     const now = Date.now();
-    const pro = !!prof && (["active", "trialing"].includes(prof.subscription_status) ||
-      (prof.trial_ends_at != null && Date.parse(prof.trial_ends_at) > now));
+    const pro = !!prof && ["active", "trialing", "past_due"].includes(prof.subscription_status);
     const freeWeek = !!prof && prof.created_at != null && now - Date.parse(prof.created_at) < FREE_WEEK_MS;
     if (!pro && !freeWeek) {
       return json(req, {

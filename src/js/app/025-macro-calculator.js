@@ -1,6 +1,10 @@
   /* ===================== MACRO CALCULATOR ===================== */
   var state = { sex: "male", goal: "leanbulk", workout: "morning", meals: null, prep:[], equipPreset:"full" };
   var lastMealPlan = null;   // last computed { meal, timing } — shared with the unified Meals card
+  // The last calc's calorie base: the check-in (070) sizes its suggestion to the
+  // room left above the floor, and Apply (085) clamps to the same range.
+  var ffCalcBase = null;
+  var FAT_MIN_PCT = 0.20;    // fat never under 20% of calories (024 ffMacroTargets)
 
   // Recommended number of main meals per plan (pre/post-workout feedings are extra, around training).
   var MEALS_REC = { leanbulk: 4, bulk: 5, maintain: 4, cut: 3 };
@@ -13,7 +17,7 @@
     bulk: { label: "Bulk", pct: 0.20, proteinPerLb: 0.9, fatPerLb: 0.35, weekly:[0.005,0.0075],
       preFrac: 0.25, postFrac: 0.35,
       timing: "<b>Load post-workout hard</b> — your biggest glycogen-refill and growth window.",
-      note: "Aggressive surplus for <b>max strength &amp; speed</b>. High protein, high carb, plenty of fat. Quality food, not a dirty bulk." },
+      note: "Faster scale gain, but <b>more of it is fat</b> — it doesn’t add more strength or speed than Lean Bulk for most lifters. Suits newer lifters who start lean. Quality food, and plan a Lean Out after." },
     maintain: { label: "In-Season Maintain", pct: 0.0, proteinPerLb: 0.85, fatPerLb: 0.35, weekly:null,
       preFrac: 0.25, postFrac: 0.25,
       timing: "Split carbs <b>evenly around training</b>, and save some to fuel your round.",
@@ -25,22 +29,23 @@
   };
   var ACTIVITY_LABELS = { "1.2":"Sedentary","1.375":"Light","1.55":"Moderate","1.725":"Very Active","1.9":"Athlete" };
 
-  // Training-page copy that matches the chosen macro goal (the workout itself is the
-  // same for now — only the framing changes so it doesn't always say "gain 10 lb").
+  // Training-page copy that matches the chosen macro goal. The only training change
+  // is Retain mode (cut / maintain: one set off the 💪 accessories, 035 adjSets) —
+  // there is no separate in-season template, so the copy must not promise one.
   var GOAL_TRAIN = {
     leanbulk: {
       phase: "🏗️ Build phase · matches your <b>Lean Bulk</b> macros",
       lead: "<b>Add lean muscle</b> and turn it into <b>clubhead speed</b> — one consistent week that builds size, strength and speed together, all 20 weeks.",
       foldTitle: "📈 How to add the muscle (and keep your swing)",
-      rate: "<b>Clean surplus:</b> Lean Bulk (+10%), gain <b>~0.5–0.75 lb/week</b> — not a dirty bulk." },
+      rate: "<b>Clean surplus:</b> Lean Bulk (+10%), gain <b>~0.25–0.5% of bodyweight a week</b> (about 0.5–1 lb for most) — not a dirty bulk." },
     bulk: {
       phase: "💪 Mass phase · matches your <b>Bulk</b> macros",
-      lead: "<b>Pack on size and strength</b> and convert it to <b>clubhead speed</b> — the same week, fueled by a bigger surplus. Plan a Lean Out afterward to reveal it.",
+      lead: "<b>Gain weight faster</b> on the same training week. A bigger surplus mostly adds fat, not extra muscle or speed — plan a Lean Out afterward.",
       foldTitle: "📈 How to gain the mass (and keep your swing)",
-      rate: "<b>Surplus:</b> Bulk (+20%), faster scale gain — <b>plan a Lean Out after</b> to show the muscle." },
+      rate: "<b>Surplus:</b> Bulk (+20%), faster scale gain — more of it is fat, so <b>plan a Lean Out after</b>." },
     maintain: {
       phase: "⛳ In-season · matches your <b>Maintain</b> macros",
-      lead: "<b>Hold your muscle and sharpen your speed</b> — the in-season week: heavy enough to keep strength, lighter on volume, all the speed work intact.",
+      lead: "<b>Hold your muscle and sharpen your speed</b> — the plan runs in Retain mode: a set comes off the accessories, while the heavy lifts and all the speed work stay at full.",
       foldTitle: "📈 How to hold size &amp; speed in-season",
       rate: "<b>Maintenance calories:</b> hold your weight — the scale stays roughly flat while you keep strength and speed." },
     cut: {
@@ -70,22 +75,7 @@
   function round(n){ return Math.round(n); }
   function round5(n){ return Math.round(n/5)*5; }
   function roundEven(n){ var e=Math.round(n/2)*2; return e<0?0:e; }
-  // Split a whole-gram total across meals by weight, integers that sum exactly (largest-remainder).
-  function distribute(total, weights){
-    total=Math.max(0, Math.round(total));
-    var sum=0; weights.forEach(function(w){ sum+=w; });
-    if(sum<=0) return weights.map(function(){ return 0; });
-    var raw=weights.map(function(w){ return total*w/sum; });
-    var fl=raw.map(function(v){ return Math.floor(v); });
-    var used=0; fl.forEach(function(v){ used+=v; });
-    var order=raw.map(function(v,i){ return [v-fl[i], i]; }).sort(function(a,b){ return b[0]-a[0]; });
-    for(var k=0;k<total-used;k++){ fl[order[k%order.length][1]]++; }
-    return fl;
-  }
-  // Split a total (a multiple of 5) across meals in clean 5 g increments that sum exactly.
-  function distribute5(total, weights){
-    return distribute(Math.round(total/5), weights).map(function(u){ return u*5; });
-  }
+  // distribute / distribute5 (whole-gram meal splits) live in 024 with the pure model.
   function formatTime(h){
     h=((h%24)+24)%24;
     var hr=Math.floor(h), min=Math.round((h-hr)*60);
@@ -111,9 +101,17 @@
   $("goals").addEventListener("click", function(e){
     var btn=e.target.closest(".goal"); if(!btn) return;
     Array.prototype.forEach.call(this.querySelectorAll(".goal"), function(b){ b.classList.remove("active"); });
-    btn.classList.add("active"); state.goal=btn.getAttribute("data-goal"); calc();
+    var prevGoal=state.goal;
+    btn.classList.add("active"); state.goal=btn.getAttribute("data-goal"); ffGoalSwitched(prevGoal); calc();
     if(typeof renderPhase==="function") renderPhase();   // goal drives the Build/Retain training mode
   });
+  // A new goal restarts the check-in window: weigh-ins from the old goal must
+  // not be judged against the new goal's rate (a cut-era trend would read as
+  // "gaining slower than planned" on a bulk). ff_kcal_adj stays — it's a measured
+  // correction to maintenance, and calc() clamps it to what the new goal can use.
+  function ffGoalSwitched(prev){
+    if(prev && prev!==state.goal){ try{ lsSet("ff_lastcheckin", Date.now()); }catch(e){} }
+  }
   ["age","weight","heightFt","heightIn","activity"].forEach(function(id){
     $(id).addEventListener("input", calc);
   });
@@ -226,40 +224,38 @@
     var age=num("age");
     var weightLb=num("weight");
     var heightCm=(num("heightFt")*12+num("heightIn"))*2.54;
-    var weightKg=weightLb/2.20462;
 
     if(weightLb<=0||heightCm<=0||age<=0){ $("results").innerHTML=placeholder(); updateFoodTargets(0,0,0); try{ renderFFMeals(); }catch(e){} return; }
 
-    var bmr=10*weightKg+6.25*heightCm-5*age+(state.sex==="male"?5:-161);
     var activity=parseFloat($("activity").value);
-    var tdee=bmr*activity;
     var g=GOALS[state.goal];
-    var target=tdee*(1+g.pct);
+    // Protein scales with body size; fat with body size but never under 20% of
+    // calories; carbs fill the rest. The check-in nudge (ff_kcal_adj, a correction
+    // from the real weight trend) is clamped to the range that can still move the
+    // target — a stored value the floor would absorb counts only as far as it bites.
+    var day=ffDayTargets({ sex:state.sex, age:age, weightLb:weightLb, heightCm:heightCm, activity:activity,
+      goal:g, kcalAdj:lsGet("ff_kcal_adj", 0), fatMinPct:FAT_MIN_PCT });
+    var bmr=day.bmr, tdee=day.tdee, macro=day.macro, effAdj=day.effAdj, floorKcal=day.floorKcal;
+    var target=macro.target;
+    ffCalcBase={ tdee:tdee, baseTarget:day.baseTarget, floorKcal:floorKcal, effAdj:effAdj, lo:day.lo, hi:day.hi,
+      weightLb:weightLb, heightCm:heightCm, floored:macro.floored, carbG:macro.carbG, macroIn:day.macroIn };
 
-    // Weekly bodyweight-change target = bodyweight × goal band (fraction/week).
+    // Weekly bodyweight-change target = goal band × bodyweight (gains from the
+    // BMI-30 reference weight — 024 ffWeeklyLb, the same rate the check-in uses).
     var weekly=null;
     if(g.weekly){
       // Magnitudes, sorted small→large so the band always reads low–high.
-      var m=[Math.abs(weightLb*g.weekly[0]), Math.abs(weightLb*g.weekly[1])].sort(function(a,b){return a-b;});
+      var m=[Math.abs(ffWeeklyLb(g.weekly[0], weightLb, heightCm)), Math.abs(ffWeeklyLb(g.weekly[1], weightLb, heightCm))].sort(function(a,b){return a-b;});
       var f1=function(x){ return (Math.round(x*10)/10).toFixed(1); };
       weekly={ gain:g.weekly[1]>0, lo:f1(m[0]), hi:f1(m[1]),
         loMo:f1(m[0]*4), hiMo:f1(m[1]*4) };
     }
-
-    // Protein/fat scale with body size; carbs fill the remaining calories.
-    // Adaptive nudge from the metabolism check-in (weight-trend tuning) — flows
-    // into carbs, leaving the body-size protein/fat anchors stable.
-    var kcalAdj = lsGet("ff_kcal_adj", 0);
-    var macro=ffMacroTargets({ weightLb:weightLb, heightCm:heightCm, targetKcal:target, kcalAdj:kcalAdj,
-      proteinPerLb:g.proteinPerLb, fatPerLb:g.fatPerLb, floorKcal:(state.sex==="female"?1200:1500) });
-    target=macro.target;
     var proteinG=macro.proteinG, fatG=macro.fatG, carbG=macro.carbG;
     var proteinKcal=macro.proteinKcal, fatKcal=macro.fatKcal, carbKcal=macro.carbKcal;
 
     // ---- Meal plan + nutrient timing: one weighted distribution across the whole day ----
     var slot=WORKOUT_SLOTS[state.workout];
     var mealN = state.meals || MEALS_REC[state.goal];
-    var postT = slot.anchor + 1.5, preT = slot.anchor - 1.5;
     // Is TODAY a training day? On a rest day there's no workout to fuel around,
     // so the pre-workout snack and the post-workout carb/low-fat emphasis are
     // dropped and the day's macros spread evenly across the meals. (Guarded:
@@ -272,59 +268,11 @@
       var _td=_sd && _dop ? _sd[_dop-1] : null;
       restToday=!!(_td && _td.type==="rest");
     }catch(e){}
-    var FIRST = 7.5, LAST = 20.0;                 // eating window 7:30 AM – 8:00 PM
-
-    var meals = [];
-    for (var mi=0; mi<mealN; mi++){
-      meals.push({ time: mealN===1 ? 12.5 : FIRST + mi*(LAST-FIRST)/(mealN-1), isPost:false });
-    }
-    // The meal nearest the post-workout window becomes the post-workout meal.
-    // (Rest day: no workout window — leave every meal a plain meal.)
-    if(!restToday){
-      var ni=0, best=99; meals.forEach(function(m,i){ var d=Math.abs(m.time-postT); if(d<best){best=d;ni=i;} });
-      meals[ni].time = postT; meals[ni].isPost = true;
-      meals.sort(function(a,b){ return a.time-b.time; });
-    }
-
-    // Name meals: first = Breakfast, last = Dinner, one midday Lunch, the rest Snacks.
-    var lunchUsed=false;
-    meals.forEach(function(m,i){
-      if(i===0) m.label="Breakfast";
-      else if(i===meals.length-1) m.label="Dinner";
-      else if(!lunchUsed && m.time>=11.5 && m.time<15){ m.label="Lunch"; lunchUsed=true; }
-      else m.label="Snack";
-    });
-    // Pre-workout: if a meal already sits within ~45 min of the pre window, that meal IS
-    // your pre-workout fuel; otherwise add a small separate pre-workout snack.
-    // (Rest day: no pre-workout window — skip the pre snack and the pre flag.)
-    var preIdx=0, preDist=99;
-    meals.forEach(function(m,i){ var d=Math.abs(m.time-preT); if(d<preDist){ preDist=d; preIdx=i; } });
-    var preMerged = restToday || (preDist<=0.75 && !meals[preIdx].isPost);
-    if(preMerged && !restToday) meals[preIdx].isPreMeal=true;
-    // Relative weights — dinner biggest, breakfast carries more fat (eggs), snacks light.
-    var ROLEW = {
-      Breakfast:{p:0.95,c:1.05,f:1.25}, Lunch:{p:1.05,c:1.00,f:1.00},
-      Dinner:{p:1.15,c:0.90,f:1.35}, Snack:{p:0.70,c:0.80,f:0.55}
-    };
-    // Protein & fat split across the main meals (post-workout meal goes low-fat).
-    var pArr=distribute5(proteinG, meals.map(function(m){ return ROLEW[m.label].p; }));
-    var fArr=distribute5(fatG, meals.map(function(m){ return m.isPost ? ROLEW[m.label].f*0.35 : ROLEW[m.label].f; }));
-    meals.forEach(function(m,i){ m.p=pArr[i]; m.f=fArr[i]; });
-
-    // Carbs split across ALL feedings (main meals + pre-workout snack) — so the pre and
-    // post amounts shrink naturally as you add meals, instead of being a fixed % of the day.
-    var pre = { kind:"pre", time:preT, label:"Pre-workout", p:0, f:0 };
-    var carbFeeds = meals.map(function(m){
-      var w = m.isPost ? 1.6 : ROLEW[m.label].c;
-      if(m.isPreMeal) w += 0.6;                   // this meal doubles as pre-workout fuel
-      return { ref:m, w:w };
-    });
-    if(!preMerged) carbFeeds.push({ ref:pre, w:0.8 });   // separate top-off snack
-    var cArr=distribute5(carbG, carbFeeds.map(function(f){ return f.w; }));
-    carbFeeds.forEach(function(f,i){ f.ref.c=cArr[i]; });
-
-    var postMeal=meals[0], preMeal=meals[0];
-    meals.forEach(function(m){ if(m.isPost) postMeal=m; if(m.isPreMeal) preMeal=m; });
+    // The split itself is pure (024 ffMealPlan): role weights, the post-workout
+    // meal (main-meal protein, lighter fat, biggest carbs), the pre-workout snack.
+    var plan=ffMealPlan({ proteinG:proteinG, fatG:fatG, carbG:carbG, mealN:mealN, anchor:slot.anchor, rest:restToday });
+    var meals=plan.meals, pre=plan.pre, preMerged=plan.preMerged, postMeal=plan.postMeal, preMeal=plan.preMeal;
+    var postT=plan.postT, preT=plan.preT;
     var feedList = preMerged ? meals.slice() : meals.concat([pre]);
     var schedule = feedList.sort(function(a,b){ return a.time-b.time; }).map(function(f){
       return { kind:f.kind||"meal", label:f.label, time:formatTime(f.time), t:f.time,
@@ -345,13 +293,14 @@
     render({ bmr:bmr,tdee:tdee,target:target,activity:activity,
       proteinG:proteinG,fatG:fatG,carbG:carbG,
       proteinKcal:proteinKcal,fatKcal:fatKcal,carbKcal:carbKcal,
-      goal:g,pct:g.pct, timing:timing, meal:meal, weekly:weekly });
+      goal:g,pct:g.pct, timing:timing, meal:meal, weekly:weekly,
+      effAdj:effAdj, floored:macro.floored, floorKcal:floorKcal, bmi:ffBmi(weightLb, heightCm) });
     // Stash the computed targets (the coach, the example day and Today all read
     // them) BEFORE the renders below, so nothing draws last calculation's fat/kcal.
     try {
       lsSet("ff_targets", {
         goal: g.label, kcal: Math.round(target/5)*5, proteinG: proteinG, carbG: carbG, fatG: fatG,
-        mealN: mealN, tdee: Math.round(tdee)
+        mealN: mealN, tdee: Math.round(tdee), kcalAdj: effAdj
       });
     } catch(e){}
     updateFoodTargets(proteinG, carbG, mealN);
@@ -1248,11 +1197,14 @@
   function closeWeekPlan(){ var m=$("ffWeekModal"); if(m) m.hidden=true; document.body.style.overflow=""; }
 
   // Prominent "how fast should the scale move" band under the calorie hero.
+  // Units are explicit and the thresholds are the check-in's (070 / 024
+  // ffCheckin: it acts on a 12+ day trend that's off by more than ~½ lb/week).
   function targetBand(w,goal){
     if(!w){
       return '<div class="target hold"><div class="target-h">Goal: hold your weight</div>'+
         '<div class="target-sub">In-season maintenance — the scale should stay <b>flat</b>. '+
-        'If it drifts more than ~1 lb/week either way, nudge carbs up or down.</div></div>';
+        'Weigh in 3–4×/week and watch the <b>weekly average</b>. If it drifts more than ~½ lb/week for 2+ weeks, '+
+        'your check-in will nudge carbs up or down.</div></div>';
     }
     var cls=w.gain?"gain":"loss", verb=w.gain?"gain":"lose", arrow=w.gain?"▲":"▼";
     return '<div class="target '+cls+'">'+
@@ -1260,8 +1212,12 @@
       '<div class="target-sub">That’s about <b>'+w.loMo+'–'+w.hiMo+' lb/month</b>. '+
       'Weigh in 3–4×/week, same conditions, and track the <b>weekly average</b> — not any single day. '+
       (w.gain
-        ? 'Going faster than this is mostly fat, not muscle. If the scale stalls 2+ weeks, add ~100–150 carbs.'
-        : 'Going faster than this costs muscle and speed. If you stall 2+ weeks, trim ~100–150 carbs.')+
+        ? (goal===GOALS.bulk
+          ? 'This is faster than muscle can grow, so much of it will be fat — plan a Lean Out after. '
+          : 'Going faster than this is mostly fat, not muscle. ')+
+          'If the weekly average stalls 2+ weeks, your check-in will suggest more food — about 25–40 g carbs (100–150 kcal) a day.'
+        : 'Going faster than this costs muscle and speed. If the weekly average stalls 2+ weeks, your check-in will suggest a trim — '+
+          'about 25–40 g carbs (100–150 kcal) a day, never below your daily minimum.')+
       '</div></div>';
   }
 
@@ -1287,11 +1243,17 @@
   function render(r){
     var totalK=r.proteinKcal+r.fatKcal+r.carbKcal;
     var pPct=totalK?r.proteinKcal/totalK*100:0, cPct=totalK?r.carbKcal/totalK*100:0, fPct=totalK?r.fatKcal/totalK*100:0;
-    var pctTxt = r.pct===0?"maintenance":(r.pct>0?"+"+Math.round(r.pct*100)+"% surplus":Math.round(r.pct*100)+"% deficit");
-    var deltaKcal=round(r.target-r.tdee);
+    // Label from the real numbers: the goal % against maintenance as tuned by the
+    // check-in (TDEE + the adjustment in use), and "minimum" when the safety floor
+    // set the target — never a nominal "-20% deficit" next to a −6% number.
+    var adjNow=r.effAdj||0, maint=r.tdee+adjNow;
+    var realPct=maint>0 ? Math.round((r.target/maint-1)*100) : 0;
+    var pctTxt = r.floored ? r.floorKcal.toLocaleString()+" kcal minimum"
+      : (realPct===0?"maintenance":(realPct>0?"+"+realPct+"% surplus":realPct+"% deficit"));
+    var deltaKcal=round(r.target-maint);
     var deltaTxt = deltaKcal===0?"±0 kcal/day":(deltaKcal>0?"+"+deltaKcal+" kcal/day":deltaKcal+" kcal/day");
+    var maintLbl = adjNow!==0 ? 'Maintenance (TDEE, tuned)' : 'Maintenance (TDEE)';
 
-    var adjNow=lsGet("ff_kcal_adj",0);
     var targetSummary=$("fuelTargetSummary");
     if(targetSummary) targetSummary.innerHTML='<b>'+round(totalK).toLocaleString()+'</b> kcal <span>·</span> '+r.proteinG+'P <span>·</span> '+r.carbG+'C <span>·</span> '+r.fatG+'F';
     var html="";
@@ -1304,7 +1266,7 @@
     html+='<div class="result-hero">'+
       '<div class="kcal">'+round(totalK)+' <small>kcal/day</small></div>'+
       '<div class="goal-label">'+r.goal.label+' &middot; '+pctTxt+'</div>'+
-      '<div class="tdee-line">'+ffTerm('tdee','Maintenance (TDEE)')+': <b>'+round5(r.tdee)+' kcal</b> &nbsp;·&nbsp; Goal target: <b>'+round5(r.target)+' kcal</b> ('+deltaTxt+')</div>'+
+      '<div class="tdee-line">'+ffTerm('tdee',maintLbl)+': <b>'+round5(maint)+' kcal</b> &nbsp;·&nbsp; Goal target: <b>'+round5(r.target)+' kcal</b> ('+deltaTxt+')</div>'+
       (adjNow!==0 ? '<div class="tuned-note">📊 Tuned <b>'+(adjNow>0?'+':'')+adjNow+' kcal</b> from your actual weight trend</div>' : '')+
       '</div>';
     html+='<div class="macros">'+
@@ -1312,6 +1274,10 @@
       macroCard("c","Carbs",r.carbG,r.carbKcal,cPct)+
       macroCard("f","Fat",r.fatG,r.fatKcal,fPct)+'</div>';
     html+='<div class="golf-note slim">'+scaleLine+'</div>';
+    // BMI can't tell muscle from fat, so this stays a soft, conditional note —
+    // the goal is never switched for the user here.
+    if(r.pct>0 && r.bmi>=30)
+      html+='<div class="golf-note slim">If much of your weight is fat, a surplus mostly adds more fat. You can build muscle on <b>Lean Out</b> or at maintenance — lift heavy and keep protein high.</div>';
     if(r.meal){
       var mN=r.meal.n, mRec=r.meal.recommended;
       html+='<div class="meals-per-day"><span><b>Meals per day</b><small>'+(mN===mRec?'recommended for your plan':'we recommend '+mRec)+'</small></span>'+
@@ -1324,10 +1290,11 @@
       tr("BMR (Mifflin–St Jeor)",round5(r.bmr)+" kcal")+
       tr("Activity multiplier","×"+r.activity+" ("+ACTIVITY_LABELS[String(r.activity)]+")")+
       tr("TDEE / Maintenance",round5(r.tdee)+" kcal")+
+      (adjNow!==0 ? tr("Tuned to your weight trend",(adjNow>0?"+":"")+adjNow+" kcal → "+round5(maint)+" kcal") : "")+
       tr("Goal adjustment",deltaTxt)+
-      tr("Daily target",round5(r.target)+" kcal")+
+      tr("Daily target",round5(r.target)+" kcal"+(r.floored?" (our minimum — we never set it lower)":""))+
       tr("Protein",r.goal.proteinPerLb.toFixed(2).replace(/0$/,'')+" g/lb reference weight ("+r.proteinG+" g)")+
-      tr("Fat",r.goal.fatPerLb.toFixed(2).replace(/0$/,'')+" g/lb reference weight ("+r.fatG+" g)")+
+      tr("Fat",r.goal.fatPerLb.toFixed(2).replace(/0$/,'')+" g/lb reference weight, at least "+Math.round(FAT_MIN_PCT*100)+"% of calories ("+r.fatG+" g)")+
       tr("Carbs","the rest ("+r.carbG+" g)")+
       '</table></div></details>';
     $("results").innerHTML=html;

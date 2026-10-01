@@ -106,12 +106,18 @@
     if(e.target.closest("[data-roundlog]")) openRoundLog();
   });
 
-  /* ----- Receipts: training ↔ round correlations -----
+  /* ----- Receipts: training ↔ round patterns -----
      The thesis is "train like a bodybuilder → hit it further." Once enough
-     rounds are banked, prove it back with the user's OWN data: scoring trend,
-     drives near vs far from gym days, deload-week freshness. Every insight is
-     gated (enough rounds on both sides of the split, non-trivial gap) so the
-     card never dresses noise up as a finding. */
+     rounds are banked, show the user's OWN data back: scoring trend, drives
+     near vs far from gym days, easy-week distance. These are early patterns,
+     never proof: a round's longest drive is one noisy number (wind, firmness,
+     course), and at 2 rounds a side a 5-yd gap shows up by chance for about
+     half of users. So each split needs RD_MIN_N rounds on both sides AND a gap
+     bigger than the noise (≥5 yd and ≥2 standard errors), shows its n, and
+     never turns into a scheduling instruction. Lifts are dated by doneTs (the
+     real finish; ts moves on re-save/restore), and a round with a lift on the
+     same day is left out — which came first can't be known. */
+  var RD_MIN_N=4;
   function rdDayTs(r){
     var t=(r && r.ts) ? r.ts : Date.parse((r && r.date) || "");
     if(!t || isNaN(t)) return null;
@@ -124,6 +130,14 @@
     return (days>=0 && days<140) ? Math.floor(days/7)+1 : null;
   }
   function rdAvg(a){ return a.length ? a.reduce(function(x,y){return x+y;},0)/a.length : null; }
+  // Is the gap between two samples bigger than their noise? Both sides need
+  // RD_MIN_N values, and |diff| must clear max(5 yd, 2 × the standard error).
+  function rdGap(a, b){
+    if(a.length<RD_MIN_N || b.length<RD_MIN_N) return null;
+    function v(x){ var m=rdAvg(x); return x.reduce(function(t,y){ return t+(y-m)*(y-m); },0)/(x.length-1); }
+    var diff=rdAvg(a)-rdAvg(b), se=Math.sqrt(v(a)/a.length+v(b)/b.length);
+    return Math.abs(diff)>=Math.max(5, 2*se) ? diff : null;
+  }
   function rdInsights(rounds){
     var out=[];
     // 1 · Scoring trend — first 3 vs last 3 scored rounds (needs 5+ so they don't overlap much).
@@ -135,23 +149,26 @@
       if(d>=2) out.push('📉 <b>Scoring '+d+' strokes better</b> — last 3 rounds avg '+Math.round(late)+' vs '+Math.round(early)+' when you started logging.');
       else if(d<=-2) out.push('🧊 Scores are up '+(-d)+' vs your first logged rounds ('+Math.round(late)+' vs '+Math.round(early)+') — worth a look at what changed: sleep, fuel, range time.');
     }
-    // 2 · Fresh legs — drives within 2 days of a logged session vs 3+ days out.
+    // 2 · Fresh legs — drives 1–2 days after a logged session vs 3+ days out.
     var lifts=[]; try{ lsGet("ff_history",[]).forEach(function(e){
-      if(e && e.ts){ var d2=new Date(e.ts); d2.setHours(0,0,0,0); lifts.push(d2.getTime()); } }); }catch(e){}
+      var lt=e && (e.doneTs||e.ts);
+      if(lt){ var d2=new Date(lt); d2.setHours(0,0,0,0); lifts.push(d2.getTime()); } }); }catch(e){}
     lifts.sort(function(a,b){return a-b;});
     if(lifts.length){
       var near=[], far=[];
       rounds.forEach(function(r){
         if(!r.drive) return;
         var ts=rdDayTs(r); if(ts==null) return;
-        var last=null; lifts.forEach(function(lt){ if(lt<=ts) last=lt; });
+        if(lifts.indexOf(ts)!==-1) return;   // lifted the same day: order unknown
+        var last=null; lifts.forEach(function(lt){ if(lt<ts) last=lt; });
         if(last==null) return;
         ((ts-last)/864e5<=2 ? near : far).push(r.drive);
       });
-      if(near.length>=2 && far.length>=2){
-        var nA=Math.round(rdAvg(near)), fA=Math.round(rdAvg(far));
-        if(nA-fA>=5) out.push('🏋️ <b>Drives avg '+nA+' yds within 2 days of a lift</b> vs '+fA+' further out — keep rounds close to gym days.');
-        else if(fA-nA>=5) out.push('🛌 Drives avg <b>'+fA+' yds with 3+ days after lifting</b> vs '+nA+' closer in — your legs like a little more space before tee time.');
+      var g2=rdGap(near, far);
+      if(g2!=null){
+        var nA=Math.round(rdAvg(near)), fA=Math.round(rdAvg(far)), nn=' (n='+near.length+' vs '+far.length+')';
+        if(g2>0) out.push('🏋️ So far: drives avg <b>'+nA+' yds within 2 days of a lift</b> vs '+fA+' further out'+nn+' — an early pattern, not proof.');
+        else out.push('🛌 So far: drives avg <b>'+fA+' yds with 3+ days after lifting</b> vs '+nA+' closer in'+nn+' — an early pattern, not proof. Heavy leg days are best kept away from the day before a round.');
       }
     }
     // 3 · Deload freshness — drives in deload/peak (recovery) weeks vs loading weeks.
@@ -162,9 +179,10 @@
       var wv="accumulate"; try{ wv=waveFor(wk); }catch(e){}
       ((wv==="deload"||wv==="peak") ? fresh : loaded).push(r.drive);
     });
-    if(fresh.length>=2 && loaded.length>=2){
+    var g3=rdGap(fresh, loaded);
+    if(g3!=null && g3>0){
       var frA=Math.round(rdAvg(fresh)), loA=Math.round(rdAvg(loaded));
-      if(frA-loA>=5) out.push('🪫 <b>Recovery-week drives avg '+frA+' yds</b> vs '+loA+' in loading weeks — that’s the deload doing its job. Plan big rounds for fresh weeks.');
+      out.push('🪫 So far: <b>easy-week drives avg '+frA+' yds</b> vs '+loA+' in loading weeks (n='+fresh.length+' vs '+loaded.length+') — consistent with the easy weeks doing their job. Keep logging to confirm.');
     }
     return out.slice(0,3);
   }
@@ -196,7 +214,7 @@
         h+='<div class="rd-ins-h">'+ffTerm('receipts','Receipts')+'</div>'+ins.map(function(t){
           return '<div class="rd-ins">'+t+'</div>'; }).join("");
       } else if(rounds.length<5){
-        h+='<div class="rd-ins dim">🧾 Keep logging — at ~5 rounds this card starts showing receipts: scoring trend, drives near vs far from gym days, deload-week distance.</div>';
+        h+='<div class="rd-ins dim">🧾 Keep logging — from ~5 rounds this card shows your scoring trend; with more rounds, drives near vs far from gym days and easy-week distance.</div>';
       }
     }
     h+='<button type="button" class="fd-act" data-roundlog="1">⛳ Log a round ›</button>';

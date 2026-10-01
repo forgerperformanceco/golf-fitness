@@ -75,7 +75,10 @@
       profile: lsGet("fairwayfuel"),
       targets: lsGet("ff_targets"),
       score: lsGet("ff_score"),
-      recentLog: { week: lsGet("ff_week") || 1, sessionsLogged: Object.keys(logObj).length, body: body.slice(-6) },
+      // The real plan week (ff_week is a dead pre-plan key — it sent "1" to
+      // everyone). This week's plan, wave and logged sets ride in
+      // brain.training (076 ffBrainTraining); null before a plan starts.
+      recentLog: { week: (brain && brain.signals && brain.signals.planWeek) || null, sessionsLogged: Object.keys(logObj).length, body: body.slice(-6) },
       readiness: (lsGet("ff_readiness") || []).slice(-7),
       brain: brain,
       memory: memoryContext()
@@ -247,6 +250,11 @@
         var j = await res.json().catch(function () { return {}; });
         typing.classList.remove("bot"); typing.classList.add("note");
         typing.textContent = j.message || "The coach is temporarily unavailable — try again shortly.";
+        // The server says the coach needs Pro: the app shows its Pro sheet over
+        // this note (036 listens; it ignores this while billing is off).
+        if (j.error === "subscription_required") {
+          try { window.dispatchEvent(new CustomEvent("ff-paywall", { detail: { reason: "coach" } })); } catch (e) {}
+        }
         busy = false; return;
       }
       if (res.status === 401) { typing.textContent = "Please sign in again (You tab)."; busy = false; return; }

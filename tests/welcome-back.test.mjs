@@ -22,10 +22,11 @@ function functionSource(source, name) {
 }
 
 const DAY = 864e5;
-function context(store, { later = false } = {}) {
+function context(store, { later = false, access = "full" } = {}) {
   const ctx = {
     Date, Math, Object, Array,
     WB_GAP_DAYS: 14,
+    ffAccess: () => access,
     planStart: () => store.ff_start ?? null,
     lsGet: (k, f) => (k in store ? store[k] : f),
     sessionStorage: { getItem: (k) => (later && k === "ff_wb_later" ? "1" : null) },
@@ -77,6 +78,19 @@ test("never shown before setup, without a plan, or after 'decide later' this ses
   assert.equal(context({ ff_onboarded: true }).ffWelcomeBackDue(), null, "no plan");
   assert.equal(context({ ...away, ff_onboarded: true }, { later: true }).ffWelcomeBackDue(), null, "decide later");
   assert.ok(context({ ...away, ff_onboarded: true }).ffWelcomeBackDue(), "away with a plan");
+});
+
+test("after the free week without Pro, no restart/pick-up screen — Home's lock card says what's kept", () => {
+  const now = Date.now();
+  const away = { ff_onboarded: true, ff_start: new Date(now - 40 * DAY).toISOString() };
+  assert.ok(context(away, { access: "preview" }).ffWelcomeBackDue(), "free week: still offered");
+  assert.equal(context(away, { access: "locked" }).ffWelcomeBackDue(), null, "locked: never offered");
+  // A screen already open when access flips to locked changes nothing.
+  const choose = functionSource(wb, "ffWelcomeBackChoose");
+  const guard = choose.indexOf('if(choice!=="later" && ffAccess()==="locked"){ ffPaywallOpen("workout"); return; }');
+  assert.ok(guard > 0, "locked guard exists");
+  assert.ok(guard < choose.indexOf("resetPlanFull()") && guard < choose.indexOf("skipSession(") &&
+    guard < choose.indexOf('lsSet("ff_welcome_back"'), "the guard runs before any data changes");
 });
 
 test("the three answers: restart keeps history, pick up keeps the week, later is session-only", () => {

@@ -18,10 +18,13 @@ description: >
 
 # Golf-fitness domain reference (as applied in Yardsmith)
 
-All file:line references verified at HEAD `f21930a`, 2026-07-08. This is the
-theory-and-math reference, not a textbook: every number here is either in the
-repo's evidence docs (`CLUBHEAD-SPEED-REFERENCE.md`, `NUTRITION-AND-TRAINING-REFERENCE.md`)
-or in the shipped code, and the code is the final authority when they disagree.
+Sections 3–5, 8 and 9 re-verified 2026-10-01 against HEAD `231747e` plus the Oct 2026
+audit fix round (effort/load/return-after-break rules, fat floor, goal-aware power-to-weight);
+other sections date from HEAD `f21930a`, 2026-07-08. Line numbers drift — prefer the function
+names and the grep recipes in *Provenance*. This is the theory-and-math reference, not a
+textbook: every number here is either in the repo's evidence docs
+(`CLUBHEAD-SPEED-REFERENCE.md`, `NUTRITION-AND-TRAINING-REFERENCE.md`) or in the shipped code,
+and the code is the final authority when they disagree.
 
 **When NOT to use this skill.** Storage shapes, sync/merge semantics, and the
 `ff_*` key catalog → `yardsmith-data-and-sync`. Module layout / IIFE contract →
@@ -127,9 +130,11 @@ review): general/nonspecific strength alone ~+1.6% CHS; **combined nonspecific
 (CLUBHEAD §9.3). How this number may be phrased publicly (the "typical, not
 promised" rule and the mph/yard translation) → `yardsmith-external-positioning`
 §3. Overspeed swings ship in-app only as a low-cost, honestly-framed
-**adjunct** ("modest evidence — the add-on, not the main event", the in-app
-copy at 035-training-plan.js:21). Caution analogue: baseball weighted-ball
-training produced ~24% structural elbow injuries vs 0% controls in the best
+**adjunct** — once a week, the last Speed & Power drill ("modest evidence — the
+add-on, not the main event", the in-app speed-day cue in `PHASES[0].speed`). The
+popular 3×/week schedule is a vendor protocol; the best weekly frequency is
+unknown. Caution analogue: baseball weighted-ball training produced ~24%
+structural elbow injuries vs 0% controls in the best
 RCT (Reinold 2018) — the *caution* transfers to golf, not the numbers
 (CLUBHEAD §9.4).
 
@@ -147,7 +152,7 @@ balanced 4-day, plus a Speed & Power day with `field`/`gym` variants chosen by
 barbell is owned). The week itself never changes; a **target-transform
 pipeline** reshapes it per week and per goal.
 
-### 3.1 The pipeline: `effTarget(sr, name, week)` (line 442)
+### 3.1 The pipeline: `effTarget(sr, name, week)`
 
 ```
 effTarget = waveAdjust( adjSets(sr, name), name, week )
@@ -157,19 +162,19 @@ effTarget = waveAdjust( adjSets(sr, name), name, week )
 the **single source of truth** for both display and the loggers' prescriptions
 — never compute a target any other way, or they drift (load-bearing invariant).
 
-### 3.2 `purposeFor(name)` — the four classes (lines 349-360)
+### 3.2 `purposeFor(name)` — the four classes
 
 Regex classification of every exercise name, **checked in this order**:
 
 | Class | Meaning | Matched by (in priority order) |
 |---|---|---|
-| 🌀 golf rotation | rotation/anti-rotation | `Single-Arm` first; then `Wood-?chop \| \bChop\b \| Rotation(al) \| Pallof \| Landmine(?! Press) \| Punch \| Russian Twist` |
+| 🌀 golf rotation | rotation/anti-rotation | `Single-Arm` first; then `Wood-?chop \| \bChop\b \| Rotation(al) \| Pallof \| Landmine(?! Press\| Squat) \| Punch \| Russian Twist` |
 | ⚡ power/speed | ballistic/velocity work | `Jump \| Bound \| Slam \| Chest Pass \| Throw \| Toss \| \bClean\b \| Overspeed \| Footwork \| Swing \| Broad \| Plyo \| ^Speed\s` |
 | 🏋️ strength | heavy compounds | `Back Squat \| Front Squat \| Leg Press \| Hack Squat \| Bench Press \| Deadlift \| Overhead Press \| Pull-up \| Romanian` |
 | 💪 mass | everything else (hypertrophy accessory) | default |
 
 Rotation is checked **before** power so rotational throws/chops stay 🌀;
-`Landmine Press` is explicitly excluded from 🌀 (it's a chest press). ⚡ work
+`Landmine Press` and `Landmine Squat` are explicitly excluded from 🌀 (a press and a squat). ⚡ work
 must **never** receive the 🏋️ "drop reps, go heavier" prescription nor be
 trimmed like a 💪 accessory — that exact bug shipped and was fixed in commit
 `6932f28` ("Seated chest throw" read as 💪 and got gutted at Peak; "Speed bench
@@ -177,7 +182,7 @@ press" matched `/Bench Press/` and got the strength prescription). **Any new
 catalog/exercise name must be checked against `purposeFor()` before shipping**
 — string-matching names to derive training logic is fragile by design.
 
-### 3.3 `waveFor(week)` — 6-week cycles + 2-week Peak (lines 410-421)
+### 3.3 `waveFor(week)` — 6-week cycles + 2-week Peak
 
 ```
 pos = ((week−1) % 6) + 1
@@ -187,39 +192,50 @@ pos 6    → deload       (weeks 6, 12, 18)
 week ≥19 → peak         (weeks 19-20)
 ```
 
-**`ff_event` re-anchoring** (`eventInfo()`, 398-409; override at 411-415): a
-stored `{date, name}` big-event date maps to a plan week only if it falls
-0–139 days after `planStart()` (weeks 1-20) and is not >1 day past. Then:
-**event week and the week before → peak; the week after → deload**; all other
+**`ff_event` re-anchoring** (`eventInfo()` + the override at the top of
+`waveFor`): a stored `{date, name}` big-event date maps to a plan week only if it
+falls 0–139 days after `planStart()` (weeks 1-20); the override stays on until the
+end of the recovery week after the event. Then: **event week and the week before →
+peak (so the taper starts 7–13 days out); the week after → deload**; all other
 weeks keep the base cadence. `curWeek()` itself is date-anchored:
-`floor(daysSinceStart/7)+1` clamped 1-20 (040-workout-logger.js:69-74).
+`floor(daysSinceStart/7)+1` clamped 1-20 (040-workout-logger.js).
 
 ### 3.4 `adjSets` + `waveAdjust` — what each phase does to each class
 
-**Retain mode first** (`trainRetain()`, 365: goal is `maintain` or `cut`):
-`adjSets` (366-369) trims **one set off 💪 accessories only** (floor 2 sets);
+**Retain mode first** (`trainRetain()`: goal is `maintain` or `cut`):
+`adjSets` trims **one set off 💪 accessories only** (floor 2 sets);
 🏋️/⚡/🌀 untouched — that's what protects muscle and clubhead speed in a
-deficit.
+deficit. In-Season Maintain does nothing more than this (plus dropping the
+to-failure cue): same 4–5-day week. A real in-season template is an open lead
+(NUTRITION §9a).
 
-Then `waveAdjust` (430-440), using `bumpReps` (first `×N` in the string,
-422-424) and `trimSets` (leading set count, floor 2, 425-427):
+Then `waveAdjust`, using `bumpReps` (first `×N` in the string) and `trimSets`
+(leading set count, floor 2):
 
 | Wave | 🏋️ strength | 💪 mass | ⚡ power | 🌀 rotation |
 |---|---|---|---|---|
-| Accumulate | unchanged (add reps toward the top of range yourself) | unchanged | unchanged | unchanged |
+| Accumulate | unchanged (hold the load, build reps to the target) | unchanged | unchanged | unchanged |
 | Intensify | **−2 reps (floor 3)** — only if `plainReps` | **−1 set** | unchanged | unchanged |
 | Deload | −1 set | −1 set | −1 set | −1 set |
 | Peak | **−2 sets** | **−2 sets** | −1 set | −1 set |
 
-`plainReps(sr)` (429) = `/[×x]\s*\d+\s*($|\/|\()/` — rep counts shift only on
+`plainReps(sr)` = `/[×x]\s*\d+\s*($|\/|\()/` — rep counts shift only on
 plain rep targets, **never** distance/time work ("3 × 40 yd" is exempt).
-Deload's "~60% loads" comes from the load prescription (§4), not the target
-string.
+Deload's "~60% loads" and the Heavy-week load rescale come from the load
+prescription (§4), not the target string.
 
-### 3.5 Overspeed dose ramp — `overspeedDose(week)` (445-450)
+**What the trims add up to** (weekly prescribed sets, gym speed day, computed in
+node:vm in the Oct 2026 audit): Peak vs a Build week is **~37% fewer sets on a
+building goal** (5-day 107→67, 4-day 93→59) but only **~25–27% on cut/maintain**
+(92→67, 81→59), because Retain mode's 💪 accessories already sit at the 2-set
+floor; reps are unchanged at Peak. Copy must say "about a third fewer sets", not
+"nearly half", and never promise a % gain (no golf taper data — CLUBHEAD §11.8).
 
-Overspeed swings bypass `effTarget` entirely (`speedDrillTarget`, 451-454:
-any name matching `/Overspeed/i`):
+### 3.5 Overspeed dose ramp — `overspeedDose(week)`
+
+Overspeed swings bypass `effTarget` entirely (`speedDrillTarget`: any name
+matching `/Overspeed/i`). They exist ONLY on the once-a-week Speed & Power day
+(both `field` and `gym` lists) — never as a lift-day primer:
 
 ```
 deload or peak week, OR week ≤ 2  →  2 × 5
@@ -228,18 +244,35 @@ week ≥ 9                          →  4 × 5
 ```
 
 A skill/neural dose, not a hypertrophy target: ramp in, back off when fatigue
-management matters. In-app framing (035:21): light stick at MAX intent, both
-sides, full rest, "modest evidence — the add-on, not the main event."
+management matters. In-app framing (the speed-day cue): light stick at MAX
+intent, both sides, full rest, "modest evidence — the add-on, not the main
+event." The ramp is a design choice: the optimal weekly dose is unknown
+(CLUBHEAD §9.7), and growing it was rejected (YARDSMITH-BRAIN speed-day S2).
 
 ### 3.6 Session furniture (for completeness)
 
-- **Power primers** (`primerFor`, 325-332): one explosive drill first-and-fresh
-  on every lift day — jump 4×3 (squat/lower), med-ball chest pass 4×4 (push),
-  Russian KB swing 5×5 (hinge), rotational throw 4×4/side (pull/rotate). Gives
-  3-4×/week speed exposure with no metabolic fatigue (NUTRITION §10).
-- **RIR/rest copy** (035:295-299): heavy or ≤6 reps → "RIR 2(–3) · rest 2–3 min";
-  ≥13 reps → "RIR 1 · rest ~90s"; else "RIR 1–2 · rest ~90s". Rest-timer
-  defaults: 120 s between sets, 180 s between lifts (045-inline-logger…js:11).
+- **Power primers** (`primerFor`): one explosive drill first-and-fresh on
+  every lift day, picked from the day's NAME — rotational throw 4×4/side
+  (pull/rotate), med-ball chest pass 4×4 (push), box/squat jump 4×3
+  (`/Squat|Quads/` — both splits' Day 1, incl. the 4-day "Quads & Hinge" day
+  since Oct 2026), Russian KB swing 5×5 (hinge), jump (other lower). A day
+  rename can silently change a primer — re-check after any rename. With the speed day that is
+  3–4 speed exposures a week with no metabolic fatigue (NUTRITION §10). Don't
+  sell primers as potentiation (PAP unproven in golf, CLUBHEAD §10.3).
+- **Effort copy** (`effortNote(t, name, ctx)`, ctx = {wave, band, first,
+  easeIn, onRamp, beforeHeavy}): distance work → "heavy · rest ~90s"; explosive/
+  jump → "max intent · full rest"; timed holds → "steady hold"; **deload week or
+  readiness "recharge" → "easy · RIR 3+" on every lift**; heavy compounds →
+  "RIR 2 · rest 2–3 min"; ≤6 reps → "RIR 2–3 · rest 2–3 min"; ≥13 reps →
+  "RIR 1 · rest ~90s"; else "RIR 1–2 · rest ~90s". On bulk/leanbulk a 💪
+  accessory's last set goes to failure ("RIR 0–1 · last set to failure",
+  DESIGN-CHANGES §76) — but since the Oct 2026 fix round **never** in Peak
+  weeks, on Lunge / Split Squat / Step-up / Nordic / Sissy names, when a 🏋️ lift
+  still follows that day (`beforeHeavy`), in a new lifter's first 2 weeks
+  (`ffOnRamp`: plan weeks 1–2 with no `ff_history` from before the plan), the
+  first time a lift is done (`first`), or the first session back after 28+
+  days off it (`easeIn`). Rest-timer defaults: 120 s between sets, 180 s
+  between lifts (045-inline-logger…js).
 - **Warm-ups** (`warmupBase`/`warmupList`, 302-324): 5-min day-specific
   mobility list + ramp-up sets; the mobility screen routes targeted fixes in
   (§7). Warm-ups are checklist-only and **never enter the log** — deliberately,
@@ -247,63 +280,96 @@ sides, full rest, "modest evidence — the add-on, not the main event."
 
 ## 4. Double progression + load math + e1RM
 
-- **Double progression** (the progression model everywhere): hold the load
-  until you hit the **top of the rep range on every working set**, then add a
-  small increment. `progressReady(lx, target)` (040-workout-logger.js:170-175):
-  needs ≥2 working sets last session, all with reps ≥ the target's top reps.
-- **Increment**: `incNum(name)` (040:168) = **5 lb** if name matches
-  `/Squat|Deadlift|Hinge|Lunge|Hip Thrust|Leg Press|Romanian|Swing|Carry/i`,
-  else **2.5 lb**. Display band `incFor` (040:165): "5–10 lb" / "2.5–5 lb".
-- **Prescribed load** `prescribeW(lastW, name, ready, wave)`
-  (035-training-plan.js:457-462):
-  ```
-  no last weight        → null (no prescription; show last as-is)
-  wave === "deload"     → max(5, round(lastW × 0.6 / 5) × 5)   // ~60%, rounded to 5 lb
-  ready (progression)   → lastW + incNum(name)
-  otherwise             → null
-  ```
+- **Double progression** (the progression model everywhere): every lift has
+  ONE target number (e.g. "4 × 5"), not a range. Hold the load until **every
+  working set reaches the target reps**, then add the smallest jump.
+  `progressReady(lx, target)` (040-workout-logger.js): needs ≥2 working sets
+  last session, all with reps ≥ `topReps(target)`, and never fires off a
+  `_reduced` (deload/recovery) session. Load- vs rep-progression build muscle
+  about equally (Plotkin 2022), so the single-target model is fine.
+- **Increment**: `incNum(name)` (040) — equipment-aware since the Oct 2026 fix
+  round: med ball → **0** (no load bump); lower-body compounds
+  (`Squat|Deadlift|Hinge|Lunge|Hip Thrust|Leg Press|Romanian|Swing|Carry`) → **5**;
+  barbell upper body → **2.5**; dumbbells / kettlebells / cables / machine
+  stacks → **5**; anything else → 2.5 (lb). `incFor` is the display text; keep
+  the two in step.
+- **Ballistic drills never auto-progress**: jumps, throws, swings and other
+  `isBallistic` drills get no load bump from rep completion (a 3–6 rep
+  max-intent set always "hits its reps"); load goes up only while every rep
+  stays explosive. Deload/recovery reductions still apply.
+- **Rep-shift rescale** (`repShiftLoad`, 035): when the rep target changes
+  (into a Heavy week or back to Build), the suggested load is rescaled by an
+  Epley-style ratio `(1+(rRef+2)/30)/(1+(rNow+2)/30)` from the reps actually
+  logged, clamped to 0.85–1.10, so Heavy weeks are actually heavier — not one
+  small increment — and the return to Build is a little lighter.
+- **Return after a break** (per lift, in `ffDose`): last full-dose session of
+  that lift **≥14 days** ago → **no** add-weight jump; **≥28 days** → **~90%**
+  of the last working weight (`ffReduceLoad(ref, 0.9)`). (Evidence + rationale:
+  NUTRITION §7 "Time off and coming back" — strength generally held up to ~4
+  weeks; losses beyond ~2–4 weeks; faster regain than first gain. 90% is a
+  design choice, not a measured loss.) `lastSessionFor` falls back to the last
+  full-dose `ff_history` session from before a restart (`_prior`), so "Ease back
+  in" keeps loads.
+- **Prescribed load** (`prescribeW` in 035 + the shared `ffDose` in
+  077-daily-readiness…js, which every logger reads): no last weight → no
+  prescription; only a deload/recovery log → no prescription; deload week →
+  ~60% (`ffReduceLoad`, which always reduces); readiness "recharge" → ~75% cap;
+  progression-ready → last + one increment, except never for ballistic drills,
+  in Peak weeks or ≥14 days after the last full-dose session; plus the
+  rep-shift rescale and the 28-day ease-in. Read `ffDose` for the exact order.
   Prescriptions render as input **placeholders** with one-tap commit — never
   phantom logged values (a recorded deliberate preference).
 - **e1RM — Epley estimate** (070-workout-player…js:596-597):
   `e1RM(w, r) = w × (1 + r/30)`; returns 0 unless w>0 and r≥1. Used by the
   Octane strength pillar, PR detection, and exercise history.
 
-## 5. Macro math — exactly as implemented in 025-macro-calculator.js
+## 5. Macro math — as implemented in 024-macro-model.js (`ffMacroTargets`) + 025-macro-calculator.js (`calc`)
 
-### 5.1 The daily pipeline (`calc()`, lines 177-300)
+### 5.1 The daily pipeline
+
+`calc()` (025) computes energy, then hands the macro split to the pure, DOM-free
+`ffMacroTargets()` (024), which is unit-tested in Node (`tests/macro-model.test.mjs`):
 
 ```
 weightKg = lb / 2.20462 ;  heightCm = (ft×12 + in) × 2.54
-BMR  = 10×weightKg + 6.25×heightCm − 5×age + (male ? +5 : −161)   // Mifflin–St Jeor (line 185)
-TDEE = BMR × activity          // 1.2 / 1.375 / 1.55 / 1.725 / 1.9 (line 26 labels)
-target = TDEE × (1 + goal.pct)
-proteinG = round5( target × goal.proteinPct / 4 )   // ← computed BEFORE the adaptive nudge
-target  += ff_kcal_adj                               // metabolism check-in (lines 206-207)
-fatG     = goal.fatG                                 // fixed grams
-carbG    = round5( (target − proteinG×4 − fatG×9) / 4 ), floored at 0
+BMR  = 10×weightKg + 6.25×heightCm − 5×age + (male ? +5 : −161)   // Mifflin–St Jeor
+TDEE = BMR × activity          // 1.2 / 1.375 / 1.55 / 1.725 / 1.9
+target = TDEE × (1 + goal.pct) + ff_kcal_adj                     // metabolism check-in nudge
+target = max(target, floorKcal)                                  // 1200 women / 1500 men
+referenceLb = min(weightLb, 30 × heightM² × 2.20462)             // BMI-30 cap
+proteinG = round5( referenceLb × goal.proteinPerLb )
+fatG     = round5( clamp(referenceLb × goal.fatPerLb, 45, 100) )
+fatG     = raised if needed so fatG × 9 ≥ ~20% of target          // Oct 2026 fat floor
+carbG    = round5( max(0, (target − proteinG×4 − fatG×9) / 4) )
+target   = max(target, proteinG×4 + fatG×9 + carbG×4)
 ```
 
-**Order matters**: `ff_kcal_adj` is added *after* protein is set, so the
-adaptive nudge flows entirely into carbs (protein and fat are fixed). Macro
-kcal values: protein 4, carb 4, fat 9. `round5` = nearest multiple of 5.
-Results are stashed to `ff_targets` `{goal,kcal,proteinG,carbG,fatG,mealN,tdee}`
-for the AI coach (lines 293-298).
+Protein and the body-size fat anchor **don't depend on calories at all**, so the
+check-in nudge (`ff_kcal_adj`) lands in carbs — and, on a big-calorie day where the
+20% floor binds, partly in fat — unless the calorie floor binds. The exact rounding of
+the fat floor and which goals carry it: read `ffMacroTargets` and `GOALS` (the floor
+was added in the Oct 2026 fix round; the code wins over this block). Macro kcal values:
+protein 4, carb 4, fat 9. `round5` = nearest multiple of 5. Results are stashed to
+`ff_targets` `{goal,kcal,proteinG,carbG,fatG,mealN,tdee}` for the AI coach.
 
-### 5.2 The goal table (`GOALS`, lines 8-25; doc: NUTRITION §10)
+### 5.2 The goal table (`GOALS`, 025; doc: NUTRITION §10)
 
-| Goal (key) | kcal adj | Protein %kcal | Fat fixed g | Weekly BW target | Rec. meals |
+| Goal (key) | kcal adj | Protein g/lb ref | Fat g/lb ref (45–100 g, ≥~20% kcal) | Weekly BW target | Rec. meals |
 |---|---|---|---|---|---|
-| Lean Bulk (`leanbulk`) | **+10%** | 30% | 65 | +0.25–0.5%/wk | 4 |
-| Bulk (`bulk`) | **+20%** | 30% | 70 | +0.5–0.75%/wk | 5 |
-| In-Season Maintain (`maintain`) | ±0% | 30% | 55 | hold | 4 |
-| Lean Out / Cut (`cut`) | **−20%** | **35%** | 50 | −1 to −0.5%/wk | 3 |
+| Lean Bulk (`leanbulk`) | **+10%** | 0.90 | 0.35 | +0.25–0.5%/wk | 4 |
+| Bulk (`bulk`) | **+20%** | 0.90 | 0.35 | +0.5–0.75%/wk | 5 |
+| In-Season Maintain (`maintain`) | ±0% | 0.85 | 0.35 | hold | 4 |
+| Lean Out / Cut (`cut`) | **−20%** | **1.00** | 0.30 | −1 to −0.5%/wk | 3 |
 
-Protein-as-%kcal lands most golfers ~0.9–1.1 g/lb building, ~1.0–1.3 g/lb
-cutting — deliberately at the top of the evidence range (Morton 2018 plateau at
-1.6 g/kg with CI to ~2.2; Helms 2014 for deficits; NUTRITION §4). Fixed fat
-grams all sit above the ~0.3 g/lb hormonal floor. The keys above are the only
-valid `state.goal` / profile `goal` values — test seeds must use them exactly
-(`'leanbulk'`, not `'lean'`).
+0.85–1.0 g/lb of reference weight is ~1.9–2.2 g/kg — at or above Morton 2018's
+~1.6 g/kg plateau, up to its ~2.2 upper bound. On a cut, 2.2 g/kg of body weight is
+roughly 2.5–2.9 g/kg of **fat-free mass** at 12–25% body fat, inside Helms 2014's
+2.3–3.1 g/kg **FFM** range (Helms is per lean mass, not body weight — NUTRITION §4).
+Fat at 0.30–0.35 g/lb sits at or above the ~0.3 g/lb floor. Lean Bulk is the default
+goal, but onboarding suggests **Lean Out** at BMI ≥30 (a suggestion, never a lock).
+Bulk is honest copy only: faster scale gain, mostly fat in trained lifters (Helms 2023),
+not extra strength or speed. The keys above are the only valid `state.goal` / profile
+`goal` values — test seeds must use them exactly (`'leanbulk'`, not `'lean'`).
 
 ### 5.3 Meal scheduling + role weights (lines 213-270)
 
@@ -328,25 +394,29 @@ valid `state.goal` / profile `goal` values — test seeds must use them exactly
   | Post-workout meal | (its role's p) | **1.60** | role's f **× 0.35** |
   | Pre-workout snack | 0 | 0.80 | 0 |
 
-  Post-workout goes high-carb/low-fat (fat blunts the glycogen refill). Carbs
-  are split across **all** feedings by weight, so portions shrink as meals are
-  added. `distribute`/`distribute5` (74-88) is a largest-remainder split in
+  Post-workout goes high-carb and lighter on fat — a comfort/room-for-carbs
+  choice, not physiology: with ~24 h between sessions, fat in the meal doesn't
+  reduce glycogen storage (Burke 1995); only a second hard session within ~8 h
+  makes fast, low-fat carbs matter. Carbs are split across **all** feedings by
+  weight, so portions shrink as meals are added. `distribute`/`distribute5`
+  (74-88) is a largest-remainder split in
   whole 5 g units that **sums exactly** to the daily total.
 
 ### 5.4 The metabolism check-in (adaptive calories)
 
-070-workout-player…js:950-999 + apply handler 085-progress-stats-view.js:678-679.
+`weightTrend` / `adaptiveCheck` / `adaptiveDue` in 070-workout-player…js + the
+apply handler in 085-progress-stats-view.js (grep recipes in Provenance).
 MacroFactor-style: the calculator is a starting guess; the scale is the meter.
 
-- `weightTrend()` (954-967): least-squares slope over `ff_body` weights within
+- `weightTrend()`: least-squares slope over `ff_body` weights within
   the last 32 days; needs ≥2 points spanning ≥10 days. Returns lb/week.
-- Due (`adaptiveDue`, 980): a trend exists AND ≥10 days since `ff_lastcheckin`.
-- `adaptiveCheck()` (968-979): `desired` = midpoint of the goal's weekly band ×
+- Due (`adaptiveDue`): a trend exists AND ≥10 days since `ff_lastcheckin`.
+- `adaptiveCheck()`: `desired` = midpoint of the goal's weekly band ×
   bodyweight (0 for maintain); `error = measuredRate − desired`; tolerance
   `max(0.25 lb/wk, |desired|×0.6)`. If off-track:
   `delta = −round(error × 500 / 50) × 50`, clamped **±250 kcal** per check-in
   (≈500 kcal/day per lb/wk of error ≈ 3500 kcal/lb ÷ 7).
-- Applying adds delta to `ff_kcal_adj`, clamped **±600 kcal total** (085:678),
+- Applying adds delta to `ff_kcal_adj`, clamped **±600 kcal total** (085),
   stamps `ff_lastcheckin`, and reruns `calc()` — the change lands in carbs (§5.1).
 
 ### 5.5 Fuel adherence score (feeds Octane pillar 6)
@@ -422,39 +492,39 @@ hack. Implementation (065-mobility-screen…js):
 
 ## 8. Octane — the pillar formulas (all six)
 
-Engine: `ffScore()` at 070-workout-player…js:621-714. A 0–100 **trajectory +
-consistency** score (fuel-gauge E→F), never a normative fitness rating and
-never a leaderboard — no published norm tables, by policy (OCTANE-SCORE.md
-header; that policy is current even though the doc is stale, see below).
+Engine: `ffScore()` in 070-workout-player…js; card `renderScoreCard()` (same
+file), shown only on the **Stats tab** (gauge + summary; the six pillar bars fold
+open). A 0–100 **trajectory + consistency** score (fuel-gauge E→F), never a
+normative fitness rating and never a leaderboard — no published norm tables, by
+policy (OCTANE-SCORE.md, refreshed to six pillars in Oct 2026).
 
 | # | Pillar | Max | Formula (all `clamp`ed to [0, max]) | Needs |
 |---|---|---|---|---|
-| 1 | Consistency | 35 | `35 × clamp(sessionsLogged / (freq × min(week,8)), 0, 1)` — freq from `planState.freq` (default 4); sessions = all `ff_log` entries | ≥1 logged session |
+| 1 | Consistency | 35 | `35 × clamp(done / (freq × weeksIn), 0, 1)`, `weeksIn = max(1, min(week,8))`; `done` = FINISHED `ff_log` sessions in the last `weeksIn` plan weeks (`sessionsByWeek`) — decays if you stop; freq from `planState.freq` (default 4) | ≥1 finished session |
 | 2 | Clubhead speed | 30 | `15 + speedGain% × 220` where gain = (last − first)/first over `ff_body` 7-iron entries; neutral start = 15/30 | ≥2 speed entries |
-| 3 | Strength (e1RM) | 25 | `10 + avgGain% × 150`; per-lift Epley e1RM, first session's top vs best-ever, averaged over lifts matching `/Squat\|Deadlift\|Bench\|Press\|Row\|Romanian\|Hinge\|Hip Thrust\|Pull-?up\|Chin/i` (605-619) | logged weights across weeks |
-| 4 | Power-to-weight | 10 | `5 + (speedGain% − weightGain%) × 250` — speed outpacing bodyweight scores high | ≥2 speeds AND ≥2 weights |
+| 3 | Strength (e1RM) | 25 | `10 + avgGain% × 150`; per-lift Epley e1RM, first session's top vs best-ever, averaged over the big compound lifts (`isBigLift` in 035 — excludes throws, speed work and Pallof) | logged weights across weeks |
+| 4 | Power-to-weight | 10 | **Goal-aware (Oct 2026)**, replacing the old 1:1 `5 + (speedGain% − weightGain%) × 250`, which scored ~0 for every on-plan Lean Bulk user. On a gaining goal only weight gained *above* the goal's weekly band (`GOALS[goal].weekly`) counts against you; on cut/maintain, weight loss alone earns nothing (speed must hold or rise); speed changes inside test-to-test noise count as zero. Read the p2w block in `ffScore()` for the exact constants. The "keep the surplus lean" lever is for over-band gainers only | ≥2 speeds AND ≥2 weights |
 | 5 | Mobility | 10 | `lastScreenScore / 100 × 10`; "re-screen due" note past 35 days | ≥1 screen |
 | 6 | Fuel | 10 | `avg(fuelScoreFor) × 10` over the last **≤7 logged days within a 14-day lookback** (693-698) | ≥1 fuel-logged day |
 
-**Rescaling rule** (709-713): only pillars with data count —
+**Rescaling rule**: only pillars with data count —
 `score = round(gotPts / gotMax × 100)` over the *have* pillars; with no data at
 all the score is `null` and the gauge reads "–". Fair on day one, sharper as
 data accrues.
 
-**Coaching summary** (`ffScoreSummary`, 723-732): picks the "biggest lever" —
+**Coaching summary** (`ffScoreSummary`): picks the "biggest lever" —
 the weakest have-pillar by pts/max, unless the weakest is >60% filled and a
 locked pillar exists, in which case the largest locked pillar wins. Lever copy
-per pillar in `FF_LEVER` (715-722).
+per pillar in `FF_LEVER`. The AI coach's description of all six pillars lives in
+`supabase/functions/_shared/knowledge.ts` ("Octane" section) — keep it in step.
 
 Related rules: rest-day check-offs live in `ff_rest` and deliberately do NOT
 feed Octane or streaks (only `ff_log` sessions count); `ff_score` is a
 device-local snapshot written for the AI coach (`saveScoreSnapshot`).
 
-**⚠️ OCTANE-SCORE.md is stale** (last touched by the rebrand commit `89bab89`
-only): it documents 5 pillars — **the shipped 6th pillar, Fuel (weight 10), is
-missing** — and says the gauge renders "at the top of the Train view" when it
-now lives in the Stats **Octane hub**. Trust this skill + the code; the current
-record is DESIGN-CHANGES.md ("Octane: Fuel is the 6th pillar", ~line 277).
+OCTANE-SCORE.md was refreshed in Oct 2026 (six pillars, Stats location,
+goal-aware power-to-weight); the history of the Fuel pillar is in DESIGN-CHANGES.md
+("Octane: Fuel is the 6th pillar").
 
 ## 9. Glossary — every domain term a session will meet
 
@@ -480,8 +550,9 @@ edit either.
   maximally triggers muscle protein synthesis; why protein spreads across 3–5
   meals.
 - **Carb timing / pre- & post-workout windows** — carbs concentrated ~90 min
-  before and ~90 min after the training slot; post-workout meal goes
-  high-carb/low-fat. A fine-tuning tool, secondary to daily totals.
+  before and ~90 min after the training slot; post-workout meal goes high-carb
+  and lighter on fat (comfort, not physiology — §5.3). A fine-tuning tool,
+  secondary to daily totals.
 - **Metabolism check-in** — the ~10-day adaptive loop comparing measured
   weight trend to the goal's intended rate, nudging calories (±250/check-in,
   ±600 total) into carbs.
@@ -499,29 +570,43 @@ edit either.
   conditioning is added.
 - **Wave periodization** — the 6-week Accumulate → Intensify → Deload cycle
   (+2-week Peak) overlaid on the one concurrent week (§3).
-- **Accumulate / Intensify / Deload / Peak** — build volume / drop reps &
-  raise loads / recover (−1 set, ~60% loads) / cut volume ~half, hold
-  intensity.
+- **Accumulate / Intensify / Deload / Peak** (UI: Build / Heavy / Easy / Peak) —
+  targets as written, build reps to the target / big-lift reps −2 with loads
+  rescaled up, accessories −1 set / recover (−1 set, floor 2, ~60% loads) / lifts
+  −2 sets and drills −1, same reps, heavy loads (~a third fewer sets on a build
+  goal, ~25% in Retain mode).
 - **Deload** — a planned easy week; recovery is when adaptation lands. Not
   lost time.
-- **Taper / peaking** — pre-event: cut volume 40–50% for ≤2 weeks holding
-  intensity (~3–6% power bump). Implemented via `ff_event` re-anchoring.
+- **Taper / peaking** — pre-event volume cut with intensity held. In-app: the
+  `ff_event` week + the week before become Peak (7–13 days out), then an Easy
+  week. General S&C tapers cut volume ~41–60% (Bosquet 2007, mostly endurance);
+  the app's is gentler. No golf taper data, so no % gain is ever promised.
 - **Progressive overload** — the growth engine: add weight, reps, or sets over
   time; log every session.
-- **Double progression** — hold the load until the top of the rep range on
-  every set, then add 2.5–5 lb (upper) / 5–10 lb (lower) (§4).
+- **Double progression** — hold the load until every working set reaches the
+  lift's single target reps, then add the smallest equipment-aware jump; power
+  drills never auto-progress (§4).
 - **1RM / e1RM / Epley** — one-rep max; estimated 1RM from a lighter set via
   Epley `w × (1 + r/30)`. Lets strength compare across different set/rep days.
 - **RIR** — reps in reserve: clean reps left short of failure. "RIR 2" = stop
   2 shy. Each lift shows target RIR + rest.
 - **Hard set** — a working set taken close to failure (~0–3 RIR). Hypertrophy
-  keeps rising past ~10–12 hard sets/muscle/week with diminishing returns
-  (Pelland 2025); the steeper ceiling is per SESSION (~11 sets/muscle).
+  keeps rising with weekly sets, with diminishing returns (Pelland 2025); a
+  provisional per-SESSION ceiling sits ~11 sets/muscle (preprint). The plan is
+  deliberately moderate: upper body once a week, prime movers ~10 fractional
+  sets, side delts ~5, calves 3–4, hamstrings 7–8, back ~14 on one pull day
+  (NUTRITION §9a has the table).
 - **Hypertrophy** — muscle growth; the 💪 accessory work (8–15 reps typical).
 - **Retain mode** — the training consequence of maintain/cut goals: one set
-  trimmed from 💪 accessories only.
+  trimmed from 💪 accessories only (floor 2) and no to-failure cue. It is the
+  whole of "In-Season" today — same 4–5-day week; a real in-season template is
+  an open lead.
+- **Return after a break** — ≥14 days away: Welcome back screen, first loads
+  back get no jump; ≥28 days: "Ease back in" recommended and loads start ~90%
+  (§4; evidence in NUTRITION §7).
 - **Primer** — the single explosive drill opening every lift day, first and
-  fresh (jump / chest pass / KB swing / rotational throw).
+  fresh (jump / chest pass / KB swing / rotational throw). Never overspeed;
+  not sold as potentiation.
 - **RFD** — rate of force development: how fast you reach high force; the
   quality most tied to swing speed.
 - **CMJ** — countermovement jump: dip then explode up. The best-evidenced jump
@@ -559,8 +644,9 @@ edit either.
 - **90/90** — the hip mobility position/switch drill (both knees at 90°).
 - **Lead-hip internal rotation** — the specific mobility measure whose ~10°
   deficit is tied to golfer low-back pain (§7).
-- **Power-to-weight** — clubhead speed relative to bodyweight; keeps a bulk
-  honest (Octane pillar 4).
+- **Power-to-weight** — clubhead speed relative to bodyweight, judged against
+  the user's goal: an on-plan bulk isn't penalised, only gaining faster than the
+  goal's band (or losing speed) is (Octane pillar 4, §8).
 
 **App-specific coinages** (user-facing; full copy in `FF_TERMS`)
 - **Octane** — the 0–100 six-pillar engine score, shown as a fuel gauge (E→F).
@@ -591,12 +677,16 @@ edit either.
 
 ## Provenance and maintenance
 
-Facts date-stamped 2026-07-08, HEAD `f21930a`. Line numbers drift with edits —
+Facts date-stamped 2026-07-08, HEAD `f21930a`; §§3–5, 8, 9 refreshed 2026-10-01
+(HEAD `231747e` + the Oct 2026 audit fix round). Line numbers drift with edits —
 re-verify before citing:
 
 - Wave engine: `grep -n "purposeFor\|waveFor\|effTarget\|overspeedDose\|prescribeW" src/js/app/035-training-plan.js`
 - Epley + Octane pillars: `grep -n "e1RM\|function ffScore" src/js/app/070-workout-player-full-screen-guided-sessio.js` (engine ~lines 591-732)
-- Macro pipeline + GOALS: `sed -n '8,25p;177,300p' src/js/app/025-macro-calculator.js`
+- Macro pipeline: `grep -n "function ffMacroTargets" -A 30 src/js/app/024-macro-model.js`;
+  GOALS + call site: `grep -n "var GOALS\|ffMacroTargets(\|ff_targets" src/js/app/025-macro-calculator.js`
+- Load prescription: `grep -n "function ffDose\|function prescribeW\|function isBallistic\|function isBigLift" src/js/app/0*.js`
+- Effort copy + primers: `grep -n "function effortNote\|function primerFor" src/js/app/035-training-plan.js`
 - Adaptive check-in: `grep -n "weightTrend\|adaptiveCheck\|adaptiveDue" src/js/app/070-workout-player-full-screen-guided-sessio.js`; clamp: `grep -n "ff_kcal_adj" src/js/app/085-progress-stats-view.js`
 - Speed test cadence: `grep -n "SPEEDTEST_EVERY\|speedTestDue" src/js/app/060-speed-test-day-the-biweekly-testing-ritu.js`
 - Mobility scoring/cadence: `grep -n "mobDue\|score=Math.round" src/js/app/065-mobility-screen-the-3-move-durability-ch.js`
@@ -605,9 +695,8 @@ re-verify before citing:
 - Effect sizes / banned claims: CLUBHEAD-SPEED-REFERENCE.md §§9-11 (search
   "+8.2" for the refutation, "0.82 \[0.63" for the Brennan table, "4.1%" for
   the defensible number).
-- OCTANE-SCORE.md staleness: `git log --oneline -1 -- OCTANE-SCORE.md` — if it
-  has been edited since `89bab89`, re-check whether the 6-pillar gap was fixed
-  and update §8 here.
+- OCTANE-SCORE.md mirrors §8 — after any `ffScore()` change, update both (and the
+  "Octane" section of knowledge.ts).
 - The AI coach's knowledge base (`supabase/functions/_shared/knowledge.ts`)
   mirrors these docs; if you change domain numbers here or in the reference
   docs, check whether knowledge.ts needs the same change (manual discipline —

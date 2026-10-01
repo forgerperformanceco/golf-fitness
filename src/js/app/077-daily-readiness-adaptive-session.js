@@ -35,7 +35,9 @@
     if(record.original||record.band==="ready") return sess;
     (sess.ex||[]).forEach(function(x,i){
       var count=(x.sets||[]).length;
-      var keep=record.band==="recharge"?Math.min(2,count):(i>=2?Math.max(2,count-1):count);
+      // Smart trim keeps the first two lifts AND every 🏋️ main lift whole —
+      // "main work stays" — and takes one set off the later accessories.
+      var keep=record.band==="recharge"?Math.min(2,count):((i<2||purposeFor(x.name)==="🏋️")?count:Math.max(2,count-1));
       if(keep<count){
         x.baseTarget=x.target;
         x.sets=x.sets.slice(0,keep);
@@ -48,9 +50,8 @@
     return ffReadinessAdaptSession(sess,ffReadinessToday());
   }
   function ffReadinessLoad(last,band){
-    var n=parseFloat(last);
-    if(!(n>0)||band!=="recharge") return null;
-    return Math.max(5,Math.round((n*.75)/5)*5);
+    if(band!=="recharge") return null;
+    return ffReduceLoad(last,0.75);   // the shared reduction (035): always lighter, fine steps for light loads
   }
   // A session's effective readiness band ("Keep the original session" = ready).
   function ffSessBand(sess){ var r=sess&&sess.readiness; return r?(r.original?"ready":r.band):null; }
@@ -60,16 +61,38 @@
   //   lastW — the reference weight (a set's last weight, or last time's top)
   //   x     — the session exercise { name, target }
   //   lx    — its lastSessionFor entry (null = never logged)
-  // Returns { w: load to prefill or null, bump: may the add-weight nudge show }.
+  // Returns { w: load to prefill or null, bump: may the add-weight nudge show,
+  //   band, shift: "up"/"down" when the rep target changed and the load was
+  //   matched to it (repShiftLoad), back: first session after 4+ weeks off }.
+  //   • Power/ballistic drills never get a load bump — they progress by intent
+  //     (a 3–6 rep max-intent set always "hits its reps").
+  //   • Readiness is judged against what was prescribed THEN (lx.target), so a
+  //     Heavy week's lower rep count can't "earn" a jump on its own.
+  //   • Peak weeks hold the load (taper: cut volume, keep intensity).
+  //   • 14+ days since the lift was last done at full dose: no bump; 28+: ~90%.
   function ffDose(lastW,x,lx,week,sess){
     var band=ffSessBand(sess);
     if(lx&&lx._reduced) return {w:null,bump:false,band:band};   // only a deload/recovery log to go on
-    var bump=band!=="recharge"&&progressReady(lx,x.target);
-    var w=prescribeW(lastW,x.name,bump,waveFor(week));
-    var rl=ffReadinessLoad(lastW,band);
+    var wave=waveFor(week), lw=parseFloat(lastW), inc=incNum(x.name);
+    var days=(lx&&lx._ts)?(Date.now()-lx._ts)/864e5:0, back=days>=28;
+    var bump=band!=="recharge" && wave!=="peak" && days<14 && !isBallistic(x.name) &&
+      progressReady(lx,(lx&&lx.target)||x.target);
+    var base=repShiftLoad(lw,x,lx), ref=(base!=null)?base:lw, shift=null, w;
+    if(wave==="deload") w=prescribeW(ref,x.name,false,"deload");   // ~60% of the load for today's reps
+    else if(base!=null && base!==lw){
+      shift=base>lw?"up":"down";
+      // Heavy week: the matched load IS the step up (an earned jump can't stack on
+      // it). Back to more reps: a little lighter, plus the jump if it was earned.
+      w=(shift==="up") ? Math.max(base, bump?lw+inc:0) : Math.min(lw, base+(bump?inc:0));
+    }
+    else w=prescribeW(lw,x.name,bump,wave);
+    if(back && ref>0){ var bk=ffReduceLoad(ref,0.9); if(bk!=null && (w==null || bk<w)) w=bk; }   // ease back in
+    var rl=ffReadinessLoad(ref,band);
     if(rl!=null) w=(w!=null&&w<rl)?w:rl;   // a recovery dose never lifts above a deload load
-    return {w:w,bump:bump,band:band};
+    return {w:w,bump:bump,band:band,shift:shift,back:back&&w!=null};
   }
+  // A lift last done 4+ weeks ago at full dose (lastSessionFor stamps _ts).
+  function ffBackFor(lx){ return !!(lx && !lx._reduced && lx._ts && (Date.now()-lx._ts)/864e5>=28); }
   function ffReadinessSave(original){
     if(!ffReadyDraft) return null;
     var score=ffReadyDraft.sleep+ffReadyDraft.body+ffReadyDraft.energy;

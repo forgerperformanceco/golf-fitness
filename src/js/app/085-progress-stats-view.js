@@ -91,19 +91,25 @@
     var val=(d>=0?"+":"")+(Math.round(d*10)/10)+(unit||"");
     return '<span class="pc-delta '+cls+'">'+arrow+val+'</span>';
   }
-  // Per-lift estimated-1RM history on the big compound movements.
+  // Per-lift estimated-1RM history on the big compound movements (isBigLift).
+  // acc = the like-for-like series the stall insight reads: only full-dose
+  // Build-week sessions (a Heavy week's fewer reps, an easy week's ~60% and a
+  // recovery dose all dip e1RM by design); lastAcc = the newest session is one.
   function bigLiftStats(){
-    var sess=sessionsByWeek(), KEY=/Squat|Deadlift|Bench|Press|Row|Romanian|Hinge|Hip Thrust|Pull-?up|Chin|Lunge|Split Squat/i;
-    var hist={};
+    var sess=sessionsByWeek(), hist={}, acc={}, lastAcc={};
     sess.forEach(function(se){ (se.s.ex||[]).forEach(function(x){
-      if(!KEY.test(x.name)) return;
+      if(!isBigLift(x.name, true)) return;
       var top=0; (x.sets||[]).forEach(function(st){ top=Math.max(top, e1RM(st.w, st.r)); });
       if(top<=0) return;
       (hist[x.name]=hist[x.name]||[]).push(top);
+      var like=sessFullDose(se.s, se.w) && (se.s.wave||waveFor(se.w))==="accumulate";
+      if(like) (acc[x.name]=acc[x.name]||[]).push(top);
+      lastAcc[x.name]=like;
     }); });
     return Object.keys(hist).map(function(n){
       var a=hist[n];
-      return { name:n, series:a, first:a[0], last:a[a.length-1], best:Math.max.apply(null,a), n:a.length };
+      return { name:n, series:a, first:a[0], last:a[a.length-1], best:Math.max.apply(null,a), n:a.length,
+        acc:acc[n]||[], lastAcc:!!lastAcc[n] };
     }).sort(function(a,b){ return b.best-a.best; });
   }
   function weekBars(){
@@ -275,33 +281,39 @@
     var have=r.parts.filter(function(p){ return p.have; });
     var weak=have.slice().sort(function(a,b){ return (a.pts/a.max)-(b.pts/b.max); })[0];
     var locked=r.parts.filter(function(p){ return !p.have; }).sort(function(a,b){ return b.max-a.max; })[0];
-    var pick=(locked && (!weak || weak.pts/weak.max>.6)) ? locked : weak;
+    var pick=(locked && (!weak || weak.pts/weak.max>=.6)) ? locked : weak;
     if(!pick) pick=r.parts[0];
     return { part:pick, action:STORY_ACTIONS[pick.key]||STORY_ACTIONS.consistency };
   }
   function performanceStoryHtml(){
-    var r=ffScore(), body=lsGet("ff_body",[]), d=driveStats(), lifts=bigLiftStats();
-    var speeds=body.map(function(e){ return parseFloat(e.s); }).filter(function(v){ return v>0; });
-    var spBase=speeds.length?speeds[0]:null, spNow=speeds.length?speeds[speeds.length-1]:null;
-    var spGain=speeds.length>=2 ? spNow-spBase : null;
+    // Speed reads through 060's one series + noise rule (ffSpeedRows /
+    // ffSpeedSignal): since the first real test, never a rough guess, and a
+    // verdict only when the change beats normal test-to-test variation.
+    var r=ffScore(), d=driveStats(), lifts=bigLiftStats();
+    var srows=ffSpeedRows(), sig=ffSpeedSignal(srows), speeds=srows.map(function(x){ return x.s; });
+    var spGain=(sig.n>=2 && sig.thr!=null) ? sig.change : null;
     var sessions=sessionsByWeek().length, opp=storyOpportunity(r);
     var title, value, unit="", verdict, proof, tone="building";
+    // Driver carry is noisier still (eyeballed or one ball): a change inside
+    // ±DRIVE_MDC yds reads as holding, not as a gain or a loss.
+    var DRIVE_MDC=6, dReal=!!(d && d.n>=2 && Math.abs(d.gain)>=DRIVE_MDC);
 
     if(d && d.n>=2){
       value=(d.gain>=0?"+":"−")+Math.abs(d.gain);
       unit="verified yards";
       proof="Driver carry · "+d.baseline+" → "+d.latest+" yds";
-      if(d.gain>0){ title="You’re longer off the tee"; verdict="Your measured driver carry is moving in the right direction."; tone="winning"; }
-      else if(d.gain===0){ title="Your distance is holding"; verdict="You’ve protected your baseline. The next block is about converting the engine into more speed."; }
+      if(dReal && d.gain>0){ title="You’re longer off the tee"; verdict="Your measured driver carry is moving in the right direction."; tone="winning"; }
+      else if(!dReal){ title="Your distance is holding"; verdict="Within normal round-to-round variation so far. The next block is about converting the engine into more speed."; }
       else { title="Your distance is rebuilding"; verdict="Your latest driver entry is below baseline, so the next test will tell us whether this is noise or a trend."; tone="focus"; }
     } else if(spGain!=null){
-      var potential=Math.round(spGain*2);
-      value=(potential>=0?"+":"−")+Math.abs(potential);
-      unit="yds potential";
-      proof="7-iron estimate · "+spBase+" → "+spNow+" mph";
-      if(spGain>0){ title="You’re building distance"; verdict="Your 7-iron speed trend points to more carry becoming available."; tone="winning"; }
-      else if(spGain===0){ title="Your speed baseline is holding"; verdict="The engine is stable. Now we need a stronger training signal to move it."; }
-      else { title="Your speed is rebuilding"; verdict="Speed is below your first test. Retest fresh before treating one dip as a trend."; tone="focus"; }
+      proof="7-iron trend · "+sig.base+" → "+sig.now+" mph";
+      if(sig.verdict==="up"){ var potential=Math.round(spGain*2);
+        value="+"+potential; unit="yds potential";
+        title="You’re building distance"; verdict="Your 7-iron speed is up by more than normal test-to-test variation — more carry is becoming available."; tone="winning"; }
+      else if(sig.verdict==="down"){ value="−"+Math.abs(Math.round(spGain*2)); unit="yds potential";
+        title="Your speed is rebuilding"; verdict="Your recent tests sit below your baseline by more than normal variation. Retest fresh — rested and warmed up."; tone="focus"; }
+      else { value="≈0"; unit="yds so far";
+        title="Your speed is holding"; verdict="Changes so far are within normal test-to-test variation (about ±"+sig.thr+" mph). Real gains show up over several tests — keep testing every 2 weeks."; }
     } else if(sessions){
       value=String(sessions);
       unit="workout"+(sessions===1?"":"s")+" done";
@@ -317,18 +329,20 @@
       tone="start";
     }
 
-    var evidence=0;
-    if(d&&d.n>=2) evidence++;
-    if(speeds.length>=2) evidence++;
-    if(lifts.some(function(L){ return L.n>=2; })) evidence++;
-    if(sessions>=2) evidence++;
-    evidence+=r.parts.filter(function(p){ return p.have && (p.key==="mobility"||p.key==="fuel"); }).length;
-    var conf=evidence>=4?"Clear trend":(evidence>=2?"Trend forming":"Too early to tell");
-    var confHelp=evidence>=4?"several numbers agree":(evidence>=2?"more than one number logged":"another test makes this clearer");
+    // The chip says whether the headline number has beaten its noise — not how
+    // many kinds of data exist (that never checked that anything "agrees").
+    var conf, confHelp;
+    if(d && d.n>=2){
+      conf=(dReal && d.n>=3)?"Clear trend":"Trend forming";
+      confHelp=conf==="Clear trend"?"bigger than normal round-to-round variation":"not yet bigger than normal variation";
+    } else if(spGain!=null){
+      conf=(sig.verdict==="up"||sig.verdict==="down")?"Clear trend":(sig.n>=3?"Trend forming":"Too early to tell");
+      confHelp=conf==="Clear trend"?"bigger than normal test-to-test variation":(conf==="Trend forming"?"not yet bigger than test-to-test variation":"another test makes this clearer");
+    } else { conf="Too early to tell"; confHelp="two speed tests start the trend"; }
 
     var milestones=[];
-    if(d&&d.n>=2&&d.gain>0) milestones.push("🏁 +"+d.gain+" verified driver yds");
-    if(spGain!=null&&spNow===Math.max.apply(null,speeds)&&spGain>0) milestones.push("⚡ New 7-iron speed high");
+    if(dReal&&d.gain>0) milestones.push("🏁 +"+d.gain+" verified driver yds");
+    if(sig.verdict==="up"&&speeds[speeds.length-1]===sig.best) milestones.push("⚡ New 7-iron speed high");
     var bestLift=lifts.filter(function(L){ return L.n>=2 && L.last>=L.best; })[0];
     if(bestLift) milestones.push("🏆 "+ffEsc(bestLift.name)+" at "+Math.round(bestLift.best)+" lb e1RM");
     if(sessions) milestones.push("✓ "+sessions+" workout"+(sessions===1?"":"s")+" done");
@@ -345,7 +359,7 @@
       outlookLine()+
       '<div class="ps-grid one">'+
         '<div class="ps-next"><span class="ps-next-kick">WORK ON NEXT</span><h4>'+opp.part.label.replace(" (e1RM)","")+'</h4>'+
-          '<p>'+FF_LEVER[opp.part.key]+'.</p><button type="button" class="ps-cta" '+opp.action.attr+'>'+opp.action.label+' <span>→</span></button></div></div>'+
+          '<p>'+(opp.part.lever||FF_LEVER[opp.part.key])+'.</p><button type="button" class="ps-cta" '+opp.action.attr+'>'+opp.action.label+' <span>→</span></button></div></div>'+
       (milestones.length?'<div class="ps-milestones">'+milestones.slice(0,3).map(function(m){ return '<span>'+m+'</span>'; }).join("")+'</div>':'')+
       // The Yardsmith card (055) — offered once there's a real number to post.
       ((r.score!=null||d||speeds.length||sessions)?'<button type="button" class="ps-share" data-yscard="1">'+ffIcon("share",16)+'<span>Share my Yardsmith card</span></button>':'')+
@@ -363,8 +377,10 @@
   function outlookLine(){
     if(!window.FFBrain || !window.FFBrain.forecast) return "";
     var f=null; try{ f=window.FFBrain.forecast(); }catch(_){}
-    if(!f || f.status!=="ready") return "";
-    return '<div class="ps-outlook"><span>📈</span><span>Next 6 weeks, if you keep this up: <b>'+f.projected7Iron.low+'–'+f.projected7Iron.high+' mph</b> 7-iron'+
+    // A Low-confidence range is too wide to headline — it stays in the
+    // outlook card under "The details", labelled as such.
+    if(!f || f.status!=="ready" || f.confidence==="Low") return "";
+    return '<div class="ps-outlook"><span>📈</span><span>Next 6 weeks, if you keep this up: likely <b>'+f.projected7Iron.low+'–'+f.projected7Iron.high+' mph</b> 7-iron'+
       ' <em>· '+String(f.confidence).toLowerCase()+' confidence</em></span></div>';
   }
   function brainForecastHtml(){
@@ -375,7 +391,7 @@
     return '<section class="brain-forecast" aria-labelledby="bfTitle">'+
       '<div class="bf-top"><span class="bf-kick">6-WEEK OUTLOOK</span><span class="bf-conf">'+f.confidence+' confidence</span></div>'+
       '<div class="bf-main"><div><h3 id="bfTitle">'+f.projected7Iron.low+'–'+f.projected7Iron.high+' mph</h3>'+
-        '<p>Projected 7-iron range if the current training dose and consistency hold.</p></div>'+
+        '<p>Likely 7-iron range if the current training dose and consistency hold'+(f.confidence==="Low"?' — wide, because the trend isn’t clear yet':'')+'.</p></div>'+
         '<div class="bf-gain"><b>'+signed(f.projectedGain.low)+' to '+signed(f.projectedGain.high)+'</b><span>mph vs now</span></div></div>'+
       '<div class="bf-carry"><span>'+ffIcon("gauge",17)+'</span><span><b>'+signed(f.estimated7IronCarryGainYards.low)+' to '+signed(f.estimated7IronCarryGainYards.high)+' yards</b>'+
         '<small>estimated 7-iron carry change · ~2 yards per mph</small></span></div>'+
@@ -392,11 +408,14 @@
     var ss0=el.querySelector(".season-scroll");
     if(ss0 && ss0.clientWidth>0) psSeasonX=(ss0.scrollLeft!==psSeasonAuto) ? ss0.scrollLeft : null;   // null = never scrolled by hand
     var body=lsGet("ff_body",[]);
-    var spF=[], spD=[], wtF=[], wtD=[];
+    var spF=[], spD=[], wtF=[], wtD=[], shown={};
     body.forEach(function(e){
-      var s=parseFloat(e.s); if(s>0){ spF.push(s); spD.push(e.date||""); }
+      if(e && e.iso) shown[e.iso]=e.date||"";
       var w=parseFloat(e.w); if(w>0){ wtF.push(w); wtD.push(e.date||""); }
     });
+    // The speed trend = the numbers that count (060 ffSpeedRows).
+    var spRows=ffSpeedRows(), spSig=ffSpeedSignal(spRows);
+    spRows.forEach(function(x){ spF.push(x.s); spD.push(shown[x.iso]||x.iso); });
     var sess=sessionsByWeek().length, lifts=bigLiftStats();
     var hasAny = sess>0 || spF.length>0 || wtF.length>0;
 
@@ -434,7 +453,7 @@
       // (Population benchmarks live in the speed-test glossary term; the test
       // schedule only surfaces here on the day it's actually due.)
       var spNow=spF.length?spF[spF.length-1]:null, spBase=spF.length?spF[0]:null, spBest=spF.length?Math.max.apply(null,spF):null;
-      var YDS_PER_MPH=2, spGain=(spNow!=null&&spBase!=null)?(spNow-spBase):0;
+      var YDS_PER_MPH=2, spGain=spSig.verdict==="up"?spSig.change:0;   // only a change past test noise is a gain
       if(!spF.length) locked.push({ ic:'⚡', t:'Speed trend', s:'run the guided 7-iron test — your north star number', attr:' data-speedtest="1"' });
       else html += pfCard('speed','⚡ Clubhead speed <small>7-iron</small>',
         (spNow!=null?'<span class="pf-num">'+spNow+' mph</span>':'')+(spF.length>=2?pcDelta(spNow-spBase," mph"):""),
@@ -443,7 +462,7 @@
           : '<div class="pc-need">'+(spF.length===1?"One more entry and your speed trend appears.":"Add a 7-iron speed with <b>Log something</b> on Home to start the trend.")+'</div>')+
         (spF.length>=2&&spGain>0
           ? '<div class="pc-payoff">🎯 That’s roughly <b>+'+Math.round(spGain*YDS_PER_MPH)+' yards</b> of 7-iron carry since your baseline. <span>Speed is distance — ~2 yds per mph.</span></div>'
-          : (spF.length>=2 ? '<div class="pc-payoff muted">Every <b>+1 mph</b> here is about <b>+2 yards</b> of carry. Keep the trend climbing.</div>' : ""))+
+          : (spF.length>=2 ? '<div class="pc-payoff muted">Test days wobble about ±'+(spSig.thr||SPEED_MDC)+' mph — the trend over several tests is what counts. Every real <b>+1 mph</b> is about <b>+2 yards</b> of carry.</div>' : ""))+
         '<div class="pc-foot"><span>'+ffTerm('speedtest','the test & benchmarks')+'</span>'+
           (spF.length>=2?'<span>baseline <b>'+spBase+'</b> · best <b>'+spBest+'</b> mph</span>':'')+'</div>'+
         (speedTestDue()?'<div class="pc-test"><button class="stest-go sm" data-speedtest="1">🎯 Speed test due — run it now</button></div>':""));
@@ -545,10 +564,11 @@
   // week that had sessions meant a lapsed streak never broke on the board.
   function lbStreak(){ return ycStreak(); }
   function myLBStats(){
-    var r=ffScore(), body=lsGet("ff_body",[]);
-    var sp=body.map(function(e){ return parseFloat(e.s); }).filter(function(v){ return !isNaN(v); });
+    // The board posts real numbers only (060 ffSpeedRows) and a gain only once
+    // it beats test noise — a lucky test day isn't a public "+%".
+    var r=ffScore(), sp=ffSpeedRows().map(function(x){ return x.s; }), sg=ffSpeedSignal(ffSpeedRows());
     var speed = sp.length ? sp[sp.length-1] : null;
-    var gain = (sp.length>=2 && sp[0]>0) ? Math.round((sp[sp.length-1]-sp[0])/sp[0]*1000)/10 : null;   // 0 baseline → no %
+    var gain = sg.n>=2 ? (sg.verdict==="steady" ? 0 : Math.round(sg.change/sg.base*1000)/10) : null;
     return { score:r.score, speed:speed, speed_gain:gain,
       sessions:sessionsByWeek().length, streak:lbStreak(),
       week_sessions:thisWeekStats().sessions, week_start:weekStartStr(),
@@ -746,23 +766,20 @@
       var pls=lastSessionFor(ilog.day, ilog.week), plx=null;
       if(pls) pls.ex.forEach(function(e2){ if(e2.name===pex.name) plx=e2; });
       if(plx && plx.sets[ps]){ if(plx.sets[ps].w) pex.sets[ps].w=plx.sets[ps].w; if(plx.sets[ps].r) pex.sets[ps].r=plx.sets[ps].r; saveILog(); renderILog(); } return; }
-    // One-tap load nudge: fill every set to last time's top weight + one small jump.
-    // Reps stay blank (you log what you hit) so progression is by WEIGHT, not reps/volume.
+    // One-tap load fill: every set to TODAY's dosed load from last time's top
+    // weight (077 ffDose — the earned jump, a Heavy week's matched load, an
+    // ease-in after a break). Reps stay blank (you log what you hit).
     var bmp=e.target.closest("[data-bumpfill]");
     if(bmp && ilog){ var bx=+bmp.getAttribute("data-bumpfill"), bex=ilog.sess.ex[bx];
-      var bls=lastSessionFor(ilog.day, ilog.week), blx=null;
-      if(bls) bls.ex.forEach(function(e2){ if(e2.name===bex.name) blx=e2; });
-      if(blx){ var top=0; blx.sets.forEach(function(st){ var w=parseFloat(st.w); if(w>top) top=w; });
-        if(top>0){ var nw=String(top+incNum(bex.name)); bex.sets.forEach(function(s2){ s2.w=nw; }); saveILog(); renderILog(); } }
+      var bw=ilTopDose(bex);
+      if(bw!=null){ bex.sets.forEach(function(s2){ s2.w=String(bw); }); saveILog(); renderILog(); }
       return; }
-    // Deload one-tap: fill every not-done set with ~60% of last time's top weight.
+    // Deload one-tap: fill every not-done set with the easy-week load (~60%, the
+    // same ffDose read as the placeholders).
     var dlf=e.target.closest("[data-deloadfill]");
     if(dlf && ilog){ var dfx=+dlf.getAttribute("data-deloadfill"), dfe=ilog.sess.ex[dfx];
-      var dfs=lastSessionFor(ilog.day, ilog.week), dflx=null;
-      if(dfs) dfs.ex.forEach(function(e2){ if(e2.name===dfe.name) dflx=e2; });
-      if(dflx){ var dtop=0; dflx.sets.forEach(function(st){ var w=parseFloat(st.w); if(w>dtop) dtop=w; });
-        if(dtop>0){ var dw=String(Math.max(5, Math.round(dtop*0.6/5)*5));
-          dfe.sets.forEach(function(s2){ if(!s2.done) s2.w=dw; }); saveILog(); renderILog(); } }
+      var dw=ilTopDose(dfe);
+      if(dw!=null){ dfe.sets.forEach(function(s2){ if(!s2.done) s2.w=String(dw); }); saveILog(); renderILog(); }
       return; }
     var isw=e.target.closest("[data-swapx]");
     if(isw){ openSwap(parseInt(isw.getAttribute("data-swapix"),10), isw.getAttribute("data-swapx"), isw.getAttribute("data-swapcur")); return; }
@@ -868,6 +885,8 @@
   if(db) db.addEventListener("click", function(e){
     var iask=e.target.closest("[data-insask]");
     if(iask){
+      // Locked (036): the Pro sheet opens and the insight stays for after they subscribe.
+      if(!ffCanUse("coach")) return;
       // Asked once → the row moves on to the next signal (or the general read).
       var isig=iask.getAttribute("data-inssig"); if(isig) ffDismissInsight(isig);
       if(window.FFCoach && window.FFCoach.ready()) window.FFCoach.ask(iask.getAttribute("data-insask"), "Coach");
@@ -884,8 +903,14 @@
   document.addEventListener("click", function(e){
     var ad=e.target.closest("[data-adapt]"); if(!ad) return;
     var act=ad.getAttribute("data-adapt");
+    // Apply builds on the adjustment actually in use (calc's clamp) and stays in
+    // the range that can still move the target — so a nudge the calorie floor
+    // swallows never piles up in ff_kcal_adj, and an old phantom value resets.
     if(act==="apply"){ var a=adaptiveCheck();
-      if(a){ var nx=Math.max(-600, Math.min(600, lsGet("ff_kcal_adj",0)+a.deltaKcal)); lsSet("ff_kcal_adj", nx); } }
+      if(a && a.deltaKcal){
+        var cb=(typeof ffCalcBase!=="undefined" && ffCalcBase)?ffCalcBase:null;
+        var cur=cb?cb.effAdj:(Number(lsGet("ff_kcal_adj",0))||0);
+        var nx=ffClamp(cur+a.deltaKcal, cb?cb.lo:-600, cb?cb.hi:600); lsSet("ff_kcal_adj", nx); } }
     lsSet("ff_lastcheckin", Date.now());
     try{ calc(); }catch(_){}
     try{ renderFuelToday(); }catch(_){}
@@ -900,7 +925,9 @@
     var sheet=document.createElement("div");
     sheet.className="qsheet"; sheet.id="qSheet"; sheet.hidden=true;
     document.body.appendChild(sheet);
+    var qlJumpOk=null;   // a far-off 7-iron number the user has already confirmed once
     function openSheet(weighOnly){
+      qlJumpOk=null;
       // Weigh-in mode: the "Morning weigh-in" row wants JUST the scale — no
       // swing-stat fields, no action rows. The FAB (full "Log anything") keeps
       // everything.
@@ -960,6 +987,11 @@
                 qlBad(sv, SPEED_MIN, SPEED_MAX, "7-iron speed", "mph", "qSpeed") ||
                 qlBad(dv, DRIVE_MIN, DRIVE_MAX, "Driver carry", "yds", "qDrive");
         if(!bad && !wv && !sv && !dv) bad={ msg:"Enter a number first.", id:"qBody" };
+        // In range but >15% from the last real number (108 for 80, a driver
+        // speed)? Ask once; a second tap with the same number logs it.
+        var jmp=(!bad && sv) ? ffSpeedJump(sv) : null;
+        if(jmp && qlJumpOk!==sv){ qlJumpOk=sv;
+          bad={ msg:"That’s "+Math.abs(jmp.pct)+"% "+(jmp.pct>0?"above":"below")+" your last 7-iron number ("+jmp.last+" mph). Tap Add again if it’s right.", id:"qSpeed" }; }
         var qe=$("qErr");
         if(bad){
           if(qe){ qe.textContent=bad.msg; qe.hidden=false; }

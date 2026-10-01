@@ -127,10 +127,13 @@
     return ds;
   }
   // Start (or re-anchor) the plan so that "today" lands in the given week.
+  // Outside Pro (once billing is on) every start is week 1 — no week jump (036).
   function startPlanAtWeek(n){
+    if(ffAccess()!=="full") n=1;
     var back = (Math.max(1, n) - 1) * 7;
     var d = new Date(Date.now() - back * 864e5);
     lsSet("ff_start", d.toISOString());
+    ffStampFreeWeek();   // a plan start also starts the free week (a shared ?link= visitor skips setup)
     renderPhase(); if(typeof renderDash==="function") renderDash();
   }
   // Full plan reset: start date + logged workouts (keeps body/speed history +
@@ -198,27 +201,62 @@
   // used to reset every lift to "first time"). Only if no full-dose entry exists
   // does a reduced one serve, flagged _reduced so no load is prescribed off it.
   // Returns a composite session { ex:[…] } — callers match x.name as before.
+  //
+  // Every entry carries _ts — when that session was done (its ff_history finish
+  // time when there is one: ff_log's _ts moves on every edit and a backup restore)
+  // — so ffDose (077) can ease a returner back in instead of adding weight.
+  // A lift with no full-dose log THIS season falls back to its newest full-dose
+  // ff_history entry from before the plan started (_prior): "Ease back in" and
+  // season 2 reset the plan log, never the user's loads.
   function lastSessionFor(day, beforeW){
     var L=getLog(), same={}, any={}, low={}, names=[];
+    var st=Date.parse(planStart()||"")||0, hist=lsGet("ff_history",[]), done={}, prior={}, priorLow={};
+    if(Array.isArray(hist)) hist.forEach(function(h){
+      if(!h || !h.ex) return;
+      var t=h.doneTs||h.ts||0;
+      if(st && t>=st){ var key=h.week+"|"+h.day; if(!done[key] || t>done[key]) done[key]=t; return; }
+      var b=sessFullDose(h, h.week) ? prior : priorLow;
+      h.ex.forEach(function(x){
+        if(!x || !x.name || !(x.sets||[]).some(function(s2){ return s2 && (s2.w||s2.r); })) return;
+        if(!b[x.name] || t>b[x.name].ts) b[x.name]={ x:x, ts:t };
+      });
+    });
     Object.keys(L).forEach(function(k){
       var i=k.indexOf("|"); if(i<0) return;
       var w=parseInt(k.slice(0,i),10), dn=k.slice(i+1), s=L[k];
       if(!(w<beforeW) || !s || !s.ex) return;
-      var rd=s.readiness, full=(s.wave||waveFor(w))!=="deload" && !(rd && rd.band==="recharge" && !rd.original);
+      var full=sessFullDose(s, w), ts=done[w+"|"+dn]||(typeof s._ts==="number"?s._ts:0);
       s.ex.forEach(function(x){
-        if(!x || !x.name || !(x.sets||[]).some(function(st){ return st && (st.w||st.r); })) return;
+        if(!x || !x.name || !(x.sets||[]).some(function(st2){ return st2 && (st2.w||st2.r); })) return;
         var bucket=!full ? low : (dn===day ? same : any), cur=bucket[x.name];
         if(names.indexOf(x.name)<0) names.push(x.name);
-        if(!cur || w>cur.w || (w===cur.w && dn===day)) bucket[x.name]={ w:w, x:x };
+        if(!cur || w>cur.w || (w===cur.w && dn===day)) bucket[x.name]={ w:w, x:x, ts:ts };
       });
     });
+    Object.keys(prior).concat(Object.keys(priorLow)).forEach(function(n){ if(names.indexOf(n)<0) names.push(n); });
     if(!names.length) return null;
+    function lxOf(x, ts, extra){ var o={ name:x.name, orig:x.orig, target:x.target, sets:x.sets||[], _ts:ts }; if(extra) o[extra]=true; return o; }
     return { ex: names.map(function(n){
       var hit=same[n]||any[n];
-      if(hit) return hit.x;
-      var lx=low[n].x;
-      return { name:lx.name, orig:lx.orig, target:lx.target, sets:lx.sets, _reduced:true };
+      if(hit) return lxOf(hit.x, hit.ts);
+      if(prior[n]) return lxOf(prior[n].x, prior[n].ts, "_prior");   // an earlier season's full dose
+      var lw=low[n]||priorLow[n];
+      return lxOf(lw.x, lw.ts, "_reduced");
     }) };
+  }
+  // A full-dose session (ff_log session or ff_history entry): not a deload week
+  // and not a recovery-dose readiness day. Shared by progression (lastSessionFor)
+  // and the stall insight (bigLiftStats) so they can't drift apart.
+  function sessFullDose(s, w){
+    if(!s) return false;
+    var rd=s.readiness, band=rd ? (rd.original ? "ready" : rd.band) : s.rb;
+    return (s.wave||waveFor(w))!=="deload" && band!=="recharge";
+  }
+  // Did the rep target change since that session (a Heavy week, or back to Build)?
+  // Then the reps placeholder seeds from TODAY's target, not last time's reps.
+  function repsShifted(lx, x){
+    var a=lx&&topReps(lx.target), b=x&&topReps(x.target);
+    return !!(a && b && a!==b);
   }
   function topReps(t){ var m=String(t).match(/[×x]\s*(\d+)/); return m?parseInt(m[1],10):null; }
   // A movement measured by DISTANCE, not reps — its authored target reads
@@ -229,10 +267,20 @@
   function isDistEx(t){ return /\byd\b|yards?\b/i.test(t||""); }
   function repWord(t){ return isDistEx(t) ? "yards" : "reps"; }   // lower-case unit
   function repSeed(t){ var n=topReps(t); return n!=null ? String(n) : ""; }
-  function incFor(name){ return /Squat|Deadlift|Hinge|Lunge|Hip Thrust|Leg Press|Romanian|Swing|Carry/i.test(name) ? "5–10 lb" : "2.5–5 lb"; }
   // Single smallest sensible jump for the one-tap "add weight" nudge (progress by LOAD,
-  // holding reps/sets) — big lower-body compounds jump 5 lb, everything else 2.5 lb.
-  function incNum(name){ return /Squat|Deadlift|Hinge|Lunge|Hip Thrust|Leg Press|Romanian|Swing|Carry/i.test(name) ? 5 : 2.5; }
+  // holding reps/sets), by equipment — a step the gym actually stocks:
+  //   med ball → 0 (no load bump: a heavier ball slows the throw)
+  //   lower-body compounds → 5 · barbell upper body → 2.5 (1.25 lb plates a side)
+  //   dumbbells, kettlebells, cables and machine stacks → 5 · anything else → 2.5
+  function incNum(name){
+    var n=String(name||""), needs=" "+(equipNeedsFor(n)||[]).join(" ")+" ";
+    if(/ medball /.test(needs) || (/Med-?Ball|Medicine Ball|Chest Throw|Chest Pass|Slam|Scoop|Shotput/i.test(n) && !/Landmine|Cable|Band|Barbell/i.test(n))) return 0;
+    if(/Squat|Deadlift|Hinge|Lunge|Hip Thrust|Leg Press|Romanian|Swing|Carry/i.test(n)) return 5;
+    if(isBarbell(n)) return 2.5;
+    if(/ (dumbbells|kettlebell|cable|latpulldown|seatedrow|pecdeck|legext|legcurl|chestpress|shoulderpress|preacher|calfmachine|abductor|hipthrustm|assisted|machine-any) /.test(needs) || /\bDB\b|Dumbbell/i.test(n)) return 5;
+    return 2.5;
+  }
+  function incFor(name){ var i=incNum(name); return i ? i+" lb" : "a little"; }
   // Ready to add weight = last session hit the top of the rep range on every working set.
   function progressReady(lx, target){
     var top=topReps(target); if(!top||!lx||lx._reduced) return false;   // never progress off a deload/recovery load
@@ -300,7 +348,15 @@
   }
   function swapOptionsFor(n){
     var g=exGroupFor(n);
-    if(g && EXERCISE_DB[g]) return EXERCISE_DB[g].slice();
+    if(g && EXERCISE_DB[g]){
+      var opts=EXERCISE_DB[g].slice();
+      // The plan's heavy "Deadlift" takes either bar; the trap bar (less load on
+      // the low back at the same weight) is the first one-tap swap.
+      if(/^(Conventional )?Deadlift$/i.test(normName(String(n||"")))){
+        var ti=opts.indexOf("Trap-Bar Deadlift"); if(ti>0){ opts.splice(ti,1); opts.unshift("Trap-Bar Deadlift"); }
+      }
+      return opts;
+    }
     return ["Back Squat","Romanian Deadlift","Weighted Pull-up","Barbell Bench Press"];
   }
 
@@ -308,20 +364,11 @@
   function buildSession(day, week){
     var existing=getSession(week, day.name);
     if(existing) return JSON.parse(JSON.stringify(existing));
-    var ex;
-    if(day.type==="speed"){
-      ex = PHASES[0].speed[speedMode()].ex.map(function(e){ var base=applySwapName(e[0]);
-        var tgt=speedDrillTarget(base, e[1], week);
-        var n=parseSets(tgt), sets=[]; for(var i=0;i<n;i++) sets.push({w:"",r:"",done:false});
-        return { name:base, orig:e[0], target:tgt, sets:sets }; });
-    } else {
-      var rs=resolveDay(day.ex);   // user swaps + gear subs, deduped across the day (same as the card)
-      ex = day.ex.map(function(row, ri){ var base=applySwapName(row[0]);   // user swap first
-        var r=rs[ri]; var nm=(r.status==="swap")?r.name:base;
-        var tgt=effTarget(r.sr||row[1], nm, week);   // Retain trim + wave shift — log to match
-        var n=parseSets(tgt), sets=[]; for(var i=0;i<n;i++) sets.push({w:"",r:"",done:false});
-        return { name:nm, orig:row[0], target:tgt, sets:sets }; });
-    }
+    // dayTargets (035): user swaps + gear subs (deduped like the card), retain
+    // trim + wave shift — the same list the "About N min" estimate counts.
+    var ex = dayTargets(day, week).map(function(t){
+      var n=parseSets(t.target), sets=[]; for(var i=0;i<n;i++) sets.push({w:"",r:"",done:false});
+      return { name:t.name, orig:t.orig, target:t.target, sets:sets }; });
     // wave = the wave this session was RUN at. An event taper re-anchors waves only
     // until the recovery week ends, so waveFor(week) later forgets that week was a
     // deload — lastSessionFor reads this stamp first so it still skips those loads.
@@ -366,9 +413,15 @@
       if(dose.band==="recharge" && lx){
         ref='<div class="logx-nudge">🌱 Recovery dose — '+(dose.w!=null?'about <b>'+dose.w+' lb</b>':'70–80% of normal')+', no PR chasing.</div>';
       } else if(wv==="deload" && lx){
-        ref='<div class="logx-nudge">🪫 Easy week — run ~60% of last week’s loads, one set less. Recovery is the workout.</div>';
-      } else if(dose.bump){
-        ref='<div class="logx-nudge">✅ Hit all reps last time — go up ~'+incFor(x.name)+' this session</div>';
+        ref='<div class="logx-nudge">🪫 Easy week — run ~60% of last week’s loads, a set less on most lifts. Recovery is the workout.</div>';
+      } else if(dose.back){
+        ref='<div class="logx-nudge">👋 Welcome back — ease in at about <b>'+dose.w+' lb</b> (~90% of last time). Leave 2 reps in the tank.</div>';
+      } else if(dose.shift==="up"){
+        ref='<div class="logx-nudge">🔥 Fewer reps today, so more weight — about <b>'+dose.w+' lb</b>.</div>';
+      } else if(dose.shift==="down"){
+        ref='<div class="logx-nudge">🏗️ More reps today, so a little lighter — about <b>'+dose.w+' lb</b>.</div>';
+      } else if(dose.bump && dose.w!=null){
+        ref='<div class="logx-nudge">✅ Hit all reps last time — go up to <b>'+dose.w+' lb</b> this session</div>';
       } else if(lx){
         var d=lx.sets.filter(function(st){return st.w||st.r;}).map(function(st){return (st.w||"–")+"×"+(st.r||"–");}).join(", ");
         if(d) ref='<div class="logx-last">Last time: '+ffEsc(d)+'</div>';
@@ -381,7 +434,7 @@
         var lsW = (lx && lx.sets[si] && lx.sets[si].w) ? lx.sets[si].w : "–";
         var sw = (lsW!=="–") ? ffDose(lsW, x, lx, week, s).w : null;   // prescribed load leads the placeholder
         if(sw!=null) lsW=String(sw);
-        var lsR = (lx && lx.sets[si] && lx.sets[si].r) ? lx.sets[si].r : (dist ? repSeed(x.target) : "–");
+        var lsR = (lx && lx.sets[si] && lx.sets[si].r && !repsShifted(lx, x)) ? lx.sets[si].r : ((dist || repsShifted(lx, x)) ? repSeed(x.target) : "–");
         html+='<div class="setrow'+(st.done?" is-done":"")+'">'+
           '<div class="snum">'+(si+1)+'</div>'+
           (bw ? '<div class="setbw" aria-label="bodyweight">BW</div>'
@@ -389,8 +442,14 @@
           '<input type="number" inputmode="numeric" placeholder="'+escAttr(lsR)+'" value="'+escAttr(st.r||"")+'" data-x="'+xi+'" data-s="'+si+'" data-f="r" />'+
           '<button class="donebtn'+(st.done?" on":"")+'" data-x="'+xi+'" data-s="'+si+'" data-done="1" aria-label="set done">✓</button></div>';
       });
+      // Fill = last session's weights, or the dosed load on a lighter day (easy
+      // week ~60%, recovery dose ~75%, first session back ~90%) — never 100%
+      // into a session whose banner says lighter.
+      var fillLbl = wv==="deload" ? "↻ Fill easy-week loads (~60%)"
+        : (dose.band==="recharge" ? "↻ Fill recovery loads (~75%)"
+        : (dose.back ? "↻ Fill ease-in loads (~90%)" : "↻ Fill last session’s weights"));
       html+='<div class="logx-foot"><button class="addset" data-x="'+xi+'" data-add="1">+ Add set</button>'+
-        (hasLastW?'<button class="filllast" data-fill="'+xi+'">↻ Fill last week’s weights</button>':'')+'</div></div>';
+        (hasLastW?'<button class="filllast" data-fill="'+xi+'">'+fillLbl+'</button>':'')+'</div></div>';
     });
     $("logBody").innerHTML=html;
   }
@@ -411,7 +470,14 @@
       var xi=+fl.getAttribute("data-fill"), x=logState.sess.ex[xi];
       var lastS=lastSessionFor(logState.day, logState.week), lx=null;
       if(lastS) lastS.ex.forEach(function(e2){ if(e2.name===x.name) lx=e2; });
-      if(lx){ x.sets.forEach(function(st, si){ if(lx.sets[si] && lx.sets[si].w) st.w=lx.sets[si].w; }); saveLog(); renderLogBody(); }
+      if(lx){
+        var wk=logState.week, ss=logState.sess, red=waveFor(wk)==="deload" || ffSessBand(ss)==="recharge" || ffBackFor(lx);
+        x.sets.forEach(function(st, si){
+          var lw=lx.sets[si] && lx.sets[si].w; if(!lw) return;
+          var d=red ? ffDose(lw, x, lx, wk, ss).w : null;   // the same reduced load the placeholder shows
+          st.w=(d!=null) ? String(d) : lw;
+        });
+        saveLog(); renderLogBody(); }
     }
   });
   $("logClose").addEventListener("click", closeLogger);

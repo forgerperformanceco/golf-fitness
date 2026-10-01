@@ -46,7 +46,7 @@
 <link rel="apple-touch-startup-image" media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash/apple-splash-750x1334.png" />
 <link rel="apple-touch-startup-image" media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash/apple-splash-640x1136.png" />
 <link rel="preload" href="fonts/ffnum.woff2" as="font" type="font/woff2" crossorigin />
-<link rel="stylesheet" href="styles.css?v=0a4449cb5c" />
+<link rel="stylesheet" href="styles.css?v=d1e81c1e69" />
 </head>
 <body>
   <a class="skip-link" href="#appMain">Skip to main content</a>
@@ -270,7 +270,7 @@
             </button>
             <button type="button" class="goal" data-goal="bulk">
               <div class="gname">💪 Bulk</div><div class="gtag">+20%</div>
-              <div class="gdesc">Aggressive size &amp; strength off-season. Maximize speed potential.</div>
+              <div class="gdesc">Faster weight gain, but more of it is fat — no extra speed over Lean Bulk. Plan a Lean Out after.</div>
             </button>
             <button type="button" class="goal" data-goal="maintain">
               <div class="gname">⛳ In-Season</div><div class="gtag">Maintain</div>
@@ -282,9 +282,9 @@
             </button>
           </div>
           <details class="goalhelp"><summary>Which bulk should I pick?</summary>
-            <div><b>Lean Bulk (+10%)</b> is the right default for most people. Past the beginner stage you build muscle at a capped rate (~0.25–0.5 lb/month), so a modest surplus adds mostly muscle with minimal fat — and keeps you mobile for the swing. A bigger surplus doesn’t build more muscle, just more fat.<br><br>
+            <div><b>Lean Bulk (+10%)</b> is the right default for most lean-to-average builds. Carrying a lot of body fat? Start with <b>Lean Out</b> — heavy lifting and high protein build muscle in a deficit too, and a surplus would mostly add fat. Past the beginner stage muscle comes slowly — roughly 0.5–1 lb a month for most people who’ve trained a while, less for advanced lifters. So the Lean Bulk scale target (0.25–0.5% of bodyweight a week) is part muscle and part fat, water and stored carbs. A modest surplus keeps the fat share smaller and keeps you mobile for the swing. A bigger surplus doesn’t build meaningfully more muscle, just more fat.<br><br>
             <b>Bulk (+20%)</b> is for <b>true beginners and hard-gainers</b>, or when you want faster scale gains and will run a <b>Lean Out</b> afterward. It speeds scale weight but adds more fat, so plan a cut to follow.
-            <span class="goalhelp-note">Either way the surplus goes to carbs — protein and fat are fixed, carbs fill the rest — to fuel hard training and a long round.</span></div>
+            <span class="goalhelp-note">Either way protein stays fixed, fat stays at 20% of calories or more, and carbs fill the rest — to fuel hard training and a long round.</span></div>
           </details>
         </label>
         <div class="form-actions">
@@ -333,11 +333,11 @@
         <summary id="planFoldTitle">📈 How to make it work (and keep your swing)</summary>
         <div class="fold-body">
           <ul>
-            <li id="planRateBullet"><b>Clean surplus:</b> Lean Bulk (+10%), gain <b>~0.5–0.75 lb/week</b> — not a dirty bulk.</li>
+            <li id="planRateBullet"><b>Clean surplus:</b> Lean Bulk (+10%), gain <b>~0.25–0.5% of bodyweight a week</b> (about 0.5–1 lb for most) — not a dirty bulk.</li>
             <li><b>Protein daily:</b> ~1 g/lb, spread across meals.</li>
             <li><b>Quality food &amp; gut health:</b> whole foods; watch triggers if you bloat.</li>
-            <li><b>Progressive overload:</b> on the big lifts, add weight when the top set still moves fast — strength first, reps second. Log it.</li>
-            <li><b>Ground &amp; turn:</b> never skip the 2–3 weekly speed/overspeed sessions.</li>
+            <li><b>Progressive overload:</b> keep the weight until every set hits its target reps, each rep driven up fast. Then the app adds a small jump (+2.5–5 lb upper body, +5 lb lower body). If reps start to grind, hold the weight. Log it.</li>
+            <li><b>Ground &amp; turn:</b> never skip the weekly Speed day or the jump and throw primers — overspeed swings are the light add-on.</li>
             <li><b>Measure it:</b> track clubhead speed on a radar, chase a new number.</li>
             <li><b>Mobility (protects your back) &amp; 7–9 hrs sleep:</b> recovery is where it's made.</li>
           </ul>
@@ -408,9 +408,9 @@
   </footer>
 </main>
 
-<script>window.FF_BUILD="0a4449cb5c";</script>
+<script>window.FF_BUILD="d1e81c1e69";</script>
 <script src="product-health.js?v=7"></script>
-<script src="app.js?v=0a4449cb5c"></script>
+<script src="app.js?v=d1e81c1e69"></script>
 <!-- Login lives in the Account tab, so cloud-sync should skip its floating pill. -->
 <script>window.FF_ACCOUNT_TAB = true;</script>
 <!-- Cloud login + progress sync. The Supabase SDK itself is LAZY-LOADED by
@@ -418,6 +418,6 @@
      signed-out visitors never download it. -->
 <script defer src="cloud-sync.js?v=120"></script>
 <!-- AI coach chat. Degrades gracefully until the Edge Function is deployed. -->
-<script defer src="coach.js?v=91"></script>
+<script defer src="coach.js?v=92"></script>
 </body>
 </html>

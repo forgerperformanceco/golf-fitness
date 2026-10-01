@@ -12,7 +12,7 @@ var ASSETS = [
   './delete-account.html',
   './product-health.js?v=7',
   './cloud-sync.js?v=120',
-  './coach.js?v=91',
+  './coach.js?v=92',
   './manifest.webmanifest',
   './logo-dark-mark.png',
   // og-image.png intentionally NOT precached — it's only ever fetched by social scrapers.

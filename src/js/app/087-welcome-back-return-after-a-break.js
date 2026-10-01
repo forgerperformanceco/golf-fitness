@@ -47,6 +47,9 @@
   }
   function ffWelcomeBackDue(){
     if(!lsGet("ff_onboarded",false) || !planStart()) return null;
+    // After the free week without Pro there's no plan to restart or pick up —
+    // Home's lock card says what's kept (036). Never offer a restart they can't run.
+    if(ffAccess()==="locked") return null;
     try{ if(sessionStorage.getItem("ff_wb_later")==="1") return null; }catch(_){}
     var last=ffLastActiveTs(); if(!last) return null;
     var days=Math.floor((Date.now()-last)/864e5);
@@ -112,6 +115,9 @@
   }
   function ffWelcomeBackChoose(choice, s){
     ffWelcomeBackClose();
+    // Locked since the screen opened (e.g. a synced earlier free-week date):
+    // change nothing, show what Pro is instead.
+    if(choice!=="later" && ffAccess()==="locked"){ ffPaywallOpen("workout"); return; }
     if(choice==="later"){
       try{ sessionStorage.setItem("ff_wb_later","1"); }catch(_){}
     } else {

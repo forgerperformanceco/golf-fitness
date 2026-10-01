@@ -26,7 +26,7 @@
           ex: [
             ["Trap-bar jump", "4 \u00d7 3", "Light load \u2014 explode straight off the ground, land soft, full recovery. (No trap bar? Dumbbell jump squat.)"],
             ["Landmine rotational throw", "4 \u00d7 4 / side", "Drive from the hips and rotate the bar across at max speed. (No landmine? Fast cable or band chop.)"],
-            ["Speed bench press", "4 \u00d7 4", "Light bar (~half your usual) \u2014 every rep max velocity up. Upper-body ballistic power. (Or an explosive DB push press.)"],
+            ["Speed bench press", "4 \u00d7 4", "Light bar (~half your usual) \u2014 push every rep up as fast as you can. Upper-body speed; not a true throw, since the bar slows at the top. (Or an explosive DB push press.)"],
             ["Kettlebell swing", "3 \u00d7 6", "Explosive hip snap \u2014 the ground force that starts the downswing. Hips, not arms."],
             ["Cable lateral chop", "3 \u00d7 4 / side", "Explosive rotation across the body \u2014 the weight shift. (A band works too.)"],
             ["Overspeed swings", "3 \u00d7 5", "Light stick (or your driver flipped) at MAX intent, both sides, full rest. Structured ramp: 2\u00d75 your first two weeks \u2192 3\u00d75 \u2192 4\u00d75 as you adapt; deload weeks drop back to 2\u00d75. Modest evidence \u2014 the add-on, not the main event."]
@@ -128,36 +128,36 @@
 
   // Exercise -> required equipment + ordered fallbacks. Keyed by base name (parentheticals stripped).
   var EX = {
-    "Back Squat":{needs:["barbell"],subs:[{needs:["dumbbells"],name:"Goblet Squat"},{needs:["bodyweight"],name:"Tempo Bodyweight Squat (3-1-1, +1.5 reps)"}]},
-    "Front Squat":{needs:["barbell"],subs:[{needs:["dumbbells"],name:"Goblet Squat"},{needs:["bodyweight"],name:"Tempo Bodyweight Squat"}]},
-    "Romanian Deadlift":{needs:["barbell"],subs:[{needs:["dumbbells"],name:"DB Romanian Deadlift"},{needs:["kettlebell"],name:"Kettlebell RDL"},{needs:["bodyweight"],name:"Single-leg RDL"}]},
-    "Leg Press":{needs:["legpress"],subs:[{needs:["dumbbells"],name:"Goblet Squat"},{needs:["bodyweight"],name:"Walking Lunge"},{needs:["bodyweight"],name:"Tempo Bodyweight Squat (3-1-1, +1.5 reps)"}]},
+    "Back Squat":{needs:["barbell"],subs:[{needs:["dumbbells"],name:"Goblet Squat"},{needs:["bodyweight"],name:"Tempo Bodyweight Squat (3-1-1, +1.5 reps)",sr:"3 \u00d7 12"}]},
+    "Front Squat":{needs:["barbell"],subs:[{needs:["dumbbells"],name:"Goblet Squat"},{needs:["bodyweight"],name:"Tempo Bodyweight Squat",sr:"3 \u00d7 12"}]},
+    "Romanian Deadlift":{needs:["barbell"],subs:[{needs:["dumbbells"],name:"DB Romanian Deadlift"},{needs:["kettlebell"],name:"Kettlebell RDL"},{needs:["bodyweight"],name:"Single-leg RDL",sr:"3 \u00d7 10 / leg"}]},
+    "Leg Press":{needs:["legpress"],subs:[{needs:["dumbbells"],name:"Goblet Squat"},{needs:["bodyweight"],name:"Walking Lunge",sr:"3 \u00d7 10 / leg"},{needs:["bodyweight"],name:"Tempo Bodyweight Squat (3-1-1, +1.5 reps)",sr:"3 \u00d7 12"}]},
     "Hanging Leg Raise":{needs:["pullupbar"],subs:[{needs:["bodyweight"],name:"Lying Leg Raise"}]},
-    "Incline DB Press":{needs:["dumbbells"],subs:[{needs:["bodyweight"],name:"Decline / Feet-elevated Push-up"}]},
-    "Flat Barbell Bench":{needs:["barbell","bench"],subs:[{needs:["dumbbells","bench"],name:"Flat DB Bench Press"},{needs:["dumbbells"],name:"Floor DB Press"},{needs:["bodyweight"],name:"Push-up (weighted / feet-elevated)"}]},
-    "Barbell Bench Press":{needs:["barbell","bench"],subs:[{needs:["dumbbells","bench"],name:"Flat DB Bench Press"},{needs:["dumbbells"],name:"Floor DB Press"},{needs:["bodyweight"],name:"Push-up (weighted / feet-elevated)"}]},
-    "Single-Arm DB Bench Press":{needs:["dumbbells"],subs:[{needs:["bands"],name:"Single-Arm Band Press"},{needs:["bodyweight"],name:"Archer Push-up"}]},
-    "Seated DB Shoulder Press":{needs:["dumbbells"],subs:[{needs:["bands"],name:"Band Overhead Press"},{needs:["bodyweight"],name:"Pike Push-up"}]},
-    "Standing Overhead Press":{needs:["barbell"],subs:[{needs:["dumbbells"],name:"Standing DB Press"},{needs:["bands"],name:"Band Overhead Press"},{needs:["bodyweight"],name:"Pike Push-up"}]},
+    "Incline DB Press":{needs:["dumbbells"],subs:[{needs:["bodyweight"],name:"Decline / Feet-elevated Push-up",sr:"3 \u00d7 10 (too hard? feet on the floor)"}]},
+    "Flat Barbell Bench":{needs:["barbell","bench"],subs:[{needs:["dumbbells","bench"],name:"Flat DB Bench Press"},{needs:["dumbbells"],name:"Floor DB Press"},{needs:["bodyweight"],name:"Push-up (weighted / feet-elevated)",sr:"3 \u00d7 10 (too hard? hands on a bench)"}]},
+    "Barbell Bench Press":{needs:["barbell","bench"],subs:[{needs:["dumbbells","bench"],name:"Flat DB Bench Press"},{needs:["dumbbells"],name:"Floor DB Press"},{needs:["bodyweight"],name:"Push-up (weighted / feet-elevated)",sr:"3 \u00d7 10 (too hard? hands on a bench)"}]},
+    "Single-Arm DB Bench Press":{needs:["dumbbells"],subs:[{needs:["bands"],name:"Single-Arm Band Press"},{needs:["bodyweight"],name:"Archer Push-up",sr:"3 \u00d7 6 / side (too hard? plain push-ups)"}]},
+    "Seated DB Shoulder Press":{needs:["dumbbells"],subs:[{needs:["bands"],name:"Band Overhead Press"},{needs:["bodyweight"],name:"Pike Push-up",sr:"3 \u00d7 8 (too hard? hands on a bench)"}]},
+    "Standing Overhead Press":{needs:["barbell"],subs:[{needs:["dumbbells"],name:"Standing DB Press"},{needs:["bands"],name:"Band Overhead Press"},{needs:["bodyweight"],name:"Pike Push-up",sr:"3 \u00d7 8 (too hard? hands on a bench)"}]},
     "Lateral Raise":{needs:["dumbbells"],subs:[{needs:["bands"],name:"Band Lateral Raise"}]},
     // Overhead (long-head stretch) beat pushdowns for triceps growth, 19.9% vs
     // 13.5% (Maeo 2023) — the plan's default since the Sep 2026 evidence update.
-    "Cable Overhead Triceps Extension":{needs:["cable"],subs:[{needs:["dumbbells"],name:"Overhead Triceps Extension"},{needs:["bands"],name:"Band Overhead Triceps Extension"},{needs:["bodyweight"],name:"Diamond Push-up"}]},
-    "Cable Triceps Pushdown":{needs:["cable"],subs:[{needs:["bands"],name:"Band Triceps Pushdown"},{needs:["bodyweight"],name:"Diamond Push-up"}]},
+    "Cable Overhead Triceps Extension":{needs:["cable"],subs:[{needs:["dumbbells"],name:"Overhead Triceps Extension"},{needs:["bands"],name:"Band Overhead Triceps Extension"},{needs:["bodyweight"],name:"Diamond Push-up",sr:"3 \u00d7 10 (too hard? knees down)"}]},
+    "Cable Triceps Pushdown":{needs:["cable"],subs:[{needs:["bands"],name:"Band Triceps Pushdown"},{needs:["bodyweight"],name:"Diamond Push-up",sr:"3 \u00d7 10 (too hard? knees down)"}]},
     "Cable Wood-chop":{needs:["cable"],subs:[{needs:["bands"],name:"Band Wood-chop"},{needs:["medball"],name:"Med-Ball Rotational Throw"},{needs:["bodyweight"],name:"Speed Russian Twist"}]},
-    "Deadlift":{needs:["barbell"],subs:[{needs:["dumbbells"],name:"DB Romanian Deadlift"},{needs:["kettlebell"],name:"Kettlebell Deadlift"},{needs:["bodyweight"],name:"Single-leg RDL"}]},
-    "Hip Thrust":{needs:["barbell","bench"],subs:[{needs:["dumbbells","bench"],name:"DB Hip Thrust"},{needs:["bodyweight"],name:"Single-leg Glute Bridge"}]},
-    "Leg Extension":{needs:["legext"],subs:[{needs:["bodyweight"],name:"Sissy Squat"}]},
-    "Leg Curl":{needs:["legcurl"],subs:[{needs:["bands"],name:"Band Leg Curl"},{needs:["bodyweight"],name:"Nordic / Slider Leg Curl"}]},
-    "Seated Leg Curl":{needs:["legcurl"],subs:[{needs:["bands"],name:"Band Leg Curl"},{needs:["bodyweight"],name:"Nordic / Slider Leg Curl"}]},
-    "Lying Leg Curl":{needs:["legcurl"],subs:[{needs:["bands"],name:"Band Leg Curl"},{needs:["bodyweight"],name:"Nordic / Slider Leg Curl"}]},
-    "Pallof Press":{needs:["cable"],subs:[{needs:["bands"],name:"Band Pallof Press"},{needs:["bodyweight"],name:"Side Plank"}]},
+    "Deadlift":{needs:["barbell"],subs:[{needs:["dumbbells"],name:"DB Romanian Deadlift"},{needs:["kettlebell"],name:"Kettlebell Deadlift"},{needs:["bodyweight"],name:"Single-leg RDL",sr:"3 \u00d7 10 / leg"}]},
+    "Hip Thrust":{needs:["barbell","bench"],subs:[{needs:["dumbbells","bench"],name:"DB Hip Thrust"},{needs:["bodyweight"],name:"Single-leg Glute Bridge",sr:"3 \u00d7 12 / leg"}]},
+    "Leg Extension":{needs:["legext"],subs:[{needs:["bodyweight"],name:"Sissy Squat",sr:"3 \u00d7 8 (hold a support, part range OK)"}]},
+    "Leg Curl":{needs:["legcurl"],subs:[{needs:["bands"],name:"Band Leg Curl"},{needs:["bodyweight"],name:"Nordic / Slider Leg Curl",sr:"2 \u00d7 5 (slow lowering only, sliders OK)"}]},
+    "Seated Leg Curl":{needs:["legcurl"],subs:[{needs:["bands"],name:"Band Leg Curl"},{needs:["bodyweight"],name:"Nordic / Slider Leg Curl",sr:"2 \u00d7 5 (slow lowering only, sliders OK)"}]},
+    "Lying Leg Curl":{needs:["legcurl"],subs:[{needs:["bands"],name:"Band Leg Curl"},{needs:["bodyweight"],name:"Nordic / Slider Leg Curl",sr:"2 \u00d7 5 (slow lowering only, sliders OK)"}]},
+    "Pallof Press":{needs:["cable"],subs:[{needs:["bands"],name:"Band Pallof Press"},{needs:["bodyweight"],name:"Side Plank",sr:"3 \u00d7 30 s / side"}]},
     "Farmer Carry":{needs:["dumbbells"],subs:[{needs:["kettlebell"],name:"Kettlebell Carry"},{needs:["bodyweight"],name:"Loaded Carry (backpack / any heavy object)"}]},
     "Weighted Pull-up":{needs:["pullupbar"],subs:[{needs:["latpulldown"],name:"Lat Pulldown"},{needs:["bands"],name:"Band Lat Pulldown"},{needs:["dumbbells"],name:"DB Row"},{needs:["bodyweight"],name:"Inverted Row (under a sturdy table)"}]},
     "Pull-up":{needs:["pullupbar"],subs:[{needs:["latpulldown"],name:"Lat Pulldown"},{needs:["bands"],name:"Band Lat Pulldown"},{needs:["dumbbells"],name:"DB Row"},{needs:["bodyweight"],name:"Inverted Row"}]},
     "Chest-Supported Row":{needs:["dumbbells"],subs:[{needs:["bands"],name:"Band Row"},{needs:["bodyweight"],name:"Inverted Row"},{needs:["bodyweight"],name:"Doorframe Row"}]},
     "Single-Arm DB Row":{needs:["dumbbells"],subs:[{needs:["kettlebell"],name:"Single-Arm Kettlebell Row"},{needs:["bands"],name:"Single-Arm Band Row"},{needs:["bodyweight"],name:"Inverted Row"},{needs:["bodyweight"],name:"Single-Arm Doorframe Row"}]},
-    "Wrist Curl + Reverse":{needs:["dumbbells"],subs:[{needs:["barbell"],name:"Barbell Wrist Curl + Reverse"},{needs:["bands"],name:"Band Wrist Curl"},{needs:["bodyweight"],name:"Towel / Plate Pinch Hold"}]},
+    "Wrist Curl + Reverse":{needs:["dumbbells"],subs:[{needs:["barbell"],name:"Barbell Wrist Curl + Reverse"},{needs:["bands"],name:"Band Wrist Curl"},{needs:["bodyweight"],name:"Towel / Plate Pinch Hold",sr:"3 \u00d7 30 s"}]},
     "Lat Pulldown":{needs:["latpulldown"],subs:[{needs:["pullupbar"],name:"Pull-up / Band-assisted Pull-up"},{needs:["bands"],name:"Band Lat Pulldown"},{needs:["bodyweight"],name:"Inverted Row"},{needs:["bodyweight"],name:"Sliding Floor Lat Pull"}]},
     "Face Pull":{needs:["cable"],subs:[{needs:["bands"],name:"Band Face Pull"},{needs:["dumbbells"],name:"Rear-Delt Raise"},{needs:["bodyweight"],name:"Prone Y-T-W Raises"}]},
     "DB Curl":{needs:["dumbbells"],subs:[{needs:["bands"],name:"Band Curl"}]},
@@ -165,7 +165,7 @@
     "Weighted Dip":{needs:["bench"],subs:[{needs:["bodyweight"],name:"Push-up / Bench Dip"}]},
     "Pendlay Row":{needs:["barbell"],subs:[{needs:["dumbbells"],name:"DB Row"},{needs:["bands"],name:"Band Row"},{needs:["bodyweight"],name:"Inverted Row"}]},
     "Box Jump":{needs:["box"],subs:[{needs:["bodyweight"],name:"Squat Jump / Tuck Jump"}]},
-    "Anti-rotation Cable Hold":{needs:["cable"],subs:[{needs:["bands"],name:"Band Anti-rotation Hold"},{needs:["bodyweight"],name:"Plank Hold"}]},
+    "Anti-rotation Cable Hold":{needs:["cable"],subs:[{needs:["bands"],name:"Band Anti-rotation Hold"},{needs:["bodyweight"],name:"Plank Hold",sr:"3 \u00d7 30 s"}]},
     "Speed Bench":{needs:["barbell","bench"],subs:[{needs:["dumbbells"],name:"Explosive DB Floor Press"},{needs:["bodyweight"],name:"Explosive / Clap Push-up"}]},
     "Med-Ball Chest Pass":{needs:["medball"],subs:[{needs:["bands"],name:"Band Explosive Press"},{needs:["bodyweight"],name:"Clap Push-up"}]},
     "Cable Rotational Punch":{needs:["cable"],subs:[{needs:["bands"],name:"Band Rotational Punch"},{needs:["medball"],name:"Med-Ball Side Throw"},{needs:["bodyweight"],name:"Speed Russian Twist"}]},
@@ -316,26 +316,59 @@
 
 
   function activeDays(){ var p=PHASES[planState.phase]; return planState.freq===4 ? p.days4 : p.days5; }
-  function effortNote(t, name){
-    t=String(t);
+  // ctx (all optional — the Train card and the player pass what they know):
+  //   wave        this week's wave (waveFor)        band   the readiness band
+  //   beforeHeavy a 🏋️ lift still comes later today first   no logged weight for this lift yet
+  //   onRamp      weeks 1–2 with no lifting logged before this plan (ffOnRamp)
+  //   easeIn      first session back after 4+ weeks off this lift (ffDose .back)
+  function effortNote(t, name, ctx){
+    t=String(t); ctx=ctx||{};
     if(/yd/.test(t)) return "heavy · rest ~90s";
     if(/explosive|jump/i.test(t)) return "max intent · full rest";
+    if(/\d\s*s\b/.test(t)) return "steady hold · rest ~90s";   // timed holds ("3 × 30 s / side")
+    var m=t.match(/[×x]\s*(\d+)/), reps=m?parseInt(m[1],10):10, heavy=/heavy/i.test(t)||reps<=6;
+    // Easy days stay easy: a deload week or a recovery dose leaves 3+ reps in the
+    // tank on every lift (Bell 2023 Delphi: a deload lowers proximity to failure).
+    if(ctx.wave==="deload" || ctx.band==="recharge") return heavy ? "easy · RIR 3+ · rest 2–3 min" : "easy · RIR 3+ · rest ~90s";
     if(/heavy/i.test(t)) return "RIR 2 · rest 2–3 min";   // heavy compounds keep RIR in any goal
-    var m=t.match(/[×x]\s*(\d+)/), reps=m?parseInt(m[1],10):10;
     if(reps<=6) return "RIR 2–3 · rest 2–3 min";
     // On a bulk / lean bulk the HYPERTROPHY ACCESSORY work (💪 only) cashes in the
     // surplus — train it close to failure, last set all the way. Heavy compounds
     // (above) hold RIR 2; power/speed never go to failure (the caller shows
     // "max intent · full rest" for ballistic drills). Cut/maintain keep a rep back.
+    // Never to failure: a lift with no weight found yet, the first session back,
+    // a beginner's first 2 weeks (beginners grow from sets short of failure), an
+    // accessory that comes before a big lift today, peak weeks (shed fatigue),
+    // and balance-heavy lunges / split squats / Nordics / sissy squats.
     var bulk=(typeof state!=="undefined" && (state.goal==="bulk" || state.goal==="leanbulk"));
-    if(bulk && name && typeof purposeFor==="function" && purposeFor(name)==="💪")
-      return "RIR 0–1 · last set to failure · rest ~90s";
+    if(bulk && name && typeof purposeFor==="function" && purposeFor(name)==="💪"){
+      if(ctx.first) return "RIR 2 · find your working weight · rest ~90s";
+      if(ctx.easeIn) return "RIR 2 · easing back in · rest ~90s";
+      if(ctx.onRamp) return "RIR 2 · first 2 weeks: no all-out sets · rest ~90s";
+      if(ctx.beforeHeavy) return "RIR 2 · save it for the big lift · rest ~90s";
+      if(ctx.wave!=="peak" && !/Lunge|Split Squat|Step-?up|Nordic|Sissy/i.test(name))
+        return "RIR 0–1 · last set to failure · rest ~90s";
+    }
     if(reps>=13) return "RIR 1 · rest ~90s";   // >60–90 s beats shorter for growth (Singer 2024)
     return "RIR 1–2 · rest ~90s";
   }
+  // The on-ramp: no workout logged before this plan started (a brand-new lifter)
+  // → weeks 1–2 keep a couple of reps in reserve on every set.
+  function ffOnRamp(week){
+    if(!(week<=2)) return false;
+    var st=Date.parse(planStart()||"")||(Date.now()+864e5), h=lsGet("ff_history",[]);
+    return !(Array.isArray(h) && h.some(function(e){ return e && (e.doneTs||e.ts||0) < st; }));
+  }
+  // Is a 🏋️ lift still to come after position i in today's list of names?
+  function heavyAfter(names, i){
+    for(var j=i+1;j<names.length;j++) if(purposeFor(names[j]||"")==="🏋️") return true;
+    return false;
+  }
   // Warm-up & power primer as scannable, tappable checklists (gym-readable).
   function warmupBase(name){
-    if(name==="speed") return [["90/90 hip switches","×6/side"],["Open-book T-spine","×8/side"],["Leg swings","×10/side"],["Build-up swings","10–15 · 50→90%"]];
+    // Speed day: mobility, then a short ramp of easy jumps and throws before the
+    // first max-intent drill (the lift days get "Light ramp-up sets" the same way).
+    if(name==="speed") return [["90/90 hip switches","×6/side"],["Open-book T-spine","×8/side"],["Leg swings","×10/side"],["Build-up swings","10–15 · 50→90%"],["Ramp-up jumps and throws","2–3 easy reps each"]];
     if(/Pull|Rotate/.test(name)) return [["Cat–cow","×8"],["Open-book T-spine","×8/side"],["Band pull-aparts","×20"],["Dead hang","20s"]];
     if(/Push|Upper/.test(name)) return [["Open-book rotation","×8/side"],["Band pull-aparts","×20"],["Shoulder CARs","×5/side"],["Light ramp-up sets","×2"]];
     if(/Lower|Squat|Hinge/.test(name)) return [["Leg swings","×10/side"],["90/90 hip switches","×8/side"],["World's greatest stretch","×5/side"],["Light ramp-up sets","×2"]];
@@ -368,7 +401,9 @@
   function primerFor(name){
     if(/Pull|Rotate/.test(name)) return {move:"Rotational med-ball throw", dose:"4 × 4 / side", note:"No ball? Band or cable rotation."};
     if(/Push/.test(name)) return {move:"Explosive med-ball chest pass", dose:"4 × 4", note:"No ball? Clap or explosive push-up."};
-    if(/Squat/.test(name)) return {move:"Box or squat jump", dose:"4 × 3", note:"Land soft, reset every rep."};
+    // "Quads" too: the 4-day "Lower (Quads & Hinge)" day lost its jump when the
+    // day was renamed from "Squat" — jumps are the top speed predictor (Brennan 2024).
+    if(/Squat|Quads/.test(name)) return {move:"Box or squat jump", dose:"4 × 3", note:"Land soft, reset every rep."};
     if(/Hinge/.test(name)) return {move:"Russian kettlebell swing", dose:"5 × 5", note:"No kettlebell? Swing a dumbbell."};
     if(/Lower/.test(name)) return {move:"Box or squat jump", dose:"4 × 3", note:"Land soft, reset every rep."};
     return {move:"Box or squat jump", dose:"4 × 3", note:""};
@@ -408,8 +443,22 @@
   // cue. It deliberately excludes the OTHER 🌀 names — anti-rotation/iso core (Pallof,
   // Russian Twist, bare Rotation) and Single-Arm accessories (rows, curls, flys) — which
   // are RIR-graded strength/hypertrophy work and keep their effortNote.
+  // Chops: only the speed day's "Cable lateral chop" is a max-intent drill — the
+  // push day's Cable Wood-chop (3 × 10/side) and the High/Low cable chops are
+  // graded rotational core work.
   function isBallistic(n){
-    return purposeFor(n)==="⚡" || /Throw|Toss|Slam|Chest Pass|\bChop\b|Punch/i.test(n);
+    return purposeFor(n)==="⚡" || /Throw|Toss|Slam|Chest Pass|Lateral Chop|Punch/i.test(n);
+  }
+  // THE "big lift" test — heavy loaded lifts whose e1RM means strength. Shared by
+  // the Octane strength pillar, bigLiftStats (Stats, PR/stall cards, the player's
+  // PR check), the PR wall and the recap. Speed/ballistic work, throws and
+  // anti-rotation core (Pallof) are light by design: a 2.5 lb stack jump there
+  // isn't strength. wide = also lunges/split squats (the Stats e1RM list).
+  function isBigLift(n, wide){
+    n=String(n||"");
+    if(isBallistic(n) || /Pallof|Anti-?rotation|Explosive|^Speed\s/i.test(n)) return false;
+    return (wide ? /Squat|Deadlift|Bench|Press|\bRow\b|Romanian|Hinge|Hip Thrust|Pull-?up|Chin|Lunge|Split Squat/i
+                 : /Squat|Deadlift|Bench|Press|\bRow\b|Romanian|Hinge|Hip Thrust|Pull-?up|Chin/i).test(n);
   }
   // A drill with NO load to log — box/broad/squat/tuck jumps, bounds, depth/drop
   // jumps, plyo push-ups, pogos, skaters, ground-force footwork, and overspeed
@@ -437,22 +486,24 @@
      with a 2-week Peak (volume cut, intensity held). Targets below shift per phase
      and the logger prescribes matching loads, so overload and deloads are applied
      FOR the user instead of living only in the playbook copy.
-     Weeks 1-3 · 7-9 · 13-15 accumulate — targets as authored, add reps to the top.
+     Weeks 1-3 · 7-9 · 13-15 accumulate — targets as authored; build reps to the target,
+       then the logger adds weight (double progression against ONE target number).
      Weeks 4-5 · 10-11 · 16-17 intensify — big lifts drop ~2 reps (go heavier),
        accessories drop a set so recovery follows the loads up.
-     Weeks 6 · 12 · 18 deload — one set less everywhere, ~60% loads prescribed.
-     Weeks 19-20 peak — volume cut ~40-50%, loads stay heavy, speed work crisp. ---- */
+     Weeks 6 · 12 · 18 deload — one set less (never below 2 sets), ~60% loads prescribed.
+     Weeks 19-20 peak — 🏋️ and 💪 lose 2 sets, ⚡/🌀 1 (floor 2), reps and loads held:
+       ~35% fewer weekly sets in Build mode, ~25% in Retain (whose 💪 already sit at 2). ---- */
   var WAVES = {
     // Display labels are plain words ("Heavy week"); the keys stay the
     // periodization terms the engine, tests and wave-cases fixtures use.
-    accumulate: { label:"Build", ic:"🏗️", strap:"More reps each week — the app tells you when to add weight." },
+    accumulate: { label:"Build", ic:"🏗️", strap:"Same weight until every set hits its target reps — then the app adds weight." },
     intensify:  { label:"Heavy", ic:"🔥", strap:"Fewer reps, heavier weights. Keep every rep fast." },
-    deload:     { label:"Easy",  ic:"🪫", strap:"Planned easy week — one set less, lighter weights. This is when the gains land." },
+    deload:     { label:"Easy",  ic:"🪫", strap:"Planned easy week — a set less on most lifts, lighter weights. This is when the gains land." },
     peak:       { label:"Peak",  ic:"🏁", strap:"Less volume, still heavy. Shed the fatigue and take your yards." }
   };
   /* A "big event" date (club champs, member-guest, buddies trip) re-anchors the
-     taper: the event week and the week before become Peak (volume cut, intensity
-     held — exactly the playbook's 7-10 day taper), and the week after is a
+     taper: the event week and the week before become Peak (fewer sets, reps and
+     loads held — the 7-13 days before the event), and the week after is a
      deload to absorb it. Everything else keeps the base cadence. */
   // Manual-logging preference (device-local): the Today card's spreadsheet is
   // opt-in — the guided player is the default way to train.
@@ -486,6 +537,10 @@
     }
     if(week>=19) return "peak";
     var pos=((week-1)%6)+1;
+    // Never two easy weeks in a row: the event's recovery deload (ev.week+1)
+    // stands in for a base deload that would land right after it. Keyed on
+    // ev.week, not ev.taper — taper has switched off by then.
+    if(pos===6 && ev && ev.week && week===ev.week+2) return "accumulate";
     if(pos===6) return "deload";
     if(pos>=4) return "intensify";
     return "accumulate";
@@ -523,13 +578,46 @@
     if(/Overspeed/i.test(name)) return overspeedDose(week);
     return effTarget(sr, name, week);
   }
-  // Prescribed load for a set, from last logged weight: deload → ~60% (rounded to 5),
-  // progression-ready → last + one small jump. null = no prescription (show last as-is).
+  // Prescribed load for a set, from last logged weight: deload → ~60% (ffReduceLoad),
+  // progression-ready → last + one small jump (none for a med ball). null = no
+  // prescription (show last as-is).
   function prescribeW(lastW, name, ready, wave){
     var w=parseFloat(lastW); if(!(w>0)) return null;
-    if(wave==="deload") return Math.max(5, Math.round(w*0.6/5)*5);
-    if(ready) return w + incNum(name);
+    if(wave==="deload") return ffReduceLoad(w, 0.6);
+    var inc=incNum(name);
+    if(ready && inc>0) return w + inc;
     return null;
+  }
+  // THE load reduction — deload (~60%), recovery dose (~75%), easing back in after
+  // weeks off (~90%). Fine steps for light loads (1 lb under 10, 2.5 under 25,
+  // else 5) and a reduction always reduces: the old Math.max(5, round-to-5)
+  // turned a 10 lb recovery dose into 10 lb and a 3 lb deload into 5 lb.
+  // null = nothing lighter to suggest.
+  function ffReduceLoad(lastW, f){
+    var w=parseFloat(lastW); if(!(w>0)) return null;
+    var step=w<10 ? 1 : (w<25 ? 2.5 : 5), r=Math.round(w*f/step)*step;
+    if(r>=w) r=w-step;
+    return r>0 ? r : null;
+  }
+  // Wave-aware load. A Heavy week drops the rep target (6 → 4) and the week
+  // after a Heavy block raises it again, so last time's weight no longer matches
+  // today's reps. Same effort at the new rep count (Epley, ~2 in reserve):
+  //   lastW × (1 + (rThen+2)/30) / (1 + (rNow+2)/30)
+  // from the reps actually done (the weakest working set), capped −15…+10% and
+  // rounded to the lift's step. ≈ +5–6% for −2 reps, matching rep-max data
+  // (~2.5% a rep near 80–90% 1RM, Nuzzo 2024). null = no rep change (or not a
+  // loaded, rep-counted lift).
+  function repShiftLoad(lastW, x, lx){
+    var w=parseFloat(lastW); if(!(w>0) || !x || !lx || lx._reduced) return null;
+    if(isBallistic(x.name) || isBodyweightEx(x.name) || isDistEx(x.target)) return null;
+    var rNow=topReps(x.target), rThen=topReps(lx.target);
+    if(!rNow || !rThen || rNow===rThen) return null;
+    var got=(lx.sets||[]).map(function(st){ return parseInt(st && st.r, 10); }).filter(function(r){ return r>0; });
+    var rRef=got.length ? Math.min.apply(null, got) : rThen;
+    if(rRef===rNow) return w;
+    var f=Math.max(0.85, Math.min(1.10, (1+(rRef+2)/30)/(1+(rNow+2)/30)));
+    var step=incNum(x.name)||5, out=Math.round(w*f/step)*step;
+    return out>0 ? out : null;
   }
   // One day's full card (rest / speed / lift) — used by both Today and Full-week views.
   // interactive=true → the featured "today" lift day renders the inline logger.
@@ -607,10 +695,18 @@
         logFoot(d.name)+'</div>';
     }
     var resolved = resolveDay(d.ex);   // the SAME dedupe buildSession logs with
+    // Effort in context — the same rules the player applies: this week's wave,
+    // a beginner's on-ramp, a big lift still to come, a lift with no weight yet
+    // or not done in 4+ weeks.
+    var cwk=curWeek(), cwave=waveFor(cwk), onRamp=ffOnRamp(cwk), prevLx=lastSessionFor(d.name, cwk);
+    var dayNames=resolved.map(function(r, ri){ return r.status==="swap" ? r.name : applySwapName(d.ex[ri][0]); });
+    function lxFor(n){ var f=null; if(prevLx) prevLx.ex.forEach(function(e){ if(e.name===n) f=e; }); return f; }
     var rows = d.ex.map(function(row, ri){
       var base = applySwapName(row[0]);
-      var r = resolved[ri];
-      var eff = '<div class="effort">'+effortNote(row[1], base)+'</div>';
+      var r = resolved[ri], lxr=lxFor(dayNames[ri]);
+      var hasW=!!(lxr && (lxr.sets||[]).some(function(st){ return st && (parseFloat(st.w)>0 || parseInt(st.r,10)>0); }));
+      var eff = '<div class="effort">'+effortNote(r.status==="swap" ? (r.sr||row[1]) : row[1], dayNames[ri],
+        { wave:cwave, onRamp:onRamp, first:!hasW, easeIn:ffBackFor(lxr), beforeHeavy:heavyAfter(dayNames, ri) })+'</div>';
       var pe = ffPurposeIc(base)+' ';
       var us = base!==row[0] ? ' <span class="swap-badge">⇄ your swap</span>' : '';
       if(r.status==="ok"){ var c=exNameCell(pe, base, us); return '<tr>'+c.cell+'<td class="sets">'+effTarget(row[1],base,curWeek())+eff+'</td></tr>'+c.row; }
@@ -669,14 +765,37 @@
     var after=(d.name.split("—")[1]||d.name).trim();
     return after.split(/[ &/]/)[0];
   }
+  // THE per-day target list — { name, orig, target } per exercise: user swaps +
+  // gear subs (deduped across the day, same as the card), retain trim and the
+  // wave (effTarget / speedDrillTarget). buildSession (040) logs exactly this
+  // and sessionMinutes estimates from it, so the "About N min" counts the real dose.
+  function dayTargets(d, week){
+    if(!d || d.type==="rest") return [];
+    if(d.type==="speed") return PHASES[0].speed[speedMode()].ex.map(function(e){
+      var base=applySwapName(e[0]); return { name:base, orig:e[0], target:speedDrillTarget(base, e[1], week) }; });
+    var rs=resolveDay(d.ex);
+    return d.ex.map(function(row, ri){
+      var base=applySwapName(row[0]), r=rs[ri], nm=(r.status==="swap")?r.name:base;   // user swap first
+      return { name:nm, orig:row[0], target:effTarget(r.sr||row[1], nm, week) }; });
+  }
+  // A rounded planning estimate from this week's real dose: 5 min warm-up, the
+  // power primer (lift days), ~3 s a rep (per-side / per-leg work twice, holds
+  // by the second, carries ~40 s), and the player's own rest timers between
+  // sets and between lifts.
   function sessionMinutes(d){
     if(!d || d.type==="rest") return 10;
-    var rows=d.type==="speed" ? ((PHASES[planState.phase].speed[speedMode()]||{}).ex||[]) : (d.ex||[]);
-    var sets=0;
-    rows.forEach(function(row){ sets+=parseInt(String(row[1]||"").match(/^\d+/),10)||3; });
-    // Five-minute warm-up plus work/rest and short transitions; round to a useful
-    // planning number instead of pretending a workout can be timed to the minute.
-    return Math.max(20,Math.min(90,Math.round((5+sets*2.25)/5)*5));
+    var wk=planStart()?curWeek():1;
+    var setRest=(typeof REST_BETWEEN_SETS==="number")?REST_BETWEEN_SETS:120,
+        liftRest=(typeof REST_BETWEEN_LIFTS==="number")?REST_BETWEEN_LIFTS:180;
+    function work(target, rest){
+      var t=String(target||""), n=parseSets(t), r=topReps(t)||8, sides=/\/\s*(side|leg)/i.test(t)?2:1;
+      var per=isDistEx(t) ? 40 : (/\d\s*s\b/.test(t) ? r*sides : r*3*sides);
+      return n*per + Math.max(0,n-1)*rest;
+    }
+    var secs=5*60;
+    if(d.type!=="speed") secs+=work(primerFor(d.name).dose, 60)+liftRest;   // primer: short rests, then on
+    dayTargets(d, wk).forEach(function(x, i){ secs+=work(x.target, setRest)+(i?liftRest:0); });
+    return Math.max(20, Math.min(120, Math.round(secs/60/5)*5));
   }
   var focusDay=null;   // which day the Today view is showing (null = auto = next un-logged)
   function planViewMode(){
@@ -698,10 +817,11 @@
       html+='<div class="startbar"><div class="sb-eyebrow">YOUR NEXT MOVE</div><div class="sb-top"><b>'+ffIcon("play",13)+' Your first workout is ready</b>'+
         '<span>Start on any day. Yardsmith maps the week, guides every set and remembers exactly where you stop.</span></div>'+
         '<button class="sb-go" data-startweek="1">Start my plan</button>'+
+        (ffAccess()!=="full" ? '' :                   // picking a later week is Pro once billing is on (036)
         '<div class="sb-alt">Already mid-plan? <button class="sb-link" data-jump="1">Pick your current week ▾</button></div>'+
         '<div class="sb-jump" id="sbJump" hidden><select id="weekSel" aria-label="Current week">'+
           (function(){ var o=""; for(var wi=1;wi<=20;wi++) o+='<option value="'+wi+'">Week '+wi+'</option>'; return o; })()+
-          '</select><button class="sb-go2" data-startweek="sel">Set</button></div></div>';
+          '</select><button class="sb-go2" data-startweek="sel">Set</button></div>')+'</div>';
       $("phaseDetail").innerHTML=html;
       return;
     }
@@ -775,7 +895,7 @@
 
     // After the free week without Pro: the plan's week, one card, nothing to browse.
     var access=ffAccess();
-    if(access==="locked") return html+ffLockedCardHtml("train");
+    if(access==="locked") return html+ffLockedWithResumeHtml("train");   // + "Resume workout" for one already under way
     // Free week: a day that hasn't arrived is a teaser, not a readable preview.
     var featLocked=access==="preview" && featured.type!=="rest" && isFutureDay(featured.name);
 
@@ -867,13 +987,13 @@
     html+='<details class="fold playbook"><summary>📚 How the plan works</summary><div class="fold-body">'+
       '<div class="pb-sec"><h4>🌀 Why this builds clubhead speed</h4>'+phaseWhy()+'</div>'+
       '<div class="pb-sec"><h4>📈 How the plan progresses for you</h4>'+
-        '<p><b>The weeks.</b> Every 6 weeks the plan itself shifts: <b>Build</b> (wks 1–3) — targets as written, build reps to the top of each range · <b>Heavy</b> (wks 4–5) — big-lift rep targets drop ~2 so the loads climb, accessories drop a set · <b>Easy</b> (wks 6, 12, 18) — one set less everywhere and the logger pre-suggests ~60% loads · <b>Peak</b> (wks 19–20) — volume cut nearly in half, intensity stays heavy. You don’t manage any of it — the day cards and logger update themselves.</p>'+
-        '<p><b>Double progression.</b> Hold the same weight until you hit the <b>top of the rep range on every set</b> (e.g. all sets reach 5 on a 4×5). The logger spots it, pre-fills the suggested jump (<b>+2.5–5 lb</b> upper / <b>+5–10 lb</b> lower) into the weight placeholders, and gives you a one-tap fill.</p>'+
+        '<p><b>The weeks.</b> Every 6 weeks the plan itself shifts: <b>Build</b> (wks 1–3) — targets as written; keep the weight until every set hits its target reps · <b>Heavy</b> (wks 4–5) — big-lift rep targets drop ~2 so the loads climb'+(retain?', accessories stay at about 2 sets':', accessories drop a set')+' · <b>Easy</b> (wks 6, 12, 18) — a set less on most lifts (nothing drops below 2) and the logger pre-suggests ~60% loads · <b>Peak</b> (wks 19–20) — the big lifts lose about half their sets, accessories drop to 2, speed work drops a set; same reps, loads stay heavy. You don’t manage any of it — the day cards and logger update themselves.</p>'+
+        '<p><b>Double progression.</b> Keep the same weight until <b>every set hits its target reps</b> (e.g. all four sets reach 5 on a 4×5). The logger spots it, pre-fills the jump (<b>+2.5–5 lb</b> upper body / <b>+5 lb</b> lower body) into the weight placeholders, and gives you a one-tap fill. On the big lifts every rep should still move fast — if reps grind, hold the weight.</p>'+
         '<p><b>RIR</b> = reps in reserve — how many clean reps you stop short of failure. “RIR 2” means leave about 2 in the tank. The note by each lift gives a target RIR and rest time.</p>'+
         '<p><b>Speed &amp; power quality.</b> Jumps, throws and overspeed only build speed when every rep is <i>fast</i> — <b>stop a set the instant reps visibly slow</b>, keep the implement light, and rest fully between efforts. Never grind power work.</p></div>'+
       '<div class="pb-sec"><h4>🏆 In-season &amp; peaking</h4>'+
-        '<p><b>In-season (tournament stretches).</b> Hold size and strength on a fraction of the work — drop to <b>~1–2 hard sets per muscle, 1–2× a week</b>, but <b>keep the loads heavy</b>; intensity preserves strength. Keep the speed primers, cut accessory volume, switch macros to <b>In-Season Maintain</b>.</p>'+
-        '<p><b>Peak for an event.</b> In the <b>7–10 days</b> before a big round or speed test, <b>cut volume ~40–50% but keep the intensity</b> (heavy singles/doubles, crisp light overspeed). You shed fatigue while holding fitness — expect a <b>~3–6%</b> power bump on the day.</p>'+
+        '<p><b>In-season (tournament stretches).</b> Switch macros to <b>In-Season Maintain</b> and the plan moves to <b>Retain mode</b> on its own: a set comes off the accessories, while the heavy lifts and all speed work stay at full — heavy loads are what hold your strength. Keep your 4–5 days if you can; the app still counts them. If a tournament week squeezes you to two sessions, make both heavy and keep the speed primers. Lifters over ~60 hold muscle best on at least 2 sessions and 2–3 sets per lift.</p>'+
+        '<p><b>Peak for an event.</b> Set your event date and the plan makes the <b>event week and the week before</b> Peak weeks: <b>about a quarter to a third fewer sets</b>, same reps, loads stay heavy, speed work crisp and light. Then an easy week to absorb it. Tapers like this shed fatigue in other sports; no golf study has measured the gain, so let your 7-iron speed test be the proof.</p>'+
         '<p><b>Sleep is training.</b> Aim <b>7–9 h</b>. Sleep loss degrades <i>skill control</i> — tempo and strike — more than strength, so a bad week of sleep shows in your scores before your lifts.</p></div>'+
       '</div></details>';
 
