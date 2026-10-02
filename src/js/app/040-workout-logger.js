@@ -311,9 +311,55 @@
   // old name (swaps are keyed by the ORIGINAL plan name); setting or resetting
   // the new one clears the old key so a reset really returns to the default.
   var FF_PLAN_RENAMED={ "Cable Overhead Triceps Extension":"Cable Triceps Pushdown" };
-  function applySwapName(name){ var s=getSwaps(), old=FF_PLAN_RENAMED[name]; return s[name] || (old && s[old]) || name; }
+  // Plan defaults that depend on the person, not the gear. Flagged "Back" in
+  // setup (+ a barbell) → the heavy hinge defaults to the trap-bar deadlift:
+  // a more upright torso and less lumbar shear for the same load (Swinton 2011;
+  // Lake 2017). An explicit swap — including back to the conventional bar —
+  // always wins.
+  function ffProfileDefault(name){
+    if(name==="Deadlift" && typeof state!=="undefined" && Array.isArray(state.prep) &&
+       state.prep.indexOf("back")!==-1 && planState.equip.barbell) return "Trap-Bar Deadlift";
+    return null;
+  }
+  function applySwapName(name){ var s=getSwaps(), old=FF_PLAN_RENAMED[name]; return s[name] || (old && s[old]) || ffProfileDefault(name) || name; }
   function setSwap(orig, neu){ var s=getSwaps(); if(FF_PLAN_RENAMED[orig]) delete s[FF_PLAN_RENAMED[orig]];
-    if(!neu || neu===orig) delete s[orig]; else s[orig]=neu; lsSet("ff_swaps", s); }
+    // Choosing the authored lift over a profile default is a real choice — keep it.
+    if(neu===orig && ffProfileDefault(orig)) s[orig]=orig;
+    else if(!neu || neu===orig) delete s[orig]; else s[orig]=neu;
+    lsSet("ff_swaps", s); }
+  // Pull-up capacity check: the pull day opens with Weighted Pull-up 4 × 6, which
+  // most new lifters (and many heavier golfers) can't do for one strict rep.
+  // Asked ONCE, before the first pull session, on Home and the Train card:
+  // "Not yet" swaps in the best assisted version the gear allows (ff_swaps), so
+  // the rows, history and progression all follow the swap like any other.
+  function ffPullCapNeeded(d){
+    if(!d || !d.ex || !d.ex.some(function(r){ return r[0]==="Weighted Pull-up"; })) return false;
+    if(getSwaps()["Weighted Pull-up"] || !planState.equip.pullupbar) return false;
+    if((lsGet("ff_insights_seen",[])||[]).indexOf("pullup-cap")!==-1) return false;
+    var h=lsGet("ff_history",[]);
+    return !(Array.isArray(h) && h.some(function(e){ return e && (e.ex||[]).some(function(x){
+      return x && /Pull-?up|Chin-?up/i.test(x.name||"") && (x.sets||[]).some(function(st){ return st && parseInt(st.r,10)>0; }); }); }));
+  }
+  function ffPullCapHtml(d){
+    if(!ffPullCapNeeded(d)) return "";
+    return '<div class="pull-cap" role="group" aria-label="Pull-up check"><b>Quick check:</b> can you do 6 strict pull-ups (chin over the bar, no swinging)?'+
+      '<div class="pull-cap-btns"><button type="button" data-pullcap="yes">Yes</button><button type="button" data-pullcap="no">Not yet</button></div></div>';
+  }
+  function ffPullAssist(){
+    if(planState.equip.assisted) return "Assisted Pull-up";
+    if(planState.equip.bands) return "Band-assisted Pull-up";
+    return "Negative Pull-up (5 s lowering)";
+  }
+  document.addEventListener("click", function(e){
+    var b=e.target.closest("[data-pullcap]"); if(!b) return;
+    var s=lsGet("ff_insights_seen",[])||[]; if(s.indexOf("pullup-cap")===-1){ s.push("pullup-cap"); lsSet("ff_insights_seen", s); }
+    if(b.getAttribute("data-pullcap")==="no"){
+      var alt=ffPullAssist(); setSwap("Weighted Pull-up", alt);
+      ffToast("Swapped to "+alt+" — same sets. Build to 6 clean reps, then try the bar.");
+    } else ffToast("Pull-ups it is — start with bodyweight; add weight once every set hits 6.");
+    try{ renderPhase(); }catch(_){}
+    try{ renderDash(); }catch(_){}
+  });
   // Valid, equally-hard alternatives by movement pattern (no weakling subs).
   // ---- Exercise database — grouped by movement pattern. Powers swap options AND
   // the "Add a lift" picker. Names match the plan/EX entries so swaps resolve gear. ----

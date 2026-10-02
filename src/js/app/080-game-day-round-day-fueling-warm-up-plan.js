@@ -11,6 +11,13 @@
      with real-club swings and the speed stick is an optional, light add-on. */
   function gdState(){ var g=lsGet("ff_gameday", null); return g || { teeTime:"09:00", holes:18, transport:"walk" }; }
   function gdSave(g){ lsSet("ff_gameday", g); }
+  // The weekdays the golfer usually plays (0 = Sunday), set in Train › Plan
+  // settings. Stored on the existing roaming ff_gameday object — no new key.
+  function ffPlayDays(){
+    var g=lsGet("ff_gameday", null), d=(g && Array.isArray(g.days)) ? g.days : [];
+    return d.filter(function(x){ return x===(x|0) && x>=0 && x<=6; });
+  }
+  function ffPlaysOn(date){ return !!date && ffPlayDays().indexOf(date.getDay())!==-1; }
   function parseHM(s){ var m=/^(\d{1,2}):(\d{2})$/.exec(s||""); return m ? (+m[1])*60+(+m[2]) : null; }
   function fmtMin(mins){ mins=((Math.round(mins)%1440)+1440)%1440; var h=Math.floor(mins/60), m=mins%60, ap=h>=12?"PM":"AM", h12=h%12||12; return h12+":"+(m<10?"0":"")+m+" "+ap; }
   function gdCard(time, ic, title, detail, extra){

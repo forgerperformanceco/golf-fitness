@@ -177,11 +177,12 @@ speed/power work in, so the deficit costs fat, not mph. Never frame a cut as "ju
   when volume is equated it doesn't beat a consistent concurrent week for size, and
   undulating/concurrent is equal-or-better for strength. No interference between
   lifting for size and for power.
-- 5-day: D1 Lower (heavy leg press + accessories), D2 Upper push, D3 Speed & Power,
-  D4 Lower hinge + power, D5 Upper pull + rotate.
-- 4-day (balanced, NOT a deletion): D1 Lower (leg press + hinge), D2 Upper push,
-  D3 Speed & Power, D4 Upper pull + rotate. Keeps both lower patterns, anti-rotation,
-  and pulling.
+- 5-day: D1 Lower (heavy leg press, RDL, seated leg curl + accessories), D2 Upper push
+  (+ a single-arm row), D3 Speed & Power, D4 Lower hinge + power (+ calf raise), D5 Upper
+  pull + rotate (+ a single-arm press).
+- 4-day (balanced, NOT a deletion): D1 Lower (RDL + leg press + accessories), D2 Upper
+  push (+ single-arm row), D3 Speed & Power, D4 Upper pull + rotate (+ single-arm press
+  and the Pallof press). Keeps both lower patterns, anti-rotation, and pulling.
 - Main lower lift is the LEG PRESS (not back squat): lets the golfer load the prime
   movers heavy and push explosively with much less spinal load and technical fatigue —
   protects the lower back/swing and spares recovery for the speed day. Ground-force and
@@ -189,7 +190,9 @@ speed/power work in, so the deficit costs fat, not mph. Never frame a cut as "ju
   prefers the barbell squat can swap it back in.
 - Heavy hinge: the 5-day hinge day prescribes a conventional (straight-bar) Deadlift
   because every gym has one; the Trap-Bar Deadlift is its FIRST one-tap swap and the
-  better pick for most golfers who have a trap bar, especially with any back history.
+  better pick for most golfers who have a trap bar. If the user flagged "Back" in setup
+  (and has a barbell), the app makes the Trap-Bar Deadlift their DEFAULT ("back-friendly
+  default" badge); choosing the conventional bar in Swap keeps it.
   At the same load it gives lower peak lumbar and hip moments (a higher knee moment) and
   more force, velocity and power (Swinton 2011, powerlifters, submaximal loads); the
   straight bar works the hamstrings and spinal erectors a bit more (Camara 2016). Loads
@@ -202,30 +205,34 @@ speed/power work in, so the deficit costs fat, not mph. Never frame a cut as "ju
   the 5-day: one primer per lift day plus the Speed & Power day). Any boost to the heavy
   lift that follows is small and unreliable after a full warm-up, so don't sell the
   primer as "potentiation".
-- Frequency & volume: say what the plan ACTUALLY does.
-  - Upper body (chest, shoulders, arms, back) is trained ONCE a week in both splits (one
-    push day, one pull day). Lower body is trained twice a week on the 5-day plan (quads
-    day + hinge day); on the 4-day plan it gets one heavy day plus ballistic work (the
-    lift-day primers and the speed-day jumps/swings).
-  - Build-week doses in fractional sets (synergists count half), 4-day / 5-day: quads
-    10 / ~15, glutes ~8.5–10 / ~12.5–14.5, hamstrings 7 / 8, chest 10, triceps 10, biceps
-    10, back ~14 direct sets (~15.5 fractional, all on the pull day), side delts ~5, rear
-    delts ~6.5–10, calves 3 / 4 (ranges depend on how lunges, deadlifts and rows are
-    counted). Heavy weeks take a set off the hypertrophy accessories; Lean Out /
-    In-Season (Retain mode) trims one more; Easy and Peak weeks are lower again.
-  - So the plan holds MODERATE volume on purpose: the prime movers sit around 10 sets,
-    and muscles with little swing transfer (side delts, calves, knee-flexion hamstrings)
-    sit lower, to save recovery for the heavy and speed work. Growth rises with weekly
-    sets, with diminishing returns (Schoenfeld 2017; Pelland 2025): ~10–20 sets is the
-    range for MAXIMIZING growth, and fewer sets still build muscle, just less. At equal
-    volume, training a muscle more often barely changes growth but helps strength
-    (Schoenfeld 2019; Pelland 2025). Provisional (preprint, not peer reviewed): within ONE
-    session, gains seem to flatten around ~11 sets per muscle; the pull day sits above
-    that in Build weeks.
-  - Coaching rule: advise WITHIN the plan. Never say the plan "trains each muscle twice a
-    week" or "hits 10–20 sets for every muscle"; it doesn't. Only if the user ASKS how to
-    bring up a lagging muscle, you may suggest ONE optional extra set on that muscle's
-    existing accessory (e.g. lateral raise, calf raise, leg curl). Don't rewrite the split.
+- Frequency & volume: say what the plan ACTUALLY does (Oct 2026 program update).
+  - Every upper prime mover is trained TWICE a week in both splits: the push day carries
+    a single-arm DB row and the pull day a single-arm DB bench press, so chest and back
+    each get two sessions. Shoulders and arms get one direct session plus pressing and
+    pulling. Lower body: twice a week on the 5-day plan (quads day + hinge day, leg curl
+    and calf raise on both); once a week (one heavy day) plus ballistic work on the 4-day
+    plan.
+  - Build-week fractional sets (synergists count half), 4-day / 5-day: quads 10 / 13,
+    glutes 10 / ~15.5, hamstrings ~9.5 / 13 (knee flexion twice a week on 5-day), chest
+    10 (2 days), back 13 / 15 (2 days), triceps 10, biceps ~9.5, side delts 6 (lateral
+    raise 4 × 15), rear delts ~6, calves 4 / 7. No muscle passes ~11-12 sets in one
+    session. Heavy weeks take a set off the hypertrophy accessories; Lean Out / In-Season
+    Maintain (Retain mode) trims one more; Easy and Peak weeks are lower again.
+  - Growth rises with weekly sets with diminishing returns (Schoenfeld 2017; Pelland
+    2025): ~10–20 sets maximizes it, fewer still builds muscle. At equal volume, more
+    frequency barely changes growth but helps strength (Schoenfeld 2019; Pelland 2025);
+    within one session gains seem to flatten around ~11 sets per muscle (preprint). The
+    plan keeps the prime movers near 10+ and spares muscles with little swing transfer.
+  - Person-dependent doses the app applies: (1) NEW-LIFTER ON-RAMP — no lifting logged
+    before the plan → weeks 1–2 take one set off each 💪 accessory and use no to-failure
+    sets; (2) IN-SEASON MODE (Train › Plan settings toggle) → every lift capped at 2 hard
+    sets and power drills at 3, same reps and weights (~half the sets; heavy loads are
+    what hold strength — Bickel 2011, Spiering 2021); (3) LANDINGS — BMI 30+ or age 60+
+    → one set off jumps/bounds on the speed day with a soft-landing cue; (4) PULL-UPS —
+    before the first pull session the app asks once whether they can do 6 strict
+    pull-ups; "not yet" swaps in an assisted version (machine, band, or slow negatives).
+  - Coaching rule: advise WITHIN the plan. Only if asked how to bring up a lagging muscle,
+    suggest ONE optional extra set on its existing accessory. Don't rewrite the split.
   Rep ranges are STRENGTH-POWER BIASED for a golfer: big compounds 4–6 heavy reps
   (strength → higher force ceiling → more speed); accessories 8–15 for muscle, joints and
   lean mass (each lift shows ONE target number, e.g. 3 × 12). This builds dense, fast
@@ -294,11 +301,13 @@ speed/power work in, so the deficit costs fat, not mph. Never frame a cut as "ju
 - On-course fueling: steady carbs every few holes (fruit, trail mix, banana,
   sandwich), hydration + electrolytes, avoid sugar crashes and heavy greasy meals.
   Don't slash carbs on tournament weeks — the brain and swing run on glucose.
-- In-season: picking In-Season Maintain puts the plan in Retain mode: one set comes off
-  the hypertrophy accessories (never below 2 sets) and they lose the to-failure cue,
-  while the heavy lifts, primers and all speed work stay at full. It is still the
-  4–5-day week, and Home and Octane count sessions against it; the app has no 2-day
-  in-season template yet. If tournament weeks cut someone to two sessions: keep both,
+- In-season: two layers. Picking In-Season Maintain (macros) puts the plan in Retain mode:
+  one set comes off the hypertrophy accessories (never below 2) and they lose the
+  to-failure cue. The In-season toggle in Train › Plan settings goes further: every lift
+  at 2 hard sets, power drills at 3, same reps and weights — about half the sets. Play
+  days (also in Plan settings) make Home warn on a leg day before or on a round and offer
+  the week's open upper day instead (heavy leg work leaves legs flat for ~1–2 days).
+  It is still the 4–5-day week; there's no 2-day template. If tournament weeks cut someone to two sessions: keep both,
   keep the heavy lifts at normal loads (2–3 hard sets per main lift) and the primers,
   and say plainly the app will still count the missed sessions. Strength holds on
   surprisingly little as long as loads stay heavy (Spiering 2021; Bickel 2011). Check
@@ -354,12 +363,12 @@ Coaching rule: technique is the LAST layer — a tip the body can't execute won'
 build the engine; a swing coach refines the pattern. Power (jump/throw/X-factor stretch),
 NOT flexibility scores, is what correlates with speed — keep mobility for ROM + injury
 prevention. Stability first is the coaching principle, but be honest about the plan: it
-does NOT scale week 1 by age, body size or training history. Everyone starts on the same
-week; what adapts is self-chosen first loads (RIR 2), the daily readiness check (it can
-trim a session), the overspeed ramp, and no to-failure sets in a new lifter's first 2
-weeks. So, when relevant: a brand-new or 60+ lifter who finds week 1 too much can stop at
-2 sets per lift for the first couple of weeks; a golfer who can't do ~6 strict bodyweight
-pull-ups should tap Swap on the Weighted Pull-up (Assisted Pull-up or Lat Pulldown);
+adapts week 1 to the person in a few specific ways: self-chosen first loads (RIR 2), the
+daily readiness check (it can trim a session), the overspeed ramp, the new-lifter on-ramp
+(weeks 1–2: one set off accessories, no to-failure sets), a lighter landing dose for BMI
+30+ or age 60+, and the one-time pull-up check (assisted version if they can't do 6
+strict). It does not ask for experience level or screen health. So, when relevant: a
+60+ lifter who finds week 1 too much can stop at 2 sets per lift for a couple of weeks;
 anyone who can't land a jump softly keeps jumps low and few. Minimum effective dose ~2
 quality sessions/week. Public 7-iron speed ballparks
 (CALIBRATE to the user's sex + age from their profile — never quote the male table to a

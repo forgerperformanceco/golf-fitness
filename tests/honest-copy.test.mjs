@@ -56,7 +56,7 @@ function weeklySets(goal, freq, week) {
     function lsGet(k,d){ return d; } function planStart(){ return null; }
     ${decl(PLAN, "PHASES", "[")}
     ${["purposeFor", "trainRetain", "adjSets", "eventInfo", "waveFor", "bumpReps", "trimSets", "plainReps", "waveAdjust",
-      "effTarget", "overspeedDose", "speedDrillTarget"].map((n) => fn(PLAN, n)).join("\n")}
+      "effTarget", "ffOnRamp", "capSets", "plainSetCount", "ffInSeason", "overspeedDose", "speedDrillTarget"].map((n) => fn(PLAN, n)).join("\n")}
     this.api={PHASES, effTarget, speedDrillTarget, waveFor};`, ctx);
   const { PHASES, effTarget, speedDrillTarget, waveFor } = ctx.api;
   const P = PHASES[0];
@@ -93,9 +93,11 @@ test("progression copy states the real rule: same weight until every set hits th
   assert.match(LOGGER, /return 5;\s*\n\s*if\(isBarbell\(n\)\) return 2\.5;/);
 });
 
-test("in-season copy describes Retain mode, not a 1–2 sets / 1–2× a week mode the app doesn't run", () => {
+test("in-season copy describes the mode the app actually runs (Oct 2026: 2 hard sets per lift)", () => {
   assert.doesNotMatch(PLAN, /1–2 hard sets per muscle/);
-  assert.match(PLAN, /In-Season Maintain<\/b> and the plan moves to <b>Retain mode<\/b>/);
+  // The copy promises exactly what effTarget does when state.inseason is on.
+  assert.match(PLAN, /Turn on <b>In-season<\/b> in Plan settings: every lift drops to 2 hard sets at the same weights/);
+  assert.match(PLAN, /if\(ffInSeason\(\) && plainSetCount\(t\)\) t=capSets\(t, purposeFor\(name\)==="⚡" \? 3 : 2\);/);
   assert.match(PLAN, /over ~60/);
   assert.doesNotMatch(MACRO, /the in-season week: heavy enough to keep strength, lighter on volume/);
   assert.match(MACRO, /Retain mode/);

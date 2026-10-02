@@ -57,7 +57,7 @@ function extractFn(src, name) {
 }
 
 const NAMES_035 = ["purposeFor", "trainRetain", "adjSets", "eventInfo", "waveFor",
-  "bumpReps", "trimSets", "plainReps", "waveAdjust", "effTarget",
+  "bumpReps", "trimSets", "plainReps", "waveAdjust", "capSets", "plainSetCount", "effTarget",
   "overspeedDose", "speedDrillTarget", "prescribeW", "ffReduceLoad", "equipNeedsFor"];
 // incNum (040) reads equipNeedsFor (035) and isBarbell (045); prescribeW's
 // deload goes through ffReduceLoad (035).
@@ -75,6 +75,11 @@ const W = new Function(`
   function planStart() { return __planStart; }
   var EX = {};                       // empty catalog → equipNeedsFor uses its name rules
   function normName(n) { return String(n || ""); }
+  // The new-lifter on-ramp and in-season cap are person-dependent layers on top
+  // of the wave engine (covered in tests/training-engine.test.mjs) — off here so
+  // these cases pin the base engine.
+  function ffOnRamp() { return false; }
+  function ffInSeason() { return false; }
   ${code}
   return {
     purposeFor, adjSets, waveFor, waveAdjust, effTarget, plainReps,

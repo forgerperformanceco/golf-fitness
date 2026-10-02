@@ -185,9 +185,11 @@ program that actually moves the needle — and how Yardsmith delivers each:
   it is *not* yet scaled by experience, age or body size. What adapts: first-exposure loads are
   self-chosen at RIR 2; overspeed ramps 2×5 → 3×5 → 4×5 for every user; the daily readiness
   check can trim a session; a new lifter's first 2 weeks carry no to-failure sets; and the
-  primer note tells newcomers to jumps and throws to start at 2 sets (advice, not an automatic
-  ramp). An experience-level volume on-ramp, a pull-up capacity gate and plyometric gating are
-  **open owner decisions** (NUTRITION §9a) — don't describe them as features.
+  primer note tells newcomers to jumps and throws to start at 2 sets. Since Oct 2026: a
+  history-based volume on-ramp (weeks 1–2: one set off accessories for new lifters), a one-time
+  pull-up check that swaps in an assisted version, and a lighter landing dose (one set off
+  jumps/bounds) for BMI 30+ or age 60+ (NUTRITION §9a). There is still no experience question
+  or full health screen.
 - **Progress on purpose.** Training must build over time, not just vary. We use **double
   progression** against one target number per lift (hold the load until every working set
   reaches its target reps, then the app adds the smallest jump for that equipment; power drills

@@ -44,7 +44,7 @@ test("a swap chosen for the renamed pushdown carries over, and a reset clears it
   const store = { ff_swaps: { "Cable Triceps Pushdown": "Skull Crusher" } };
   const ctx = { lsGet: (k, f) => store[k] ?? f, lsSet: (k, v) => { store[k] = v; } };
   const renamed = logger.match(/var FF_PLAN_RENAMED=\{[^}]*\};/)[0];
-  vm.runInNewContext(renamed + functionSource(logger, "getSwaps") + functionSource(logger, "applySwapName") + functionSource(logger, "setSwap"), ctx);
+  vm.runInNewContext(renamed + functionSource(logger, "getSwaps") + functionSource(logger, "ffProfileDefault") + functionSource(logger, "applySwapName") + functionSource(logger, "setSwap"), ctx);
   assert.equal(ctx.applySwapName("Cable Overhead Triceps Extension"), "Skull Crusher");
   ctx.setSwap("Cable Overhead Triceps Extension", "Cable Overhead Triceps Extension");
   assert.equal(ctx.applySwapName("Cable Overhead Triceps Extension"), "Cable Overhead Triceps Extension");

@@ -142,6 +142,29 @@
   }
   function nuCta(label){ return '<span class="nu-cta">'+label+' <i aria-hidden="true">›</i></span>'; }
   function nuMinutes(d){ var m=0; try{ m=sessionMinutes(d); }catch(_){} return m?('About '+m+' min · '):''; }
+  // Round-aware: a heavy lower day right before (or on) a round leaves the legs
+  // flat on the course — muscle-damaging leg work dents jump/power output for
+  // ~24–48 h (Byrne 2004). With play days set (Train › Plan settings), the leg
+  // day gets a short note and, when an upper day is still open this week, a
+  // one-tap "do that instead". Nothing is moved automatically.
+  function ffRoundNote(d, wk){
+    if(!d || !/Lower/.test(d.name) || typeof ffPlaysOn!=="function") return "";
+    var now=new Date(), tmr=new Date(now.getTime()+864e5), today=ffPlaysOn(now);
+    if(!today && !ffPlaysOn(tmr)) return "";
+    var alt=null;
+    if(ffAccess()==="full") stripDays().some(function(x){
+      if(x.type==="rest" || x.type==="speed" || !/Upper/.test(x.name) || x.name===d.name) return false;
+      var s=getSession(wk, x.name); if(s && s.finishedAt) return false;
+      if(sessionSkipped(wk, x.name)) return false;
+      alt=x; return true;
+    });
+    return '<div class="nu-round">⛳ <b>'+(today?'Playing today?':'Playing tomorrow?')+'</b> '+
+      (today?'Lift legs after your round, not before.':'Heavy legs today can leave them flat on the course.')+
+      (alt?' Swap in your upper day and keep legs for after the round.'
+          :' If you lift legs, stop 2–3 reps short of hard.')+
+      (alt?'<button type="button" class="nu-round-go" data-startplayer="'+escAttr(alt.name)+'">Do '+ffEsc(alt.name.replace(/^Day \d+ — /,""))+' today instead ›</button>':'')+
+      '</div>';
+  }
   function nextUpCard(){
     if(!planStart())
       return '<button type="button" class="nu-card" data-homestart="1">'+
@@ -172,7 +195,7 @@
           '<div class="nu-kick">Today’s workout · Week '+wk+' · '+WAVES[waveFor(wk)].label+' week</div>'+
           '<div class="nu-title">'+d.name.replace(/^Day \d+ — /,"")+'</div>'+
           '<div class="nu-sub">'+(started?'Pick up where you left off — everything’s saved.':nuMinutes(d)+'The app walks you through every set.')+'</div>'+
-          nuCta(started?'Resume workout':'Start workout')+'</button>';
+          nuCta(started?'Resume workout':'Start workout')+'</button>'+(started?'':ffPullCapHtml(d)+ffRoundNote(d, wk));
       }
     }
     if(speedTestDue() && lsGet("ff_body",[]).some(function(e){ return e && e.s && e.ss!=="g"; }))   // a retest, not the first test
