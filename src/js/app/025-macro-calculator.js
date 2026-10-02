@@ -1255,7 +1255,7 @@
     var maintLbl = adjNow!==0 ? 'Maintenance (TDEE, tuned)' : 'Maintenance (TDEE)';
 
     var targetSummary=$("fuelTargetSummary");
-    if(targetSummary) targetSummary.innerHTML='<b>'+round(totalK).toLocaleString()+'</b> kcal <span>·</span> '+r.proteinG+'P <span>·</span> '+r.carbG+'C <span>·</span> '+r.fatG+'F';
+    if(targetSummary) targetSummary.innerHTML='<b>'+round(totalK).toLocaleString()+' kcal</b> · '+r.proteinG+'P · '+r.carbG+'C · '+r.fatG+'F';
     var html="";
     // Prose diet (same rule as Home): the numbers lead, one compact scale line
     // stays visible, and the education (full weekly-target band + goal note)

@@ -11,8 +11,8 @@ var ASSETS = [
   './privacy.html',
   './delete-account.html',
   './product-health.js?v=7',
-  './cloud-sync.js?v=120',
-  './coach.js?v=92',
+  './cloud-sync.js?v=121',
+  './coach.js?v=93',
   './manifest.webmanifest',
   './logo-dark-mark.png',
   // og-image.png intentionally NOT precached — it's only ever fetched by social scrapers.

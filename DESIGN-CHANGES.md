@@ -1,5 +1,64 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## Font & design consistency pass (Oct 2, 2026)
+
+User: "do a font and design check and make sure that there's consistency among the pages."
+
+**Measured first:** a headless inventory of every view (light and dark) recorded the
+rendered font family, size and weight of all text, plus every card's corners, padding and
+gutter, every button and every uppercase label.
+- **Already consistent:** page headers (kicker 11px, title 28px/900, subline 13px/600 on
+  every tab), the 14px gutter, and the "Your plan / More / The details" section headings.
+- **Drift found:**
+  - Three font families were rendering. 217 CSS rules named `system-ui` while the body
+    used the -apple-system stack, and form controls used the browser default (Arial on
+    Linux/ChromeOS; Stats visibly rendered in a different face).
+  - Nine font weights, including 520/550/650/720/750/780/820/850.
+  - Collapsible rows differed on every tab: Train 15px plus a grey ▾; Fuel 15px no icon
+    plus a green ⌄, and 14px plus a grey ▾; You an icon tile, title, summary and ⌄.
+  - Dark feature cards at 16/18/20px corners, light cards and rows at 12/14/16px.
+  - Primary buttons at 10/11/13/15px corners.
+  - In-card overlines at seven letter-spacings.
+  - Game Day had no page header.
+
+**Fixed:**
+- **One font:**
+  - A `--font` token is used by the body and by every `font:` shorthand, in styles.css,
+    coach.js and cloud-sync.js (pins bumped to v93 / v121).
+  - `button, input, select, textarea { font-family: inherit }`.
+  - Weights snap to 400/500/600/700/800/900.
+- **One row pattern:** the new `ffRowSummary` (icon tile + title + summary + green ⌄) is
+  used by the You groups, Train's "How the plan works" and "Plan settings" (now
+  `.row-fold`, with a live summary such as "5 days a week · equipment"), and Fuel's
+  Daily targets / Carb timing / What to eat.
+  - The Daily targets macros moved into the summary line (no right-hand column to wrap).
+  - The food guide's dark-mode olive tint is gone.
+- **Corners:**
+  - Cards and rows 16px (Home rows and the Ate-it tile were 14; Train folds and the
+    warm-up fold were 14/12).
+  - Dark feature cards 18px (Fuel's today card and the story card were 20; the You
+    sign-in hero was 16).
+  - Tall CTAs 14px; standard buttons 12px.
+  - Train's "Start my plan" is now 48px tall (it measured 43px once buttons inherited
+    the app font).
+- **Labels:**
+  - In-card overlines at 12px/800/.09em: Fuel's today kicker, Train week label,
+    weekly-card next-up, player, recap, Pro sheet, speed-test result, onboarding loop.
+  - Section headings at 12px/800/.1em: Stats sub-sections, chart heads, swap/add sheets.
+- **Game Day** now opens with the same page header as the five tabs ("Your round ·
+  Game Day · one line"); its separate dark title card was removed.
+
+**After:** one rendered family on every view (plus the numerals face for figures); every
+top-level card 16px and every feature card 18px.
+
+**Verified:**
+- npm test 202/202 (the You-groups CSS assertion follows the shared selector).
+- Audits: train 18/18, scroll 16/16, contrast clean in both themes, type only the known
+  `ft-bank` flag.
+- Release gate, data contract and claims-lint clean; build deterministic.
+- Paywall, program and simplify Playwright checks green; smoke shows only the known
+  tunnel-error flag.
+
 ## Program update — the audit's owner decisions, built (Oct 2, 2026)
 
 User: "lets fix the program changes" — the eight decisions the deep audit left open. All

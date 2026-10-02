@@ -31,8 +31,9 @@
     function seg(cur,val,lbl,attr){ return '<button class="gd-seg-btn'+(String(cur)===String(val)?" on":"")+'" data-'+attr+'="'+val+'">'+lbl+'</button>'; }
     var html=''+
       '<div class="gd-top"><button class="gd-back" data-gdback="1">‹ Home</button></div>'+
-      '<div class="gd-hero"><div class="gd-hero-t">⛳ Game Day</div>'+
-        '<div class="gd-hero-sub">A round is <b>'+(g.holes===9?"2+ hours":"4–5 hours")+' on your feet.</b> Steady carbs and fluids won’t fix a swing, but they cut late-round fatigue and keep your focus sharp to the last hole.</div></div>'+
+      // Same page header as the five tabs (kicker · title · one line).
+      '<header class="view-head"><div class="view-head-kicker">Your round</div><h1>Game Day</h1>'+
+        '<p>A round is '+(g.holes===9?"2+ hours":"4–5 hours")+' on your feet. Steady carbs and fluids cut late-round fatigue and keep your focus to the last hole.</p></header>'+
       ((typeof roundToday==="function"&&roundToday())
         ? '<button type="button" class="gd-loground done" data-roundlog="1">✓ Round logged — tap to edit</button>'
         : '<button type="button" class="gd-loground" data-roundlog="1">🏁 Just played? Log your round — 20 seconds</button>')+
@@ -515,8 +516,7 @@
   function acctGroup(key, ic, title, sub, inner){
     if(!inner) return "";
     return '<details class="acct-group" data-acctgroup="'+key+'"'+(acctOpen[key]?' open':'')+'>'+
-      '<summary><span class="hr-ic" aria-hidden="true">'+ic+'</span><span class="hr-tx"><b>'+title+'</b><small>'+sub+'</small></span>'+
-      '<span class="acct-chev" aria-hidden="true">⌄</span></summary><div class="acct-group-body">'+inner+'</div></details>';
+      ffRowSummary(ic, title, sub)+'<div class="acct-group-body">'+inner+'</div></details>';
   }
   function renderAccount(){
     var el=$("accountBody"); if(!el) return;

@@ -647,6 +647,18 @@ publishable key + VAPID public key ship client.
 - **Single source of truth** for each setting; reference (don't duplicate) elsewhere.
 - **Keep the free app working at every step;** monetization is additive layers.
 - **Don't clone DRVN;** win on nutrition + AI + yards + distribution.
+- **One design system (Oct 2026 consistency pass — DESIGN-CHANGES):**
+  - **Font:** a single font token (`--font`) everywhere, including form controls; the
+    numbers font is only for figures. Weights 400/500/600/700/800 (900 only for page
+    titles and big numerals).
+  - **Every page** opens with the same header: kicker · title · one line.
+  - **Collapsible and navigation rows** share one anatomy: icon tile, 15px/800 title,
+    13px/600 summary, green ⌄ for folds or › for links. The helper is `ffRowSummary`.
+  - **Corners:** cards and rows 16px; dark feature cards 18px; tall CTAs 14px;
+    standard buttons 12px.
+  - **Labels:** in-card overlines 12px/800/.09em; section headings between cards
+    12px/800/.1em, muted; field and micro labels 11–12px/.05em.
+  - **New UI** reuses these before inventing a variant.
 - **Model identity** and internal identifiers never go into committed artifacts.
 
 ---

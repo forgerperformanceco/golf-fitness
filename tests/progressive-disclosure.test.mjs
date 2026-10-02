@@ -54,5 +54,5 @@ test("You tab: sign-in on top, then four folded groups with summaries", () => {
   assert.match(account, /\(acctOpen\[key\]\?' open':''\)/);
   // Deep links into a folded setting open its group first.
   assert.match(account, /\[data-acctopen\]/);
-  assert.match(css, /\.acct-group\{/);
+  assert.match(css, /\.acct-group, \.row-fold\{/);   // one row/fold pattern (You, Train, Fuel)
 });

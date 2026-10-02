@@ -46,7 +46,7 @@
 <link rel="apple-touch-startup-image" media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash/apple-splash-750x1334.png" />
 <link rel="apple-touch-startup-image" media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash/apple-splash-640x1136.png" />
 <link rel="preload" href="fonts/ffnum.woff2" as="font" type="font/woff2" crossorigin />
-<link rel="stylesheet" href="styles.css?v=51208f39d1" />
+<link rel="stylesheet" href="styles.css?v=15aacee501" />
 </head>
 <body>
   <a class="skip-link" href="#appMain">Skip to main content</a>
@@ -98,8 +98,8 @@
 
       <details class="card fuel-targets" id="fuelTargetsFold">
         <summary class="fuel-targets-summary">
-          <span class="fuel-targets-copy"><b>Daily targets</b><small>and meals per day</small></span>
-          <span id="fuelTargetSummary" class="fuel-targets-macros">Calculated live</span>
+          <span class="hr-ic" aria-hidden="true">🎯</span>
+          <span class="fuel-targets-copy"><b>Daily targets</b><small id="fuelTargetSummary">Calories, macros and meals per day</small></span>
           <span class="fuel-targets-chevron" aria-hidden="true">⌄</span>
         </summary>
         <div class="fuel-targets-body">
@@ -114,7 +114,8 @@
 
       <details class="card fuel-timing" id="fuelTimingFold" hidden>
         <summary class="fuel-targets-summary">
-          <span class="fuel-targets-copy"><b>Carb timing around training</b></span>
+          <span class="hr-ic" aria-hidden="true">⏱️</span>
+          <span class="fuel-targets-copy"><b>Carb timing</b><small>Around your training</small></span>
           <span class="fuel-targets-chevron" aria-hidden="true">⌄</span>
         </summary>
         <div class="fuel-targets-body" id="fuelTimingBody"></div>
@@ -122,7 +123,11 @@
 
       <section class="card card-full fuel-food-guide">
         <details class="fold foodfold">
-          <summary>What do I eat to hit these numbers?</summary>
+          <summary class="fuel-targets-summary">
+            <span class="hr-ic" aria-hidden="true">🥗</span>
+            <span class="fuel-targets-copy"><b>What to eat</b><small>Foods that hit your numbers</small></span>
+            <span class="fuel-targets-chevron" aria-hidden="true">⌄</span>
+          </summary>
           <div class="fold-body">
             <div id="foodDynamic" class="fooddyn"></div>
             <p class="foodintro">Targets get easy once you know what common foods carry. Meat weights are <b>cooked</b>. Mix and match to reach your daily carb &amp; protein numbers.</p>
@@ -408,16 +413,16 @@
   </footer>
 </main>
 
-<script>window.FF_BUILD="51208f39d1";</script>
+<script>window.FF_BUILD="15aacee501";</script>
 <script src="product-health.js?v=7"></script>
-<script src="app.js?v=51208f39d1"></script>
+<script src="app.js?v=15aacee501"></script>
 <!-- Login lives in the Account tab, so cloud-sync should skip its floating pill. -->
 <script>window.FF_ACCOUNT_TAB = true;</script>
 <!-- Cloud login + progress sync. The Supabase SDK itself is LAZY-LOADED by
      cloud-sync.js only when a session exists (or the user taps sign-in), so
      signed-out visitors never download it. -->
-<script defer src="cloud-sync.js?v=120"></script>
+<script defer src="cloud-sync.js?v=121"></script>
 <!-- AI coach chat. Degrades gracefully until the Edge Function is deployed. -->
-<script defer src="coach.js?v=92"></script>
+<script defer src="coach.js?v=93"></script>
 </body>
 </html>
