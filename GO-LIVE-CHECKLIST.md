@@ -31,15 +31,12 @@ There are **two switches**, and they behave differently:
   (step 5).
 - Migration `20261001204500_billing_per_subscription_entitlement.sql` is written and
   CI-tested but **not applied** to the live project (step 1).
-- **The owner's row is hand-set to Pro.** The live project's only profile has
-  `subscription_status='active'` and `billing_provider` null — no billing record
-  behind it (a leftover from the old smoke test, or a comp). It stays Pro forever and,
-  signed in, always sees the app as `full`. If it isn't meant to be a comp, reset it
-  in the SQL editor with the uuid from Auth → Users:
-  ```sql
-  update public.profiles set subscription_status='free' where id='<owner uuid>';
-  ```
-  If it is a comp, record that in `YARDSMITH-BRAIN.md` §9.
+- **The owner's row is a deliberate comp — DO NOT reset it.** The live project's
+  only profile has `subscription_status='active'` and `billing_provider` null. The
+  owner decided (Oct 2, 2026) that their account stays free and fully open forever.
+  Applying the billing migration leaves it untouched (no provider → nothing seeded,
+  still `active`, `is_subscribed()` stays true), and no Paddle/store event can reach
+  it. Never run a "reset test accounts" step against it.
 
 **Testing the paywall before launch:** `?paywall=1` turns it on for one browser tab
 session (`?paywall=0` turns it off). Test **signed out, or signed in to an account that

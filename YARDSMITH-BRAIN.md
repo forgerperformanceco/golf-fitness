@@ -575,8 +575,9 @@ Plan of record: **`ROADMAP.md`**. Phases:
   Write terms.html (+ sw/build-www entries); allow Paddle in the CSP with the web
   bridge; set `PADDLE_API_KEY`/`PADDLE_ENV` so delete-account cancels subscriptions;
   Paddle dunning must end in canceled/paused. Entitlement is status-only, with
-  `past_due` as grace. **Owner questions:** is the live owner row ('active', no
-  provider) a deliberate comp? What do users on pre-billing native builds get?
+  `past_due` as grace. **Owner comp (decided Oct 2, 2026):** the owner's account (the
+  live row with 'active', no provider) stays free and fully open forever — never reset
+  it. **Open:** what do users on pre-billing native builds get?
 Cost control via prompt caching on the knowledge base.
 
 Secrets: Anthropic key, Paddle webhook secret, Supabase service-role, VAPID
