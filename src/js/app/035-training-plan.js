@@ -1036,7 +1036,7 @@
     html+='</div>';
 
     // Learn: the three reference reads grouped under ONE playbook fold.
-    html+='<details class="fold playbook"><summary>📚 How the plan works</summary><div class="fold-body">'+
+    html+='<details class="row-fold playbook">'+ffRowSummary("📚","How the plan works","Weeks, progression, in-season")+'<div class="fold-body">'+
       '<div class="pb-sec"><h4>🌀 Why this builds clubhead speed</h4>'+phaseWhy()+'</div>'+
       '<div class="pb-sec"><h4>📈 How the plan progresses for you</h4>'+
         '<p><b>The weeks.</b> Every 6 weeks the plan itself shifts: <b>Build</b> (wks 1–3) — targets as written; keep the weight until every set hits its target reps · <b>Heavy</b> (wks 4–5) — big-lift rep targets drop ~2 so the loads climb'+(retain?', accessories stay at about 2 sets':', accessories drop a set')+' · <b>Easy</b> (wks 6, 12, 18) — a set less on most lifts (nothing drops below 2) and the logger pre-suggests ~60% loads · <b>Peak</b> (wks 19–20) — the big lifts lose about half their sets, accessories drop to 2, speed work drops a set; same reps, loads stay heavy. You don’t manage any of it — the day cards and logger update themselves.</p>'+
@@ -1050,7 +1050,8 @@
       '</div></details>';
 
     // Configure: settings + equipment (open state preserved across re-renders).
-    html+='<details class="fold" id="setFold"'+(planState.settingsOpen?' open':'')+'><summary>⚙️ Plan settings</summary><div class="fold-body settings-body">'+
+    html+='<details class="row-fold" id="setFold"'+(planState.settingsOpen?' open':'')+'>'+
+      ffRowSummary("⚙️","Plan settings",planState.freq+" days a week"+(ffInSeason()?" · in-season":"")+" · equipment")+'<div class="fold-body settings-body">'+
       '<div class="set-row"><span class="set-lbl">Training days / week</span><div class="seg sm" id="freqSeg">'+
         '<button type="button" data-freq="4" '+(planState.freq===4?'class="active"':'')+'>4</button>'+
         '<button type="button" data-freq="5" '+(planState.freq===5?'class="active"':'')+'>5</button></div></div>'+
@@ -1073,6 +1074,12 @@
       '<div id="equipBar" class="settings-equip"></div>'+
       '</div></details>';
     return html;
+  }
+  // THE collapsible-row header, shared with You's groups (acctGroup in 080) and
+  // Fuel's plan folds: icon tile, title + one-line summary, green chevron.
+  function ffRowSummary(ic, title, sub){
+    return '<summary><span class="hr-ic" aria-hidden="true">'+ic+'</span><span class="hr-tx"><b>'+title+'</b>'+
+      (sub?'<small>'+sub+'</small>':'')+'</span><span class="acct-chev" aria-hidden="true">⌄</span></summary>';
   }
   // Re-attached after every render (the sanctioned exception — these nodes are
   // rebuilt by each innerHTML swap).
