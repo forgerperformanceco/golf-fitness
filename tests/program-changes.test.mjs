@@ -52,7 +52,7 @@ function engine({ goal = "leanbulk", store = {}, prep = [], inseason = false, eq
     var FF_PLAN_RENAMED={};
     ${decl(PLAN, "PHASES", "[")} ${decl(PLAN, "EQUIPMENT", "[")} ${decl(PLAN, "MACHINES", "[")}
     ${["purposeFor", "isBallistic", "trainRetain", "adjSets", "eventInfo", "waveFor", "bumpReps", "trimSets", "plainReps",
-       "waveAdjust", "capSets", "plainSetCount", "ffInSeason", "ffOnRamp", "effTarget", "overspeedDose", "speedDrillTarget",
+       "waveAdjust", "capSets", "plainSetCount", "ffInSeason", "ffInSeasonMode", "ffInSeasonPlan", "ffOnRamp", "ffHealth", "ffHealthCaution", "effTarget", "overspeedDose", "speedDrillTarget",
        "speedMode", "have", "ffLowImpact", "speedRows"].map((n) => fn(PLAN, n)).join("\n")}
     ${["ffProfileDefault", "applySwapName", "setSwap", "ffPullCapNeeded", "ffPullAssist"].map((n) => fn(LOGGER, n)).join("\n")}
     ${fn(MODEL, "ffBmi")}
@@ -145,7 +145,7 @@ test("in-season: every lift capped at 2 hard sets, power at 3, reps and loads ke
   assert.equal(E.effTarget("3 × 40 yd", "Farmer Carry", 3), "2 × 40 yd");
   // Off by default.
   assert.equal(engine({ store: { ff_history: vet } }).effTarget("4 × 15", "Lateral Raise", 3), "4 × 15");
-  assert.match(src("020-persistence-remember-everything-per-devi.js"), /inseason:!!state\.inseason/);
+  assert.match(src("020-persistence-remember-everything-per-devi.js"), /inseason:\(state\.inseason===true\?"lite":\(state\.inseason\|\|false\)\)/);
 });
 
 test("flagged back + a barbell → trap-bar deadlift by default; an explicit choice wins", () => {

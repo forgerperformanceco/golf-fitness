@@ -32,6 +32,7 @@ test("Weekly Flight Plan reads real calendar-week signals", () => {
   const context = {
     Date: FixedDate,
     planState: { freq: 4 },
+    ffSessionsPerWeek: () => 4,
     weekStartDateCal: () => new Date(monday),
     ffISO: (d) => d.toISOString().slice(0, 10),
     fuelStateFor: () => "close",

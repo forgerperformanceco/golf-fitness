@@ -22,7 +22,8 @@
     var ob={ step:0, total:6, goal:"leanbulk", sex:"male", age:"", weight:"",
              hf:"5", hin:"10", activity:"1.55", workout:"morning", freq:4, equip:"full", speed:"", drive:"", speedSrc:"g",
              prep:[], revisit:!!seed, hadPlan:!!planStart(), goalyds:(lsGet("ff_goalyds",null)||15),
-             goalPicked:!!seed };   // a re-run keeps the saved goal; a first run suggests one from height + weight
+             goalPicked:!!seed,
+             health:(state.health && Array.isArray(state.health.q)) ? state.health.q.slice() : [] };   // a re-run keeps the saved goal; a first run suggests one from height + weight
     function inferEquipPreset(){
       if(typeof planState==="undefined") return "full";
       var e=planState.equip||{};
@@ -88,6 +89,10 @@
       state.sex=ob.sex; state.goal=ob.goal; state.workout=ob.workout;
       if(ob.revisit) ffGoalSwitched(prevGoal);   // 025: a new goal restarts the check-in window
       state.prep=ob.prep.slice(); state.equipPreset=ob.equip;
+      // Health answers: unchanged answers keep a doctor's clearance; any change resets it.
+      var hq=ob.health.filter(function(k){ return ffHealthQs(ob.sex).some(function(q){ return q[0]===k; }); }).sort();
+      var ph=state.health, same=!!(ph && Array.isArray(ph.q) && ph.q.slice().sort().join()===hq.join());
+      state.health={ q:hq, ts:(same&&ph.ts)||Date.now(), cleared:!!(same && ph.cleared) };
       if(ob.age) $("age").value=ob.age;
       if(ob.weight) $("weight").value=ob.weight;
       $("heightFt").value=ob.hf||5; $("heightIn").value=ob.hin||10;
@@ -141,6 +146,13 @@
     function firstDay(){
       var d=(typeof todaySlot==="function")?todaySlot():null;
       return (d && d.type!=="rest") ? d : null;
+    }
+    function hqBtn(q, on){
+      return '<button type="button" class="hq'+(on?' sel':'')+'" data-hq="'+q[0]+'" aria-pressed="'+on+'"><span class="hq-box" aria-hidden="true">'+(on?'✓':'')+'</span><span>'+q[1]+'</span></button>';
+    }
+    function obHealthMsg(){
+      return ob.health.length ? ffHealthAdvice(ob.health, false)
+        : 'None of these? You’re set. '+(ob.revisit?'':'Your first two weeks still skip all-out sets and start the speed swings light. ')+'Not medical advice.';
     }
     function prepToggleHtml(){
       var opts=[["back","Back","stack & brace"],["hips","Hips","turn freely"],["shoulders","Shoulders","swing volume"],["knees","Knees","lower days"]];
@@ -234,11 +246,12 @@
             [["1.2","Mostly seated"],["1.375","Light — golf + some training"],["1.55","Moderate — train 3–5×/week"],
              ["1.725","Very active — hard training most days"],["1.9","Athlete — high-volume / two-a-days"]].map(function(o){
               return '<option value="'+o[0]+'"'+(ob.activity===o[0]?" selected":"")+'>'+o[1]+'</option>'; }).join("")+'</select></div>'+
-          // One plain health line (Oct 2026 audit) — no screen, nothing stored.
-          // Says only what weeks 1–2 actually change, for every goal: no all-out
-          // sets (035 ffOnRamp; cut / maintain never prescribe them) and overspeed
-          // starts at 2 × 5 (overspeedDose). Sets and reps are otherwise as written.
-          '<p class="ob-p ob-quiet ob-health">Heart condition, chest pain, recent surgery or a joint injury — or new to exercise and over ~45? Check with a doctor before you start.'+(ob.revisit?'':' Your first two weeks skip all-out sets and start the speed swings light.')+'</p>';
+          // Health check (035 FF_HEALTH_QS): tap any that apply — most tap none.
+          // A "yes" means a gentler start (035 ffHealthCaution) and a nudge to
+          // see a doctor; it never blocks setup.
+          '<div class="ob-field ob-healthfield"><label>Quick health check <span>(tap any that apply)</span></label>'+
+            '<div class="hq-list" id="obHealth">'+ffHealthQs(ob.sex).map(function(q){ return hqBtn(q, ob.health.indexOf(q[0])!==-1); }).join("")+'</div>'+
+            '<p class="ob-p ob-quiet ob-health" id="obHealthMsg">'+obHealthMsg()+'</p></div>';
       } else if(s===2){
         // "Best default" follows the suggestion for THIS body; the user can pick
         // anything. BMI can't tell muscle from fat, so the note says so.
@@ -336,7 +349,15 @@
       if(s===2) Array.prototype.forEach.call(root.querySelectorAll("[data-goal]"), function(b){
         b.onclick=function(){ ob.goal=b.getAttribute("data-goal"); ob.goalPicked=true; render(); }; });
       if(s===2) segPick("obGoalYds", function(v){ ob.goalyds=parseInt(v,10)||15; });
-      if(s===1) segPick("obSex", function(v){ ob.sex=v; });
+      if(s===1) segPick("obSex", function(v){ readStep(1); ob.sex=v; render(); });
+      if(s===1){ var hl=$("obHealth"); if(hl) hl.onclick=function(e){
+        var b=e.target.closest("[data-hq]"); if(!b) return;
+        var k=b.getAttribute("data-hq"), i=ob.health.indexOf(k);
+        if(i===-1) ob.health.push(k); else ob.health.splice(i,1);
+        var on=i===-1; b.classList.toggle("sel",on); b.setAttribute("aria-pressed",on);
+        b.querySelector(".hq-box").textContent=on?"✓":"";
+        var m=$("obHealthMsg"); if(m) m.innerHTML=obHealthMsg();
+      }; }
       if(s===3){ segPick("obWk", function(v){ ob.workout=v; }); segPick("obFreq", function(v){ ob.freq=parseInt(v,10); }); }
       if(s===4) segPick("obSpeedSrc", function(v){ ob.speedSrc=(v==="m"?"m":"g"); });
       if(s===3) Array.prototype.forEach.call(root.querySelectorAll("[data-equip]"), function(b){

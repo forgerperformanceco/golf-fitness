@@ -118,7 +118,7 @@
   }
   function weekBars(){
     var sess=sessionsByWeek(), per={}; sess.forEach(function(s){ per[s.w]=(per[s.w]||0)+1; });
-    var freq=(typeof planState!=="undefined" && planState.freq) ? planState.freq : 4;
+    var freq=ffSessionsPerWeek();
     var cur=Math.max(curWeek(), 1), start=Math.max(1, cur-7), bars="";
     for(var w=start; w<=cur; w++){
       var c=per[w]||0, h=Math.round(clamp(c/freq,0,1)*100);
@@ -184,7 +184,7 @@
   }
   /* ----- Sunday Scorecard: the week as a golf card — one ritual close per week ----- */
   function weekCard(){
-    var ws=weekStartDateCal().getTime(), freq=(typeof planState!=="undefined"&&planState.freq)||4;
+    var ws=weekStartDateCal().getTime(), freq=ffSessionsPerWeek();
     // doneTs = the session's original finish time (a re-saved old workout keeps
     // it); fall back to ts for entries written before it existed.
     var hist=lsGet("ff_history",[]).filter(function(h){ return h && (h.doneTs||h.ts||0)>=ws; });
@@ -503,7 +503,7 @@
         else g+='<div class="pc-need">⚖️ A five-second weigh-in with <b>Log something</b> on Home starts your bodyweight trend.</div>';
         if(sess) g+='<div class="pc-sec">📅 Consistency</div>'+
           '<div class="wkbars">'+weekBars()+'</div>'+
-          '<div class="pc-foot"><span>'+sess+' total · sessions per week (last 8)</span><span>goal <b>'+((typeof planState!=="undefined"&&planState.freq)||4)+'</b>/wk</span></div>';
+          '<div class="pc-foot"><span>'+sess+' total · sessions per week (last 8)</span><span>goal <b>'+ffSessionsPerWeek()+'</b>/wk</span></div>';
         var gymStat = lifts.length ? '<span class="pf-num">'+Math.round(lifts[0].best)+' lb</span><span class="pf-sub">best e1RM</span>'
           : (wtNow!=null ? '<span class="pf-num">'+wtNow+' lb</span><span class="pf-sub">bodyweight</span>'
           : '<span class="pc-delta neu">'+sess+' session'+(sess===1?'':'s')+'</span>');
