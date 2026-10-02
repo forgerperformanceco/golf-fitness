@@ -195,7 +195,7 @@ Declaration sites verified 2026-07-08; re-verify with
 | 045 | `ilog` (var), `ilogBodyHtml`, `isBarbell`, `platesFor` |
 | 050 | `ffTomb`, `pushHistory`, `clearWorkoutFor`, `finishBtnHtml`, `ffToast` |
 | 055 | `ffShareImage`, `ffMakeCard`, `ffShareBlob`, `ffCardCanvas`, `ffMakeYardsmithCard`, `shareYardsmithCard`, `ycData` |
-| 060 | `speedTestDue`, `openSpeedTest`, `stSpeedHistory` |
+| 060 | `speedTestDue`, `openSpeedTest`, `ffSpeedRows`, `ffSpeedSignal` |
 | 065 | `lastMob`, `mobDue`, `mobLimits` |
 | 070 | `startPlayer`, `e1RM`, `sessionsByWeek`, `strengthGain`, `ffScore`, `ffScoreSummary`, `octaneGaugeHtml`, `saveScoreSnapshot`, `driveStats`, `logBodyEntry`, `goalYds`, `ffBench`, `renderHeroCard` |
 | 075 | `ffInsights`, **`renderDash`** |

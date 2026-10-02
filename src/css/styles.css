@@ -1017,6 +1017,41 @@
   .wb-how{ margin:0 0 18px; }
   .wb-how .ow-n{ font-size:13px; }
   .wb-how .ow-t b{ font-size:13px; }
+
+  /* ---- Access: free-week teasers + the Yardsmith Pro sheet (036; inert while billing is off) ---- */
+  .ws-chip.locked .ws-name{ color:var(--muted); }
+  .pw-day{ margin:4px 0 14px; padding:22px 18px 18px; text-align:center; border:1px dashed #c9d8cc; border-radius:16px; background:var(--paper); }
+  .pw-day-ic{ font-size:26px; line-height:1; margin-bottom:8px; }
+  .pw-day-t{ font-size:18px; font-weight:800; letter-spacing:-.02em; color:var(--ink); }
+  .pw-day-s{ margin-top:3px; font-size:13px; color:var(--muted); }
+  .pw-day-p{ margin:12px auto 10px; max-width:34ch; font-size:13.5px; line-height:1.5; color:var(--muted); }
+  .pw-link{ border:0; background:none; padding:6px 4px; font:inherit; font-size:14px; font-weight:800; color:var(--green-700); cursor:pointer; }
+  .pw-card-train{ cursor:default; margin-top:4px; padding-right:18px; }
+  .pw-card-train .train-today-cta{ margin:14px 0 0; }
+  .pw-modal .swap-body{ padding-bottom:22px; }
+  .pw-kick{ font-size:12px; font-weight:850; letter-spacing:.1em; text-transform:uppercase; color:var(--green-700); }
+  .pw-h{ margin:4px 0 6px; font-size:23px; font-weight:850; letter-spacing:-.02em; line-height:1.15; color:var(--ink); }
+  .pw-p{ margin:0 0 12px; font-size:14px; line-height:1.5; color:var(--muted); }
+  .pw-list{ list-style:none; margin:0 0 16px; padding:0; }
+  .pw-list li{ position:relative; padding:5px 0 5px 26px; font-size:14px; line-height:1.4; color:var(--ink); }
+  .pw-list li::before{ content:"✓"; position:absolute; left:2px; top:5px; font-weight:900; color:var(--green-600); }
+  .pw-opts{ display:grid; gap:10px; margin-bottom:14px; }
+  .pw-opt{ position:relative; display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; min-height:64px;
+    padding:12px 14px; text-align:left; font:inherit; color:var(--ink); background:var(--card); border:2px solid var(--line); border-radius:14px; cursor:pointer; }
+  .pw-opt.on{ border-color:var(--green-600); background:#f1fbf4; }
+  .pw-opt b{ display:block; font-size:16px; }
+  .pw-opt small{ display:block; margin-top:2px; font-size:12.5px; color:var(--muted); }
+  .pw-opt-r{ text-align:right; flex:none; }
+  .pw-opt-tag{ position:absolute; top:-10px; right:12px; padding:2px 8px; border-radius:99px; font-size:11px; font-weight:850;
+    letter-spacing:.04em; color:#0b2b18; background:var(--accent); }
+  .pw-go{ display:block; width:100%; min-height:52px; border:0; border-radius:14px; cursor:pointer; font:inherit; font-size:17px; font-weight:850;
+    color:#0b2b18; background:linear-gradient(115deg,#74eda0,#a7f5c2); box-shadow:0 8px 20px rgba(34,197,94,.2); }
+  .pw-go:disabled{ cursor:default; opacity:.6; box-shadow:none; }
+  .pw-fine{ margin:10px 0 0; font-size:12px; line-height:1.45; color:var(--muted); text-align:center; }
+  .pw-keep{ margin:8px 0 0; font-size:13px; font-weight:700; color:var(--ink); text-align:center; }
+  .pw-links{ display:flex; justify-content:center; align-items:center; gap:14px; margin-top:10px; font-size:13px; }
+  .pw-links a{ color:var(--muted); font-weight:700; }
+  .pw-links .pw-link{ font-size:13px; color:var(--muted); }
   .wb-how .ow-t small{ font-size:12px; line-height:1.35; }
   .wb-q{ margin:0 0 10px; color:#cdebd6; font:700 14px system-ui; }
   .wb .ob-opt .obo-tag{ white-space:nowrap; }
@@ -2411,6 +2446,8 @@
   html:not([data-theme="light"]) .ob-in:focus{ border-color:#30553e; }
   html:not([data-theme="light"]) .ob-select{ color:#cae5d4; }
   html:not([data-theme="light"]) .ob-next{ background:#274934; color:#cae5d4; }
+  html:not([data-theme="light"]) .pw-day{ border:1px dashed #304334; }
+  html:not([data-theme="light"]) .pw-opt.on{ background:#122217; }
   html:not([data-theme="light"]) .pcard{ background:#1a1a1a; }
   html:not([data-theme="light"]) .pc-delta.up{ background:#15271c; color:#c0e1cc; }
   html:not([data-theme="light"]) .pc-delta.down{ background:#241313; }
@@ -2689,6 +2726,8 @@
   html[data-theme="dark"] .ob-in:focus{ border-color:#30553e; }
   html[data-theme="dark"] .ob-select{ color:#cae5d4; }
   html[data-theme="dark"] .ob-next{ background:#274934; color:#cae5d4; }
+  html[data-theme="dark"] .pw-day{ border:1px dashed #304334; }
+  html[data-theme="dark"] .pw-opt.on{ background:#122217; }
   html[data-theme="dark"] .pcard{ background:#1a1a1a; }
   html[data-theme="dark"] .pc-delta.up{ background:#15271c; color:#c0e1cc; }
   html[data-theme="dark"] .pc-delta.down{ background:#241313; }

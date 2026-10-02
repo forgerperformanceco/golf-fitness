@@ -9,11 +9,14 @@
   function ffInsights(){
     var out=[], body=lsGet("ff_body",[]), sessions=sessionsByWeek();
     var freq=(typeof planState!=="undefined" && planState.freq)?planState.freq:4, wk=curWeek();
-    var spd=body.map(function(e){ return { t:new Date(e.date).getTime(), s:parseFloat(e.s) }; })
-                .filter(function(p){ return !isNaN(p.t) && !isNaN(p.s); }).sort(function(a,b){ return a.t-b.t; });
-    var lastSpeed=spd.length?spd[spd.length-1].s:null;
-    var times=[]; body.forEach(function(e){ var t=new Date(e.date).getTime(); if(!isNaN(t)) times.push(t); });
-    sessions.forEach(function(se){ var t=new Date(se.s&&se.s.date).getTime(); if(!isNaN(t)) times.push(t); });
+    // Dates come from iso/ts, never the locale `date` text ("12 févr. 2026"
+    // parses as NaN outside English and silently dropped rows — a French PR
+    // read as a plateau). Speed = 060's one series (ffSpeedRows): real numbers
+    // only, dated by iso, anchored on the first guided test.
+    var spd=(typeof ffSpeedRows==="function")?ffSpeedRows():[];
+    var times=[]; body.forEach(function(e){
+      var t=e && (+e.ts || (e.iso ? new Date(e.iso+"T12:00:00").getTime() : NaN)); if(t && !isNaN(t)) times.push(t); });
+    sessions.forEach(function(se){ var x=se.s||{}, t=+x._ts || Date.parse(x.date||""); if(t && !isNaN(t)) times.push(t); });   // _ts: every save stamps it
     var lastAct=times.length?Math.max.apply(null,times):null;
     var daysIdle=lastAct!=null?Math.floor((Date.now()-lastAct)/864e5):null;
     var hasData=body.length>0 || sessions.length>0;
@@ -56,37 +59,55 @@
           body:"<b>"+(freq-thisWk)+" more</b> keeps your week on plan. Showing up is the single biggest lever on your Octane — consistency beats intensity.", ask:null});
     }
 
-    if(spd.length>=2){
-      var latest=spd[spd.length-1], base=spd[0].s, prevMax=Math.max.apply(null, spd.slice(0,-1).map(function(p){ return p.s; }));
-      var spanDays=(latest.t-spd[0].t)/864e5;
-      if(latest.s>prevMax+0.4){
-        var gain=Math.round((latest.s-base)*10)/10;
+    // The speed cards carry no `body`: Home shows only the title + the coach
+    // question (homeCoachRow), and the old bodies named overspeed as the fix for
+    // flat speed — against the app's own evidence order (jumps and throws lead,
+    // overspeed is the light add-on). The coach answers from the ask instead.
+    // Every speed verdict is gated by 060's noise rule (ffSpeedSignal): a PR
+    // only when the newest number is the best AND the trend is really up; "no
+    // clear gain" only after 4+ tests across 8+ weeks this season (a real
+    // ~0.15 mph/week gain can't show sooner), never at 14 days.
+    var spSig=(spd.length>=2 && typeof ffSpeedSignal==="function")?ffSpeedSignal(spd):null;
+    var seaSig=(typeof ffSeasonSpeedRows==="function" && typeof ffSpeedSignal==="function")?ffSpeedSignal(ffSeasonSpeedRows()):null;
+    if(spSig){
+      var latest=spd[spd.length-1], prevMax=Math.max.apply(null, spd.slice(0,-1).map(function(p){ return p.s; }));
+      if(latest.s>prevMax && spSig.verdict==="up"){
         out.push({prio:84, sig:"pr:"+latest.s, ic:"🚀", title:"New 7-iron PR — "+latest.s+" mph",
-          body:(gain>0?("Up <b>+"+gain+" mph</b> from baseline ≈ <b>+"+Math.round(gain*2)+" yards</b> of carry. "):"")+"Whatever you're doing is working — keep the overspeed work crisp and fully rested.",
           ask:"I just hit a new 7-iron speed PR. How do I keep progressing from here without plateauing or losing the gains?"});
-      } else if(spd.length>=3 && spanDays>=14 && latest.s<=base+0.4){
-        var wks=Math.round(spanDays/7);
-        out.push({prio:80, sig:"stall:"+latest.s+":"+wks, ic:"📉", title:"Speed's been flat ~"+wks+" weeks",
-          body:"You've kept training but the 7-iron number hasn't moved. Usual culprits: not enough true <b>overspeed</b> work, under-recovery, or under-fueling around training. Want the fix tailored to you?",
-          ask:"My 7-iron clubhead speed has been flat for about "+wks+" weeks even though I've kept training. What are the most likely causes and exactly how do I break the plateau?"});
+      } else if(seaSig && seaSig.n>=4 && seaSig.spanDays>=56 && seaSig.verdict!=="up"){
+        var wks=Math.round(seaSig.spanDays/7), dip=seaSig.verdict==="down";
+        out.push({prio:80, sig:"stall:"+latest.s+":"+wks, ic:"📉", title:dip?"Speed has dipped over ~"+wks+" weeks":"No clear speed gain in ~"+wks+" weeks",
+          ask:"My 7-iron clubhead speed "+(dip?"has dipped":"hasn't clearly moved")+" over about "+wks+" weeks of tests even though I've kept training. What are the most likely causes and what should I change?"});
       }
     }
 
-    var tr=weightTrend();
-    if(tr && tr.ratePerWeek>0.25 && spd.length>=2 && spd[spd.length-1].s<=spd[0].s+0.4)
+    // "Turn that mass into speed": only when weight is climbing FASTER than the
+    // goal's own plan (the Fuel check-in's band — an on-plan Lean Bulk never
+    // sees it) and speed hasn't clearly moved this season.
+    var tr=weightTrend(), ac=null;
+    try{ ac=tr && typeof adaptiveCheck==="function" ? adaptiveCheck() : null; }catch(_){}
+    if(tr && tr.ratePerWeek>0.25 && ac && ac.error>ac.tol && seaSig && seaSig.n>=3 && seaSig.verdict!=="up")
       out.push({prio:78, sig:"convert:"+Math.round(tr.ratePerWeek*10), ic:"🔁", title:"Turn that mass into speed",
-        body:"You're gaining weight (<b>"+(tr.ratePerWeek>0?'+':'')+(Math.round(tr.ratePerWeek*10)/10)+" lb/wk</b>) but 7-iron speed is flat — the new muscle hasn't been <i>converted</i> yet. Bias toward overspeed swings, jumps and med-ball throws, and make sure you're not over-bulking.",
-        ask:"I've added bodyweight but my clubhead speed hasn't gone up. How do I convert the new mass into actual swing speed?"});
+        ask:"I'm gaining weight faster than my plan and my clubhead speed hasn't clearly gone up. How do I convert the new mass into actual swing speed?"});
 
+    // Stalls are judged in Build weeks only — never in a planned Heavy, easy or
+    // peak week, and never on a recovery-dose day.
+    var stallOk=false;
+    try{ var rToday=(typeof ffReadinessToday==="function")?ffReadinessToday():null;
+      stallOk=!!planStart() && waveFor(curWeek())==="accumulate" && !(rToday && rToday.band==="recharge" && !rToday.original); }catch(_){}
     bigLiftStats().slice(0,4).forEach(function(L){
       if(L.n>=2 && L.last===L.best && L.last>L.first)
         out.push({prio:58, sig:"spr:"+L.name+":"+Math.round(L.last), ic:"🏋️", title:"Strength PR — "+ffEsc(L.name),
           body:"Estimated 1RM up to <b>"+Math.round(L.last)+" lb</b>. Force is the raw material for clubhead speed — this is exactly how mass becomes yards.", ask:null});
-      else if(L.n>=3){
-        var recent=L.series.slice(-3), rmax=Math.max.apply(null,recent);
-        if(L.last<=rmax && L.last<=L.best-0.5)
-          out.push({prio:60, sig:"sstall:"+L.name+":"+Math.round(L.last), ic:"🧱", title:ffEsc(L.name)+" has stalled",
-            body:"Estimated 1RM has plateaued around <b>"+Math.round(L.last)+" lb</b>. Try the double-progression bump — hold the load until you hit the top of every set's rep range, then add a little — or take a deload week.",
+      else if(stallOk && L.lastAcc && L.acc.length>=3){
+        // A real plateau: the last two full-dose Build sessions both sit below the
+        // best Build session before them. Heavy weeks (fewer reps), easy weeks
+        // (~60%) and recovery doses dip e1RM by design — they never count, and
+        // the card stays quiet in those weeks.
+        var a=L.acc, prev=Math.max.apply(null, a.slice(0,-2)), recent=Math.max(a[a.length-1], a[a.length-2]);
+        if(recent<=prev-0.5)
+          out.push({prio:60, sig:"sstall:"+L.name+":"+Math.round(a[a.length-1]), ic:"🧱", title:ffEsc(L.name)+" has stalled",
+            body:"Estimated 1RM has plateaued around <b>"+Math.round(a[a.length-1])+" lb</b> across your last two build weeks. Try the double-progression bump — hold the load until every set hits its target reps, then add a little.",
             ask:"My "+L.name+" estimated 1RM has stalled for a few sessions. How should I adjust my training to start progressing again?"});
       }
     });
@@ -132,6 +153,7 @@
         '<div class="nu-kick">🏁 Season complete</div><div class="nu-title">You finished all 20 weeks</div>'+
         '<div class="nu-sub">Start a new season on Train — your history and trends carry over.</div>'+
         nuCta("See what’s next")+'</button>';
+    if(ffAccess()==="locked") return ffLockedWithResumeHtml("home");   // free week over, no Pro: a started workout stays finishable (036)
     var wk=curWeek(), missed=missedWorkout(), d=todaySlot();
     if(missed){
       var old=getSession(wk,missed.name), mid=sessionInProgress(old);
@@ -153,7 +175,7 @@
           nuCta(started?'Resume workout':'Start workout')+'</button>';
       }
     }
-    if(speedTestDue() && lsGet("ff_body",[]).some(function(e){ return e && e.s; }))
+    if(speedTestDue() && lsGet("ff_body",[]).some(function(e){ return e && e.s && e.ss!=="g"; }))   // a retest, not the first test
       return '<button type="button" class="nu-card alt" data-speedtest="1">'+
         '<div class="nu-kick">Today · Speed test</div><div class="nu-title">🎯 Test your swing speed</div>'+
         '<div class="nu-sub">3 full swings with a 7-iron — the best one counts. See what two weeks of training bought you.</div>'+
@@ -193,8 +215,9 @@
       if(state==="on"||state==="close"){ fueled=true; return true; }
       return false;
     });
+    // A rough onboarding guess (ss "g") doesn't bank the baseline — a real number does.
     var body=lsGet("ff_body",[]);
-    var baseline=speedTests().length>0 || body.some(function(e){ return e && e.s!=null && e.s!==""; });
+    var baseline=speedTests().length>0 || body.some(function(e){ return e && e.s!=null && e.s!=="" && e.ss!=="g"; });
     return {trained:trained,fueled:fueled,baseline:baseline,
       done:(trained?1:0)+(fueled?1:0)+(baseline?1:0)};
   }
@@ -341,7 +364,8 @@
     ffSchedule.forEach(function(sl,i){ if(fd.m && fd.m[i]) done++; else if(ni<0) ni=i; });
     var sub, check='';
     var tune=false;
-    try{ var ac=adaptiveDue() && adaptiveCheck(); tune=!!(ac && !ac.onTrack); }catch(_){}
+    // Only a real suggestion flags Home — an "already at your minimum" note waits on Fuel.
+    try{ var ac=adaptiveDue() && adaptiveCheck(); tune=!!(ac && !ac.onTrack && ac.deltaKcal); }catch(_){}
     if(ni<0 || fd.rating==="on" || fd.rating==="close") sub=(fd.rating?"Day rated":"All "+n+" done")+" ✓ — nice.";
     else {
       var fresh=done===0 && !Object.keys(fuelLog()).length;

@@ -4,9 +4,9 @@
    classification + dose pipeline (the 6932f28 pattern).
 
    Extracts the REAL function declarations from src/js/app/035-training-plan.js
-   (and incNum from 040-workout-logger.js) by name, evaluates them with minimal
-   stubs for the three cross-module symbols they touch (`state`, `lsGet`,
-   `planStart`), and runs enumerated cases:
+   (plus incNum from 040-workout-logger.js and isBarbell from 045) by name,
+   evaluates them with minimal stubs for the cross-module symbols they touch
+   (`state`, `lsGet`, `planStart`, `EX`, `normName`), and runs enumerated cases:
 
      A. purposeFor() classification (🏋️ / 💪 / ⚡ / 🌀) — incl. the three
         6932f28 regression drills and the Landmine Press exclusion.
@@ -27,6 +27,7 @@ import { fileURLToPath } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../..");
 const SRC_035 = fs.readFileSync(path.join(ROOT, "src/js/app/035-training-plan.js"), "utf8");
 const SRC_040 = fs.readFileSync(path.join(ROOT, "src/js/app/040-workout-logger.js"), "utf8");
+const SRC_045 = fs.readFileSync(path.join(ROOT, "src/js/app/045-inline-logger-log-as-you-train-in-the-ca.js"), "utf8");
 
 /* ---- extract a `function NAME(…){…}` declaration by brace balancing.
    Skips string literals, // and both comment styles (apostrophes in comments
@@ -57,9 +58,12 @@ function extractFn(src, name) {
 
 const NAMES_035 = ["purposeFor", "trainRetain", "adjSets", "eventInfo", "waveFor",
   "bumpReps", "trimSets", "plainReps", "waveAdjust", "effTarget",
-  "overspeedDose", "speedDrillTarget", "prescribeW"];
+  "overspeedDose", "speedDrillTarget", "prescribeW", "ffReduceLoad", "equipNeedsFor"];
+// incNum (040) reads equipNeedsFor (035) and isBarbell (045); prescribeW's
+// deload goes through ffReduceLoad (035).
 const code = NAMES_035.map((n) => extractFn(SRC_035, n)).join("\n")
-  + "\n" + extractFn(SRC_040, "incNum");
+  + "\n" + extractFn(SRC_040, "incNum")
+  + "\n" + extractFn(SRC_045, "isBarbell");
 
 /* Stubs for the cross-module symbols the extracted functions reference.
    `state.goal` drives trainRetain(); lsGet("ff_event")/planStart() drive the
@@ -69,6 +73,8 @@ const W = new Function(`
   var __event = null, __planStart = null;
   function lsGet(k, d) { return (k === "ff_event" && __event) ? __event : d; }
   function planStart() { return __planStart; }
+  var EX = {};                       // empty catalog → equipNeedsFor uses its name rules
+  function normName(n) { return String(n || ""); }
   ${code}
   return {
     purposeFor, adjSets, waveFor, waveAdjust, effTarget, plainReps,
@@ -183,7 +189,9 @@ console.log("E. prescribeW");
 check("deload 200 → 120", W.prescribeW(200, "Barbell Bench Press", false, "deload"), 120);
 check("deload 93 → 55",   W.prescribeW(93, "Back Squat", false, "deload"), 55);
 check("ready lower-body +5",  W.prescribeW(205, "Leg Press", true, "accumulate"), 210);
-check("ready upper-body +2.5", W.prescribeW(105, "Incline DB Press", true, "accumulate"), 107.5);
+check("ready dumbbell +5", W.prescribeW(105, "Incline DB Press", true, "accumulate"), 110);
+check("ready barbell upper-body +2.5", W.prescribeW(185, "Barbell Bench Press", true, "accumulate"), 187.5);
+check("deload light DB 8 → 5", W.prescribeW(8, "Lateral Raise", false, "deload"), 5);
 check("not ready → null", W.prescribeW(105, "Incline DB Press", false, "accumulate"), null);
 check("no last weight → null", W.prescribeW("", "Back Squat", true, "accumulate"), null);
 

@@ -1,5 +1,241 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## Deep audit → 130 verified fixes: paywall, backend, training science (Oct 2, 2026)
+
+User: "take a dive into the code and make sure the new feature is really going to function
+and examine the database … and a deep understanding of fitness. The backbone … has to be
+rooted in science and particularly bodybuilding style workouts FOR golf people."
+
+**Method.**
+- Nine independent auditors: paywall entry points, paywall state/timing, free-week leaks,
+  backend/live-DB congruence, and five science lenses (volume/structure, progression math,
+  golf health/injury, nutrition, coach/doc congruence).
+- A completeness critic added four gap audits: returning after a break, safety for
+  beginners/older/heavier users, whether the Octane/Stats signals are trustworthy, and
+  store-bridge readiness.
+- Every finding was adversarially verified (a reproduction or evidence lens, plus a
+  skeptic for high/critical findings): 132 findings, 130 survived.
+- Fixes ran in two lanes (client code; backend + coach knowledge/docs), followed by a
+  per-cluster skeptic review, an integration run and a repair round.
+
+**Verified at the end:**
+- npm test 193/193, `npm run check`, data contract, release gate, claims-lint.
+- wave-cases 93/93; audits: train 18/18, scroll 16/16, contrast clean.
+- Paywall Playwright check 40/40; build deterministic.
+- Only the two known pre-existing failures remain (smoke tunnel errors; audit-type
+  `ft-bank`).
+
+### Paywall (still switched off)
+- **Resume:** a session already in progress stays finishable after the free week, with a
+  Resume button above the lock card on Home and Train.
+- **Welcome back:** doesn't appear for locked users, so they can't wipe the season and
+  then hit the paywall.
+- **Backups:**
+  - Never carry `ff_pro`, so a JSON file can't unlock Pro.
+  - `ff_free_week` imports earliest-wins.
+- **Pro cache:**
+  - Now `{pro, ts, uid}`, trusted only while a stored Supabase session for that uid
+    exists.
+  - An expired-token offline open no longer clears it.
+- **Free-week clock:**
+  - Validated and clamped (≤7 days; future stamps become now).
+  - Also stamped at plan start.
+  - Signed-in clients align it to `min(local, profiles.created_at)`, the server's clock.
+    The server never reads client data.
+- **Week jumps:** not offered outside "full" access (the picker is hidden and
+  `startPlanAtWeek` clamps to week 1).
+- **Coach:** wrapped the moment coach.js assigns `window.FFCoach` (a window accessor).
+  A server 402 `subscription_required` fires `ff-paywall`, which opens the Pro sheet.
+- **Reminders:** workout and speed-test reminders are not scheduled for days the user
+  will be locked.
+- **Store-bridge contract** (written in the 036 header):
+  - `isPro()` is a sync boolean; only `=== true` counts.
+  - `prices()` may be async and carries `trialDays` only for eligible users.
+  - `purchase()` returns `{status, charged?}`.
+  - Also: `platform`, `manageUrl`, `termsUrl`.
+  - The bridge dispatches `ff-billing-changed`.
+  - Purchase messages depend on the status; "Welcome" only once Pro is confirmed.
+  - Cancellation copy is per platform.
+
+### Backend (nothing changes today; migration NOT yet applied live)
+- **New migration `20261001204500_billing_per_subscription_entitlement.sql`:**
+  - `private.billing_subscriptions` tracks each subscription separately, with a per-sub
+    out-of-order guard, so an old subscription's event can't overwrite a newer paid one.
+  - Entitlement is status-only (`active`/`trialing`/`past_due` grace). A stale
+    `trial_ends_at` no longer overrides a cancel.
+- **paddle-webhook:** returns 200 for deleted users instead of a 500 retry loop.
+- **delete-account:** cancels an active Paddle subscription only when `PADDLE_API_KEY`
+  is set.
+- **pgTAP:** the authorization tests cover all of the above.
+- **Docs:** GO-LIVE-CHECKLIST.md and supabase/README.md were corrected:
+  - Explicit-uuid SQL (auth.uid() is null in the SQL editor).
+  - The store webhook must exist before `REQUIRE_SUBSCRIPTION=1`.
+  - Terms page, CSP for Paddle, dunning settings.
+
+### Training engine (the science backbone)
+- **Ballistic/power drills never get load increments** (they progress by intent). The
+  push-day wood-chop is a 🌀 control drill, not ballistic.
+- **Heavy weeks rescale the load** for the lower rep target (Epley-consistent, rounded to
+  the equipment step), so a Heavy week is actually heavier.
+- **Load reductions:** every one (deload ~60%, recovery dose) goes through one
+  `ffReduceLoad` helper that really reduces light loads. The modal "fill" uses the dosed
+  load.
+- **Equipment-aware increments:**
+  - Med ball: no bump.
+  - Dumbbells and cables: 5 lb.
+  - Barbell lower body: 5 lb; barbell upper body: 2.5 lb.
+- **Effort notes are wave-, band- and position-aware.** There is no "to failure" cue:
+  - in Easy, Peak or recovery-dose sessions;
+  - on loaded lunges or split squats;
+  - right before a heavy compound (the curl-first order is kept);
+  - during a new lifter's first 2 weeks (the on-ramp).
+- **Returning after a break:**
+  - Season resets ("Ease back in", season 2) fall back to lifetime `ff_history`, so loads
+    survive.
+  - Measured from a lift's last session at any dose (a deload is not a break):
+    - ≥14 days: no bump;
+    - ≥28 days: ~90% with an ease-in line.
+  - PR checks use lifetime data, so there are no false "New ceiling" toasts.
+- **Smaller fixes:**
+  - Stall insights compare only full-dose same-wave sessions (they no longer fire every
+    Heavy or Easy week).
+  - No back-to-back deloads around an event.
+  - Smart trim never cuts a 🏋️ lift.
+  - The jump primer was restored on the 4-day Quads day.
+  - "About N min" counts the real dose.
+  - Bodyweight swaps are regressions with their own targets, not harder progressions.
+  - One shared `isBigLift` (no Pallof, throws or speed bench in strength stats).
+  - Speed-day warm-up ends with a ballistic ramp.
+  - Trap-bar deadlift is the first one-tap swap for the deadlift.
+
+### Cues & copy
+- **Cue routing fixed:**
+  - Chops no longer get jump cues.
+  - Pallof is cued to *resist* rotation.
+  - Raises, rows, presses, split squats, push-ups, dips and Nordics each have correct
+    cues.
+  - Jump cues teach soft landings.
+- **Honest copy:**
+  - Peak/taper copy matches the engine (no "~3–6% power bump").
+  - Progression copy states the real rule.
+  - In-season copy describes Retain mode.
+  - Bulk copy is honest (a bigger surplus means more fat, not more speed).
+  - Lean-bulk rates are consistent.
+- **Game Day:**
+  - Warm-up ends with real-club speed swings (the overspeed stick is optional).
+  - An evidence-based carb guide for the round.
+  - One alcohol line.
+- **Smaller fixes:**
+  - The overspeed-blaming insight text was deleted.
+  - Round "receipts" need a minimum sample and use hedged wording.
+  - ffBench male <50 is now 78 mph / 215 yd.
+  - Onboarding has a one-line health note.
+
+### Nutrition engine
+- **Goal suggestion:** `ffSuggestGoal` — BMI ≥30 suggests Lean Out, 27–30 suggests
+  In-Season Maintain, else Lean Bulk. It's preselected but still a choice, and onboarding
+  now asks Body before Outcome.
+- **Fat floor:** 20% of kcal on every goal (the rest from carbs).
+- **Post-workout meal:** gets at least a main meal's protein.
+- **Metabolism check-in:**
+  - Needs 6+ weigh-ins over 12+ days.
+  - Noise-aware tolerance; corrections in half-gap steps ≤250.
+  - The adjustment is a whole number of kcal.
+  - Never silently piles up past the calorie floor.
+  - "Got it" snoozes 10 days via `checkin-ok:<day>` in `ff_insights_seen`.
+- **Fuel adherence:** weighted by slot kcal (`d.w` inside `ff_fuel` records), so the
+  carb-only pre-workout snack isn't a full meal.
+
+### Progress signals & coach context
+- **Speed anchor:**
+  - The first guided test anchors the trend; onboarding *guesses* are tagged `ss:'g'`
+    and never become the baseline.
+  - One plausible 7-iron range, 30–130 mph.
+- **Noise model:** NEW PR, Story verdicts and the Octane speed pillar respect it.
+  - Constants: `SPEED_NOISE` 1.2 mph, `SPEED_MDC` 1.5 mph, forecast TE floor 1 mph,
+    `DRIVE_MDC` 6 yd.
+  - These are **unsourced design assumptions** pending 7-iron between-day reliability
+    data.
+- **Forecast:** confidence labels widened or downgraded to match real coverage.
+- **Power-to-weight is goal-aware:**
+  - On plan for a lean bulk = on track.
+  - On a cut, weight loss alone can't max the pillar.
+  - Octane speed and power-to-weight are season-scoped.
+- **Dates:** insights parse iso/ts, never locale strings.
+- **Coach context:** the coach now gets the real week, wave (plain and internal names),
+  this week's plan targets and a compact recent log. coach.js v92.
+
+### Coach knowledge & evidence docs
+knowledge.ts, NUTRITION/CLUBHEAD references, OCTANE-SCORE.md and the domain skill now
+describe exactly what ships:
+- **Overspeed:** once a week, 2×5→3×5→4×5, biweekly test.
+- **Six-pillar Octane.**
+- **Real per-muscle doses and frequency** (upper body once a week): no "~2
+  sessions/muscle" claim.
+- **Nutrition:** caffeine timing, alcohol & recovery, post-workout fat wording, Helms
+  2014 per lean mass.
+- **Training:** detraining/return-to-training, in-season = Retain mode.
+
+### Open owner decisions (recorded, not built)
+- **Split/frequency and volume:**
+  - Upper body is trained once a week.
+  - Hamstrings, side/rear delts and calves sit below the app's own weekly-set guidance.
+  - Options: a second 4-day lower exposure, or a row/press swap.
+- **Experience-level volume on-ramp for beginners.** Only the effort on-ramp shipped.
+- **Pull-up capacity gate; plyometric gating by mass/age; a full pre-participation
+  questionnaire.**
+- **A true in-season template (2–3 sessions) and round-aware scheduling.**
+- **Gym speed day:** add the seated chest throw (speed-day campaign S1).
+- **A trap-bar default.** Today it's the first swap.
+- **Billing:**
+  - Store webhook vendor (RevenueCat vs native ASSN v2 + Play RTDN).
+  - terms.html.
+  - Whether the live owner row ('active', no provider) is a deliberate comp.
+  - The policy for pre-billing native builds.
+
+## Free week → Yardsmith Pro — built, switched off (Oct 1, 2026)
+
+User: "If I start this thing on Apple Store, won't people download for free?" → "How do
+we just give the first workout as a demo?" → "7 days they can see every workout tho" →
+"Okay but hide as much as possible the first week that makes sense." Pricing and rules
+in YARDSMITH-BRAIN §9. New module `036-access-free-week-and-pro.js`; `FF_PAYWALL=false`
+so **nothing changes for anyone today** except the You tab's old "No paywall" promise,
+now "Free during early access". Preview it with `?paywall=1`.
+
+- **Free week (days 1–7):** Train is Today-only. The Full-week toggle and Jump-to-week are
+  gone. Future workout chips show 🔒, and tapping one shows a dashed teaser card: name,
+  minutes, exercise count, "opens Friday", and "See Yardsmith Pro ›". It never shows the
+  exercise list, and there's no "log it early". Today's workout and past days are fully
+  open.
+- **After the free week:**
+  - Home's one big button becomes "Your free week is done · Keep your plan going".
+  - Train shows the hero plus one card with an "Unlock week N" button. There's no strip,
+    list or Start button.
+  - `startPlayer`, `openSpeedTest` and `FFCoach.open/ask` all route to the Pro sheet.
+  - Resuming a session that was already started is allowed.
+  - Stats, history, Fuel and You stay readable.
+- **The Pro sheet** (a swap-modal shell):
+  - The headline depends on why it opened.
+  - Four ✓ benefits.
+  - Yearly (preselected, "Best value", $6.67/mo) and Monthly cards. *(Updated Oct 2:
+    trial wording appears only when the store bridge reports `trialDays>0` for an
+    eligible user; otherwise the button reads "Continue".)*
+  - Fine print covering auto-renewal and cancellation.
+  - "Everything you've logged stays yours, Pro or not."
+  - Restore purchases · Terms · Privacy. *(Updated Oct 2: Terms = the bridge's
+    `termsUrl`, else Apple's EULA on iOS only, else no link until terms.html exists.)*
+  - With no `FFBilling` bridge, the buy button only toasts "Subscriptions open soon".
+- **You tab:**
+  - Paywall off: an early-access card at the bottom.
+  - Paywall on: the status card ("Free week · N days left" / "Free plan" / "Yardsmith
+    Pro ✓"). *(Updated Oct 2: shown above the folded groups for non-Pro users; Pro
+    users keep it inside "Your plan".)*
+- **Dark theme:** `.pw-go` and `.pw-opt-tag` are excluded from the generator (they're the
+  bright primary, like `.train-today-cta`).
+- **Analytics:** `paywall_shown{reason}`, `paywall_buy_tap{plan}` (product-health v7).
+- **Tests:** `tests/paywall.test.mjs`. The scratchpad Playwright run covers all four
+  states (off / free week / locked / Pro): 40/40.
+
 ## Hypertrophy evidence update — six changes (Sep 30, 2026)
 
 User: "any scientific evidence you can find and use towards optimizing lifting for a

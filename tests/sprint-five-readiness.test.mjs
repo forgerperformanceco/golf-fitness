@@ -37,8 +37,12 @@ function session() {
   };
 }
 
+const plan = readFileSync(new URL("../src/js/app/035-training-plan.js", import.meta.url), "utf8");
+
 function engine() {
   const context = {};
+  // Smart trim spares 🏋️ main lifts, so the real classifier rides along.
+  vm.runInNewContext(functionSource(plan, "purposeFor"), context);
   vm.runInNewContext(functionSource(readiness, "ffReadinessRetarget"), context);
   vm.runInNewContext(functionSource(readiness, "ffReadinessAdaptSession"), context);
   return context;
@@ -51,6 +55,15 @@ test("smart trim protects primary work and removes only later fatigue", () => {
   assert.deepEqual(adapted.ex.map((x) => x.sets.length), [4, 4, 3, 3]);
   assert.deepEqual(adapted.ex.map((x) => x.target), ["4 × 8", "4 × 8", "3 × 8", "3 × 8"]);
   assert.equal(adapted.readiness.band, "steady");
+});
+
+test("smart trim never trims a 🏋️ main lift, even past the first two", () => {
+  const s = session();
+  s.ex[2].name = "Standing Overhead Press";
+  const adapted = engine().ffReadinessAdaptSession(s, {
+    date: "2026-07-27", ts: 1, score: 4, band: "steady", original: false,
+  });
+  assert.deepEqual(adapted.ex.map((x) => x.sets.length), [4, 4, 4, 3]);
 });
 
 test("recovery dose trims every lift while an explicit override preserves the plan", () => {

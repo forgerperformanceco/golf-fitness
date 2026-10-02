@@ -81,9 +81,16 @@ test("forecast is range-based, confidence-labeled, capped, and assumption-visibl
 
 test("forecast refuses false precision before enough dated evidence exists", () => {
   const now = Date.now();
+  // Oct 2026 audit: an honest six-week range needs three tests across 4+ weeks
+  // (two endpoints gave "High confidence" ranges that held the truth ~1 in 4).
   const forecast = loadBrain({ ff_body: [{ s: 82, ts: now }] }).forecast();
   assert.equal(forecast.status, "building");
-  assert.match(forecast.reason, /Two dated/);
+  assert.match(forecast.reason, /Three dated/);
+  const two = loadBrain({ ff_body: [{ s: 80, ts: now - 28 * 864e5 }, { s: 82, ts: now }] }).forecast();
+  assert.equal(two.status, "building");
+  const short = loadBrain({ ff_body: [{ s: 80, ts: now - 20 * 864e5 }, { s: 81, ts: now - 10 * 864e5 }, { s: 82, ts: now }] }).forecast();
+  assert.equal(short.status, "building");
+  assert.match(short.reason, /less than four weeks/);
 });
 
 test("coach memory persists bounded turns, syncs, and remains user-clearable", () => {

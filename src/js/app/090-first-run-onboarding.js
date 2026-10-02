@@ -20,8 +20,9 @@
   }
   function startOnboarding(seed){
     var ob={ step:0, total:6, goal:"leanbulk", sex:"male", age:"", weight:"",
-             hf:"5", hin:"10", activity:"1.55", workout:"morning", freq:4, equip:"full", speed:"", drive:"",
-             prep:[], revisit:!!seed, hadPlan:!!planStart(), goalyds:(lsGet("ff_goalyds",null)||15) };
+             hf:"5", hin:"10", activity:"1.55", workout:"morning", freq:4, equip:"full", speed:"", drive:"", speedSrc:"g",
+             prep:[], revisit:!!seed, hadPlan:!!planStart(), goalyds:(lsGet("ff_goalyds",null)||15),
+             goalPicked:!!seed };   // a re-run keeps the saved goal; a first run suggests one from height + weight
     function inferEquipPreset(){
       if(typeof planState==="undefined") return "full";
       var e=planState.equip||{};
@@ -45,7 +46,10 @@
       if(typeof planState!=="undefined" && planState.freq) ob.freq=planState.freq;
       var oldBody=lsGet("ff_body",[]);
       for(var obi=oldBody.length-1;obi>=0;obi--){
-        if(!ob.speed && oldBody[obi]&&oldBody[obi].s!=="") ob.speed=String(oldBody[obi].s||"");
+        // The toggle starts from the prefilled number's own tag: a guided test or
+        // a measured number stays "Measured", only an earlier guess reads "Rough guess".
+        if(!ob.speed && oldBody[obi]&&oldBody[obi].s!=="" && oldBody[obi].s!=null){
+          ob.speed=String(oldBody[obi].s||""); if(ob.speed) ob.speedSrc=(oldBody[obi].ss==="g"?"g":"m"); }
         if(!ob.drive && oldBody[obi]&&oldBody[obi].d!=="") ob.drive=String(oldBody[obi].d||"");
         if(ob.speed&&ob.drive) break;
       }
@@ -59,11 +63,18 @@
     function close(){ document.body.style.overflow=""; root.remove(); }
 
     var GOAL_CARDS=[
-      {v:"leanbulk", ic:"🏗️", t:"Lean Bulk", tag:"+10%", d:"Slow, quality mass — add power and keep your swing mobile. Best default."},
-      {v:"bulk", ic:"💪", t:"Bulk", tag:"+20%", d:"Aggressive off-season size & strength to max out speed potential."},
-      {v:"maintain", ic:"⛳", t:"In-Season", tag:"Maintain", d:"Hold your build & energy through a tournament stretch."},
+      {v:"leanbulk", ic:"🏗️", t:"Lean Bulk", tag:"+10%", d:"Slow, quality mass — add power and keep your swing mobile."},
+      {v:"bulk", ic:"💪", t:"Bulk", tag:"+20%", d:"Faster weight gain, but more of it is fat — no extra speed over Lean Bulk. Plan a Lean Out after."},
+      {v:"maintain", ic:"⛳", t:"In-Season", tag:"Maintain", d:"Hold your build & energy through a tournament stretch.",
+        rd:"Hold your weight while you lift — muscle up, fat down. Also fits a tournament stretch."},
       {v:"cut", ic:"🔥", t:"Lean Out", tag:"−20%", d:"Drop fat, protect muscle — better power-to-weight = more speed."}
     ];
+    // The goal we'd pick from height + weight (024 ffSuggestGoal). Before body
+    // stats are in, Lean Bulk.
+    function obSuggested(){
+      var hcm=((+ob.hf||0)*12+(+ob.hin||0))*2.54;
+      return ffSuggestGoal(+ob.weight||0, hcm);
+    }
     var EQ_CARDS=[
       {v:"full", ic:"🏟️", t:"Full gym", d:"Commercial gym — barbells, machines, cables, the works."},
       {v:"home", ic:"🏠", t:"Home gym", d:"Dumbbells, a bench, pull-up bar, bands, kettlebell."},
@@ -73,7 +84,9 @@
 
     // Push profile into the real app state + recompute. Idempotent: safe to call repeatedly.
     function applyProfile(){
+      var prevGoal=state.goal;
       state.sex=ob.sex; state.goal=ob.goal; state.workout=ob.workout;
+      if(ob.revisit) ffGoalSwitched(prevGoal);   // 025: a new goal restarts the check-in window
       state.prep=ob.prep.slice(); state.equipPreset=ob.equip;
       if(ob.age) $("age").value=ob.age;
       if(ob.weight) $("weight").value=ob.weight;
@@ -97,13 +110,15 @@
         var o=ob.original||{};
         var obNew=function(k){ var v=String(ob[k]||"").trim(); return (v && v!==String(o[k]||"").trim()) ? v : ""; };
         var nw=obNew("weight"), ns=obNew("speed"), nd=obNew("drive");
-        if(nw || ns || nd) logBodyEntry(nw, ns, nd);
+        if(nw || ns || nd) logBodyEntry(nw, ns, nd, ob.speedSrc);
         return;
       }
-      if(ob.weight || ob.speed || ob.drive) logBodyEntry(ob.weight||"",ob.speed||"",ob.drive||"");
+      // A rough guess is tagged "g": it holds the spot but never anchors a
+      // trend — the first real number does (060 ffSpeedRows).
+      if(ob.weight || ob.speed || ob.drive) logBodyEntry(ob.weight||"",ob.speed||"",ob.drive||"", ob.speedSrc);
     }
     function finish(startNow){
-      applyProfile(); pushBaseline(); lsSet("ff_onboarded", true);
+      applyProfile(); pushBaseline(); lsSet("ff_onboarded", true); ffStampFreeWeek();
       lsSet("ff_goalyds", parseInt(ob.goalyds,10)||15);
       // Targets exist now — the first-visit brand hero on Home steps aside.
       var dh=document.querySelector(".dash-hero"); if(dh) dh.hidden=true;
@@ -154,7 +169,7 @@
       });
     }
     function readStep(s){
-      if(s===2){
+      if(s===1){
         ob.age=($("obAge").value||"").trim();
         ob.weight=($("obWeight").value||"").trim();
         ob.hf=($("obHf").value||"").trim()||"5";
@@ -166,14 +181,17 @@
     function advance(s){
       readStep(s);
       var err=$("obErr");
-      if(s===2){
+      if(s===1){
         if(!ob.weight || +ob.weight<60 || +ob.weight>500){ if(err) err.textContent="Enter your bodyweight so we can size your fuel."; return; }
         if(ob.age && (+ob.age<14 || +ob.age>90)){ if(err) err.textContent="Enter a real age (14–90)."; return; }
+        // Body first, so the goal step can preselect what fits this body —
+        // until the user taps a goal themselves (or on a re-run: the saved goal).
+        if(!ob.goalPicked) ob.goal=obSuggested();
       }
       if(s===3 && !ob.equip){ if(err) err.textContent="Pick the equipment setup closest to yours."; return; }
       if(s===4){
         if(ob.drive && (+ob.drive<80 || +ob.drive>400)){ if(err) err.textContent="Enter driver carry between 80 and 400 yards, or leave it blank."; return; }
-        if(ob.speed && (+ob.speed<30 || +ob.speed>130)){ if(err) err.textContent="Enter 7-iron speed between 30 and 130 mph, or leave it blank."; return; }
+        if(ob.speed && !speedInRange(+ob.speed)){ if(err) err.textContent="Enter 7-iron speed between "+SPEED_MIN+" and "+SPEED_MAX+" mph, or leave it blank."; return; }
       }
       if(s===4) applyProfile();   // compute targets + adapted week for the reveal
       if(s===5){ finish(true); return; }
@@ -200,18 +218,7 @@
           '<div class="ob-promise"><span>~45 sec</span><span>No account needed</span><span>Change anytime</span></div>';
         nextLabel=ob.revisit?"Update my plan →":"Build my plan →";
       } else if(s===1){
-        kicker="Step 1 of 4 · Outcome"; title="What does winning look like?";
-        body='<div class="ob-opts">'+GOAL_CARDS.map(function(g){
-          return '<button type="button" class="ob-opt'+(ob.goal===g.v?' sel':'')+'" data-goal="'+g.v+'">'+
-            '<span class="obo-ic">'+g.ic+'</span><span class="obo-tx">'+
-            '<span class="obo-t">'+g.t+' <span class="obo-tag">'+g.tag+'</span></span>'+
-            '<span class="obo-d">'+g.d+'</span></span></button>';
-        }).join("")+'</div>'+
-          '<div class="ob-mission"><span>20-WEEK DISTANCE MISSION</span><div class="ob-seg" id="obGoalYds">'+[10,15,25].map(function(y){
-            return '<button type="button" data-v="'+y+'" class="'+(String(ob.goalyds)===String(y)?"sel":"")+'">+'+y+' yds</button>';
-          }).join("")+'</div></div>';
-      } else if(s===2){
-        kicker="Step 2 of 4 · Body & fuel"; title="Size the engine";
+        kicker="Step 1 of 4 · Body & fuel"; title="Size the engine";
         body='<div class="ob-field"><label>Sex <span>(BMR formula)</span></label>'+
             '<div class="ob-seg" id="obSex">'+
             '<button type="button" data-v="male" class="'+(ob.sex==="male"?"sel":"")+'">Male</button>'+
@@ -226,7 +233,28 @@
           '<div class="ob-field"><label>Typical activity</label><select class="ob-select" id="obAct">'+
             [["1.2","Mostly seated"],["1.375","Light — golf + some training"],["1.55","Moderate — train 3–5×/week"],
              ["1.725","Very active — hard training most days"],["1.9","Athlete — high-volume / two-a-days"]].map(function(o){
-              return '<option value="'+o[0]+'"'+(ob.activity===o[0]?" selected":"")+'>'+o[1]+'</option>'; }).join("")+'</select></div>';
+              return '<option value="'+o[0]+'"'+(ob.activity===o[0]?" selected":"")+'>'+o[1]+'</option>'; }).join("")+'</select></div>'+
+          // One plain health line (Oct 2026 audit) — no screen, nothing stored.
+          // Says only what weeks 1–2 actually change, for every goal: no all-out
+          // sets (035 ffOnRamp; cut / maintain never prescribe them) and overspeed
+          // starts at 2 × 5 (overspeedDose). Sets and reps are otherwise as written.
+          '<p class="ob-p ob-quiet ob-health">Heart condition, chest pain, recent surgery or a joint injury — or new to exercise and over ~45? Check with a doctor before you start.'+(ob.revisit?'':' Your first two weeks skip all-out sets and start the speed swings light.')+'</p>';
+      } else if(s===2){
+        // "Best default" follows the suggestion for THIS body; the user can pick
+        // anything. BMI can't tell muscle from fat, so the note says so.
+        var sug=obSuggested();
+        kicker="Step 2 of 4 · Outcome"; title="What does winning look like?";
+        body='<div class="ob-opts">'+GOAL_CARDS.map(function(g){
+          var best=(g.v===sug);
+          return '<button type="button" class="ob-opt'+(ob.goal===g.v?' sel':'')+'" data-goal="'+g.v+'">'+
+            '<span class="obo-ic">'+g.ic+'</span><span class="obo-tx">'+
+            '<span class="obo-t">'+g.t+' <span class="obo-tag">'+g.tag+'</span></span>'+
+            '<span class="obo-d">'+((best && g.rd) || g.d)+(best?' <b>Best default'+(sug!=="leanbulk"?' for your height and weight':'')+'.</b>':'')+'</span></span></button>';
+        }).join("")+'</div>'+
+          (sug!=="leanbulk" ? '<p class="ob-p ob-quiet">At your height and weight you can build muscle without a calorie surplus — lift heavy and keep protein high. Very muscular? Lean Bulk is fine.</p>' : '')+
+          '<div class="ob-mission"><span>20-WEEK DISTANCE MISSION</span><div class="ob-seg" id="obGoalYds">'+[10,15,25].map(function(y){
+            return '<button type="button" data-v="'+y+'" class="'+(String(ob.goalyds)===String(y)?"sel":"")+'">+'+y+' yds</button>';
+          }).join("")+'</div></div>';
       } else if(s===3){
         kicker="Step 3 of 4 · Real life"; title="Make the plan fit your week";
         body=
@@ -244,18 +272,21 @@
           }).join("")+'</div>';
       } else if(s===4){
         kicker="Step 4 of 4 · Starting line"; title="Give the plan something to beat";
-        body='<p class="ob-p" style="margin-top:-4px">Optional. One number creates your baseline now; otherwise Yardsmith will guide the test later.</p>'+
+        body='<p class="ob-p" style="margin-top:-4px">Optional. A measured number becomes your baseline; a rough guess just holds the spot until your first speed test.</p>'+
           '<div class="ob-field"><label>Driver carry (yds) — your headline distance</label>'+
             '<input class="ob-in" id="obDrive" type="number" inputmode="decimal" placeholder="e.g. '+ffBench(ob.sex, ob.age).drive+'" value="'+escAttr(ob.drive)+'" /></div>'+
           '<div class="ob-field"><label>7-iron clubhead speed (mph)</label>'+
-            '<input class="ob-in" id="obSpeed" type="number" inputmode="decimal" placeholder="e.g. '+ffBench(ob.sex, ob.age).seven+'" value="'+escAttr(ob.speed)+'" /></div>'+
+            '<input class="ob-in" id="obSpeed" type="number" inputmode="decimal" placeholder="e.g. '+ffBench(ob.sex, ob.age).seven+'" value="'+escAttr(ob.speed)+'" />'+
+            '<div class="ob-seg" id="obSpeedSrc" style="margin-top:8px">'+
+              '<button type="button" data-v="g" class="'+(ob.speedSrc!=="m"?"sel":"")+'">Rough guess</button>'+
+              '<button type="button" data-v="m" class="'+(ob.speedSrc==="m"?"sel":"")+'">Measured</button></div></div>'+
           '<div class="ob-field ob-prepfield"><label>Anything that benefits from extra prep? <span>(optional, not a diagnosis)</span></label>'+
             prepToggleHtml()+'</div>'+
           '<p class="ob-p ob-quiet">Selected areas get one conservative prep move in relevant warm-ups. The 3-minute mobility screen refines this later.</p>';
         nextLabel="Show me my plan →";
       } else if(s===5){
         var t=lsGet("ff_targets",null);
-        var baseline=lbEsc(ob.drive?ob.drive+" yd driver":(ob.speed?ob.speed+" mph 7-iron":"guided test waiting"));
+        var baseline=lbEsc(ob.drive?ob.drive+" yd driver":(ob.speed?(ob.speedSrc==="m"?"":"~")+ob.speed+" mph 7-iron":"guided test waiting"));
         kicker=ob.revisit?"Updated without losing your place":"Built for you"; title=ob.revisit?"Your plan just adapted":"This is your opening week";
         body='<div class="ob-reveal"><div><span>MISSION</span><b>+'+(parseInt(ob.goalyds,10)||15)+' yards</b></div>'+
             '<div><span>BASELINE</span><b>'+baseline+'</b></div></div>'+
@@ -297,16 +328,17 @@
           (s===6&&firstDay()?'<button type="button" class="ob-later" id="obHome">Later — take me to Home</button>':'')+
         '</div></div>';
 
-      var skip=$("obSkip"); if(skip) skip.onclick=function(){ lsSet("ff_onboarded",true); close();
+      var skip=$("obSkip"); if(skip) skip.onclick=function(){ lsSet("ff_onboarded",true); ffStampFreeWeek(); close();
         try{ if(window.FFHealth) window.FFHealth.track("onboarding_skipped"); }catch(e){} };
       var back=$("obBack"); if(back) back.onclick=function(){ readStep(s); ob.step--; render(); };
       var later=$("obLater"); if(later) later.onclick=function(){ finish(false); };
       var home=$("obHome"); if(home) home.onclick=function(){ close(); };
-      if(s===1) Array.prototype.forEach.call(root.querySelectorAll("[data-goal]"), function(b){
-        b.onclick=function(){ ob.goal=b.getAttribute("data-goal"); render(); }; });
-      if(s===1) segPick("obGoalYds", function(v){ ob.goalyds=parseInt(v,10)||15; });
-      if(s===2) segPick("obSex", function(v){ ob.sex=v; });
+      if(s===2) Array.prototype.forEach.call(root.querySelectorAll("[data-goal]"), function(b){
+        b.onclick=function(){ ob.goal=b.getAttribute("data-goal"); ob.goalPicked=true; render(); }; });
+      if(s===2) segPick("obGoalYds", function(v){ ob.goalyds=parseInt(v,10)||15; });
+      if(s===1) segPick("obSex", function(v){ ob.sex=v; });
       if(s===3){ segPick("obWk", function(v){ ob.workout=v; }); segPick("obFreq", function(v){ ob.freq=parseInt(v,10); }); }
+      if(s===4) segPick("obSpeedSrc", function(v){ ob.speedSrc=(v==="m"?"m":"g"); });
       if(s===3) Array.prototype.forEach.call(root.querySelectorAll("[data-equip]"), function(b){
         b.onclick=function(){ ob.equip=b.getAttribute("data-equip"); render(); }; });
       if(s===4){ var prep=$("obPrep"); if(prep) prep.onclick=function(e){
@@ -374,4 +406,5 @@
     }
   }catch(e){}
   maybeOnboard(sharedLink);   // first-run guided setup (no-op for returning users)
+  ffAccessBoot();             // free-week clock (stamped even while billing is off) + Pro status (036)
   ffWelcomeBackBoot(sharedLink);   // back after 14+ quiet days → one "where do you want to start?" screen

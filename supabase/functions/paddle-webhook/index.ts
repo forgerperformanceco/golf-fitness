@@ -7,6 +7,11 @@
 //
 // We map a Paddle subscription back to a Supabase user via `custom_data.user_id`,
 // which you set when opening the Paddle checkout (Paddle.js: `customData`).
+// State is kept per subscription (private.billing_subscriptions), so a late
+// event from an old subscription can't overwrite a newer, paid one.
+//
+// An event for an account that no longer exists (deleted, or a user id that
+// can't be ours) is logged and answered 200, so Paddle stops retrying it.
 //
 // Signature verification follows Paddle Billing's scheme:
 //   header  Paddle-Signature: ts=<unix>;h1=<hmac-sha256 hex>
@@ -22,6 +27,7 @@ import { createClient } from "npm:@supabase/supabase-js@2.110.2";
 const WEBHOOK_SECRET = Deno.env.get("PADDLE_WEBHOOK_SECRET")!;
 const SIGNATURE_TOLERANCE_SECONDS = 300;
 const MAX_BODY_BYTES = 262_144;
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // Service-role client: bypasses RLS so it can write billing columns.
 const admin = createClient(
@@ -63,11 +69,20 @@ async function verify(rawBody: string, sigHeader: string | null): Promise<boolea
 // Map a Paddle subscription event onto our profiles columns.
 async function applySubscription(event: any, canceled: boolean) {
   const data = event?.data;
-  const userId = data?.custom_data?.user_id as string | undefined;
+  const userId = (data?.custom_data?.user_id || undefined) as string | undefined;
   const eventId = event?.event_id;
   const occurredAt = event?.occurred_at;
-  if (!eventId || !occurredAt || (!userId && !data?.customer_id)) {
+  if (!eventId || !occurredAt || !data?.id || (!userId && !data?.customer_id)) {
     throw new Error("paddle event is missing identity or ordering fields");
+  }
+  const trace = {
+    event_id: eventId, event_type: event?.event_type,
+    subscription_id: data.id, customer_id: data?.customer_id ?? null,
+  };
+  // A user id that isn't a uuid can never match an account: log, don't retry.
+  if (userId != null && (typeof userId !== "string" || !UUID_RE.test(userId))) {
+    console.warn(JSON.stringify({ kind: "paddle_event_ignored", reason: "bad_user_id", ...trace }));
+    return "ignored";
   }
   const { data: result, error } = await admin.rpc("apply_paddle_subscription", {
     p_event_id: eventId,
@@ -81,6 +96,9 @@ async function applySubscription(event: any, canceled: boolean) {
     p_trial_end: data?.items?.[0]?.trial_dates?.ends_at ?? null,
   });
   if (error) throw new Error(`subscription apply failed: ${error.message}`);
+  // 'orphaned' = the account was deleted. The event is recorded (a retry reads
+  // 'duplicate'); support can find the customer in Paddle from this line.
+  if (result === "orphaned") console.warn(JSON.stringify({ kind: "paddle_event_orphaned", ...trace }));
   return result;
 }
 

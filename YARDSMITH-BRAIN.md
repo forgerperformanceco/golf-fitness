@@ -428,7 +428,25 @@ stores; we're a URL). Shipping the app matters more than more docs.
   (Welcome back), not a stack of catch-up cards; setup **ends by starting** the
   first workout. Don't re-add Home cards without removing one.
 
+- **Free week → Yardsmith Pro, built switched off (Oct 2026)** — see §9. The free
+  week reveals one workout per day; after it, workouts/speed tests/coach are Pro;
+  logged data is never locked.
+
+- **Deep audit, Oct 2026** (DESIGN-CHANGES top entry): 130 verified fixes. Load math
+  now honors the waves (Heavy weeks heavier, real reductions, no load bumps on ballistic
+  work), effort cues are wave/position-aware with a 2-week no-failure on-ramp for new
+  lifters, breaks decay loads (≥14 d no bump, ≥28 d ~90%), BMI-aware goal suggestion,
+  20% fat floor, noise-aware speed signals, honest copy everywhere. **Open owner
+  decisions** listed there: frequency/volume (upper body 1×/wk; hamstrings, delts,
+  calves under the app's own guidance), beginner volume on-ramp, pull-up gate, plyo
+  gating, in-season template, round-aware scheduling, gym speed-day throws, trap-bar
+  default.
+
 **Rejected (deliberately):**
+- **Blurring/hiding exercises after purchase or anti-screenshot measures** — the
+  exercise list isn't the product; locking it only annoys payers.
+- **One free workout as the demo** — too thin for a 20-week product; a free week
+  (with day-by-day reveal) shows the engine working.
 - **Macro *tracking*** (barcode calorie logging) — commodity; we build *toward
   distance* instead.
 - **The "Dyno Day" / Octane Assessment** (a DRVN-style synthetic test battery) —
@@ -516,10 +534,51 @@ Plan of record: **`ROADMAP.md`**. Phases:
 - **Phase 3 (largely shipped):** native shell (Capacitor), **push notifications
   (VAPID web push live)**; remaining — normalized data tables, food/exercise DBs.
 
-**Free forever:** calculator, 20-week plan, offline, single-device.
-**Yardsmith Pro (future):** AI coach, dynamic adaptation, cross-device history,
-analytics. Monthly + discounted annual, 7-day trial. Cost control via prompt
-caching on the knowledge base.
+**Pricing & access — DECIDED Oct 2026 (supersedes "20-week plan free forever"):**
+- **Free download → a free week → Yardsmith Pro.** $14.99/month or **$79.99/year**
+  ($6.67/mo, shown first, carries Apple's 7-day intro trial). Launch idea: a
+  **$59.99/yr founding price** for the first 90 days / first 500, kept while
+  subscribed. One tier only; no lifetime price at launch; no paid download.
+- **Free week = hide as much as makes sense.** The program is ONE repeated week, so
+  showing all of week 1 gives the whole program away. During days 1–7 each workout
+  opens **on its day**: future days are locked teasers (name, minutes, exercise
+  count — no exercise list), no Full-week view, no week jump, no logging ahead.
+- **After the free week (no Pro):** workouts, speed tests and the AI coach open the
+  Pro sheet. **Never lock their data** — history, Stats, logged meals, macro targets
+  and check-offs stay free and readable. Finishing an already-started session is
+  never blocked.
+- **The moat isn't the exercise list** (free on YouTube) — it's the engine: loads set
+  from what they lifted, the Build/Heavy/Easy/Peak waves, speed tracking, the coach.
+- **Built, switched OFF** (`src/js/app/036-access-free-week-and-pro.js`):
+  `FF_PAYWALL=false` → everyone is "full". Test on any device with `?paywall=1`
+  (tab session only; `?paywall=0` clears). Free-week clock `ff_free_week` roams,
+  earliest-wins, and the oldest logged workout also counts (no second free week via
+  restart/reinstall+sign-in). Pro = `window.FFBilling.isPro()` (store bridge, not
+  built yet) or the server's `is_subscribed()` cached in device-local `ff_pro`.
+  Server backstop: ai-coach returns 402 when `REQUIRE_SUBSCRIPTION=1` (Pro or
+  account < 7 days old), checked before the quota.
+- **Launch checklist to flip it on:** (1) a `window.FFBilling` bridge on every
+  platform — StoreKit (iOS) / Play Billing (Android) / Paddle (web), RevenueCat is
+  the simplest way to unify them — exposing `isPro()`, `purchase(plan)`,
+  `restore()`, `prices()`; (2) store products + intro offer configured; (3) flip
+  `FF_PAYWALL` and set the `REQUIRE_SUBSCRIPTION=1` function secret the same day;
+  (4) decide what pre-launch early-access users get (founding price recommended —
+  their free-week clocks are already months old, so they'd see the lock at once).
+  Never flip `FF_PAYWALL` without (1): the buy button would only show a toast.
+- **Oct 2 audit additions to the launch checklist** (full list: GO-LIVE-CHECKLIST.md):
+  the bridge must follow the contract in the 036 header (sync boolean `isPro()`;
+  `trialDays` only for eligible users; `purchase()` → `{status, charged?}`;
+  `platform`/`manageUrl`/`termsUrl`; dispatch `ff-billing-changed`). A **store
+  webhook** (RevenueCat or App Store Server Notifications v2 + Play RTDN) must write
+  `profiles` before `REQUIRE_SUBSCRIPTION=1`, or the coach 402s paying store users.
+  Apply migration `20261001204500_billing_per_subscription_entitlement.sql` by hand.
+  Write terms.html (+ sw/build-www entries); allow Paddle in the CSP with the web
+  bridge; set `PADDLE_API_KEY`/`PADDLE_ENV` so delete-account cancels subscriptions;
+  Paddle dunning must end in canceled/paused. Entitlement is status-only, with
+  `past_due` as grace. **Owner comp (decided Oct 2, 2026):** the owner's account (the
+  live row with 'active', no provider) stays free and fully open forever — never reset
+  it. **Open:** what do users on pre-billing native builds get?
+Cost control via prompt caching on the knowledge base.
 
 Secrets: Anthropic key, Paddle webhook secret, Supabase service-role, VAPID
 private key — **server side only**, never in the browser. Only the Supabase

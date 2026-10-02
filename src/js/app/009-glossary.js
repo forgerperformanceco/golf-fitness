@@ -11,16 +11,16 @@
     iron:     { ic:"🏋️", t:"Iron moved", d:"Total weight lifted: every set’s weight × reps, added up. The simplest honest measure of how much work you actually did this week." },
     e1rm:     { ic:"📈", t:"e1RM — estimated 1-rep max", d:"The heaviest single rep you could likely lift, estimated from a lighter set (Epley formula). It lets the app compare your strength across different set-and-rep days." },
     season:   { ic:"🗺️", t:"20-week season", d:"Your training campaign, tee to pin: build waves, heavy waves, planned deloads, and a 2-week peak — all aimed at your yardage mission (and your event, if you set one)." },
-    wave:     { ic:"🌊", t:"The weeks — Build · Heavy · Easy · Peak", d:"Training runs in phases: ~3 build weeks adding reps, 2 heavy weeks adding weight, then an easy week where the gains land. Weeks 19–20 peak you — less volume, speed stays." },
-    deload:   { ic:"🪫", t:"Easy (deload) week", d:"A planned easy week — one set less, ~60% loads. It isn’t lost time: recovery is when adaptation lands. Great week to schedule a big round." },
+    wave:     { ic:"🌊", t:"The weeks — Build · Heavy · Easy · Peak", d:"Training runs in phases: ~3 build weeks at your target reps (the weight goes up once every set hits them), 2 heavy weeks with fewer reps and more weight, then an easy week where the gains land. Weeks 19–20 peak you — fewer sets, loads stay heavy." },
+    deload:   { ic:"🪫", t:"Easy (deload) week", d:"A planned easy week — a set less on most lifts, ~60% loads. It isn’t lost time: recovery is when adaptation lands. Great week to schedule a big round." },
     scorecard:{ ic:"🗒️", t:"Sunday Scorecard", d:"Your week as a golf card — six holes: sessions, iron moved, speed test, weigh-ins, mobility and fuel days. Close it out on Sundays; share it when it’s good." },
-    receipts: { ic:"🧾", t:"Receipts", d:"Proof from your own data that the training moves the ball — scoring trend, drives near vs far from gym days, deload-week distance. They appear once ~5 rounds are banked." },
+    receipts: { ic:"🧾", t:"Receipts", d:"Early patterns in your own data linking training to your rounds — scoring trend, drives near vs far from gym days, easy-week distance. Signals, not proof: each one waits until there are enough rounds on both sides." },
     carry:    { ic:"⛳", t:"Driver carry", d:"How far your drive flies in the air, roll not included — the app’s headline distance. Log it from real rounds or a launch monitor." },
     // dyn: extra sentence computed when the sheet opens (needs the user's
     // profile — ffBench() is age/sex aware), appended to d in both sheets.
-    speedtest:{ ic:"🎯", t:"Speed Test Day", d:"Every 2 weeks: warm up, take 3 max-intent 7-iron swings, keep the best. Same club, same rule every time, so the trend is honest. Roughly +1 mph ≈ +2 yards of carry.",
+    speedtest:{ ic:"🎯", t:"Speed Test Day", d:"Every 2 weeks: warm up, take 3 max-intent 7-iron swings, keep the best. Same club, same rule every time, so the trend is honest. Test days wobble about ±1–2 mph, so the app counts a change only when it beats that. Roughly +1 mph ≈ +2 yards of carry.",
       dyn:function(){ try{ var b=ffBench(); return " For context, a "+b.label+" runs "+b.range+" — but your trend vs your own baseline is the number that matters."; }catch(e){ return ""; } } },
-    p2w:      { ic:"⚖️", t:"Power-to-weight", d:"Clubhead speed relative to bodyweight. Mass only helps when it swings faster — this pillar keeps a bulk honest." },
+    p2w:      { ic:"⚖️", t:"Power-to-weight", d:"Is your weight change paying off in speed? Gaining at your goal’s planned pace never costs points; gaining faster than plan does. Losing weight alone earns nothing — the pillar fills as your 7-iron speed really climbs." },
     tdee:     { ic:"🔥", t:"TDEE — maintenance calories", d:"Total Daily Energy Expenditure: the calories your body burns in a normal day (BMR × activity). Eat above it and you gain, below it and you lose — your goal target is TDEE plus or minus the right margin." }
   };
   function ffTerm(key, label){

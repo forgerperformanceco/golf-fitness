@@ -14,12 +14,19 @@
     keys.sort(); keys.slice(0, keys.length-95).forEach(function(k){ delete f[k]; });
     return f;
   }
+  // Each slot's size in kcal, saved on the day's record (d.w) so past days score
+  // against the schedule they were eaten on. The carb-only pre-workout snack
+  // (~150–300 kcal) then weighs what it is — not the same as dinner.
+  function fuelSlotW(){
+    return ffSchedule ? ffSchedule.map(function(sl){ return Math.max(1, (sl.p||0)*4+(sl.c||0)*4+(sl.f||0)*9); }) : null;
+  }
   function fuelSetMeal(idx, val){
     var f=fuelLog(), iso=ffISO(), d=f[iso]||{ m:{} };
     d.m=d.m||{};
     if(d.m[idx]===val) delete d.m[idx]; else d.m[idx]=val;   // tap again to clear
     d.rating=null;                                            // meal detail beats a day rating
     d.n=(ffSchedule?ffSchedule.length:4)||4;
+    d.w=fuelSlotW();
     d.ts=Date.now(); f[iso]=d;
     lsSet("ff_fuel", fuelPrune(f));
   }
@@ -27,17 +34,26 @@
     var f=fuelLog(), iso=ffISO(), cur=f[iso];
     // Tap again to clear — as a NEWER empty record, not a delete: a deleted day
     // would come back from another device's older copy on the next sync merge.
-    if(cur && cur.rating===r){ f[iso]={ m:{}, rating:null, n:(ffSchedule?ffSchedule.length:4)||4, ts:Date.now() }; }
-    else f[iso]={ m:{}, rating:r, n:(ffSchedule?ffSchedule.length:4)||4, ts:Date.now() };
+    if(cur && cur.rating===r){ f[iso]={ m:{}, rating:null, n:(ffSchedule?ffSchedule.length:4)||4, w:fuelSlotW(), ts:Date.now() }; }
+    else f[iso]={ m:{}, rating:r, n:(ffSchedule?ffSchedule.length:4)||4, w:fuelSlotW(), ts:Date.now() };
     lsSet("ff_fuel", fuelPrune(f));
   }
-  function fuelScoreFor(iso){
-    var d=fuelDay(iso); if(!d) return null;
+  // One day's adherence 0–1 (null = nothing logged). A day rating wins; else
+  // ✓ = 1 and ≈ = 0.75 per slot, weighted by slot size when the record has it
+  // (older days without d.w keep the plain count). Shared by the Brain (076).
+  function ffFuelDayScore(d){
+    if(!d) return null;
     if(d.rating) return d.rating==="on"?1:(d.rating==="close"?0.6:0.15);
     var keys=Object.keys(d.m||{}); if(!keys.length) return null;
+    if(Array.isArray(d.w) && d.w.length===d.n){
+      var tot=0, got=0;
+      d.w.forEach(function(w,i){ w=Math.max(0, Number(w)||0); tot+=w; if(d.m[i]) got+=w*(d.m[i]==="a"?1:0.75); });
+      if(tot>0) return Math.min(1, got/tot);
+    }
     var sum=0; keys.forEach(function(k){ sum += d.m[k]==="a"?1:0.75; });
     return Math.min(1, sum/(d.n||4));
   }
+  function fuelScoreFor(iso){ return ffFuelDayScore(fuelDay(iso)); }
   function fuelStateFor(iso){
     var sc=fuelScoreFor(iso); if(sc==null) return null;
     return sc>=0.85?"on":(sc>=0.5?"close":"off");

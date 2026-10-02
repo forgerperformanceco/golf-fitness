@@ -108,9 +108,12 @@ speed. The key qualifiers:
 - **Strength *and* speed are different stimuli.** Heavy compounds give the muscle more to
   work with; **explosive/overspeed work teaches it to fire fast.** You need both — which is
   why every Yardsmith week trains them concurrently (see the reference doc, §7).
-- **Power-to-weight rules golf.** Don't bulk into immobility. A leaner, more powerful
-  athlete out-drives a heavier, slower one — so we frame bulking as a means to speed, with
-  a Lean-Out phase to follow, and we keep mobility in even during a hard bulk.
+- **Mass has to convert to speed.** Don't bulk into immobility. Body mass itself tracks
+  *positively* with clubhead speed (§11.1), so the goal isn't a lighter scale — it's mass that
+  swings faster. That's why we frame bulking as a means to speed at a modest rate, with a
+  Lean-Out phase to follow, keep mobility in even during a hard bulk, and score power-to-weight
+  against the user's own goal (Octane: gaining inside the goal's band isn't penalised; only
+  gaining faster than planned, or losing speed, is).
 
 This is the vetted lesson from public pro examples (see the reference doc's Bryson §13 and
 Rory §14): **physical preparation creates performance capacity** — the commitment to
@@ -123,14 +126,15 @@ training transfers; the extreme numbers and branded routines don't.
 | Speed driver | Where it lives in the program |
 |---|---|
 | Hip–shoulder separation / X-factor | Daily hip + T-spine mobility warm-up; anti-rotation (Pallof, dead bug) |
-| Ground force & hip drive | Squat, deadlift/RDL, hip thrust, lateral bound, jumps |
+| Ground force & hip drive | Heavy leg press, deadlift (trap-bar deadlift is the first swap)/RDL, hip thrust, lateral bound, jumps |
 | Rotational core power | Med-ball rotational throws/slams on the Speed & Power day + lift-day primers |
 | Thoracic/shoulder mobility | 90/90s, open-books, thread-the-needle in the warm-ups |
 | Grip / forearm | Direct wrist/grip work added on the pull day; heavy carries |
-| Speed as a skill | Overspeed swings (light, max-velocity, 3×/week) + explosive primers, kept fast & fresh |
+| Speed as a skill | Jumps + throws on the Speed & Power day and as lift-day primers (4–5 exposures/week: 4 on the 4-day plan, 5 on the 5-day); overspeed swings (light, max-velocity) once a week as the last Speed & Power drill, ramped 2×5→3×5→4×5 (`overspeedDose`); all kept fast & fresh |
 
 Nothing in the fitness-first framework is missing from the plan — it's the same engine,
-trained concurrently and progressed by double progression with a deload every 6th week.
+trained concurrently and progressed by double progression in 6-week waves with a deload every
+6th week.
 
 ---
 
@@ -150,8 +154,9 @@ matters more than any table.
 - **Smash factor** (ball speed ÷ club speed) tops out ~**1.48–1.50** with a driver, lower
   for irons (~1.33 for a 7-iron) — a check on *strike quality*, not just speed.
 - **Why Yardsmith tracks the 7-iron.** It's more repeatable than the driver, so the
-  week-to-week trend is a cleaner signal that the mass you're building is becoming speed.
-  Log it weekly in the app; it feeds your Yardsmith Score.
+  trend is a cleaner signal that the mass you're building is becoming speed. The app's
+  **Speed Test Day** comes round **every 2 weeks** (warm up, 3 max-intent swings, best one
+  counts, same tool every time); it feeds the Octane score on the Stats tab.
 
 ---
 
@@ -175,21 +180,28 @@ matters more than any table.
 Random gym work resets every season; a *system* compounds. The non-negotiables of a
 program that actually moves the needle — and how Yardsmith delivers each:
 
-- **Start where the body is (readiness, not one-size-fits-all).** A new lifter and a
-  competitive player need different entry points. Yardsmith ramps by readiness: the
-  explosive primers and overspeed work **ramp in** for beginners (start with fewer
-  sets / a low box, add over weeks, stop well short of fatigue) before full output.
+- **Start where the body is.** A new lifter and a competitive player need different entry
+  points. **What Yardsmith does today (Oct 2026):** everyone starts on the same authored week —
+  it is *not* yet scaled by experience, age or body size. What adapts: first-exposure loads are
+  self-chosen at RIR 2; overspeed ramps 2×5 → 3×5 → 4×5 for every user; the daily readiness
+  check can trim a session; a new lifter's first 2 weeks carry no to-failure sets; and the
+  primer note tells newcomers to jumps and throws to start at 2 sets (advice, not an automatic
+  ramp). An experience-level volume on-ramp, a pull-up capacity gate and plyometric gating are
+  **open owner decisions** (NUTRITION §9a) — don't describe them as features.
 - **Progress on purpose.** Training must build over time, not just vary. We use **double
-  progression** (hold the load until you hit the top of every set's rep range, then add a
-  little) with a **deload every 6th week** — structured, not random.
+  progression** against one target number per lift (hold the load until every working set
+  reaches its target reps, then the app adds the smallest jump for that equipment; power drills
+  progress by intent, not automatic load bumps) inside 6-week waves with a **deload every 6th
+  week** — structured, not random.
 - **Transfer to the swing.** Every block ties back to a swing demand (the driver→exercise
   map in §4), and the payoff is tracked as **7-iron clubhead speed**, not just gym PRs.
 - **Close the loop with a benchmark.** The hardest part of any program is knowing whether
-  it's working. That's exactly what the **Yardsmith Score** is for — our own composite
-  (consistency + clubhead speed + logged strength + power-to-weight), built from *your*
-  data, that you watch trend over weeks. It's our feedback loop: number moving up = the
-  training is working; flat = adjust (eat/sleep/overload/consistency). It is **our own
-  metric from our own data**, not a copy of anyone's branded readiness score.
+  it's working. That's exactly what **Octane** is for — our own 0–100 composite of six pillars
+  (consistency, clubhead speed, logged strength, goal-aware power-to-weight, mobility screen,
+  fuel check-offs — spec in `OCTANE-SCORE.md`), built from *your* data, that you watch trend
+  over weeks on the Stats tab. It's our feedback loop: number moving up = the training is
+  working; flat = adjust (eat/sleep/overload/consistency). It is **our own metric from our own
+  data**, not a copy of anyone's branded readiness score.
 - **Consistency beats intensity.** ~2–3 quality sessions a week sustained for months beats
   a heroic six-week sprint that burns out. The 20-week repeatable block is built for that.
 
@@ -319,9 +331,12 @@ analogous evidence:
 
 - **Lead with the well-evidenced levers:** heavy strength + explosive/plyometric + med-ball rotational
   power — that's where the reliable ~4% lives.
-- **Keep overspeed as a low-cost adjunct/primer,** framed honestly: *"trains the nervous system to fire
+- **Keep overspeed as a low-cost adjunct,** framed honestly: *"trains the nervous system to fire
   faster; most golfers can do it with a light stick — results vary."* Mechanism-plausible and cheap, but
-  **not** a guaranteed number.
+  **not** a guaranteed number. In the plan it runs **once a week as the last Speed & Power drill**
+  (2×5 → 3×5 → 4×5, back to 2×5 on Easy/Peak weeks); the lift-day primers are jumps, throws and
+  swings, never overspeed. Weekly frequency is not established (§9.7), so the app does not copy
+  the vendor 3×/week schedule.
 - **Never print vendor-style promises** ("+5 mph in 6 weeks," "+8 mph"). If we cite a figure, cite the
   independent **~4% combined-training** number and frame it as *typical, not promised.*
 - **Prove it per-user, not by claim:** the app's own before/after driver-carry + 7-iron trend is the
@@ -516,8 +531,10 @@ Two independent meta-analyses agree on the ranking of physical qualities vs club
 
 - **Women:** the same levers work — 10-week resistance training raised driver speed and distance
   (Hegedus 2016).
-- **Older (50+):** an 8-week progressive program in ~71-year-old men raised **clubhead speed +4.9%**
-  while controls declined.
+- **Older (50+):** an 8-week progressive **functional** program (flexibility, core stability, balance and
+  resistance exercises — not heavy barbell + plyometrics) in ~71-year-old men raised **clubhead speed
+  +4.9%** while controls declined (Thompson 2007, n=18). It supports "older golfers respond", not "the
+  same heavy program suits them as-is" — the plan does not yet scale by age (§7).
 - **Evidence gap:** **higher-handicap recreational *men*** are genuinely underrepresented — most
   correlational data come from skilled/elite males. We should treat the numbers as *directional* for
   the everyday player, and lean on **the app's own before/after driver-carry trend** as the per-user
@@ -529,7 +546,11 @@ Two independent meta-analyses agree on the ranking of physical qualities vs club
   velocity/power work takes over — was **not quantified** by any verified source. We keep both
   strength *and* dedicated speed work rather than assuming a cutoff.
 - **Tapering/peaking and detraining time-course** (how fast speed fades when training stops) — no
-  claim survived verification here; §7's taper guidance stays flagged as general S&C, not golf-RCT.
+  golf claim survived verification here. General S&C evidence now lives in NUTRITION: the app's
+  return-after-a-break rules and the strength-detraining evidence (§7 "Time off and coming back":
+  strength generally held up to ~4 weeks, losses beyond ~2–4 weeks, faster regain than first gain)
+  and the taper structure (§10, Bosquet 2007, mostly endurance athletes). How fast *clubhead speed*
+  fades, and what a taper buys a golfer, remain unmeasured — so the app promises no % from either.
 - **Thoracic-spine rotation ROM vs clubhead speed** specifically — unconfirmed (only lead-hip-IR-vs-
   injury and general-flexibility-vs-speed were established).
 - Two claims were **killed in verification** and are *not* used: a specific force-plate study's

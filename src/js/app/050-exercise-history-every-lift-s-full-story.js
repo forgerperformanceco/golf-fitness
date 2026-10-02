@@ -241,7 +241,11 @@
     // finish time, kept across re-saves so week counts / strips / history order
     // don't pull an old workout into this week when it's re-saved.
     var prev=idx>=0?hist[idx]:null, now=Date.now();
+    // wave + rb (a recovery-dose readiness band) mark a reduced session, so a later
+    // season's load read (lastSessionFor) skips it like it skips deload logs.
+    var rd=sess.readiness, rb=(rd && !rd.original) ? rd.band : undefined;
     var entry={ id:id, ts:now, doneTs:(prev && (prev.doneTs||prev.ts)) || now, date:date, day:day, week:week, sets:setCount, volume:Math.round(vol),
+      wave:sess.wave||undefined, rb:rb,
       note:(sess.note||"").slice(0,240),
       ex:(sess.ex||[]).map(function(x){ return { name:x.name, target:x.target,
         sets:(x.sets||[]).filter(function(s){ return s.w||s.r||s.done; }).map(function(s){ return {w:s.w,r:s.r}; }) }; }) };

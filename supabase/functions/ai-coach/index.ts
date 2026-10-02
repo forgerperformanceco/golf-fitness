@@ -36,6 +36,9 @@ const FALLBACK_OPTS = FALLBACK_MODELS.has(MODEL)
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+// Paid access (Yardsmith Pro). Off during early access; see section 2 below.
+const REQUIRE_SUBSCRIPTION = Deno.env.get("REQUIRE_SUBSCRIPTION") === "1";
+const FREE_WEEK_MS = 7 * 86_400_000;
 const MAX_BODY_BYTES = 32_768;
 const MAX_MESSAGE_CHARS = 2_000;
 const MAX_HISTORY_CHARS = 4_000;
@@ -68,11 +71,38 @@ Deno.serve(async (req) => {
   const { data: { user }, error: authErr } = await supabase.auth.getUser();
   if (authErr || !user) return json(req, { error: "Invalid session" }, 401);
 
-  // Atomic, server-side quota. The service role is used only for this restricted
-  // RPC; its key never leaves the function.
+  // The service role is used only for the restricted quota RPC and the
+  // subscription read below; its key never leaves the function.
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
+
+  // ── 2. Access: Yardsmith Pro once billing is live ─────────────────────────
+  // Off until REQUIRE_SUBSCRIPTION=1 is set (the same day the app's FF_PAYWALL
+  // switch flips — see YARDSMITH-BRAIN §9). Checked BEFORE the quota so a
+  // locked caller never burns it. Pro = the billing provider's own status,
+  // the same rule as public.is_subscribed(): active, trialing, or past_due
+  // (the provider is still retrying the card). No date overrides it — a
+  // leftover trial end never keeps a canceled subscription Pro. A new account
+  // also gets its free week (7 days from sign-up).
+  // Only webhook-written statuses count: App Store / Google Play buyers are
+  // Pro here only once a store webhook writes their status (GO-LIVE-CHECKLIST).
+  if (REQUIRE_SUBSCRIPTION) {
+    const { data: prof, error: profErr } = await admin.from("profiles")
+      .select("subscription_status, created_at").eq("id", user.id).maybeSingle();
+    if (profErr) return json(req, { error: "access_unavailable" }, 503);
+    const now = Date.now();
+    const pro = !!prof && ["active", "trialing", "past_due"].includes(prof.subscription_status);
+    const freeWeek = !!prof && prof.created_at != null && now - Date.parse(prof.created_at) < FREE_WEEK_MS;
+    if (!pro && !freeWeek) {
+      return json(req, {
+        error: "subscription_required",
+        message: "Your free week is done — the coach is part of Yardsmith Pro. You can start it from the You tab.",
+      }, 402);
+    }
+  }
+
+  // Atomic, server-side quota.
   const { data: quotaRows, error: quotaErr } = await admin.rpc("consume_ai_coach_quota", {
     p_user_id: user.id,
   });
@@ -93,10 +123,6 @@ Deno.serve(async (req) => {
       },
     });
   }
-
-  // ── 2. Access: open to all signed-in users (no paywall during early access) ─
-  // The cost gate is intentionally removed for now — any logged-in golfer gets
-  // the full coach. To re-introduce paid tiers later, gate on is_subscribed here.
 
   // ── 3. Build the prompt ──────────────────────────────────────────────────
   const declaredLength = Number(req.headers.get("content-length") || "0");

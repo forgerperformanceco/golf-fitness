@@ -131,10 +131,14 @@ smarter from, and a real app-store presence.
 
 ## Monetization
 
-- **Free forever:** calculator, 20-week plan, offline PWA, single-device save.
-- **Yardsmith Pro (subscription):** the AI coach, dynamic meal/training adaptation,
-  cross-device sync history, progress analytics. Monthly with a discounted annual;
-  7-day free trial.
+**Decided Oct 2026** (full detail + launch checklist: YARDSMITH-BRAIN §9):
+- **Free download → free week → Yardsmith Pro** at **$14.99/mo or $79.99/yr**
+  (annual first, 7-day store trial; $59.99 founding price at launch).
+- **Free week:** each workout opens on its day; the rest of the week is a teaser.
+- **After it:** workouts, speed tests and the AI coach are Pro. History, Stats,
+  macro targets and meal check-offs stay free — logged data is never locked.
+- Built and switched off (`FF_PAYWALL` in `src/js/app/036-…`; server
+  `REQUIRE_SUBSCRIPTION`). Flip only once the store billing bridge exists.
 - **Cost control:** prompt caching on the knowledge base (largest lever), cheaper
   model tiers for low-stakes turns, per-user rate limits, and streaming to avoid
   timeouts. Track tokens per user against subscription revenue to keep margin healthy.

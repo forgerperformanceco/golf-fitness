@@ -21,7 +21,10 @@ const account = readFileSync(
 
 test("onboarding is four focused decisions followed by a personalized reveal", () => {
   assert.match(onboarding, /total:6/);
-  assert.match(onboarding, /Step 1 of 4 · Outcome/);
+  // Body first, then the outcome — so the goal step can preselect a goal that
+  // fits the body (024 ffSuggestGoal; Oct 2026 audit, finding 65).
+  assert.match(onboarding, /Step 1 of 4 · Body & fuel/);
+  assert.match(onboarding, /Step 2 of 4 · Outcome/);
   assert.match(onboarding, /Step 4 of 4 · Starting line/);
   assert.match(onboarding, /YOUR FIRST WEEK/);
   assert.match(onboarding, /Why this fits:/);
