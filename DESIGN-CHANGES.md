@@ -1,5 +1,57 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## Program update — the audit's owner decisions, built (Oct 2, 2026)
+
+User: "lets fix the program changes" — the eight decisions the deep audit left open. All
+are evidence-led, and each change is small enough to keep history and wave invariants intact.
+No day names changed (`ff_log` is keyed by day name) and no new storage keys were added.
+
+- **Chest and back twice a week (both splits):**
+  - The single-arm DB row moved to the push day and the single-arm DB bench press to the
+    pull day. Both are 🌀, so wave and retain doses are unchanged and history matches by
+    name.
+  - Chest-supported row 4 → 3 sets, keeping the pull day under the ~11-set per-session cap.
+- **Low-dose muscles:**
+  - Lateral raise 4 × 15.
+  - 5-day: seated leg curl added to Day 1 (knee flexion twice a week) and a calf raise to
+    Day 4.
+  - 4-day: leg curl and calf raise 4 × 12.
+  - 4-day: Pallof press moved to the pull day, so Day 1 is 25 sets.
+  - Build-week doses: hamstrings 9.5 / 13, side delts 6, calves 4 / 7, back 13 / 15
+    (4-day / 5-day). No muscle passes ~12 sets in one session.
+- **New-lifter volume on-ramp:** with no lifting before the plan, weeks 1–2 take one set off
+  each 💪 accessory, on top of the no-failure rule.
+- **In-season mode** (Train › Plan settings, `inseason` in the profile):
+  - Every lift at 2 hard sets and power at 3, with the same reps and weights.
+  - The toast and the playbook explain it.
+- **Play days** (Plan settings chips, stored in `ff_gameday.days`):
+  - On a leg day before or on a round, Home shows a short note.
+  - When an upper day is still open this week, the note offers "Do Upper (…) today
+    instead". It never offers a future day in the free week.
+- **Pull-up check:**
+  - Asked once on Home and the Train card before the first pull session.
+  - "Not yet" swaps in an assisted machine, band-assisted or negative pull-up (`ff_swaps`).
+  - The answer is marked `pullup-cap` in `ff_insights_seen`.
+- **Lighter landings:** BMI 30+ or age 60+ get one set off jumps and bounds on the speed day,
+  with a soft-landing cue.
+- **Trap bar for a flagged back:** "Back" in setup plus a barbell makes the Trap-Bar Deadlift
+  the default, badged "back-friendly default". An explicit swap back to the straight bar
+  sticks.
+- **Gym speed day:** with a med ball, the seated chest throw replaces the speed bench (4 × 4;
+  a true release).
+- **Verified:**
+  - npm test 202/202, including the new `tests/program-changes.test.mjs` (9).
+  - wave-cases 93/93. The on-ramp and in-season layers are stubbed off there, so the base
+    engine stays pinned.
+  - Audits: train 18/18 (5-day Day 1 now 7 rows), scroll 16/16, contrast clean.
+  - claims-lint clean; the paywall Playwright check is green.
+  - Scratchpad `verify-program.mjs` (round note, pull-up check, in-season, play days, trap
+    bar, chest throw, low-impact dose) is green, with zero page errors.
+- **Still open:**
+  - A 2–3-session in-season template.
+  - Rotating the week so round days land on rest days.
+  - A fuller health screen.
+
 ## Deep audit → 130 verified fixes: paywall, backend, training science (Oct 2, 2026)
 
 User: "take a dive into the code and make sure the new feature is really going to function

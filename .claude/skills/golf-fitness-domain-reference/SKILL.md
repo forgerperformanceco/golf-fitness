@@ -205,9 +205,13 @@ weeks keep the base cadence. `curWeek()` itself is date-anchored:
 **Retain mode first** (`trainRetain()`: goal is `maintain` or `cut`):
 `adjSets` trims **one set off 💪 accessories only** (floor 2 sets);
 🏋️/⚡/🌀 untouched — that's what protects muscle and clubhead speed in a
-deficit. In-Season Maintain does nothing more than this (plus dropping the
-to-failure cue): same 4–5-day week. A real in-season template is an open lead
-(NUTRITION §9a).
+deficit. On top of the wave (Oct 2026): the **new-lifter on-ramp** (`ffOnRamp` —
+no lifting before the plan → weeks 1–2 take one set off 💪, floor 2) and the
+**In-season toggle** (`state.inseason`, persisted in the `fairwayfuel` profile;
+`effTarget` caps every plain-set target at 2 sets, ⚡ at 3, reps/loads kept). The
+speed day's rows come from `speedRows()` (gym + med ball → Seated chest throw;
+BMI 30+ / age 60+ → one set off jumps/bounds). `applySwapName` adds one profile
+default: a "Back" prep flag + barbell → Trap-Bar Deadlift (`ffProfileDefault`).
 
 Then `waveAdjust`, using `bumpReps` (first `×N` in the string) and `trimSets`
 (leading set count, floor 2):
@@ -622,15 +626,14 @@ edit either.
   2 shy. Each lift shows target RIR + rest.
 - **Hard set** — a working set taken close to failure (~0–3 RIR). Hypertrophy
   keeps rising with weekly sets, with diminishing returns (Pelland 2025); a
-  provisional per-SESSION ceiling sits ~11 sets/muscle (preprint). The plan is
-  deliberately moderate: upper body once a week, prime movers ~10 fractional
-  sets, side delts ~5, calves 3–4, hamstrings 7–8, back ~14 on one pull day
-  (NUTRITION §9a has the table).
+  provisional per-SESSION ceiling sits ~11 sets/muscle (preprint). Since Oct 2026
+  chest and back are trained twice a week in both splits (row/press swap);
+  hamstrings ~9.5 / 13, side delts 6, calves 4 / 7 (4-day / 5-day); no muscle
+  passes ~12 sets in one session (NUTRITION §9a has the table).
 - **Hypertrophy** — muscle growth; the 💪 accessory work (8–15 reps typical).
 - **Retain mode** — the training consequence of maintain/cut goals: one set
-  trimmed from 💪 accessories only (floor 2) and no to-failure cue. It is the
-  whole of "In-Season" today — same 4–5-day week; a real in-season template is
-  an open lead.
+  trimmed from 💪 accessories only (floor 2) and no to-failure cue. In-season mode
+  (Plan settings) goes further: every lift at 2 hard sets, same weights.
 - **Return after a break** — ≥14 days away: Welcome back screen, first loads
   back get no jump; ≥28 days: "Ease back in" recommended and loads start ~90%
   (§4; evidence in NUTRITION §7).

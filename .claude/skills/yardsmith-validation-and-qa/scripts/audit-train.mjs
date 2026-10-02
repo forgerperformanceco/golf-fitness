@@ -113,7 +113,7 @@ const STATES = [
   { name: 'not-started', seed: {},
     expect: { startbar: true } },
   { name: 'today-lift-fresh', seed: { ff_start: daysAgoIso(0) },
-    expect: { dayFocus: true, plStartText: /Start workout/, slRows: 6 } },
+    expect: { dayFocus: true, plStartText: /Start workout/, slRows: 7 } },   // 5-day Day 1: + Seated Leg Curl (Oct 2026)
   { name: 'today-lift-manual', seed: { ff_start: daysAgoIso(0), ff_manual_log: true },
     expect: { dayFocus: true, ilogBox: true, finishBar: true } },
   { name: 'today-lift-logged', seed: { ff_start: daysAgoIso(0), ff_log: { ['1|' + DAY1]: liftSess(true) } },

@@ -47,7 +47,7 @@ function decl(source, name, open) {
 
 const PLAN_FNS = ["effortNote", "ffOnRamp", "heavyAfter", "warmupBase", "primerFor", "purposeFor", "isBallistic",
   "isBigLift", "isBodyweightEx", "trainRetain", "adjSets", "eventInfo", "waveFor", "bumpReps", "trimSets", "plainReps",
-  "waveAdjust", "effTarget", "overspeedDose", "speedDrillTarget", "prescribeW", "ffReduceLoad", "repShiftLoad",
+  "waveAdjust", "capSets", "plainSetCount", "ffInSeason", "ffLowImpact", "speedRows", "effTarget", "overspeedDose", "speedDrillTarget", "prescribeW", "ffReduceLoad", "repShiftLoad",
   "normName", "have", "equipNeedsFor", "equipOk", "speedMode", "resolveEx", "resolveDay", "activeDays", "dayTargets", "sessionMinutes"];
 const LOGGER_FNS = ["lastSessionFor", "sessFullDose", "repsShifted", "topReps", "isDistEx", "repSeed", "incNum",
   "progressReady", "parseSets", "getLog", "sessionFinished", "swapOptionsFor", "exGroupFor"];
@@ -345,12 +345,16 @@ test("every lift day's primer is pinned (4-day lower day jumps again)", () => {
 // --------------------------------------------------------- 10 session minutes
 test("'About N min' counts the real dose and moves with the wave and the goal", () => {
   const now = Date.now();
-  const mins = (wk, goal = "leanbulk", split = "days4", idx = 0, freq = 4) => {
-    const E = engine({ goal, store: { ff_start: startFor(wk, now) }, now, week: wk, freq });
+  // A lifter with history before this plan (no on-ramp trim).
+  const vet = (wk) => [{ doneTs: Date.parse(startFor(wk, now)) - 30 * 864e5, ex: [] }];
+  const mins = (wk, goal = "leanbulk", split = "days4", idx = 0, freq = 4, fresh = false) => {
+    const store = { ff_start: startFor(wk, now) }; if (!fresh) store.ff_history = vet(wk);
+    const E = engine({ goal, store, now, week: wk, freq });
     return E.sessionMinutes(E.PHASES[0][split].filter((d) => d.ex)[idx]);
   };
   const build = mins(2);
   assert.ok(build >= 75 && build <= 95, `4-day Day 1 build week: ${build}`);   // was a flat 65
+  assert.ok(mins(2, "leanbulk", "days4", 0, 4, true) < build, "a brand-new lifter's on-ramp week is shorter");
   assert.ok(mins(6) < build, "deload is shorter"); assert.ok(mins(19) < mins(6), "peak is shorter still");
   assert.ok(mins(2, "cut") < build, "retain trims accessory sets");
   const E = engine({ store: { ff_start: startFor(2, now) }, now });

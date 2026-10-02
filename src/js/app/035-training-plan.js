@@ -35,21 +35,21 @@
       },
       days5: [
         { name:"Day 1 \u2014 Lower (Quads)", tag:"Lift", ex:[
-          ["Leg Press","4 \u00d7 6 (heavy \u00b7 fast up)"],["Romanian Deadlift","3 \u00d7 8"],["Walking Lunge","3 \u00d7 10 / leg"],
+          ["Leg Press","4 \u00d7 6 (heavy \u00b7 fast up)"],["Romanian Deadlift","3 \u00d7 8"],["Seated Leg Curl","3 \u00d7 12"],["Walking Lunge","3 \u00d7 10 / leg"],
           ["Leg Extension","3 \u00d7 12"],["Standing Calf Raise","4 \u00d7 12"],["Hanging Leg Raise","3 \u00d7 12"]
         ]},
         { name:"Day 2 \u2014 Upper (Push)", tag:"Lift", ex:[
           ["Barbell Bench Press","4 \u00d7 5 (heavy \u00b7 fast up)"],["Incline DB Press","3 \u00d7 10"],["Standing Overhead Press","4 \u00d7 6"],
-          ["Single-Arm DB Bench Press","3 \u00d7 8 / side"],["Lateral Raise","3 \u00d7 15"],["Cable Overhead Triceps Extension","3 \u00d7 12"],["Cable Wood-chop","3 \u00d7 10 / side"]
+          ["Single-Arm DB Row","3 \u00d7 8 / side"],["Lateral Raise","4 \u00d7 15"],["Cable Overhead Triceps Extension","3 \u00d7 12"],["Cable Wood-chop","3 \u00d7 10 / side"]
         ]},
         { name:"Rest / Play 18", tag:"rest", type:"rest" },
         { name:"Day 3 \u2014 Speed & Power", tag:"speed", type:"speed" },
         { name:"Day 4 \u2014 Lower (Hinge + Power)", tag:"Lift", ex:[
           ["Seated Leg Curl","3 \u00d7 12"],["Deadlift","4 \u00d7 4 (heavy \u00b7 fast up)"],["Hip Thrust","4 \u00d7 8"],
-          ["Bulgarian Split Squat","3 \u00d7 8 / leg"],["Pallof Press","3 \u00d7 12 / side"],["Farmer Carry","3 \u00d7 40 yd"]
+          ["Bulgarian Split Squat","3 \u00d7 8 / leg"],["Standing Calf Raise","3 \u00d7 12"],["Pallof Press","3 \u00d7 12 / side"],["Farmer Carry","3 \u00d7 40 yd"]
         ]},
         { name:"Day 5 \u2014 Upper (Pull + Rotate)", tag:"Lift", ex:[
-          ["Weighted Pull-up","4 \u00d7 6 (fast up)"],["Chest-Supported Row","4 \u00d7 8"],["Lat Pulldown","3 \u00d7 12"],["Single-Arm DB Row","3 \u00d7 8 / side"],
+          ["Weighted Pull-up","4 \u00d7 6 (fast up)"],["Chest-Supported Row","3 \u00d7 8"],["Lat Pulldown","3 \u00d7 12"],["Single-Arm DB Bench Press","3 \u00d7 8 / side"],
           ["Face Pull","3 \u00d7 15"],["DB Curl","3 \u00d7 12"],["Wrist Curl + Reverse","2 \u00d7 15"]
         ]},
         { name:"Rest / Play 18", tag:"rest", type:"rest" }
@@ -57,18 +57,18 @@
       days4: [
         { name:"Day 1 \u2014 Lower (Quads & Hinge)", tag:"Lift", ex:[
           ["Romanian Deadlift","4 \u00d7 6 (heavy \u00b7 fast up)"],["Leg Press","4 \u00d7 6"],["Hip Thrust","3 \u00d7 8"],["Walking Lunge","3 \u00d7 10 / leg"],
-          ["Leg Extension","3 \u00d7 12"],["Seated Leg Curl","3 \u00d7 12"],["Standing Calf Raise","3 \u00d7 12"],["Pallof Press","3 \u00d7 12 / side"]
+          ["Leg Extension","3 \u00d7 12"],["Seated Leg Curl","4 \u00d7 12"],["Standing Calf Raise","4 \u00d7 12"]
         ]},
         { name:"Day 2 \u2014 Upper (Push)", tag:"Lift", ex:[
           ["Barbell Bench Press","4 \u00d7 5 (heavy \u00b7 fast up)"],["Incline DB Press","3 \u00d7 10"],["Standing Overhead Press","4 \u00d7 6"],
-          ["Single-Arm DB Bench Press","3 \u00d7 8 / side"],["Lateral Raise","3 \u00d7 15"],["Cable Overhead Triceps Extension","3 \u00d7 12"],["Cable Wood-chop","3 \u00d7 10 / side"]
+          ["Single-Arm DB Row","3 \u00d7 8 / side"],["Lateral Raise","4 \u00d7 15"],["Cable Overhead Triceps Extension","3 \u00d7 12"],["Cable Wood-chop","3 \u00d7 10 / side"]
         ]},
         { name:"Rest / Play 18", tag:"rest", type:"rest" },
         { name:"Day 3 \u2014 Speed & Power", tag:"speed", type:"speed" },
         { name:"Rest / Play 18", tag:"rest", type:"rest" },
         { name:"Day 4 \u2014 Upper (Pull + Rotate)", tag:"Lift", ex:[
-          ["Weighted Pull-up","4 \u00d7 6 (fast up)"],["Chest-Supported Row","4 \u00d7 8"],["Lat Pulldown","3 \u00d7 12"],["Single-Arm DB Row","3 \u00d7 8 / side"],
-          ["Face Pull","3 \u00d7 15"],["DB Curl","3 \u00d7 12"],["Wrist Curl + Reverse","2 \u00d7 15"]
+          ["Weighted Pull-up","4 \u00d7 6 (fast up)"],["Chest-Supported Row","3 \u00d7 8"],["Lat Pulldown","3 \u00d7 12"],["Single-Arm DB Bench Press","3 \u00d7 8 / side"],
+          ["Face Pull","3 \u00d7 15"],["DB Curl","3 \u00d7 12"],["Pallof Press","3 \u00d7 12 / side"],["Wrist Curl + Reverse","2 \u00d7 15"]
         ]},
         { name:"Rest / Play 18", tag:"rest", type:"rest" }
       ]
@@ -564,8 +564,27 @@
     if(w==="peak")   return trimSets(sr, (p==="⚡"||p==="🌀")?1:2);
     return sr;
   }
-  // The one target pipeline: retain-mode trim (goal) + wave shift (week).
-  function effTarget(sr, name, week){ return waveAdjust(adjSets(sr, name), name, week); }
+  // Cap a target's leading set count (in-season dose).
+  function capSets(sr, max){
+    return String(sr).replace(/^(\s*)(\d+)/, function(_, sp, n){ return sp + Math.min(max, parseInt(n,10)); });
+  }
+  // In-season mode (Plan settings): playing a lot, so hold size and strength on
+  // about half the sets — every lift capped at 2 hard sets, power work at 3, the
+  // loads and reps kept (intensity is what preserves strength; Bickel 2011,
+  // Spiering 2021: ~1/3 of the volume maintains gains for months).
+  function ffInSeason(){ return !!(typeof state!=="undefined" && state.inseason); }
+  // The one target pipeline: retain-mode trim (goal) + the new-lifter on-ramp
+  // (weeks 1–2 with no lifting history: one set off 💪 accessories, so the first
+  // fortnight is learnable and DOMS stays manageable) + wave shift (week) +
+  // in-season cap.
+  function effTarget(sr, name, week){
+    var t=adjSets(sr, name);
+    if(purposeFor(name)==="💪" && ffOnRamp(week)) t=trimSets(t, 1);
+    t=waveAdjust(t, name, week);
+    if(ffInSeason() && plainSetCount(t)) t=capSets(t, purposeFor(name)==="⚡" ? 3 : 2);
+    return t;
+  }
+  function plainSetCount(sr){ return /^\s*\d+\s*[×x]/.test(String(sr)); }
   // Overspeed swings follow their own structured ramp (a skill/neural dose, not a
   // hypertrophy target): ease in over weeks 1-2, build to 4×5, back off on deload/peak.
   function overspeedDose(week){
@@ -632,9 +651,9 @@
     }
     if(d.type==="speed"){
       var smode=speedMode(), s=p.speed[smode];
-      var srows = s.ex.map(function(e){
+      var srows = speedRows(smode).map(function(e){
         var id="why"+(whyId++);
-        var base=applySwapName(e[0]), swapped=base!==e[0];
+        var base=e[0], swapped=e[4];
         var note=swapped ? ('⚡ '+liftWhy(base).cue) : e[2];
         return '<tr'+(swapped?' class="swap"':'')+'><td><button class="exwhy-btn" type="button" data-whyrow="'+id+'" aria-expanded="false"><span class="exname-main">'+ffPurposeIc(base)+' '+ffEsc(base)+'</span>'+
                (swapped?' <span class="swap-badge">⇄ your swap</span>':'')+' <span class="exwhy-i">ⓘ</span></button>'+
@@ -708,7 +727,8 @@
       var eff = '<div class="effort">'+effortNote(r.status==="swap" ? (r.sr||row[1]) : row[1], dayNames[ri],
         { wave:cwave, onRamp:onRamp, first:!hasW, easeIn:ffBackFor(lxr), beforeHeavy:heavyAfter(dayNames, ri) })+'</div>';
       var pe = ffPurposeIc(base)+' ';
-      var us = base!==row[0] ? ' <span class="swap-badge">⇄ your swap</span>' : '';
+      var us = base===row[0] ? '' : (!getSwaps()[row[0]] && ffProfileDefault(row[0])
+        ? ' <span class="swap-badge">⇄ back-friendly default</span>' : ' <span class="swap-badge">⇄ your swap</span>');
       if(r.status==="ok"){ var c=exNameCell(pe, base, us); return '<tr>'+c.cell+'<td class="sets">'+effTarget(row[1],base,curWeek())+eff+'</td></tr>'+c.row; }
       if(r.status==="swap"){ var cs=exNameCell(pe, r.name, ' <span class="swap-badge">⇄ subbed for '+escAttr(base)+' (your gear)</span>'); return '<tr class="swap">'+cs.cell+'<td class="sets">'+effTarget(r.sr,r.name,curWeek())+eff+'</td></tr>'+cs.row; }
       return '<tr class="skip"><td class="exname"><span class="nm">'+pe+ffEsc(base)+'</span><span class="need">needs '+r.need.map(eqLabel).join(" + ")+'</span></td><td class="sets">'+row[1]+'</td></tr>';
@@ -742,6 +762,7 @@
         '<button class="pl-start" data-startplayer="'+escAttr(d.name)+'" type="button"><span class="pls-go">›</span>'+
           '<b>'+(plDone?'✓ Session finished — replay it':((hasWork?ffIcon("play",13)+' Resume':ffIcon("play",13)+' Start')+' workout'))+'</b>'+
           '<span class="pls-sub">Guided player — warm-up, prescribed loads, rest timer, recap</span></button>'+
+        ffPullCapHtml(d)+
         // Warm-up/primer starts COLLAPSED — it's prep, not the workout, and the
         // guided player runs it for you anyway. One tap opens it; the exercise
         // list stays the visible focus. (Was open-by-default; user wanted the
@@ -765,14 +786,44 @@
     var after=(d.name.split("—")[1]||d.name).trim();
     return after.split(/[ &/]/)[0];
   }
+  // Higher-impact landings get a lighter dose for heavier or older golfers
+  // (BMI 30+ or age 60+): landing forces scale with body mass, and tendons
+  // adapt slower with age — fewer jump/bound sets, every landing stuck soft.
+  function ffLowImpact(){
+    var p=lsGet("fairwayfuel", {})||{}, age=parseInt(p.age,10), lb=parseFloat(p.weight),
+        cm=((parseInt(p.heightFt,10)||0)*12+(parseInt(p.heightIn,10)||0))*2.54;
+    var bmi=(typeof ffBmi==="function" && lb>0 && cm>0) ? ffBmi(lb, cm) : 0;
+    return (age>=60) || (bmi>=30);
+  }
+  // THE Speed & Power rows for a mode, after user swaps and person/gear rules:
+  //  · gym + a med ball → the seated chest throw replaces the speed bench (a true
+  //    release: the bar has to slow at lockout, a ball doesn't — upper-body
+  //    throw velocity is the #2 correlate of clubhead speed, Brennan 2024);
+  //  · low-impact profile → one set off jumps/bounds, with a soft-landing note.
+  // Returns [name, target, note, orig, isUserSwap].
+  function speedRows(mode){
+    var low=ffLowImpact();
+    return PHASES[0].speed[mode||speedMode()].ex.map(function(e){
+      var name=applySwapName(e[0]), user=name!==e[0], sr=e[1], note=e[2];
+      if(!user && name==="Speed bench press" && have("medball")){
+        name="Seated chest throw"; sr="4 \u00d7 4";
+        note="Sit tall against a wall or bench, explosive two-hand chest pass \u2014 the ball leaves your hands, so you push fast all the way through. (Med ball 2\u20134 kg; no ball? Speed bench.)";
+      }
+      if(!user && low && /Jump|Bound/i.test(name) && !/Overspeed/i.test(name)){
+        sr=trimSets(sr, 1);
+        note="Lighter landing dose for you \u2014 small, quiet landings, stick each one. "+note;
+      }
+      return [name, sr, note, e[0], user];
+    });
+  }
   // THE per-day target list — { name, orig, target } per exercise: user swaps +
   // gear subs (deduped across the day, same as the card), retain trim and the
   // wave (effTarget / speedDrillTarget). buildSession (040) logs exactly this
   // and sessionMinutes estimates from it, so the "About N min" counts the real dose.
   function dayTargets(d, week){
     if(!d || d.type==="rest") return [];
-    if(d.type==="speed") return PHASES[0].speed[speedMode()].ex.map(function(e){
-      var base=applySwapName(e[0]); return { name:base, orig:e[0], target:speedDrillTarget(base, e[1], week) }; });
+    if(d.type==="speed") return speedRows().map(function(e){
+      return { name:e[0], orig:e[3], target:speedDrillTarget(e[0], e[1], week) }; });
     var rs=resolveDay(d.ex);
     return d.ex.map(function(row, ri){
       var base=applySwapName(row[0]), r=rs[ri], nm=(r.status==="swap")?r.name:base;   // user swap first
@@ -993,7 +1044,7 @@
         '<p><b>RIR</b> = reps in reserve — how many clean reps you stop short of failure. “RIR 2” means leave about 2 in the tank. The note by each lift gives a target RIR and rest time.</p>'+
         '<p><b>Speed &amp; power quality.</b> Jumps, throws and overspeed only build speed when every rep is <i>fast</i> — <b>stop a set the instant reps visibly slow</b>, keep the implement light, and rest fully between efforts. Never grind power work.</p></div>'+
       '<div class="pb-sec"><h4>🏆 In-season &amp; peaking</h4>'+
-        '<p><b>In-season (tournament stretches).</b> Switch macros to <b>In-Season Maintain</b> and the plan moves to <b>Retain mode</b> on its own: a set comes off the accessories, while the heavy lifts and all speed work stay at full — heavy loads are what hold your strength. Keep your 4–5 days if you can; the app still counts them. If a tournament week squeezes you to two sessions, make both heavy and keep the speed primers. Lifters over ~60 hold muscle best on at least 2 sessions and 2–3 sets per lift.</p>'+
+        '<p><b>In-season (tournament stretches).</b> Turn on <b>In-season</b> in Plan settings: every lift drops to 2 hard sets at the same weights — heavy loads are what hold your strength. Set the <b>days you play</b> too, and Home will steer you off leg day right before a round. If a tournament week squeezes you to two sessions, make both heavy and keep the speed primers. Lifters over ~60 hold muscle best on at least 2 sessions a week.</p>'+
         '<p><b>Peak for an event.</b> Set your event date and the plan makes the <b>event week and the week before</b> Peak weeks: <b>about a quarter to a third fewer sets</b>, same reps, loads stay heavy, speed work crisp and light. Then an easy week to absorb it. Tapers like this shed fatigue in other sports; no golf study has measured the gain, so let your 7-iron speed test be the proof.</p>'+
         '<p><b>Sleep is training.</b> Aim <b>7–9 h</b>. Sleep loss degrades <i>skill control</i> — tempo and strike — more than strength, so a bad week of sleep shows in your scores before your lifts.</p></div>'+
       '</div></details>';
@@ -1003,6 +1054,13 @@
       '<div class="set-row"><span class="set-lbl">Training days / week</span><div class="seg sm" id="freqSeg">'+
         '<button type="button" data-freq="4" '+(planState.freq===4?'class="active"':'')+'>4</button>'+
         '<button type="button" data-freq="5" '+(planState.freq===5?'class="active"':'')+'>5</button></div></div>'+
+      '<div class="set-row"><span class="set-lbl">In-season<small>Playing a lot? Half the sets, same weights.</small></span><div class="seg sm" id="seasonSeg">'+
+        '<button type="button" data-inseason="0" '+(!ffInSeason()?'class="active"':'')+'>Off</button>'+
+        '<button type="button" data-inseason="1" '+(ffInSeason()?'class="active"':'')+'>On</button></div></div>'+
+      '<div class="set-row set-play"><span class="set-lbl">Days you usually play<small>We\u2019ll keep your legs fresh the day before.</small></span><div class="play-days" id="playDays">'+
+        ["S","M","T","W","T","F","S"].map(function(l, i){ var on=ffPlayDays().indexOf(i)!==-1;
+          return '<button type="button" data-playday="'+i+'" aria-pressed="'+on+'" aria-label="'+["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][i]+'"'+(on?' class="active"':'')+'>'+l+'</button>'; }).join("")+
+      '</div></div>'+
       '<div class="mode-banner '+(retain?"retain":"build")+'">'+
         (retain?'🔻 <b>Retain mode</b> (auto, from your goal) — accessory volume trimmed; heavy lifts &amp; all speed work stay at full to protect muscle and clubhead speed.'
                :'🏗️ <b>Build mode</b> (auto, from your goal) — full accessory volume to add muscle, with heavy strength and speed work every week.')+'</div>'+
@@ -1023,6 +1081,26 @@
     var setFold=$("setFold");
     if(setFold) setFold.addEventListener("toggle", function(){ planState.settingsOpen=setFold.open; });
 
+    var seasonSeg=$("seasonSeg");
+    if(seasonSeg){
+      seasonSeg.addEventListener("click", function(e){
+        var btn=e.target.closest("[data-inseason]"); if(!btn) return;
+        state.inseason=btn.getAttribute("data-inseason")==="1";
+        persist(); renderPhase();
+        try{ renderDash(); }catch(_){}
+        ffToast(state.inseason?"In-season: every lift drops to 2 hard sets at the same weights.":"In-season off: full sets are back.");
+      });
+    }
+    var playDays=$("playDays");
+    if(playDays){
+      playDays.addEventListener("click", function(e){
+        var btn=e.target.closest("[data-playday]"); if(!btn) return;
+        var d=parseInt(btn.getAttribute("data-playday"),10), g=gdState(), days=ffPlayDays().slice(), i=days.indexOf(d);
+        if(i===-1) days.push(d); else days.splice(i,1);
+        g.days=days.sort(); gdSave(g); renderPhase();
+        try{ renderDash(); }catch(_){}
+      });
+    }
     var freqSeg=$("freqSeg");
     if(freqSeg){
       freqSeg.addEventListener("click", function(e){

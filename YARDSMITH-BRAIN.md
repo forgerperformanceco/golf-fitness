@@ -436,11 +436,16 @@ stores; we're a URL). Shipping the app matters more than more docs.
   now honors the waves (Heavy weeks heavier, real reductions, no load bumps on ballistic
   work), effort cues are wave/position-aware with a 2-week no-failure on-ramp for new
   lifters, breaks decay loads (≥14 d no bump, ≥28 d ~90%), BMI-aware goal suggestion,
-  20% fat floor, noise-aware speed signals, honest copy everywhere. **Open owner
-  decisions** listed there: frequency/volume (upper body 1×/wk; hamstrings, delts,
-  calves under the app's own guidance), beginner volume on-ramp, pull-up gate, plyo
-  gating, in-season template, round-aware scheduling, gym speed-day throws, trap-bar
-  default.
+  20% fat floor, noise-aware speed signals, honest copy everywhere. The owner
+  decisions it raised were **all decided and shipped Oct 2, 2026** (next bullet).
+- **Program update, Oct 2026** (DESIGN-CHANGES; NUTRITION §9a): chest and back twice a
+  week in both splits (single-arm row ↔ single-arm press swap), more hamstring/side-delt/
+  calf work, new-lifter volume on-ramp (history-based, no onboarding question), In-season
+  toggle (2 hard sets per lift, same weights), play days + a day-before-a-round leg-day
+  note, one-time pull-up check, lighter landings for BMI 30+/age 60+, trap-bar default for
+  a flagged back, seated chest throw on the gym speed day when there's a med ball.
+  **Still open:** a 2–3-session in-season template, rotating the week so round days land
+  on rest, a fuller health screen.
 
 **Rejected (deliberately):**
 - **Blurring/hiding exercises after purchase or anti-screenshot measures** — the

@@ -517,38 +517,56 @@ Refalo 2023/2024). Since Oct 2026 that last-set-to-failure cue is **never** show
 Peak weeks, on a readiness recovery day, on loaded lunges/split squats, on an accessory that
 comes before a heavy compound that day, or in a new lifter's first 2 weeks.
 
-**Corrected (Oct 2026) — what the plan actually doses.** An earlier version of this section
-"confirmed" 10–20 weekly sets and ~2 sessions per muscle. The plan does neither for most
-muscles. Build-week doses in fractional sets (synergists count half; ranges depend on how
-lunges, deadlifts and rows are counted):
+**Program update (Oct 2, 2026) — what the plan doses now.** The deep audit found the earlier
+plan trained every upper muscle once a week and left hamstrings, side delts and calves well
+below the app's own guidance. The owner approved the fixes below. Build-week doses in
+fractional sets (synergists count half), from the shipped `PHASES` (tests:
+`tests/program-changes.test.mjs`):
 
-| Muscle | 4-day | 5-day | Sessions / week |
+| Muscle | 4-day | 5-day | Sessions / week (4 / 5) |
 |---|---|---|---|
-| Quads | 10 | ~15 | 1 / 2 |
-| Glutes | ~8.5–10 | ~12.5–14.5 | 1 / 2 |
-| Hamstrings | 7 | 8 | 1 / 2 |
-| Back (lats + upper back) | ~14 direct (~15.5 fractional) | same | 1 (all on the pull day) |
-| Chest · triceps · biceps | 10 each | 10 each | 1 |
-| Side delts | ~5 | ~5 | 1 |
-| Rear delts | ~6.5–10 | ~6.5–10 | 1 |
-| Calves | 3 | 4 | 1 |
+| Quads | 10 | 13 | 1 / 2 |
+| Glutes | 10 | ~15.5 | 1 / 2 |
+| Hamstrings | ~9.5 (leg curl 4 × 12) | 13 (leg curl on both lower days) | 1 / 2 |
+| Chest | 10 | 10 | **2 / 2** |
+| Back (lats + upper back) | 13 | 15 | **2 / 2** |
+| Triceps · biceps | 10 · ~9.5 | same | 1 direct + pressing/pulling |
+| Side delts | 6 (lateral raise 4 × 15) | 6 | 1 |
+| Rear delts | ~6 | ~6 | 1 + rows |
+| Calves | 4 | 7 | 1 / 2 |
 
-- **Frequency:** every upper-body muscle is trained **once a week** in both splits (one push
-  day, one pull day). The lower body is trained **twice a week on the 5-day plan** (quads day +
-  hinge day); on the default 4-day plan it gets **one heavy day** plus ballistic work (the
-  lift-day primers and the speed-day jumps/swings).
-- **Waves and goals lower these:** Heavy weeks take a set off the 💪 accessories (lateral raises
-  3→2, calves 4→3 on 5-day / 3→2 on 4-day); Retain mode (Lean Out / In-Season) trims one more
-  (floor 2); Easy and Peak weeks are lower again. The pull day carries ~15.5 fractional back
-  sets (14 direct) in Build weeks, ~13 in Heavy, ~11 in Easy and ~9 in Peak weeks.
-- **Why it's defensible:** lower weekly volumes still build muscle, just less (Schoenfeld 2017;
-  Pelland 2025); at equal volume, frequency barely changes growth (Schoenfeld 2019; Pelland 2025)
-  but does independently help strength (Pelland 2025). The prime movers sit around 10 sets;
-  low-transfer muscles (side delts, calves, knee-flexion hamstrings) sit lower to save recovery
-  for the heavy and speed work. The cost is a likely modest strength-frequency loss for the
-  upper body (and the 4-day lower body) and below-maximal growth for the low-dose muscles.
-- **The coach** now states these real doses and frequencies, advises within the plan, and only
-  if asked suggests one optional extra set for a lagging muscle (`knowledge.ts`).
+- **What changed:** Single-Arm DB Row moved to the push day and Single-Arm DB Bench Press to
+  the pull day in both splits (every upper prime mover twice a week; both are 🌀 so wave and
+  retain prescriptions are unchanged, and history matches by name). Chest-Supported Row 4→3
+  sets (back stays under the ~11-set per-session cap). 5-day: Seated Leg Curl added to Day 1
+  and Standing Calf Raise to Day 4. 4-day: leg curl and calf raise 4 × 12, Pallof press moved
+  to the pull day (Day 1 25 sets, not 26). Lateral raise 4 × 15 everywhere. No muscle passes
+  ~12 fractional sets in one session. No day names changed (ff_log is keyed by day name).
+- **Still once a week:** triceps/biceps/delts direct work, and the whole lower body on the 4-day
+  plan (one heavy day + the speed-day jumps/swings). At equal volume frequency barely changes
+  growth (Schoenfeld 2019; Pelland 2025) but helps strength (Pelland 2025) — the 4-day lower
+  body is the remaining trade-off; the 5-day plan is the fix for anyone who wants it.
+- **Waves and goals lower these:** Heavy weeks take a set off the 💪 accessories; Retain mode
+  (Lean Out / In-Season Maintain) trims one more (floor 2); Easy and Peak weeks are lower again.
+- **Person-dependent doses (shipped Oct 2, 2026):**
+  - **New-lifter on-ramp** — no lifting logged before the plan → weeks 1–2 take one set off each
+    💪 accessory (floor 2) on top of the no-failure rule. Novice guidance is 1–3 sets per
+    exercise (ACSM 2009 progression models).
+  - **In-season mode** — Train › Plan settings toggle: every lift capped at 2 hard sets, power
+    drills at 3, same reps and weights (about half the sets). Strength holds on ~1/3 of the
+    volume when intensity stays (Bickel 2011; Spiering 2021).
+  - **Landings** — BMI 30+ or age 60+ → one set off jumps/bounds on the speed day and a
+    soft-landing cue (landing forces scale with mass; tendons adapt slower with age).
+  - **Pull-up check** — asked once before the first pull session; "not yet" swaps the Weighted
+    Pull-up for an assisted machine, band-assisted or negative pull-up via `ff_swaps`.
+  - **Trap bar for flagged backs** — "Back" in setup + a barbell → Trap-Bar Deadlift is the
+    default (Swinton 2011; Lake 2017); an explicit swap back to the straight bar sticks.
+  - **Gym speed day** — with a med ball, the seated chest throw replaces the speed bench (a true
+    release; upper-body throw velocity is the #2 CHS correlate, Brennan 2024).
+  - **Round-aware note** — play days (Plan settings, stored in `ff_gameday.days`) make Home
+    flag a leg day before or on a round and offer the week's open upper day instead
+    (Byrne 2004: muscle-damaging leg work dents power for ~1–2 days when unaccustomed).
+- **The coach** carries these exact doses and rules (`knowledge.ts`).
 
 **Why the bodybuilding identity is defensible, not decorative:**
 - **Lifting doesn't cost the turn.** Full-range resistance training improves range of motion
@@ -570,53 +588,12 @@ lunges, deadlifts and rows are counted):
   controlled training raised CHS ~+1.05 m/s (≈2.3 mph), ball speed ~+2.2 m/s, carry
   ~+9.3 m — **GRADE certainty low**. Would supersede Uthoff 2021's ~4.1% as the headline
   number **once the full paper is read**; until then the public-claims rules are unchanged.
-- **OPEN OWNER DECISION — frequency & volume.** Keep the moderate, once-a-week-upper split as a
-  deliberate choice (and say so everywhere, as the docs and coach now do), or restructure:
-  - swap Single-Arm DB Row (pull day) with Single-Arm DB Bench Press (push day) in both splits —
-    every upper prime mover gets a second, 3-set exposure and the pull day drops to ~11 direct
-    back sets (both moves are 🌀, so wave/retain prescriptions don't change; history matches by
-    name);
-  - give the 4-day lower body a second heavy exposure (e.g. 2 of the RDL or leg-press sets on
-    another day — the strength-frequency benefit is about heavy compound sets, not accessories);
-  - raise the low-dose muscles (e.g. a second knee-flexion exposure on 5-day, 4 × 15 lateral
-    raises, a calf raise on 5-day Day 4).
-  Evidence for the trade-off: Schoenfeld 2019; Pelland 2025 (frequency helps strength, barely
-  growth); Remmert/Pelland 2025 preprint (~11 fractional sets per muscle per session).
-- **Per-session cap:** gains flatten past ~11 fractional sets per muscle per session (Remmert,
-  Pelland 2025 preprint, not peer reviewed). The pull day in **both** splits is 14 direct back
-  sets (~15.5 fractional) in Build weeks — the swap above would fix it.
-- **In-season maintenance mode (not shipped).** Today In-Season Maintain only switches on
-  Retain mode (one set off 💪 accessories, no to-failure cue; heavy lifts and speed work at full)
-  on the same 4–5-day week, and Home/Octane still count sessions against 4–5 days. Evidence
-  for a real mode: strength holds on ~1 heavy session/week with ~1 set per exercise; size in
-  older lifters (60–75 in the studies) needs up to ~2 sessions and 2–3 sets per exercise
-  (Spiering 2021; Bickel 2011). A real mode would be a 2–3-session in-season template (heavy
-  lower/push/pull at 2–3 sets, primers and the speed day kept) with consistency scored against
-  that frequency.
-- **OPEN OWNER DECISION — population on-ramps.** The plan doesn't scale week 1 by experience,
-  age or body size (shipped: self-chosen first loads at RIR 2, the readiness trim, the overspeed
-  ramp, and no to-failure sets in a new lifter's first 2 weeks). Undecided:
-  - **experience-level volume on-ramp** — a never-lifted user gets 71 (4-day) / 85 (5-day)
-    lift-day working sets in week 1 (26 in the 4-day session 1), 3–4 sets per exercise; novice guidance is 1–3 sets per exercise
-    (ACSM 2009 progression models, abstract read). Needs an experience input (stored inside the
-    `fairwayfuel` profile, no new key) and a history-based stage so a season-2 restart doesn't
-    re-trigger it;
-  - **pull-up capacity gate** — Weighted Pull-up 4 × 6 leads the pull day for every Full/Home
-    user; route users who can't do ~6 strict bodyweight reps to an assisted / band / negative
-    variant first;
-  - **plyometric gating** — landing-heavy jumps and bounds aren't gated by body mass, age or
-    landing competency; today "land soft, low box first" is a coaching cue, not a gate.
-- **Round timing (open lead, not shipped).** The week anchors to the weekday the user pressed
-  Start and nothing knows when they play. For a Saturday golfer, 4 of 7 start days on the
-  5-day plan (2 of 7 on the 4-day) put a lower-body session on the round day or the day
-  before. Muscle-damaging, eccentric-heavy work can lower force and power for days afterward
-  when unaccustomed (Byrne 2004, *Sports Med* 34:49–69, review, abstract read) — the repeated-bout
-  effect shrinks this once the lifts are familiar. A low-volume heavy or ballistic "primer"
-  1.75–48 h before shows a small benefit in other sports (Harrison 2019, *Sports Med*
-  49:1499–1514, review; 2026 delayed-priming meta, g≈0.18, low certainty). Candidate: an
-  optional "I usually play" day stored inside the roaming `ff_gameday` object, used to rotate
-  the week at plan start so round days land on Rest / Play 18 and no lower day sits the day
-  before; plus a day-before nudge. Extrapolated — no golf study.
+- **Decided Oct 2, 2026 (see the program update above):** frequency/volume, the per-session
+  cap on the pull day, in-season mode (as a set cap, not a separate 2-day template), the
+  experience on-ramp (history-based, no onboarding question), the pull-up check, landing
+  gating, and the day-before-a-round note. **Still open:** a true 2–3-session in-season
+  template with consistency scored against it; rotating the week at plan start so round days
+  land on rest days; a fuller pre-participation screen beyond the onboarding health line.
 - **Arm balance:** golfers' triceps strength and biceps:triceps ratio correlated with driving
   distance (PLOS One 2024, PMID 39042614; effect sizes unverified).
 
@@ -690,12 +667,12 @@ Run the **same authored week for all 20 weeks** (4 or 5 training days) — `PHAS
 
 | Day (5-day plan) | What's in it | Targets |
 |---|---|---|
-| Day 1 — Lower (Quads) | **Heavy leg press (fast up)** + RDL, walking lunge, leg extension, standing calf raise, hanging leg raise | 4×6 heavy; 3×8–4×12 |
-| Day 2 — Upper (Push) | **Heavy barbell bench (fast up)** + incline DB press, standing overhead press, single-arm DB bench, lateral raise, cable overhead triceps extension, cable wood-chop | 4×5 heavy; 3–4 × 6–15 |
+| Day 1 — Lower (Quads) | **Heavy leg press (fast up)** + RDL, seated leg curl, walking lunge, leg extension, standing calf raise, hanging leg raise | 4×6 heavy; 3×8–4×12 |
+| Day 2 — Upper (Push) | **Heavy barbell bench (fast up)** + incline DB press, standing overhead press, single-arm DB row, lateral raise (4×15), cable overhead triceps extension, cable wood-chop | 4×5 heavy; 3–4 × 6–15 |
 | Rest / Play 18 | — | — |
 | Day 3 — Speed & Power | Field or gym version: a jump (CMJ or light trap-bar jump), a rotational throw, an upper-body ballistic (seated chest throw or speed bench), a hip-power drill (slam or KB swing), a lateral drill, then **overspeed swings last** | 3–4 × 3–6, max intent; overspeed 2×5→4×5 |
-| Day 4 — Lower (Hinge + Power) | Seated leg curl, **heavy conventional deadlift (fast up; Trap-Bar Deadlift is the first swap)**, hip thrust, Bulgarian split squat, Pallof press, farmer carry | 4×4 heavy; 3–4 × 8–12 |
-| Day 5 — Upper (Pull + Rotate) | **Weighted pull-up (fast up)**, chest-supported row, lat pulldown, single-arm DB row, face pull, DB curl, wrist curl + reverse | 4×6; 2–4 × 8–15 |
+| Day 4 — Lower (Hinge + Power) | Seated leg curl, **heavy conventional deadlift (fast up; Trap-Bar Deadlift is the first swap, and the default for a flagged back)**, hip thrust, Bulgarian split squat, standing calf raise, Pallof press, farmer carry | 4×4 heavy; 3–4 × 8–12 |
+| Day 5 — Upper (Pull + Rotate) | **Weighted pull-up (fast up; assisted if the pull-up check says so)**, chest-supported row (3×8), lat pulldown, single-arm DB bench press, face pull, DB curl, wrist curl + reverse | 4×6; 2–4 × 8–15 |
 | Rest / Play 18 | — | — |
 
 The main lower lift is the **leg press, not the back squat** (heavy, explosive, far less spinal
@@ -705,8 +682,9 @@ prefers the barbell squat can swap it back in.
 **4-day option (balanced, not a deletion).** Choosing 4 days does **not** simply drop a day —
 it runs a purpose-built balanced split so pushing and pulling stay matched: **Day 1 Lower
 (Quads & Hinge)** — heavy RDL (4×6, fast up) + leg press, hip thrust, walking lunge, leg
-extension, seated leg curl, calf raise, Pallof press · **Day 2 Upper (Push)** · **Day 3 Speed &
-Power** · **Day 4 Upper (Pull + Rotate)** (Push and Pull identical to the 5-day days), with
+extension, seated leg curl (4×12), calf raise (4×12) · **Day 2 Upper (Push)** · **Day 3 Speed &
+Power** · **Day 4 Upper (Pull + Rotate)** (Push and Pull as on the 5-day days; the 4-day pull
+day also carries the Pallof press), with
 rest days between. Both lower patterns live on Day 1, anti-rotation and rotational power are
 retained, and no upper-body pulling is lost. Real frequency and per-muscle doses: §9a.
 
