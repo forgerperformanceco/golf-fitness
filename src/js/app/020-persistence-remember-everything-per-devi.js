@@ -8,7 +8,7 @@
         heightFt:$("heightFt").value, heightIn:$("heightIn").value,
         activity:$("activity").value,
         prep:(state.prep||[]).slice(), equipPreset:state.equipPreset||"",
-        inseason:!!state.inseason,
+        inseason:(state.inseason===true?"lite":(state.inseason||false)), health:state.health||null,
         freq:planState.freq, equip:planState.equip,
         view:((document.querySelector(".view.active")||{id:"view-dash"}).id||"view-dash").replace(/^view-/,"")
       });
@@ -29,7 +29,8 @@
     if(data.sex){ state.sex=data.sex; act("sexSeg","data-sex",data.sex); }
     if(data.workout){ state.workout=data.workout; act("workoutSeg","data-workout",data.workout); }
     state.prep=Array.isArray(data.prep)?data.prep.slice():[];
-    state.inseason=!!data.inseason;
+    state.inseason=(data.inseason===true)?"lite":(data.inseason||false);
+    state.health=(data.health && typeof data.health==="object")?data.health:null;
     if(data.equipPreset) state.equipPreset=data.equipPreset;
     if(data.goal){ state.goal=data.goal;
       Array.prototype.forEach.call($("goals").querySelectorAll(".goal"), function(b){

@@ -225,12 +225,30 @@ speed/power work in, so the deficit costs fat, not mph. Never frame a cut as "ju
     plan keeps the prime movers near 10+ and spares muscles with little swing transfer.
   - Person-dependent doses the app applies: (1) NEW-LIFTER ON-RAMP — no lifting logged
     before the plan → weeks 1–2 take one set off each 💪 accessory and use no to-failure
-    sets; (2) IN-SEASON MODE (Train › Plan settings toggle) → every lift capped at 2 hard
-    sets and power drills at 3, same reps and weights (~half the sets; heavy loads are
-    what hold strength — Bickel 2011, Spiering 2021); (3) LANDINGS — BMI 30+ or age 60+
-    → one set off jumps/bounds on the speed day with a soft-landing cue; (4) PULL-UPS —
+    sets; (2) IN-SEASON (Train › Plan settings, OPTIONAL: Off / Fewer sets / 2 days /
+    3 days) → "Fewer sets" keeps the week with every lift at 2 hard sets (power 3), same
+    weights; "2 days" swaps in two full-body days (A: leg press, bench, RDL, row, lateral
+    raise, Pallof; B: deadlift, weighted pull-up, overhead press, split squat, single-arm
+    row, wood-chop — main lifts 3 heavy sets, accessories 2, ~14 sets a session, each day
+    opens with a jump or rotational throw); "3 days" adds the Speed & Power day. Same lift
+    names, so loads carry over (Bickel 2011, Spiering 2021: heavy loads at ~1/3 the
+    volume hold strength; older lifters do best on 2 sessions, 2–3 sets per lift);
+    (3) LANDINGS — BMI 30+ or age 60+ (or a health-check flag) → one set off
+    jumps/bounds on the speed day with a soft-landing cue; (4) PULL-UPS —
     before the first pull session the app asks once whether they can do 6 strict
-    pull-ups; "not yet" swaps in an assisted version (machine, band, or slow negatives).
+    pull-ups; "not yet" swaps in an assisted version (machine, band, or slow negatives);
+    (5) HEALTH CHECK — setup asks plain-language pre-exercise screening questions (heart
+    condition/high blood pressure, chest pain, dizziness/fainting, other long-term
+    condition, long-term medication, a bone/joint/muscle problem, told to exercise only
+    with supervision, and for women pregnancy/recent birth; modelled on the PAR-Q+).
+    Answers sit in profile.health {q, cleared}. Any "yes" until they mark "my doctor
+    has cleared me" (You › Your plan) → a 4-week on-ramp (one set off accessories, no
+    all-out sets) and the lighter landing dose. If profile.health.q contains heart,
+    chest, dizzy or supervised and cleared is false: tell them plainly to get a doctor's
+    OK before training hard, never diagnose, and keep advice conservative;
+    (6) PLAY DAYS — with play days set, the week is ARRANGED automatically so rounds
+    land on rest days and no heavy-legs day sits the day before (same sessions, same
+    order); a change made mid-week applies from next week.
   - Coaching rule: advise WITHIN the plan. Only if asked how to bring up a lagging muscle,
     suggest ONE optional extra set on its existing accessory. Don't rewrite the split.
   Rep ranges are STRENGTH-POWER BIASED for a golfer: big compounds 4–6 heavy reps
@@ -307,7 +325,8 @@ speed/power work in, so the deficit costs fat, not mph. Never frame a cut as "ju
   at 2 hard sets, power drills at 3, same reps and weights — about half the sets. Play
   days (also in Plan settings) make Home warn on a leg day before or on a round and offer
   the week's open upper day instead (heavy leg work leaves legs flat for ~1–2 days).
-  It is still the 4–5-day week; there's no 2-day template. If tournament weeks cut someone to two sessions: keep both,
+  For a tournament stretch, point them to the optional 2- or 3-day in-season plan in Plan
+  settings (consistency then counts against 2 or 3 sessions). If a week squeezes them further: keep both sessions,
   keep the heavy lifts at normal loads (2–3 hard sets per main lift) and the primers,
   and say plainly the app will still count the missed sessions. Strength holds on
   surprisingly little as long as loads stay heavy (Spiering 2021; Bickel 2011). Check
@@ -367,7 +386,8 @@ adapts week 1 to the person in a few specific ways: self-chosen first loads (RIR
 daily readiness check (it can trim a session), the overspeed ramp, the new-lifter on-ramp
 (weeks 1–2: one set off accessories, no to-failure sets), a lighter landing dose for BMI
 30+ or age 60+, and the one-time pull-up check (assisted version if they can't do 6
-strict). It does not ask for experience level or screen health. So, when relevant: a
+strict), and the setup health check (any flag → a 4-week gentle start until cleared).
+It does not ask for experience level. So, when relevant: a
 60+ lifter who finds week 1 too much can stop at 2 sets per lift for a couple of weeks;
 anyone who can't land a jump softly keeps jumps low and few. Minimum effective dose ~2
 quality sessions/week. Public 7-iron speed ballparks

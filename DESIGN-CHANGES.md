@@ -1,5 +1,58 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## In-season plans, a week arranged around rounds, and a setup health check (Oct 2, 2026)
+
+User: "build these, make the 2-3 day in season plan optionable obviously" — the three items
+the program update left open.
+
+- **In-season is a 4-way choice** (Train › Plan settings; `inseason` in the profile, where
+  old `true` reads as "Fewer sets"):
+  - **Off** — the regular 4/5-day week.
+  - **Fewer sets** — the same week, every lift at 2 hard sets (power 3), same weights.
+  - **2 days** — `PHASES.days2`, two full-body maintenance days:
+    - A: leg press, bench, RDL, row, lateral raise, Pallof.
+    - B: deadlift, weighted pull-up, overhead press, split squat, single-arm row,
+      wood-chop.
+    - Main lifts 3 heavy sets, accessories 2, ~14 hard sets a session.
+    - A opens with a jump and B with a rotational throw.
+  - **3 days** — `days3`, the same two days plus Speed & Power.
+  - Shared rules:
+    - Same lift names, so loads and history carry over.
+    - Waves still apply.
+    - `ffSessionsPerWeek()` replaces every `planState.freq` session target (Octane
+      consistency, insights, weekly card, Stats, You summary), so a 2-day week is scored
+      as 2.
+    - `planState.freq` is kept for when the season ends.
+- **The week arranges itself around rounds** (`ffArrangeWeek` in `stripDays`):
+  - With play days set, the training days are placed so rounds land on rest days and no
+    heavy-legs day sits the day before a round. Back-to-back sessions and two leg days in
+    a row are penalised.
+  - The plan's order is kept; only the starting point and spacing move.
+  - Deterministic, and the same every week. Rest check-off keys don't move, because they
+    are keyed by authored index.
+  - A change made after the week has logged work applies from next week
+    (`ff_gameday.arrangeWeek/prevDays`), so nothing already done jumps around.
+  - The full-week view follows the arranged order. The settings line says what's
+    happening.
+- **Health check at setup** (step 1, under the body numbers) and in You › Your plan:
+  - Plain-language versions of the standard pre-exercise screening questions, modelled on
+    the PAR-Q+: heart/blood pressure, chest pain, dizziness/fainting, another long-term
+    condition, long-term medication, a bone/joint/muscle problem, told to exercise only
+    with supervision, and pregnancy/recent birth (asked of women only).
+  - Tap any that apply; most people tap none. It never blocks setup.
+  - Any "yes" → a 4-week on-ramp (one set off accessories, no all-out sets) and the lighter
+    landing dose, until "My doctor has cleared me" is tapped.
+  - Red flags (heart, chest pain, dizziness, supervised-only) get "Please get your
+    doctor's OK before you train".
+  - Answers ride in the profile (`state.health = {q, ts, cleared}`); changing them resets
+    the clearance.
+  - The coach knows all of this (knowledge.ts) and reads it from the profile.
+- **Verified:**
+  - npm test 208/208, including the new `tests/season-schedule-health.test.mjs` (6).
+  - Scratchpad `verify-season.mjs`: 21/21 with zero page errors. It covers the in-season
+    options switching Train/Home, the next two play days becoming rest days with no heavy
+    legs before, and the health check in setup → profile → You → cleared.
+
 ## Font & design consistency pass (Oct 2, 2026)
 
 User: "do a font and design check and make sure that there's consistency among the pages."

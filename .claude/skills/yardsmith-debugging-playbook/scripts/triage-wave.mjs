@@ -49,7 +49,7 @@ const goal = (process.argv[4] || "leanbulk");
 const code =
   'var state = { goal: ' + JSON.stringify(goal) + ' };\n' +
   'function eventInfo(){ return null; }\n' +
-  'function ffOnRamp(){ return false; } function ffInSeason(){ return false; }\n' +   // base engine only          // no Big Event re-anchor in this tool
+  'function ffOnRamp(){ return false; } function ffInSeason(){ return false; } function ffInSeasonMode(){ return false; }\n' +   // base engine only          // no Big Event re-anchor in this tool
   FNS.map(extractFn).join("\n") +
   '\nreturn { purposeFor, waveFor, effTarget, speedDrillTarget, overspeedDose };';
 const eng = new Function(code)();

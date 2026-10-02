@@ -591,9 +591,15 @@ fractional sets (synergists count half), from the shipped `PHASES` (tests:
 - **Decided Oct 2, 2026 (see the program update above):** frequency/volume, the per-session
   cap on the pull day, in-season mode (as a set cap, not a separate 2-day template), the
   experience on-ramp (history-based, no onboarding question), the pull-up check, landing
-  gating, and the day-before-a-round note. **Still open:** a true 2–3-session in-season
-  template with consistency scored against it; rotating the week at plan start so round days
-  land on rest days; a fuller pre-participation screen beyond the onboarding health line.
+  gating, and the day-before-a-round note. **Also shipped (Oct 2, 2026):** an OPTIONAL
+  in-season 2- or 3-day plan (two full-body maintenance days — main lifts 3 heavy sets,
+  accessories 2, ~14 sets a session — plus the Speed & Power day on 3-day; same lift names so
+  loads carry; consistency scored against 2/3 sessions; Bickel 2011, Spiering 2021), the week
+  arranged automatically around play days (rounds on rest days, no heavy legs the day before;
+  a mid-week change applies next week), and a setup health check modelled on the PAR-Q+
+  (plain-language yes/no; any "yes" → a 4-week gentle start and softer landings until the
+  user marks a doctor's clearance; red flags — heart, chest pain, dizziness, supervised-only
+  — get an explicit "get your doctor's OK first").
 - **Arm balance:** golfers' triceps strength and biceps:triceps ratio correlated with driving
   distance (PLOS One 2024, PMID 39042614; effect sizes unverified).
 

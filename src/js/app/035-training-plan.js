@@ -71,6 +71,44 @@
           ["Face Pull","3 \u00d7 15"],["DB Curl","3 \u00d7 12"],["Pallof Press","3 \u00d7 12 / side"],["Wrist Curl + Reverse","2 \u00d7 15"]
         ]},
         { name:"Rest / Play 18", tag:"rest", type:"rest" }
+      ],
+      // IN-SEASON (optional, Plan settings): two full-body days at maintenance
+      // dose — heavy compounds kept heavy at 3 sets, accessories at 2, about
+      // 14 hard sets a session. Strength and size hold on ~1/3 of the usual
+      // volume when the loads stay heavy (Bickel 2011; Spiering 2021 — older
+      // lifters do best on 2 sessions, 2–3 sets per lift). The lift names are
+      // the regular plan's, so loads and history carry straight over. Speed
+      // stays in: every day opens with a jump or a rotational throw.
+      days2: [
+        { name:"Day 1 \u2014 Full Body A (Squat + Press)", tag:"Lift", ex:[
+          ["Leg Press","3 \u00d7 5 (heavy \u00b7 fast up)"],["Barbell Bench Press","3 \u00d7 5 (heavy \u00b7 fast up)"],["Romanian Deadlift","2 \u00d7 6"],
+          ["Chest-Supported Row","2 \u00d7 8"],["Lateral Raise","2 \u00d7 15"],["Pallof Press","2 \u00d7 10 / side"]
+        ]},
+        { name:"Rest / Play 18", tag:"rest", type:"rest" },
+        { name:"Rest / Play 18", tag:"rest", type:"rest" },
+        { name:"Day 2 \u2014 Full Body B (Hinge + Pull)", tag:"Lift", ex:[
+          ["Deadlift","3 \u00d7 3 (heavy \u00b7 fast up)"],["Weighted Pull-up","3 \u00d7 5 (fast up)"],["Standing Overhead Press","2 \u00d7 6"],
+          ["Bulgarian Split Squat","2 \u00d7 8 / leg"],["Single-Arm DB Row","2 \u00d7 8 / side"],["Cable Wood-chop","2 \u00d7 8 / side"]
+        ]},
+        { name:"Rest / Play 18", tag:"rest", type:"rest" },
+        { name:"Rest / Play 18", tag:"rest", type:"rest" },
+        { name:"Rest / Play 18", tag:"rest", type:"rest" }
+      ],
+      // In-season 3-day: the same two full-body days plus the Speed & Power day.
+      days3: [
+        { name:"Day 1 \u2014 Full Body A (Squat + Press)", tag:"Lift", ex:[
+          ["Leg Press","3 \u00d7 5 (heavy \u00b7 fast up)"],["Barbell Bench Press","3 \u00d7 5 (heavy \u00b7 fast up)"],["Romanian Deadlift","2 \u00d7 6"],
+          ["Chest-Supported Row","2 \u00d7 8"],["Lateral Raise","2 \u00d7 15"],["Pallof Press","2 \u00d7 10 / side"]
+        ]},
+        { name:"Rest / Play 18", tag:"rest", type:"rest" },
+        { name:"Day 2 \u2014 Speed & Power", tag:"speed", type:"speed" },
+        { name:"Rest / Play 18", tag:"rest", type:"rest" },
+        { name:"Day 3 \u2014 Full Body B (Hinge + Pull)", tag:"Lift", ex:[
+          ["Deadlift","3 \u00d7 3 (heavy \u00b7 fast up)"],["Weighted Pull-up","3 \u00d7 5 (fast up)"],["Standing Overhead Press","2 \u00d7 6"],
+          ["Bulgarian Split Squat","2 \u00d7 8 / leg"],["Single-Arm DB Row","2 \u00d7 8 / side"],["Cable Wood-chop","2 \u00d7 8 / side"]
+        ]},
+        { name:"Rest / Play 18", tag:"rest", type:"rest" },
+        { name:"Rest / Play 18", tag:"rest", type:"rest" }
       ]
     }
   ];
@@ -315,7 +353,18 @@
   }
 
 
-  function activeDays(){ var p=PHASES[planState.phase]; return planState.freq===4 ? p.days4 : p.days5; }
+  // The week in use: an in-season plan (2 or 3 days, Plan settings) replaces the
+  // 4/5-day week while it's on; planState.freq is kept for when the season ends.
+  function activeDays(){
+    var p=PHASES[planState.phase], ip=ffInSeasonPlan();
+    if(ip===2) return p.days2;
+    if(ip===3) return p.days3;
+    return planState.freq===4 ? p.days4 : p.days5;
+  }
+  // Sessions a week the plan actually asks for (consistency targets, summaries).
+  function ffSessionsPerWeek(){
+    return activeDays().filter(function(d){ return d.type!=="rest"; }).length || 4;
+  }
   // ctx (all optional — the Train card and the player pass what they know):
   //   wave        this week's wave (waveFor)        band   the readiness band
   //   beforeHeavy a 🏋️ lift still comes later today first   no logged weight for this lift yet
@@ -354,7 +403,37 @@
   }
   // The on-ramp: no workout logged before this plan started (a brand-new lifter)
   // → weeks 1–2 keep a couple of reps in reserve on every set.
+  /* Health check (setup step 1 + You › Your plan). Plain-language versions of
+     the standard pre-exercise screening questions (modelled on the PAR-Q+,
+     Warburton et al.). Answers live in the fairwayfuel profile (state.health =
+     {q:[keys], ts, cleared}); nothing is diagnosed. Any "yes" (until the user
+     says a doctor cleared them) → a gentler start: a 4-week on-ramp instead of
+     2 (one set off accessories, no all-out sets) and the lighter landing dose. */
+  var FF_HEALTH_QS=[
+    ["heart","Heart condition or high blood pressure",true],
+    ["chest","Chest pain — at rest or when active",true],
+    ["dizzy","Dizziness or fainting in the past year",true],
+    ["chronic","Another long-term condition (e.g. diabetes, asthma)",false],
+    ["meds","Take medicine for a long-term condition",false],
+    ["joint","A bone, joint or muscle problem activity could make worse",false],
+    ["supervised","A doctor said to exercise only with supervision",true],
+    ["pregnant","Pregnant, or had a baby in the last 6 months",false,"female"]
+  ];
+  function ffHealthQs(sex){ return FF_HEALTH_QS.filter(function(q){ return !q[3] || q[3]===sex; }); }
+  function ffHealth(){ var h=(typeof state!=="undefined") && state.health; return (h && Array.isArray(h.q)) ? h : null; }
+  function ffHealthCaution(){ var h=ffHealth(); return !!(h && h.q.length && !h.cleared); }
+  function ffHealthRedFlag(q){
+    return (q||[]).some(function(k){ return FF_HEALTH_QS.some(function(x){ return x[0]===k && x[2]; }); });
+  }
+  // The advice line shown under the questions (setup and You).
+  function ffHealthAdvice(q, cleared){
+    if(!q || !q.length) return "";
+    if(cleared) return "Cleared by your doctor — the regular plan is on.";
+    return (ffHealthRedFlag(q) ? "<b>Please get your doctor’s OK before you train.</b> " : "Worth a quick word with your doctor. ")+
+      "Until you tell us you’re cleared, Yardsmith starts you gentler: four easy weeks with no all-out sets, and softer landings.";
+  }
   function ffOnRamp(week){
+    if(ffHealthCaution()) return week<=4;
     if(!(week<=2)) return false;
     var st=Date.parse(planStart()||"")||(Date.now()+864e5), h=lsGet("ff_history",[]);
     return !(Array.isArray(h) && h.some(function(e){ return e && (e.doneTs||e.ts||0) < st; }));
@@ -369,6 +448,7 @@
     // Speed day: mobility, then a short ramp of easy jumps and throws before the
     // first max-intent drill (the lift days get "Light ramp-up sets" the same way).
     if(name==="speed") return [["90/90 hip switches","×6/side"],["Open-book T-spine","×8/side"],["Leg swings","×10/side"],["Build-up swings","10–15 · 50→90%"],["Ramp-up jumps and throws","2–3 easy reps each"]];
+    if(/Full Body/.test(name)) return [["Leg swings","×10/side"],["90/90 hip switches","×8/side"],["Open-book T-spine","×8/side"],["Band pull-aparts","×20"],["Light ramp-up sets","×2"]];
     if(/Pull|Rotate/.test(name)) return [["Cat–cow","×8"],["Open-book T-spine","×8/side"],["Band pull-aparts","×20"],["Dead hang","20s"]];
     if(/Push|Upper/.test(name)) return [["Open-book rotation","×8/side"],["Band pull-aparts","×20"],["Shoulder CARs","×5/side"],["Light ramp-up sets","×2"]];
     if(/Lower|Squat|Hinge/.test(name)) return [["Leg swings","×10/side"],["90/90 hip switches","×8/side"],["World's greatest stretch","×5/side"],["Light ramp-up sets","×2"]];
@@ -572,7 +652,16 @@
   // about half the sets — every lift capped at 2 hard sets, power work at 3, the
   // loads and reps kept (intensity is what preserves strength; Bickel 2011,
   // Spiering 2021: ~1/3 of the volume maintains gains for months).
-  function ffInSeason(){ return !!(typeof state!=="undefined" && state.inseason); }
+  // state.inseason: false | "lite" (same week, 2 hard sets per lift) | 2 | 3
+  // (the in-season 2-/3-day plans). Old saves stored true → "lite".
+  function ffInSeasonMode(){
+    var v=(typeof state!=="undefined") ? state.inseason : false;
+    if(v===true || v==="lite") return "lite";
+    if(v===2 || v===3 || v==="2" || v==="3") return +v;
+    return false;
+  }
+  function ffInSeason(){ return !!ffInSeasonMode(); }
+  function ffInSeasonPlan(){ var m=ffInSeasonMode(); return (m===2||m===3) ? m : 0; }
   // The one target pipeline: retain-mode trim (goal) + the new-lifter on-ramp
   // (weeks 1–2 with no lifting history: one set off 💪 accessories, so the first
   // fortnight is learnable and DOMS stays manageable) + wave shift (week) +
@@ -581,7 +670,7 @@
     var t=adjSets(sr, name);
     if(purposeFor(name)==="💪" && ffOnRamp(week)) t=trimSets(t, 1);
     t=waveAdjust(t, name, week);
-    if(ffInSeason() && plainSetCount(t)) t=capSets(t, purposeFor(name)==="⚡" ? 3 : 2);
+    if(ffInSeasonMode()==="lite" && plainSetCount(t)) t=capSets(t, purposeFor(name)==="⚡" ? 3 : 2);
     return t;
   }
   function plainSetCount(sr){ return /^\s*\d+\s*[×x]/.test(String(sr)); }
@@ -793,7 +882,7 @@
     var p=lsGet("fairwayfuel", {})||{}, age=parseInt(p.age,10), lb=parseFloat(p.weight),
         cm=((parseInt(p.heightFt,10)||0)*12+(parseInt(p.heightIn,10)||0))*2.54;
     var bmi=(typeof ffBmi==="function" && lb>0 && cm>0) ? ffBmi(lb, cm) : 0;
-    return (age>=60) || (bmi>=30);
+    return (age>=60) || (bmi>=30) || ffHealthCaution();
   }
   // THE Speed & Power rows for a mode, after user swaps and person/gear rules:
   //  · gym + a med ball → the seated chest throw replaces the speed bench (a true
@@ -857,7 +946,7 @@
   function renderPhase(){
     ilog=null;                       // reset; the interactive day re-sets it
     var p = PHASES[planState.phase];
-    var shown = activeDays();
+    var shown = planStart() ? stripDays() : activeDays();   // arranged around play days once started
 
     var html="";
     var wk=curWeek(), started=!!planStart();
@@ -1051,14 +1140,16 @@
 
     // Configure: settings + equipment (open state preserved across re-renders).
     html+='<details class="row-fold" id="setFold"'+(planState.settingsOpen?' open':'')+'>'+
-      ffRowSummary("⚙️","Plan settings",planState.freq+" days a week"+(ffInSeason()?" · in-season":"")+" · equipment")+'<div class="fold-body settings-body">'+
+      ffRowSummary("⚙️","Plan settings",ffSessionsPerWeek()+" days a week"+(ffInSeason()?" · in-season":"")+" · equipment")+'<div class="fold-body settings-body">'+
       '<div class="set-row"><span class="set-lbl">Training days / week</span><div class="seg sm" id="freqSeg">'+
         '<button type="button" data-freq="4" '+(planState.freq===4?'class="active"':'')+'>4</button>'+
         '<button type="button" data-freq="5" '+(planState.freq===5?'class="active"':'')+'>5</button></div></div>'+
-      '<div class="set-row"><span class="set-lbl">In-season<small>Playing a lot? Half the sets, same weights.</small></span><div class="seg sm" id="seasonSeg">'+
-        '<button type="button" data-inseason="0" '+(!ffInSeason()?'class="active"':'')+'>Off</button>'+
-        '<button type="button" data-inseason="1" '+(ffInSeason()?'class="active"':'')+'>On</button></div></div>'+
-      '<div class="set-row set-play"><span class="set-lbl">Days you usually play<small>We\u2019ll keep your legs fresh the day before.</small></span><div class="play-days" id="playDays">'+
+      '<div class="set-row set-season"><span class="set-lbl">In-season<small>'+ffSeasonSub()+'</small></span><div class="seg sm" id="seasonSeg">'+
+        [["0","Off"],["lite","Fewer sets"],["2","2 days"],["3","3 days"]].map(function(o){
+          var m=ffInSeasonMode(), on=(o[0]==="0"&&!m)||(o[0]==="lite"&&m==="lite")||(String(m)===o[0]);
+          return '<button type="button" data-inseason="'+o[0]+'"'+(on?' class="active"':'')+'>'+o[1]+'</button>'; }).join("")+
+      '</div></div>'+
+      '<div class="set-row set-play"><span class="set-lbl">Days you usually play<small>'+ffPlaySub()+'</small></span><div class="play-days" id="playDays">'+
         ["S","M","T","W","T","F","S"].map(function(l, i){ var on=ffPlayDays().indexOf(i)!==-1;
           return '<button type="button" data-playday="'+i+'" aria-pressed="'+on+'" aria-label="'+["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][i]+'"'+(on?' class="active"':'')+'>'+l+'</button>'; }).join("")+
       '</div></div>'+
@@ -1074,6 +1165,25 @@
       '<div id="equipBar" class="settings-equip"></div>'+
       '</div></details>';
     return html;
+  }
+  function ffPlaySub(){
+    var g=lsGet("ff_gameday", null), wk=planStart()?curWeek():0;
+    if(!ffPlayDays().length) return "Your week moves so rounds land on rest days.";
+    if(g && g.arrangeWeek && wk && wk<g.arrangeWeek) return "Your week rearranges from next week, so this week’s workouts stay put.";
+    return "Your week is arranged so rounds land on rest days, with no heavy legs the day before.";
+  }
+  function ffSeasonSub(){
+    var m=ffInSeasonMode();
+    if(m==="lite") return "Same week, 2 hard sets per lift, same weights.";
+    if(m===2) return "Two full-body days a week — heavy, short, speed kept.";
+    if(m===3) return "Two full-body days plus the Speed & Power day.";
+    return "Playing a lot? Fewer sets, or a 2–3 day week.";
+  }
+  function ffSeasonToast(){
+    var m=ffInSeasonMode();
+    if(m==="lite") return "In-season: every lift drops to 2 hard sets at the same weights.";
+    if(m) return "In-season "+m+"-day plan on — your lifts and weights carry over.";
+    return "In-season off: your "+planState.freq+"-day week is back.";
   }
   // THE collapsible-row header, shared with You's groups (acctGroup in 080) and
   // Fuel's plan folds: icon tile, title + one-line summary, green chevron.
@@ -1092,10 +1202,11 @@
     if(seasonSeg){
       seasonSeg.addEventListener("click", function(e){
         var btn=e.target.closest("[data-inseason]"); if(!btn) return;
-        state.inseason=btn.getAttribute("data-inseason")==="1";
-        persist(); renderPhase();
+        var v=btn.getAttribute("data-inseason");
+        state.inseason = v==="lite" ? "lite" : (v==="2"||v==="3") ? +v : false;
+        focusDay=null; persist(); renderPhase();
         try{ renderDash(); }catch(_){}
-        ffToast(state.inseason?"In-season: every lift drops to 2 hard sets at the same weights.":"In-season off: full sets are back.");
+        ffToast(ffSeasonToast());
       });
     }
     var playDays=$("playDays");
@@ -1104,7 +1215,13 @@
         var btn=e.target.closest("[data-playday]"); if(!btn) return;
         var d=parseInt(btn.getAttribute("data-playday"),10), g=gdState(), days=ffPlayDays().slice(), i=days.indexOf(d);
         if(i===-1) days.push(d); else days.splice(i,1);
-        g.days=days.sort(); gdSave(g); renderPhase();
+        // The week rearranges around rounds. If this week already has logged
+        // work, the new layout starts next week (ffPlayDaysNow in 040).
+        var wk=planStart()?curWeek():0, busy=wk && stripDays().some(function(x){
+          return x.type==="rest" ? restDone(wk, dayKey(x)) : !!getSession(wk, x.name); });
+        if(busy){ if(!(g.arrangeWeek>wk)) g.prevDays=ffPlayDaysNow().slice(); g.arrangeWeek=wk+1; }
+        else { delete g.arrangeWeek; delete g.prevDays; }
+        g.days=days.sort(); gdSave(g); focusDay=null; renderPhase();
         try{ renderDash(); }catch(_){}
       });
     }

@@ -8,7 +8,7 @@
   function ffDismissInsight(sig){ var s=ffInsightSeen(); if(s.indexOf(sig)<0){ s.push(sig); if(s.length>40) s=s.slice(-40); lsSet("ff_insights_seen", s); } }
   function ffInsights(){
     var out=[], body=lsGet("ff_body",[]), sessions=sessionsByWeek();
-    var freq=(typeof planState!=="undefined" && planState.freq)?planState.freq:4, wk=curWeek();
+    var freq=ffSessionsPerWeek(), wk=curWeek();
     // Dates come from iso/ts, never the locale `date` text ("12 févr. 2026"
     // parses as NaN outside English and silently dropped rows — a French PR
     // read as a plateau). Speed = 060's one series (ffSpeedRows): real numbers
@@ -296,7 +296,7 @@
   }
   function weeklyLoopState(){
     var start=weekStartDateCal(), startMs=start.getTime(), now=new Date();
-    var freq=(typeof planState!=="undefined"&&planState.freq)||4;
+    var freq=ffSessionsPerWeek();
     var sessions=lsGet("ff_history",[]).filter(function(h){ return h && (h.ts||0)>=startMs; }).length;
     var fuelDays=0;
     for(var i=0;i<7;i++){

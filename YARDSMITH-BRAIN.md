@@ -444,8 +444,10 @@ stores; we're a URL). Shipping the app matters more than more docs.
   toggle (2 hard sets per lift, same weights), play days + a day-before-a-round leg-day
   note, one-time pull-up check, lighter landings for BMI 30+/age 60+, trap-bar default for
   a flagged back, seated chest throw on the gym speed day when there's a med ball.
-  **Still open:** a 2–3-session in-season template, rotating the week so round days land
-  on rest, a fuller health screen.
+  **Then built (Oct 2, 2026):** an optional in-season 2-/3-day plan (Plan settings: Off /
+  Fewer sets / 2 days / 3 days), the week arranged automatically so rounds land on rest
+  days, and a setup health check (PAR-Q+-style; any "yes" → a 4-week gentle start until
+  a doctor's clearance is marked in You).
 
 **Rejected (deliberately):**
 - **Blurring/hiding exercises after purchase or anti-screenshot measures** — the

@@ -124,7 +124,59 @@
       var restDay=null; activeDays().forEach(function(d){ if(d.type==="rest" && !restDay) restDay=d; });
       while(ds.length < 7 && restDay) ds.push(restDay);
     }
-    return ds;
+    return ffArrangeWeek(ds);
+  }
+  /* Arrange the week around rounds. With play days set (Train › Plan settings,
+     ff_gameday.days), the training days move so rounds land on rest days and a
+     heavy-legs day never sits the day before a round (muscle-damaging leg work
+     dents power for ~1–2 days — Byrne 2004). The plan's ORDER is kept (only
+     the starting point rotates), as is spacing where possible: back-to-back
+     training days and two leg days in a row cost points. Deterministic, and
+     the same every week (weekdays repeat), so it only moves when play days
+     change — and a change made mid-week applies from next week (ffPlayDaysNow). */
+  function ffHeavyLegs(d){ return !!d && d.type!=="rest" && d.type!=="speed" && /Lower|Squat|Hinge|Quads|Full Body/.test(d.name); }
+  function ffArrangeWeek(ds){
+    var play=ffPlayDaysNow(); if(!play.length) return ds;
+    var ws=weekStartDate(); if(!ws) return ds;
+    var wd0=ws.getDay(), isPlay=function(i){ return play.indexOf((wd0+i)%7)!==-1; };
+    var train=ds.filter(function(d){ return d.type!=="rest"; }), rests=ds.filter(function(d){ return d.type==="rest"; });
+    var k=train.length; if(!k || k>7) return ds;
+    var authored=ds.map(function(d){ return d.type!=="rest"; });
+    var best=null, bestScore=Infinity;
+    function combos(start, left, acc, out){
+      if(!left){ out.push(acc.slice()); return; }
+      for(var i=start;i<=7-left;i++){ acc.push(i); combos(i+1, left-1, acc, out); acc.pop(); }
+    }
+    var slotSets=[]; combos(0, k, [], slotSets);
+    slotSets.forEach(function(slots){
+      for(var r=0;r<k;r++){
+        var week=new Array(7), sc=0;
+        slots.forEach(function(si, j){ week[si]=train[(j+r)%k]; });
+        for(var i=0;i<7;i++){
+          var d=week[i], nx=week[(i+1)%7];
+          if(d && isPlay(i)) sc+=100;                              // never train on a round day
+          if(ffHeavyLegs(d) && isPlay((i+1)%7)) sc+=10;            // no heavy legs the day before
+          if(d && nx) sc+=1;                                        // spacing (wraps into next week)
+          if(ffHeavyLegs(d) && ffHeavyLegs(nx)) sc+=3;              // never two leg days in a row
+          if(!!d!==authored[i]) sc+=0.1;                            // stay close to the authored week
+        }
+        sc+=r*0.01;
+        if(sc<bestScore){ bestScore=sc; best=week; }
+      }
+    });
+    if(!best) return ds;
+    var ri=0;
+    for(var i=0;i<7;i++) if(!best[i]) best[i]=rests[ri++]||rests[0];
+    return best;
+  }
+  // The play days in force for THIS week: a change made after the week already
+  // has logged work waits for next week, so nothing done today jumps around.
+  function ffPlayDaysNow(){
+    if(typeof ffPlayDays!=="function") return [];
+    var g=lsGet("ff_gameday", null);
+    if(g && g.arrangeWeek && curWeek()<g.arrangeWeek && Array.isArray(g.prevDays))
+      return g.prevDays.filter(function(x){ return x===(x|0) && x>=0 && x<=6; });
+    return ffPlayDays();
   }
   // Start (or re-anchor) the plan so that "today" lands in the given week.
   // Outside Pro (once billing is on) every start is week 1 — no week jump (036).

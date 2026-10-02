@@ -518,6 +518,34 @@
     return '<details class="acct-group" data-acctgroup="'+key+'"'+(acctOpen[key]?' open':'')+'>'+
       ffRowSummary(ic, title, sub)+'<div class="acct-group-body">'+inner+'</div></details>';
   }
+  // You › Your plan: the same health check as setup, editable any time.
+  function ffHealthCardHtml(){
+    var h=ffHealth(), q=h?h.q:[], cl=!!(h&&h.cleared);
+    return '<div class="acct-card" id="acctHealthCard"><div class="acct-head">🩺 Health check</div>'+
+      '<p class="acct-p">Tap any that apply. It only changes how gently you start — it’s not a diagnosis.</p>'+
+      '<div class="hq-list light" id="acctHealth">'+ffHealthQs(state.sex).map(function(x){
+        var on=q.indexOf(x[0])!==-1;
+        return '<button type="button" class="hq'+(on?' sel':'')+'" data-hq="'+x[0]+'" aria-pressed="'+on+'"><span class="hq-box" aria-hidden="true">'+(on?'✓':'')+'</span><span>'+x[1]+'</span></button>';
+      }).join("")+'</div>'+
+      (q.length?'<p class="acct-p hq-advice">'+ffHealthAdvice(q, cl)+'</p>'+
+        '<button class="acct-btn ghost" data-hcleared="1">'+(cl?'✓ Cleared by my doctor — tap to undo':'My doctor has cleared me')+'</button>':'')+
+      '</div>';
+  }
+  document.addEventListener("click", function(e){
+    var hb=e.target.closest("#acctHealth [data-hq], [data-hcleared]"); if(!hb) return;
+    var h=ffHealth()||{ q:[], ts:Date.now(), cleared:false };
+    if(hb.hasAttribute("data-hcleared")) h.cleared=!h.cleared;
+    else {
+      var k=hb.getAttribute("data-hq"), i=h.q.indexOf(k);
+      if(i===-1) h.q.push(k); else h.q.splice(i,1);
+      h.cleared=false; h.ts=Date.now();          // new answers need a fresh clearance
+    }
+    state.health={ q:h.q.slice().sort(), ts:h.ts, cleared:!!h.cleared };
+    persist();
+    try{ renderAccount(); }catch(_){}
+    try{ renderPhase(); }catch(_){}
+    try{ renderDash(); }catch(_){}
+  });
   function renderAccount(){
     var el=$("accountBody"); if(!el) return;
     var user = window.FF && window.FF.user;
@@ -587,6 +615,7 @@
     var gy=goalYds();
     var curFreq=(typeof planState!=="undefined" && planState.freq)||((prof&&prof.freq)||4);
     var curWk=(typeof state!=="undefined" && state.workout)||((prof&&prof.workout)||"morning");
+    G.plan+=ffHealthCardHtml();
     G.plan+='<div class="acct-card"><div class="acct-head">🎯 Your training setup</div>'+
       '<div class="acct-set"><div class="acct-set-lbl">Distance mission <small>yards to add in 20 weeks</small></div>'+
         '<div class="goal-chips" id="acctGoalChips">'+[5,10,15,20,25,30].map(function(y){
@@ -655,7 +684,7 @@
     else html+=ffAccessCardHtml();
     var remOn=false; try{ remOn=!!ffNotifOn(); }catch(_){}
     var thLbl={auto:"Auto",light:"Light",dark:"Dark"}[curTheme]||"Auto";
-    var planSub=[(t&&t.goal)||null, curFreq+" days", (FF_WK_LABEL[curWk]||"").toLowerCase()]
+    var planSub=[(t&&t.goal)||null, ffSessionsPerWeek()+" days"+(ffInSeason()?" in-season":""), (FF_WK_LABEL[curWk]||"").toLowerCase()]
       .filter(Boolean).join(" · ");
     html+=acctGroup("plan","🎯","Your plan",planSub,G.plan)+
       acctGroup("remind","🔔","Reminders & look",(remOn?"Reminders on":"Reminders off")+" · "+thLbl+" theme",G.remind)+

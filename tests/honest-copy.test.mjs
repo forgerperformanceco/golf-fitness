@@ -56,7 +56,7 @@ function weeklySets(goal, freq, week) {
     function lsGet(k,d){ return d; } function planStart(){ return null; }
     ${decl(PLAN, "PHASES", "[")}
     ${["purposeFor", "trainRetain", "adjSets", "eventInfo", "waveFor", "bumpReps", "trimSets", "plainReps", "waveAdjust",
-      "effTarget", "ffOnRamp", "capSets", "plainSetCount", "ffInSeason", "overspeedDose", "speedDrillTarget"].map((n) => fn(PLAN, n)).join("\n")}
+      "effTarget", "ffOnRamp", "ffHealth", "ffHealthCaution", "capSets", "plainSetCount", "ffInSeason", "ffInSeasonMode", "ffInSeasonPlan", "overspeedDose", "speedDrillTarget"].map((n) => fn(PLAN, n)).join("\n")}
     this.api={PHASES, effTarget, speedDrillTarget, waveFor};`, ctx);
   const { PHASES, effTarget, speedDrillTarget, waveFor } = ctx.api;
   const P = PHASES[0];
@@ -97,7 +97,7 @@ test("in-season copy describes the mode the app actually runs (Oct 2026: 2 hard 
   assert.doesNotMatch(PLAN, /1–2 hard sets per muscle/);
   // The copy promises exactly what effTarget does when state.inseason is on.
   assert.match(PLAN, /Turn on <b>In-season<\/b> in Plan settings: every lift drops to 2 hard sets at the same weights/);
-  assert.match(PLAN, /if\(ffInSeason\(\) && plainSetCount\(t\)\) t=capSets\(t, purposeFor\(name\)==="⚡" \? 3 : 2\);/);
+  assert.match(PLAN, /if\(ffInSeasonMode\(\)==="lite" && plainSetCount\(t\)\) t=capSets\(t, purposeFor\(name\)==="⚡" \? 3 : 2\);/);
   assert.match(PLAN, /over ~60/);
   assert.doesNotMatch(MACRO, /the in-season week: heavy enough to keep strength, lighter on volume/);
   assert.match(MACRO, /Retain mode/);
@@ -245,15 +245,15 @@ test("ffBench: every 'typical' 7-iron sits inside its own range; male under 50 i
 });
 
 // ------------------------------------------------------------ health line
-test("onboarding's body step carries one short health line and stores nothing new", () => {
-  // The body step is Step 1 since the goal step moved after it (it preselects
-  // a goal from height + weight) — find it by its kicker, not its number.
+test("onboarding's body step carries the health check: tap-any-that-apply, no new storage key", () => {
+  // The body step is Step 1 since the goal step moved after it — find it by its kicker.
   const bodyAt = ONBOARD.indexOf("Body & fuel");
-  const step2 = ONBOARD.slice(ONBOARD.lastIndexOf("} else if(s===", bodyAt), ONBOARD.indexOf("} else if(s===", bodyAt));
-  assert.match(step2, /Heart condition, chest pain, recent surgery or a joint injury — or new to exercise and over ~45\? Check with a doctor before you start\./);
-  // Only what weeks 1–2 really change for every goal — not "deliberately easier".
-  assert.match(step2, /Your first two weeks skip all-out sets and start the speed swings light\./);
-  assert.doesNotMatch(step2, /deliberately easier/);
-  assert.equal((step2.match(/class="ob-p ob-quiet ob-health"/g) || []).length, 1);
-  assert.doesNotMatch(step2, /lsSet\(/);
+  const step = ONBOARD.slice(ONBOARD.lastIndexOf("} else if(s===", bodyAt), ONBOARD.indexOf("} else if(s===", bodyAt));
+  assert.match(step, /Quick health check <span>\(tap any that apply\)<\/span>/);
+  assert.match(step, /ffHealthQs\(ob\.sex\)/);
+  assert.equal((step.match(/class="ob-p ob-quiet ob-health"/g) || []).length, 1);
+  assert.doesNotMatch(step, /lsSet\(/);   // answers ride in the fairwayfuel profile (state.health)
+  // With no answers, the line only promises what weeks 1–2 really change.
+  assert.match(ONBOARD, /Your first two weeks still skip all-out sets and start the speed swings light\. /);
+  assert.doesNotMatch(ONBOARD, /deliberately easier/);
 });

@@ -64,6 +64,7 @@ function world({ store = {}, goal = "leanbulk", heightIn = 70, extra = "" } = {}
   const ctx = { __store: store };
   vm.runInNewContext(`
     var state={goal:${JSON.stringify(goal)}}, planState={freq:4}, stState=null;
+    function ffSessionsPerWeek(){ return planState.freq; }
     function lsGet(k,d){ var v=__store[k]; return v==null?d:JSON.parse(JSON.stringify(v)); }
     function lsSet(k,v){ __store[k]=JSON.parse(JSON.stringify(v)); }
     function planStart(){ return lsGet("ff_start", null); }

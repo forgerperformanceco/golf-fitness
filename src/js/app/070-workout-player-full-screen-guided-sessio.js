@@ -701,7 +701,7 @@
   }
   function clamp(n,lo,hi){ return Math.max(lo, Math.min(hi, n)); }
   function ffScore(){
-    var freq = (typeof planState!=="undefined" && planState.freq) ? planState.freq : 4;
+    var freq = ffSessionsPerWeek();
     var week = curWeek();
     var sess = sessionsByWeek();
     var loggedWeeks = {}; sess.forEach(function(s){ loggedWeeks[s.w]=(loggedWeeks[s.w]||0)+1; });
@@ -960,7 +960,7 @@
   var openPillar=null;
   function pillarDetailHtml(p){
     if(p.key==="consistency"){
-      return '<div class="fd-tx"><b>'+p.detail+'</b> — workouts done vs your '+((typeof planState!=="undefined"&&planState.freq)||4)+'/week plan. Showing up counts the most.</div>'+
+      return '<div class="fd-tx"><b>'+p.detail+'</b> — workouts done vs your '+ffSessionsPerWeek()+'/week plan. Showing up counts the most.</div>'+
         '<div class="wkbars">'+weekBars()+'</div>'+
         '<button type="button" class="fd-act" data-goview="plan">Open this week ›</button>';
     }

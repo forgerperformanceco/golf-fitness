@@ -80,6 +80,7 @@ const W = new Function(`
   // these cases pin the base engine.
   function ffOnRamp() { return false; }
   function ffInSeason() { return false; }
+  function ffInSeasonMode() { return false; }
   ${code}
   return {
     purposeFor, adjSets, waveFor, waveAdjust, effTarget, plainReps,

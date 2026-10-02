@@ -929,6 +929,21 @@
   .ob-equipopts .ob-opt .obo-t{ font-size:13.5px; }
   .ob-equipopts .ob-opt .obo-d{ font-size:11px; line-height:1.3; }
   .ob-prepfield{ margin-top:2px; }
+  /* Health check list (setup = dark sheet, You = .light). */
+  .hq-list{ display:flex; flex-direction:column; gap:6px; }
+  .hq{ display:flex; align-items:center; gap:10px; width:100%; min-height:44px; padding:9px 12px; text-align:left;
+    border:1.5px solid rgba(255,255,255,.14); border-radius:12px; background:rgba(255,255,255,.04); color:#dcefe3;
+    font:600 13px/1.35 var(--font); cursor:pointer; }
+  .hq.sel{ border-color:#ffcf87; background:rgba(255,207,135,.12); color:#fff; }
+  .hq-box{ flex:0 0 20px; width:20px; height:20px; display:grid; place-items:center; border-radius:6px;
+    border:1.5px solid rgba(255,255,255,.35); font:800 12px/1 var(--font); color:#0d2216; }
+  .hq.sel .hq-box{ background:#ffcf87; border-color:#ffcf87; }
+  .hq-list.light .hq{ border-color:var(--line); background:var(--card); color:var(--ink); }
+  .hq-list.light .hq.sel{ border-color:#d9a441; background:#fff7e8; }
+  .hq-list.light .hq-box{ border-color:#b9c9be; color:#3d2a07; }
+  .hq-list.light .hq.sel .hq-box{ background:#f0c46a; border-color:#d9a441; }
+  .hq-advice{ margin-top:10px; }
+  .ob-healthfield .ob-health{ margin-top:8px; }
   .ob-prep{ display:grid; grid-template-columns:repeat(4,1fr); gap:7px; }
   .ob-prep button{ padding:10px 5px; border:1.5px solid rgba(255,255,255,.14); border-radius:11px;
     color:#d5ebdc; background:rgba(255,255,255,.055); cursor:pointer; text-align:center; }
@@ -1595,6 +1610,9 @@
   .settings-body .set-lbl { font-size:13px; color:var(--ink); font-weight:600; }
   .settings-body .set-lbl small { display:block; margin-top:2px; font-size:12px; font-weight:500; color:var(--muted); }
   .settings-body .set-play { flex-wrap:wrap; gap:8px; }
+  .settings-body .set-season { flex-direction:column; align-items:stretch; gap:8px; }
+  .settings-body .set-season .seg { width:100%; }
+  .settings-body .set-season .seg button { min-height:44px; }
   .play-days { display:flex; gap:4px; }
   .play-days button { width:36px; height:36px; min-width:36px; border-radius:50%; border:1px solid var(--line); background:var(--card); color:var(--ink); font:700 13px var(--font); cursor:pointer; }
   .play-days button.active { background:var(--green-700); border-color:var(--green-700); color:#fff; }
@@ -2446,6 +2464,12 @@
   html:not([data-theme="light"]) .ffm-tot-cell.ok .ttc-v{ color:#c3e2d2; }
   html:not([data-theme="light"]) .ffw-day{ background:#141f14; }
   html:not([data-theme="light"]) .ob-prog > span{ background:linear-gradient(90deg,#34d27b,#274934); }
+  html:not([data-theme="light"]) .hq.sel{ border-color:#50422d; }
+  html:not([data-theme="light"]) .hq-box{ color:#cae6d6; }
+  html:not([data-theme="light"]) .hq.sel .hq-box{ background:#433724; border-color:#50422d; }
+  html:not([data-theme="light"]) .hq-list.light .hq.sel{ border-color:#625337; background:#241e13; }
+  html:not([data-theme="light"]) .hq-list.light .hq-box{ border-color:#37473c; color:#e4dac8; }
+  html:not([data-theme="light"]) .hq-list.light .hq.sel .hq-box{ background:#493e27; border-color:#625337; }
   html:not([data-theme="light"]) .ob-prep button.sel{ border-color:#30553e; }
   html:not([data-theme="light"]) .ob-opt.sel{ border-color:#30553e; }
   html:not([data-theme="light"]) .ob-seg button.sel{ background:#274934; border-color:#30553e; color:#cae5d4; }
@@ -2727,6 +2751,12 @@
   html[data-theme="dark"] .ffm-tot-cell.ok .ttc-v{ color:#c3e2d2; }
   html[data-theme="dark"] .ffw-day{ background:#141f14; }
   html[data-theme="dark"] .ob-prog > span{ background:linear-gradient(90deg,#34d27b,#274934); }
+  html[data-theme="dark"] .hq.sel{ border-color:#50422d; }
+  html[data-theme="dark"] .hq-box{ color:#cae6d6; }
+  html[data-theme="dark"] .hq.sel .hq-box{ background:#433724; border-color:#50422d; }
+  html[data-theme="dark"] .hq-list.light .hq.sel{ border-color:#625337; background:#241e13; }
+  html[data-theme="dark"] .hq-list.light .hq-box{ border-color:#37473c; color:#e4dac8; }
+  html[data-theme="dark"] .hq-list.light .hq.sel .hq-box{ background:#493e27; border-color:#625337; }
   html[data-theme="dark"] .ob-prep button.sel{ border-color:#30553e; }
   html[data-theme="dark"] .ob-opt.sel{ border-color:#30553e; }
   html[data-theme="dark"] .ob-seg button.sel{ background:#274934; border-color:#30553e; color:#cae5d4; }

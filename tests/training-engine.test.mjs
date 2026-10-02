@@ -45,10 +45,10 @@ function decl(source, name, open) {
   return source.slice(start, balanced(source, start, open)) + ";";
 }
 
-const PLAN_FNS = ["effortNote", "ffOnRamp", "heavyAfter", "warmupBase", "primerFor", "purposeFor", "isBallistic",
+const PLAN_FNS = ["effortNote", "ffOnRamp", "ffHealth", "ffHealthCaution", "heavyAfter", "warmupBase", "primerFor", "purposeFor", "isBallistic",
   "isBigLift", "isBodyweightEx", "trainRetain", "adjSets", "eventInfo", "waveFor", "bumpReps", "trimSets", "plainReps",
-  "waveAdjust", "capSets", "plainSetCount", "ffInSeason", "ffLowImpact", "speedRows", "effTarget", "overspeedDose", "speedDrillTarget", "prescribeW", "ffReduceLoad", "repShiftLoad",
-  "normName", "have", "equipNeedsFor", "equipOk", "speedMode", "resolveEx", "resolveDay", "activeDays", "dayTargets", "sessionMinutes"];
+  "waveAdjust", "capSets", "plainSetCount", "ffInSeason", "ffInSeasonMode", "ffInSeasonPlan", "ffLowImpact", "speedRows", "effTarget", "overspeedDose", "speedDrillTarget", "prescribeW", "ffReduceLoad", "repShiftLoad",
+  "normName", "have", "equipNeedsFor", "equipOk", "speedMode", "resolveEx", "resolveDay", "activeDays", "ffSessionsPerWeek", "dayTargets", "sessionMinutes"];
 const LOGGER_FNS = ["lastSessionFor", "sessFullDose", "repsShifted", "topReps", "isDistEx", "repSeed", "incNum",
   "progressReady", "parseSets", "getLog", "sessionFinished", "swapOptionsFor", "exGroupFor"];
 
