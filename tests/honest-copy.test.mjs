@@ -249,7 +249,9 @@ test("onboarding's body step carries one short health line and stores nothing ne
   const bodyAt = ONBOARD.indexOf("Body & fuel");
   const step2 = ONBOARD.slice(ONBOARD.lastIndexOf("} else if(s===", bodyAt), ONBOARD.indexOf("} else if(s===", bodyAt));
   assert.match(step2, /Heart condition, chest pain, recent surgery or a joint injury — or new to exercise and over ~45\? Check with a doctor before you start\./);
-  assert.match(step2, /Your first two weeks are deliberately easier\./);
+  // Only what weeks 1–2 really change for every goal — not "deliberately easier".
+  assert.match(step2, /Your first two weeks skip all-out sets and start the speed swings light\./);
+  assert.doesNotMatch(step2, /deliberately easier/);
   assert.equal((step2.match(/class="ob-p ob-quiet ob-health"/g) || []).length, 1);
   assert.doesNotMatch(step2, /lsSet\(/);
 });

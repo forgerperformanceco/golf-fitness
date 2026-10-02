@@ -58,7 +58,7 @@ function engine({ goal = "leanbulk", equip = null, store = {}, week = 2, now = D
     decl(LOGGER, "EXERCISE_DB", "{"),
     ...PLAN_FNS.map((n) => fn(PLAN, n)), ...LOGGER_FNS.map((n) => fn(LOGGER, n)),
     fn(INLINE, "isBarbell"),
-    ...["ffSessBand", "ffReadinessLoad", "ffDose", "ffBackFor", "ffReadinessRetarget", "ffReadinessAdaptSession"].map((n) => fn(READY, n)),
+    ...["ffSessBand", "ffReadinessLoad", "ffDose", "ffDaysSince", "ffBackFor", "ffReadinessRetarget", "ffReadinessAdaptSession"].map((n) => fn(READY, n)),
     fn(STATS, "bigLiftStats"), fn(PLAYER, "e1RM"), fn(PLAYER, "sessionsByWeek"), fn(PLAYER, "strengthGain"),
     fn(PLAYER, "plLifetimeBests"), fn(HOME, "ffInsights"),
   ].join("\n");
@@ -151,6 +151,26 @@ test("back to Build reps after a Heavy block: a little lighter, never the heavy 
   const pk = E.ffDose("220", { name: "Barbell Bench Press", target: "2 × 5 (heavy · fast up)" },
     { ...logged("Barbell Bench Press", "4 × 3 (heavy · fast up)", 220, [3, 3, 3, 3]), _ts: now - 13 * DAY }, 19, {});
   assert.equal(pk.bump, false); assert.equal(pk.w, 207.5);
+});
+
+test("the rep-shift line never names the wrong rep direction (missed or extra reps last time)", () => {
+  const now = Date.now(), E = engine({ store: { ff_start: startFor(4, now) }, now });
+  // Heavy week (6 → 4 reps) after a session of 3s: the load drops, but today has FEWER reps.
+  const short = { ...logged("Romanian Deadlift", "4 × 6", 100, [3, 3, 3, 3]), _ts: now - 7 * DAY };
+  const d = E.ffDose("100", { name: "Romanian Deadlift", target: "4 × 4" }, short, 4, {});
+  assert.equal(d.w, 95); assert.equal(d.shift, "match");
+  // Back to Build (4 → 6) after overshooting the Heavy week by 3+ reps: the load rises, reps rise.
+  const over = { ...logged("Romanian Deadlift", "4 × 4", 100, [8, 8, 8, 8]), _ts: now - 7 * DAY };
+  const d2 = E.ffDose("100", { name: "Romanian Deadlift", target: "4 × 6" }, over, 7, {});
+  assert.ok(d2.w > 100, String(d2.w)); assert.equal(d2.shift, "match");
+  assert.match(LOGGER, /dose\.shift==="match"[\s\S]{0,120}matched to the reps you got last time/);
+  assert.match(PLAYER, /dose\.shift==="match" \? [^\n]*matched to the reps you got last time/);
+});
+
+test("all three loggers say 'Welcome back — ease in' on the first session after a break", () => {
+  for (const [label, src] of [["modal", LOGGER], ["player", PLAYER], ["inline", INLINE]])
+    assert.match(src, /Welcome back — ease in[^\n]*Leave 2 reps in the tank/, label);
+  assert.match(INLINE, /td\.back && td\.band!=="recharge" && wv!=="deload"/);
 });
 
 test("the rep ghost and placeholders follow today's target after a rep shift", () => {
@@ -273,6 +293,20 @@ test("the stall card never fires in planned Heavy / easy weeks, only on two flat
   assert.doesNotMatch(HOME, /or take a deload week/);
 });
 
+test("no stall card from the ease-in after a 4+ week break", () => {
+  const now = Date.now();
+  const sess = (wt, reps) => ({ date: "", finishedAt: "x", wave: "accumulate", ex: [logged("Romanian Deadlift", "4 × 6", wt, reps)] });
+  const log = { "1|Lower": sess(190, [6, 6, 6, 6]), "2|Lower": sess(195, [6, 6, 6, 6]), "3|Lower": sess(200, [6, 6, 6, 6]),
+    "8|Lower": sess(180, [6, 6, 6, 6]), "9|Lower": sess(185, [6, 6, 6, 6]) };     // 5 weeks off, then ~90% + one step
+  const E = engine({ store: { ff_start: startFor(10, now), ff_log: log, ff_body: [] }, now, week: 10 });
+  assert.ok(!E.ffInsights().some((i) => /^sstall:/.test(i.sig)));
+  assert.deepEqual(E.bigLiftStats()[0].acc.length, 2);            // the baseline restarted at the return
+  // Three later Build weeks that go flat → it still calls a real stall.
+  const E2 = engine({ store: { ff_start: startFor(15, now), ff_log: { ...log, "13|Lower": sess(200, [6, 6, 6, 6]),
+    "14|Lower": sess(195, [6, 6, 6, 6]), "15|Lower": sess(195, [6, 6, 6, 6]) }, ff_body: [] }, now, week: 15 });
+  assert.ok(E2.ffInsights().some((i) => /^sstall:Romanian Deadlift/.test(i.sig)));
+});
+
 // ------------------------------------------------------------ 6 event weeks
 test("an event never creates back-to-back deload weeks", () => {
   const now = Date.now();
@@ -372,6 +406,20 @@ test("the speed day warms up with easy jumps and throws before max intent", () =
   const list = engine().warmupBase("speed");
   assert.ok(list.some((m) => /Ramp-up jumps and throws/.test(m[0])));
   assert.ok(list.findIndex((m) => /Ramp-up/.test(m[0])) === list.length - 1);
+  // The beginner caution ("New to jumps & throws? Start with 2 sets…") reaches
+  // the speed day's warm-up too, which has no primer block of its own.
+  const ctx = {};
+  vm.runInNewContext(`
+    function warmupList(n){ return [["Leg swings","×10/side"]]; }
+    function primerFor(n){ return { move:"Box jump", dose:"4 × 3", note:"" }; }
+    ${PLAN.match(/var PRIMER_NOTE = [^\n]+/)[0]}
+    ${fn(PLAN, "warmupHtml")}
+    this.out = { speed: warmupHtml("speed", false, true), quiet: warmupHtml("speed", false, false), lift: warmupHtml("Push", true, true) };
+  `, ctx);
+  assert.match(ctx.out.speed, /New to jumps/);
+  assert.doesNotMatch(ctx.out.quiet, /New to jumps/);
+  assert.equal((ctx.out.lift.match(/New to jumps/g) || []).length, 1);
+  assert.match(PLAN, /warmupHtml\("speed", false, showPrimerNote\)/);
 });
 
 // ------------------------------------------------------------- 14 trap bar
@@ -408,6 +456,27 @@ test("time decay: 14+ days → no bump, 28+ → ~90%, a normal week → progress
   assert.deepEqual([back.w, back.bump, back.back], [270, false, true]);
   assert.equal(E.ffDose("300", x, lx(30), 6, {}).w, 180);  // a deload is still lower than the ease-in
   assert.equal(E.ffDose("300", x, { ...lx(30), _reduced: true }, 8, {}).w, null);
+});
+
+test("a planned deload week is training, not a break: week 7 keeps its earned jump", () => {
+  const now = Date.now(), start = startFor(7, now), day = "Day 1";
+  const wk5 = { wave: "accumulate", _ts: now - 14.1 * DAY, ex: [logged("Romanian Deadlift", "4 × 4", 110, [4, 4, 4, 4])] };
+  const wk6 = { wave: "deload", _ts: now - 7 * DAY, ex: [logged("Romanian Deadlift", "3 × 6", 65, [6, 6, 6])] };
+  const E = engine({ store: { ff_start: start, ff_log: { ["5|" + day]: wk5, ["6|" + day]: wk6 }, ff_history: [] }, now, week: 7 });
+  const lx = E.lastSessionFor(day, 7).ex[0];
+  assert.equal(lx.sets[0].w, "110");                       // the load reference is still the full dose
+  assert.equal(lx._ts, now - 14.1 * DAY); assert.equal(lx._seen, now - 7 * DAY);
+  const d = E.ffDose("110", { name: "Romanian Deadlift", target: "4 × 6" }, lx, 7, {});
+  assert.equal(d.bump, true); assert.equal(d.back, false);
+  // The same lift with no deload logged in between: 14+ days off → no bump.
+  const E2 = engine({ store: { ff_start: start, ff_log: { ["5|" + day]: wk5 }, ff_history: [] }, now, week: 7 });
+  assert.equal(E2.ffDose("110", { name: "Romanian Deadlift", target: "4 × 6" }, E2.lastSessionFor(day, 7).ex[0], 7, {}).bump, false);
+  // A deload + recovery days are not 4 weeks off: no "Welcome back" ease-in.
+  const old = { wave: "accumulate", _ts: now - 30 * DAY, ex: [logged("Leg Press", "4 × 6", 300, [6, 6, 6, 6])] };
+  const easy = { wave: "deload", _ts: now - 6 * DAY, ex: [logged("Leg Press", "3 × 6", 180, [6, 6, 6])] };
+  const E3 = engine({ store: { ff_start: start, ff_log: { ["2|" + day]: old, ["6|" + day]: easy }, ff_history: [] }, now, week: 7 });
+  const lp = E3.lastSessionFor(day, 7).ex[0];
+  assert.equal(E3.ffDose("300", { name: "Leg Press", target: "4 × 6" }, lp, 7, {}).back, false);
 });
 
 test("in-season sessions take their finish time from ff_history, not the edit stamp", () => {

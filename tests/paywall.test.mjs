@@ -585,3 +585,20 @@ test("the server checks Pro before spending quota", () => {
   assert.ok(gate > 0 && quota > gate, "subscription check precedes the quota RPC");
   assert.match(coachFn, /error: "subscription_required"/);
 });
+
+test("closing the Pro sheet hands back the scroll lock it found (coach sheet stays locked)", () => {
+  const modal = { hidden: true, setAttribute() {}, querySelector: () => null };
+  const body = { style: { overflow: "hidden" } };            // coach.js open() locked the page
+  const ctx = { document: { body }, window: {}, ffPwPrevOverflow: "", setTimeout() {},
+    ffPaywallEnsure() {}, ffPwLoadPrices() {}, ffPaywallHtml: () => "", $: (id) => (id === "pwModal" ? modal : {}) };
+  load(ctx, access, ["ffPaywallOpen", "ffPaywallClose"]);
+  ctx.ffPaywallOpen("coach");
+  assert.equal(body.style.overflow, "hidden");
+  ctx.ffPaywallOpen("coach");                                 // a second open doesn't lose the saved value
+  ctx.ffPaywallClose();
+  assert.equal(modal.hidden, true);
+  assert.equal(body.style.overflow, "hidden", "the coach sheet underneath keeps the page locked");
+  body.style.overflow = "";                                   // nothing else open
+  ctx.ffPaywallOpen("train"); ctx.ffPaywallClose();
+  assert.equal(body.style.overflow, "");
+});

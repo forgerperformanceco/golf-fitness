@@ -46,7 +46,10 @@
       if(typeof planState!=="undefined" && planState.freq) ob.freq=planState.freq;
       var oldBody=lsGet("ff_body",[]);
       for(var obi=oldBody.length-1;obi>=0;obi--){
-        if(!ob.speed && oldBody[obi]&&oldBody[obi].s!=="") ob.speed=String(oldBody[obi].s||"");
+        // The toggle starts from the prefilled number's own tag: a guided test or
+        // a measured number stays "Measured", only an earlier guess reads "Rough guess".
+        if(!ob.speed && oldBody[obi]&&oldBody[obi].s!=="" && oldBody[obi].s!=null){
+          ob.speed=String(oldBody[obi].s||""); if(ob.speed) ob.speedSrc=(oldBody[obi].ss==="g"?"g":"m"); }
         if(!ob.drive && oldBody[obi]&&oldBody[obi].d!=="") ob.drive=String(oldBody[obi].d||"");
         if(ob.speed&&ob.drive) break;
       }
@@ -232,9 +235,10 @@
              ["1.725","Very active — hard training most days"],["1.9","Athlete — high-volume / two-a-days"]].map(function(o){
               return '<option value="'+o[0]+'"'+(ob.activity===o[0]?" selected":"")+'>'+o[1]+'</option>'; }).join("")+'</select></div>'+
           // One plain health line (Oct 2026 audit) — no screen, nothing stored.
-          // "Easier" is real: weeks 1–2 of a first plan keep reps in reserve
-          // (035 ffOnRamp) and overspeed starts at 2 × 5 (overspeedDose).
-          '<p class="ob-p ob-quiet ob-health">Heart condition, chest pain, recent surgery or a joint injury — or new to exercise and over ~45? Check with a doctor before you start.'+(ob.revisit?'':' Your first two weeks are deliberately easier.')+'</p>';
+          // Says only what weeks 1–2 actually change, for every goal: no all-out
+          // sets (035 ffOnRamp; cut / maintain never prescribe them) and overspeed
+          // starts at 2 × 5 (overspeedDose). Sets and reps are otherwise as written.
+          '<p class="ob-p ob-quiet ob-health">Heart condition, chest pain, recent surgery or a joint injury — or new to exercise and over ~45? Check with a doctor before you start.'+(ob.revisit?'':' Your first two weeks skip all-out sets and start the speed swings light.')+'</p>';
       } else if(s===2){
         // "Best default" follows the suggestion for THIS body; the user can pick
         // anything. BMI can't tell muscle from fat, so the note says so.

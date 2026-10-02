@@ -215,6 +215,7 @@
             : dose.back ? '👋 Welcome back — ease in: today <b>'+presc+' lb</b> (~90% of last time). Leave 2 reps in the tank.'
             : dose.shift==="up" ? '🔥 Fewer reps today, so more weight: <b>'+presc+' lb</b>'
             : dose.shift==="down" ? '🏗️ More reps today, so a little lighter: <b>'+presc+' lb</b>'
+            : dose.shift==="match" ? '🎯 Today: <b>'+presc+' lb</b> — matched to the reps you got last time.'
             : '📈 You earned more weight — today: <b>'+presc+' lb</b>')
           : (ballistic
             ? (topLast ? '⚡ Last time: <b>'+topLast+' lb</b> — keep every rep fast; add load only while it stays explosive.' : '⚡ <b>Light and fast</b> — pick a load you can move explosively. The set ends the moment a rep slows.')
@@ -833,10 +834,16 @@
     var over=Math.max(0, rate-Math.max(desired,0)-tol);          // lb/wk beyond the plan
     var excess=over*(span/7)/w0, sEff=sig.eff/sig.base;
     var p10=Math.round(clamp(5+(sEff-excess)*250, 0, 10));
+    // "Weight on plan" only inside the Fuel check-in's own band (ffCheckin) — a cut
+    // that is gaining or a Lean Bulk that is losing is off plan, whatever speed does.
+    var onPlan=Math.abs(rate-desired)<=tol;
     var cut=state.goal==="cut", detail, lever;
+    if(cut && rate>0 && !onPlan) p10=Math.min(p10, 5);           // gaining on a cut never scores high
     if(over>0){ detail="Gaining faster than plan"; lever="keep weight gain to your goal’s weekly pace — the Fuel check-in has the number"; }
     else if(sig.verdict==="down"){ detail="Speed down — retest fresh";
       lever=cut ? "keep the jumps and throws in so the cut costs fat, not speed" : "retest fresh and rested — this pillar fills as speed climbs"; }
+    else if(!onPlan){ detail=(sig.verdict==="up" ? "Faster" : "Speed steady")+" — weight off your goal’s pace";
+      lever="bring your weight back to your goal’s weekly pace — the Fuel check-in has the number"; }
     else if(sig.verdict==="up") detail="Faster, weight on plan";
     else detail=cut&&rate<0 ? "Lighter, speed holding" : (desired>0&&rate>0 ? "On plan — fills as speed climbs" : "Speed steady, weight on plan");
     return { pts:p10, detail:detail, lever:lever||null, rate:rate, desired:desired, weeks:Math.max(1,Math.round(span/7)) };
@@ -902,7 +909,9 @@
     if(!row){ row={ date:today, iso:iso, ts:Date.now() }; body.push(row); }
     else row.ts=Date.now();   // a same-day correction is the newer edit (cloud-sync unionBody: newer ts wins)
     if(!row.iso){ row.iso=iso; row.ts=row.ts||Date.now(); }
-    if(wv!=="") row.w=wv; if(sv!==""){ row.s=sv; row.ss=ss||"m"; } if(dv!=="") row.d=dv;
+    // A rough guess never replaces today's guided test (it would drop a real number
+    // from the trend, 060 ffSpeedRows).
+    if(wv!=="") row.w=wv; if(sv!=="" && !(ss==="g" && row.ss==="t")){ row.s=sv; row.ss=ss||"m"; } if(dv!=="") row.d=dv;
     lsSet("ff_body", body);
     return true;
   }
@@ -1109,7 +1118,23 @@
     a.minKcal=base ? Math.round(base.baseTarget+base.lo) : null;   // the lowest target the check-in will set
     return a;
   }
-  function adaptiveDue(){ return !!weightTrend() && (Date.now() - lsGet("ff_lastcheckin",0)) >= 10*864e5; }
+  // "Got it" on an on-track / at-the-limit card hides it for 10 days WITHOUT
+  // restarting the weigh-in window (only a calorie change — Apply or a goal
+  // switch — writes ff_lastcheckin), so the next look judges a longer, surer
+  // trend. The hide is a "checkin-ok:<day>" mark in the roaming ff_insights_seen list.
+  function ffCheckinOkDay(){
+    var d=0; (lsGet("ff_insights_seen",[])||[]).forEach(function(s){ var m=/^checkin-ok:(\d+)$/.exec(s); if(m) d=Math.max(d, +m[1]); });
+    return d;
+  }
+  function ffCheckinAck(){
+    var s=(lsGet("ff_insights_seen",[])||[]).filter(function(x){ return !/^checkin-ok:/.test(x); });
+    s.push("checkin-ok:"+Math.floor(Date.now()/864e5)); if(s.length>40) s=s.slice(-40);
+    lsSet("ff_insights_seen", s);
+  }
+  function adaptiveDue(){
+    return !!weightTrend() && (Date.now() - lsGet("ff_lastcheckin",0)) >= 10*864e5 &&
+      Math.floor(Date.now()/864e5) - ffCheckinOkDay() >= 10;
+  }
   function renderAdaptiveCard(){
     if(!adaptiveDue()) return '';
     var a=adaptiveCheck(); if(!a) return '';
@@ -1119,7 +1144,7 @@
     if(a.onTrack){
       return '<div class="adapt ok"><div class="adapt-h">📊 Metabolism check-in</div>'+
         '<p>'+span+' is <b>'+rateStr+'</b> — on target for <b>'+a.goalLabel+'</b> once day-to-day scale swings are allowed for. No change needed.</p>'+
-        '<div class="adapt-btns"><button class="adapt-btn ghost" data-adapt="snooze">Got it 👍</button></div></div>';
+        '<div class="adapt-btns"><button class="adapt-btn ghost" data-adapt="ok">Got it 👍</button></div></div>';
     }
     // Off track but the calories can't move that way (the floor, or the ±600
     // tuning cap): say so — never offer a change that wouldn't change anything.
@@ -1127,9 +1152,11 @@
       return '<div class="adapt ok"><div class="adapt-h">📊 Metabolism check-in</div>'+
         '<p>'+span+' is <b>'+rateStr+'</b> (target ~<b>'+tgtStr+'</b> for '+a.goalLabel+') — '+a.pace+'. '+
         (a.wantDown
-          ? 'Your calories are already as low as we’ll set them'+(a.minKcal?' (<b>'+a.minKcal.toLocaleString()+' kcal</b>)':'')+', so we won’t trim more. Add a daily walk, or take 2–4 weeks at maintenance before the next push.'
+          ? 'Your calories are already as low as we’ll set them'+(a.minKcal?' (<b>'+a.minKcal.toLocaleString()+' kcal</b>)':'')+', so we won’t trim more. '+
+            // A break at maintenance only makes sense on a cut — Maintain is already there.
+            (a.desired<0 ? 'Add a daily walk, or take 2–4 weeks at maintenance before the next push.' : 'Add a daily walk or more daily steps.')
           : 'Your calories are already tuned up as far as the check-in goes. Keep going, and check your activity level in Fuel.')+'</p>'+
-        '<div class="adapt-btns"><button class="adapt-btn ghost" data-adapt="snooze">Got it</button></div></div>';
+        '<div class="adapt-btns"><button class="adapt-btn ghost" data-adapt="ok">Got it</button></div></div>';
     }
     var verb = a.deltaKcal<0 ? 'trim' : 'add';
     var absK=Math.abs(a.deltaKcal), absC=Math.abs(a.deltaCarb);

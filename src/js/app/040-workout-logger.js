@@ -209,7 +209,8 @@
   // ff_history entry from before the plan started (_prior): "Ease back in" and
   // season 2 reset the plan log, never the user's loads.
   function lastSessionFor(day, beforeW){
-    var L=getLog(), same={}, any={}, low={}, names=[];
+    var L=getLog(), same={}, any={}, low={}, names=[], seen={};
+    function saw(n, t){ if(t && !(seen[n]>=t)) seen[n]=t; }
     var st=Date.parse(planStart()||"")||0, hist=lsGet("ff_history",[]), done={}, prior={}, priorLow={};
     if(Array.isArray(hist)) hist.forEach(function(h){
       if(!h || !h.ex) return;
@@ -219,6 +220,7 @@
       h.ex.forEach(function(x){
         if(!x || !x.name || !(x.sets||[]).some(function(s2){ return s2 && (s2.w||s2.r); })) return;
         if(!b[x.name] || t>b[x.name].ts) b[x.name]={ x:x, ts:t };
+        saw(x.name, t);
       });
     });
     Object.keys(L).forEach(function(k){
@@ -230,12 +232,16 @@
         if(!x || !x.name || !(x.sets||[]).some(function(st2){ return st2 && (st2.w||st2.r); })) return;
         var bucket=!full ? low : (dn===day ? same : any), cur=bucket[x.name];
         if(names.indexOf(x.name)<0) names.push(x.name);
+        saw(x.name, ts);
         if(!cur || w>cur.w || (w===cur.w && dn===day)) bucket[x.name]={ w:w, x:x, ts:ts };
       });
     });
     Object.keys(prior).concat(Object.keys(priorLow)).forEach(function(n){ if(names.indexOf(n)<0) names.push(n); });
     if(!names.length) return null;
-    function lxOf(x, ts, extra){ var o={ name:x.name, orig:x.orig, target:x.target, sets:x.sets||[], _ts:ts }; if(extra) o[extra]=true; return o; }
+    // _ts: when the reference session was done. _seen: when the lift was last done
+    // at ANY dose — a deload or recovery day is training, not time off, so the
+    // "how long since" rules (no bump at 14+ days, ease back in at 28+) read it.
+    function lxOf(x, ts, extra){ var o={ name:x.name, orig:x.orig, target:x.target, sets:x.sets||[], _ts:ts, _seen:Math.max(ts||0, seen[x.name]||0) }; if(extra) o[extra]=true; return o; }
     return { ex: names.map(function(n){
       var hit=same[n]||any[n];
       if(hit) return lxOf(hit.x, hit.ts);
@@ -420,6 +426,8 @@
         ref='<div class="logx-nudge">🔥 Fewer reps today, so more weight — about <b>'+dose.w+' lb</b>.</div>';
       } else if(dose.shift==="down"){
         ref='<div class="logx-nudge">🏗️ More reps today, so a little lighter — about <b>'+dose.w+' lb</b>.</div>';
+      } else if(dose.shift==="match"){
+        ref='<div class="logx-nudge">🎯 Today: about <b>'+dose.w+' lb</b> — matched to the reps you got last time.</div>';
       } else if(dose.bump && dose.w!=null){
         ref='<div class="logx-nudge">✅ Hit all reps last time — go up to <b>'+dose.w+' lb</b> this session</div>';
       } else if(lx){

@@ -84,10 +84,12 @@ extra muscle thickness or 1-RM compared with +5% (Helms 2023, n=21, abstract rea
 is **not** a faster route to strength or speed — it suits newer, leaner lifters who accept
 more fat and plan a Lean Out after.
 
-**Starting goal by body size (Oct 2026).** At a BMI in the obese range (≥30), onboarding
-suggests **Lean Out** instead of the Lean Bulk default: with high protein and heavy lifting,
-muscle still builds in a deficit, and a surplus at that size mostly adds fat. It is a
-suggestion, never a lock — BMI misreads very muscular lifters, who can switch back.
+**Starting goal by body size (Oct 2026).** Onboarding suggests a goal from height and weight
+(`ffSuggestGoal` in `024-macro-model.js`): BMI under 27 → **Lean Bulk** (the default);
+27–30 → **In-Season Maintain** (hold weight while lifting — muscle up, fat down); in the obese
+range (≥30) → **Lean Out**: with high protein and heavy lifting, muscle still builds in a
+deficit, and a surplus at that size mostly adds fat. It is a suggestion, never a lock — BMI
+misreads very muscular lifters, who can pick any goal.
 
 **Deficit size matters too.** A ~20% deficit (~0.5–1% bodyweight/week loss) is
 aggressive enough to lose fat steadily but moderate enough — with high protein and hard
@@ -625,23 +627,23 @@ lunges, deadlifts and rows are counted):
 So this file fully documents the data behind Yardsmith.
 
 ### Macro logic (per day)
-`ffMacroTargets` in `src/js/app/024-macro-model.js`, called from `calc()` in
+`ffDayTargets` → `ffMacroTargets` in `src/js/app/024-macro-model.js`, called from `calc()` in
 `src/js/app/025-macro-calculator.js`:
 ```
-target_kcal  = TDEE × (1 + calorie_adj) + ff_kcal_adj        // check-in nudge
-target_kcal  = max(target_kcal, floor)                        // floor: 1200 women / 1500 men
+base_kcal    = max(TDEE × (1 + calorie_adj), floor)           // floor: 1200 women / 1500 men
+adj          = clamp(ff_kcal_adj, max(−600, min(0, floor − base_kcal)), +600)
+target_kcal  = max(base_kcal + adj, floor)                    // check-in nudge
 reference_lb = min(bodyweight_lb, BMI-30 weight at the user's height)
 protein_g    = round5( reference_lb × protein_per_lb )
 fat_g        = round5( clamp(reference_lb × fat_per_lb, 45, 100) )
-fat_g        = raised if needed so fat_g × 9 ≥ ~20% of target_kcal   // Oct 2026
+fat_g        = max(fat_g, ceil(target_kcal × 0.20 / 45) × 5)  // Oct 2026: fat ≥ 20% kcal, may pass 100 g
 carb_g       = round5( max(0, target_kcal − protein_g×4 − fat_g×9) / 4 )   // fills the rest
 target_kcal  = max(target_kcal, protein_g×4 + fat_g×9 + carb_g×4)
 ```
 `round5(n)` = round to the nearest multiple of 5. Calories are also shown rounded to 5.
 Protein and the body-size fat anchor don't depend on calories, so a check-in nudge lands in
-carbs (and, since the 20% floor, partly in fat on a big-calorie day). The exact rounding of
-the fat floor and which goals it applies to live in `ffMacroTargets` / `GOALS` — the code
-wins if this block and it ever disagree.
+carbs (and, since the 20% floor, partly in fat on a big-calorie day). The 20% floor
+(`FAT_MIN_PCT`) applies to every goal. The code wins if this block and it ever disagree.
 
 ### Per-goal settings
 | Goal | Calorie adj | Protein (g/lb ref.) | Fat (g/lb ref.) | Weekly target | Post-WO carb wt | Rec. meals |
@@ -652,8 +654,9 @@ wins if this block and it ever disagree.
 | Cut / Lean Out | −20% | 1.00 | 0.30 | **−1 to −0.5%/wk** | 1.60 | 3 |
 
 > **Weekly target** is a % of bodyweight per week, shown in the app as a live lb/week band
-> (e.g. a 175 lb lean-bulker sees ≈ +0.4–0.9 lb/week). Lean Bulk is the default goal; at a
-> BMI ≥30 onboarding suggests Lean Out instead (§2). Carbs — including pre/post-workout —
+> (e.g. a 175 lb lean-bulker sees ≈ +0.4–0.9 lb/week). Gain bands scale from the BMI-30
+> reference weight, loss bands from total weight (`ffWeeklyLb`). Lean Bulk is the default
+> goal; onboarding suggests In-Season Maintain at BMI 27–30 and Lean Out at ≥30 (§2). Carbs — including pre/post-workout —
 > are split across **every feeding by weight**, so portions shrink as you add meals. Meals
 > are **clock-timed and anchored around your workout**: the meal nearest training becomes the
 > post-workout meal, with a separate pre-workout carb feeding ~90 min before.
@@ -762,7 +765,7 @@ day), box or squat jump (the quads / lower day — both splits' Day 1, including
 "Quads & Hinge" day since Oct 2026, so 4-day users get a lift-day jump again). The match is on
 the day's *name*, so renaming a day can silently change its primer — check `primerFor` after
 any rename. Kept to a few max-intent reps with full
-rest (~5 min), primers give speed **3–4 exposures a week** (with the Speed & Power day) and add
+rest (~5 min), primers give speed **4–5 exposures a week** (4 on the 4-day plan, 5 on the 5-day: one primer per lift day plus the Speed & Power day) and add
 no metabolic fatigue, so they don't cost hypertrophy. Any boost to the heavy lift that follows
 is small and unreliable after a full warm-up (PAP/PAPE is unproven in golf — CLUBHEAD §10.3), so
 it isn't a selling point. The **Speed & Power day stays**: jumps and throws lead it, and

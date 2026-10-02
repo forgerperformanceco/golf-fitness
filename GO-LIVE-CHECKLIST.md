@@ -24,8 +24,11 @@ There are **two switches**, and they behave differently:
 - `FF_PAYWALL=false` and `REQUIRE_SUBSCRIPTION` is unset: everyone gets everything.
 - No `window.FFBilling` bridge exists on any platform, so the Pro sheet's buy button
   only shows "Subscriptions open soon".
-- `paddle-webhook` is out of auto-deploy and has no `PADDLE_WEBHOOK_SECRET`. No App
-  Store / Google Play webhook exists yet (step 5).
+- `paddle-webhook` redeploys on every merge like the other functions (the GitHub
+  integration redeployed it with ai-coach, delete-account and push-daily on
+  2026-09-30). It does nothing yet: with no `PADDLE_WEBHOOK_SECRET` no signature can
+  verify, so it rejects every request and writes nothing. No App Store / Google Play webhook exists yet
+  (step 5).
 - Migration `20261001204500_billing_per_subscription_entitlement.sql` is written and
   CI-tested but **not applied** to the live project (step 1).
 - **The owner's row is hand-set to Pro.** The live project's only profile has
@@ -113,9 +116,11 @@ web checkout), not "Mobile apps" (that's for native iOS/Android IAP).
    supabase secrets set PADDLE_WEBHOOK_SECRET=pdl_ntfset_...   # from step 4 below
    supabase secrets set PADDLE_API_KEY=...                     # server-only; delete-account cancels with it
    supabase secrets set PADDLE_ENV=sandbox                     # while testing; unset (or production) when live
-   supabase functions deploy paddle-webhook --no-verify-jwt
-   supabase functions deploy delete-account
+   supabase functions deploy paddle-webhook --no-verify-jwt   # optional: merges already deploy it
+   supabase functions deploy delete-account                    # optional, same
    ```
+   Both functions already ship on merge to `main`; a hand deploy only matters if
+   you need a change live before it merges. Setting the secrets is the real switch.
    `PADDLE_API_KEY` must be set before anyone can buy on the web: with it,
    **deleting an account first cancels its Paddle subscriptions** (effective
    immediately) and deletes nothing if Paddle can't confirm. Without it, deletion
@@ -150,8 +155,8 @@ web checkout), not "Mobile apps" (that's for native iOS/Android IAP).
 
 Every purchase goes through `ffStartCheckout` → `window.FFBilling` in
 `src/js/app/036-access-free-week-and-pro.js`. Nothing goes through `coach.js`: the
-client coach gate is `ffGateCoach` in 036, and coach.js's 402 branch only shows the
-server's message.
+client coach gate is `ffGateCoach` in 036. coach.js's 402 branch shows the server's
+message and fires `ff-paywall`, which opens the Pro sheet when the paywall is on.
 
 Build a web `window.FFBilling` (web build only — native builds use StoreKit / Play
 Billing) that follows the bridge contract written at the top of 036 (`isPro`,
@@ -195,8 +200,10 @@ Pick one (vendor not chosen yet):
   Set the app user id to the Supabase user id (`Purchases.logIn(uid)` on sign-in, so a
   purchase made signed-out moves to the account). Map: `INITIAL_PURCHASE` / `RENEWAL` /
   `UNCANCELLATION` / `PRODUCT_CHANGE` → `active` (`trialing` for a trial period);
-  `BILLING_ISSUE` → `past_due`; `CANCELLATION` (auto-renew off) → stays `active` until
-  it expires; `EXPIRATION` → `canceled`; `TRANSFER` → move it to the new user.
+  `BILLING_ISSUE` → `past_due` only while the event carries a grace-period expiry
+  (the store's grace period), otherwise `paused`; `CANCELLATION` (auto-renew off) →
+  stays `active` until it expires; `EXPIRATION` → `canceled`; `TRANSFER` → move it to
+  the new user.
 - **(b) Direct** — **App Store Server Notifications v2** (verify the `signedPayload`
   JWS chain to Apple Root CA G3; set `appAccountToken` = Supabase uid at purchase)
   **plus Google Play RTDN** (Pub/Sub push; verify its OIDC token; look the purchase up
@@ -208,8 +215,14 @@ Either way:
   dedupe by (provider, event id), upsert the row in `private.billing_subscriptions`
   (provider `app_store` / `play_store`, or `revenuecat`), then call
   `private.sync_billing_summary(user)`. `is_subscribed()` and the coach gate then work
-  unchanged. Store grace period / billing retry → `past_due`; expired, revoked or
-  refunded → `canceled`.
+  unchanged. `past_due` counts as Pro, so map **only the store's grace period** to it:
+  Apple `DID_FAIL_TO_RENEW` with subtype `GRACE_PERIOD`, Play
+  `SUBSCRIPTION_IN_GRACE_PERIOD`. Billing retry **without** a grace period (Apple
+  `DID_FAIL_TO_RENEW` with no subtype, up to 60 days) and Play account hold
+  (`SUBSCRIPTION_ON_HOLD`) → `paused` — both stores cut access there. Apple
+  `DID_RENEW` with subtype `BILLING_RECOVERY` and Play `SUBSCRIPTION_RECOVERED` /
+  `SUBSCRIPTION_RESTARTED` → back to `active`. Expired, revoked or refunded →
+  `canceled`.
 - Don't put a sign-in wall in front of an App Store purchase (guideline 5.1.1(v)) —
   attach the purchase when they sign in. Only the web (Paddle) path requires sign-in.
 - The native FFBilling bridge calls `ffRefreshPro()` after purchase and restore.
@@ -229,9 +242,13 @@ button **for as long as it's installed** — nothing remote can turn its paywall
 ("start it from the You tab") with no way to subscribe in that build.
 
 So, before the first store release:
-- The binary must cope with a 402: open the Pro sheet when it can sell, otherwise show
-  "update Yardsmith to subscribe". It must also never turn on a paywall it can't sell
-  through (no working `FFBilling` → no lock).
+- A 402 from the coach already opens the Pro sheet when the paywall is on (coach.js
+  fires `ff-paywall`; 036 listens). With the paywall off the build just shows the
+  server's text — so check that text still makes sense to someone who can't buy in
+  that build ("update Yardsmith to subscribe").
+- Don't ship a binary with `FF_PAYWALL=true` unless its `FFBilling` can actually sell:
+  `ffPaywallOn()` doesn't check for a bridge, so a build without one would lock users
+  behind a sheet whose buy button only says "Subscriptions open soon".
 - Decide what users still on pre-billing builds get when `REQUIRE_SUBSCRIPTION` flips:
   a founding / grandfather grant written to their profile, or an "update the app"
   message (the 402 text comes from the server, and old builds show it as-is). Record
@@ -241,9 +258,10 @@ So, before the first store release:
 
 ## 7. Terms of Use, privacy page, account-deletion copy
 
-- **Terms of Use.** There is no Yardsmith terms page. The only Terms link the app has
-  is Apple's standard App Store EULA (`FF_TERMS_URL` in 036), which covers App Store
-  purchases only — not Play or Paddle buyers, and it says nothing about Yardsmith's
+- **Terms of Use.** There is no Yardsmith terms page. The Pro sheet links the bridge's
+  `termsUrl`; without one it falls back to Apple's standard App Store EULA
+  (`FF_TERMS_URL` in 036) on iPhone only, and shows no Terms link on Android or the web.
+  Apple's EULA covers App Store purchases only and says nothing about Yardsmith's
   renewal, cancellation or refund terms. Before launch add `terms.html` next to
   `privacy.html`: Long Game Labs LLC, the plans and prices, auto-renewal, how to cancel
   on each platform, refunds (Apple / Google / Paddle), the free week and the trial, and
@@ -252,9 +270,8 @@ So, before the first store release:
   - add `./terms.html` to `ASSETS` and to the HTML cache-key choice in
     `src/sw.template.js` (otherwise opening Terms overwrites the offline copy of the app);
   - add `terms.html` to `FILES` in `scripts/build-www.mjs` (or the native apps 404 it);
-  - link it from the Pro sheet on every platform (each bridge's `termsUrl`, or
-    `FF_TERMS_URL`), update the matching assertions in `tests/paywall.test.mjs`, and
-    rebuild.
+  - link it from the Pro sheet on every platform (set each bridge's `termsUrl` to it),
+    update the matching assertions in `tests/paywall.test.mjs`, and rebuild.
   - App Store Connect: keep Apple's standard EULA (Terms link in the description) or
     upload the terms as a custom EULA.
 - **Privacy page.** On launch day, rewrite the "early-access app is free" paragraph in

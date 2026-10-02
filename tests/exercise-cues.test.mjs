@@ -203,3 +203,45 @@ test("speed-day and primer names: swings hinge, speed bench is a fast press (not
   is("Overspeed swings", "overspeed");
   is("Ground-force footwork", "footwork");
 });
+
+test("bodyweight and band swaps never get barbell, pad, seat or bench coaching", () => {
+  const BW = ["Push-up (weighted / feet-elevated)", "Decline / Feet-elevated Push-up", "Archer Push-up", "Clap Push-up",
+    "Explosive / Clap Push-up", "Diamond Push-up", "Push-up / Bench Dip", "Pike Push-up", "Nordic / Slider Leg Curl",
+    "Band Leg Curl", "Sissy Squat"];
+  for (const n of BW) {
+    const f = exerciseForm(n), all = [liftWhy(n).cue, ...f.cues, ...f.miss].join(" ");
+    assert.doesNotMatch(all, /\bbar\b|\bpad\b|\bseat\b|\bbench\b|thigh pad|slight arch/i, n);
+  }
+  // A push-up is a rigid plank; sagging hips is the named mistake (an arch is the fault, not the cue).
+  for (const n of ["Archer Push-up", "Diamond Push-up", "Clap Push-up"]) {
+    is(n, "bench");
+    assert.match(exerciseForm(n).cues.join(" "), /Rigid plank head to heels/, n);
+    assert.match(exerciseForm(n).miss.join(" "), /Hips sagging/, n);
+  }
+  is("Pike Push-up", "ohp");
+  assert.match(liftWhy("Pike Push-up").cue + exerciseForm("Pike Push-up").cues.join(" "), /head toward the floor/);
+  is("Nordic / Slider Leg Curl", "legcurl");
+  assert.match(exerciseForm("Nordic / Slider Leg Curl").cues.join(" "), /ankles anchored[\s\S]*as slowly as you can[\s\S]*catch yourself with your hands/);
+  is("Band Leg Curl", "legcurl");
+  is("Sissy Squat", "legext");
+  assert.match(exerciseForm("Sissy Squat").cues.join(" "), /support|post/i);
+  assert.match(exerciseForm("Sissy Squat").cues.join(" "), /knees forward/);
+  is("Weighted Dip", "bench");
+  assert.doesNotMatch(exerciseForm("Weighted Dip").cues.join(" ") + exerciseForm("Weighted Dip").miss.join(" "), /mid-chest|off the bench|slight arch/);
+  // Machine curls keep their pad / seat set-up.
+  assert.match(exerciseForm("Seated Leg Curl").cues.join(" "), /thigh pad/);
+});
+
+test("the speed day's chop and punch are coached for speed; the push day's wood-chop stays controlled", () => {
+  for (const n of ["Cable lateral chop", "Cable Rotational Punch", "Band Rotational Punch", "Cable/Band Rotational Punch"]) {
+    is(n, "rotation");
+    assert.equal(isBallistic(n), true, n);
+    const all = liftWhy(n).cue + " " + exerciseForm(n).cues.join(" ");
+    assert.match(all, /as fast as you can/, n);
+    assert.doesNotMatch(all, /control the (way back|return)/i, n);
+  }
+  for (const n of ["Cable Wood-chop", "Band Wood-chop"]) {
+    assert.equal(isBallistic(n), false, n);
+    assert.match(liftWhy(n).cue, /control the way back/, n);
+  }
+});

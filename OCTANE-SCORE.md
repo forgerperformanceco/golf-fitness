@@ -24,7 +24,7 @@ localStorage the app already writes.
 | Source | Used for |
 |---|---|
 | `ff_log` / finished sessions (`sessionsByWeek()`) | consistency + strength e1RM |
-| `ff_body` (`[{iso,date,ts,w,s,d}]`, w=lb, s=7-iron mph) | speed trend + power-to-weight |
+| `ff_body` (`[{iso,date,ts,w,s,d,ss}]`, w=lb, s=7-iron mph, ss=source tag) | speed trend + power-to-weight (this season only) |
 | `curWeek()` | weeks elapsed (for "expected sessions") |
 | `planState.freq` (4/5) | expected sessions per week |
 | `state.goal` + `GOALS[goal].weekly` (025) | the goal's weekly bodyweight band, for power-to-weight |
@@ -35,9 +35,9 @@ localStorage the app already writes.
 | Pillar | Max | How it's scored |
 |---|---|---|
 | **Consistency** | 35 | Finished sessions in the last `min(week,8)` plan weeks ÷ `(freq × min(week,8))`, clamped 0–1, ×35. Rewards showing up; decays if you stop. |
-| **Clubhead speed** | 30 | 7-iron gain since the first entry: `15 + gain% × 220`, clamped 0–30 (neutral start ≈15). |
+| **Clubhead speed** | 30 | **This season's** 7-iron trend (Oct 2026): a least-squares line through the season's tests (from 2 weeks before plan start; rough guesses never count, and once a guided Speed Test exists older untagged numbers stop anchoring — `ffSeasonSpeedRows` in 060), its rise shrunk toward 0 by test noise (`ffSpeedSignal`: counts only past max(1.5 mph, 2 SE)). `15 + effGain% × 220`, clamped 0–30 (neutral ≈15; a move inside the noise reads "Steady"). |
 | **Strength (e1RM)** | 25 | Avg gain in estimated 1RM (Epley `w·(1+r/30)`) on the big compound lifts (`isBigLift` — squat/deadlift/bench/press/row/RDL/hinge/hip thrust/pull-up; no throws, speed work or Pallof), first → best: `10 + gain% × 150`, clamped 0–25. |
-| **Power-to-weight** | 10 | **Goal-aware (Oct 2026).** Is speed rising relative to bodyweight *for your goal*? On Lean Bulk / Bulk, weight gained inside the goal's weekly band doesn't count against you — only gaining faster than the band does. On Lean Out / Maintain, weight loss alone earns nothing — speed has to hold or rise. Speed changes inside normal test-to-test noise count as no change. Exact formula: the p2w block in `ffScore()`. |
+| **Power-to-weight** | 10 | **Goal-aware (Oct 2026).** Is speed rising relative to bodyweight *for your goal*? On Lean Bulk / Bulk, weight gained inside the goal's weekly band doesn't count against you — only gaining faster than the band does. On Lean Out / Maintain, weight loss alone earns nothing — speed has to hold or rise. Speed changes inside normal test-to-test noise count as no change. Weight pace = least-squares slope over the last 8 weeks of this season vs the goal's planned pace, with the Fuel check-in's on-track tolerance (max(0.5 lb, 60% of the goal rate, 2 SE)); `5 + (effSpeedGain − excessGain) × 250`, clamped 0–10. Exact code: `ffP2wRead()` in 070. |
 | **Mobility** | 10 | Latest 3-move screen (seated trunk rotation, 90/90 hips, overhead deep squat — each 0/1/2) → `score/100 × 10`. Re-screen due every 28 days; the pillar flags "Re-screen due" past 35. Durability framing, not a speed claim. |
 | **Fuel** | 10 | Average `fuelScoreFor()` (meal check-offs or a day rating, 0–1) over the last ≤7 logged days within a 14-day window, ×10. Adherence, not calorie accounting. |
 

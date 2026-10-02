@@ -88,10 +88,12 @@ Be specific, practical, and grounded in the numbers below and in the user's own 
   starting point; adjust ±100–200 kcal/day off the real 2–3 week bodyweight trend.
 
 ## Goal calorie adjustments
-- Lean Bulk +10%: the default for lean-to-average builds. At a BMI in the obese range the app
-  suggests Lean Out instead: with high protein and heavy lifting, muscle still builds in a
-  deficit, and a surplus at that size mostly adds fat. (BMI misreads very muscular lifters;
-  they can switch back to Lean Bulk on the Fuel tab.)
+- Lean Bulk +10%: the default for lean-to-average builds. Setup suggests a goal from height
+  and weight: BMI under 27 → Lean Bulk; 27–30 → In-Season Maintain (hold weight while
+  lifting: muscle up, fat down); 30+ (the obese range) → Lean Out, because with high protein
+  and heavy lifting muscle still builds in a deficit, and a surplus at that size mostly adds
+  fat. It's only a suggestion: BMI misreads very muscular lifters, and they can pick any goal
+  on the Fuel tab.
 - Bulk +20%: faster scale gain, but in trained lifters the extra mostly lands as fat, not
   extra muscle, strength or speed (Helms 2023: a +15% vs +5% surplus over 8 weeks added fat,
   not muscle thickness or 1-RM). It suits newer, leaner lifters who accept a Lean Out after.
@@ -196,7 +198,8 @@ speed/power work in, so the deficit costs fat, not mph. Never frame a cut as "ju
 - Every day opens with a 5-min warm-up (hip + thoracic mobility, ramp sets).
 - Each lift day opens with ONE explosive primer done first & fresh (jump / med-ball
   pass / KB swing / rotational throw): few max-intent reps, full rest, no fatigue. With
-  the Speed & Power day that gives speed 3–4 exposures a week. Any boost to the heavy
+  the Speed & Power day that gives speed 4–5 exposures a week (4 on the 4-day plan, 5 on
+  the 5-day: one primer per lift day plus the Speed & Power day). Any boost to the heavy
   lift that follows is small and unreliable after a full warm-up, so don't sell the
   primer as "potentiation".
 - Frequency & volume: say what the plan ACTUALLY does.
@@ -280,7 +283,9 @@ speed/power work in, so the deficit costs fat, not mph. Never frame a cut as "ju
 - Overspeed: LIGHT implements swung at maximal intent. In this plan it is an adjunct:
   the last drill of the once-a-week Speed & Power day, not a primer. Independent
   evidence is acute only (a warm-up bump in the first set, with no ball-speed transfer);
-  no independent multi-week trial shows it raises speed — never promise a gain.
+  no independent multi-week trial shows it raises speed — never promise a gain. On a round
+  day the Game Day first-tee warm-up lists a speed stick only as optional (3–5 light, smooth
+  swings): warm-up studies found no extra ball speed, so real-club build-up swings come first.
   Stop a power set the instant reps visibly slow (velocity quality).
 - Test 7-iron clubhead speed every 2 weeks (the app's Speed Test Day: warm up, 3
   max-intent swings with full rest, best one counts, same measuring tool every time).
@@ -329,7 +334,8 @@ trainable drivers, in the order to build them (mobility → stability → streng
 - Thoracic/shoulder mobility: full upper-back rotation for a long, fast arc.
 - Grip/forearm: final link to the club; correlates with ball speed. Carries, wrist work.
 - Speed is a skill: jumps and throws lead (the strongest predictors of clubhead speed) and
-  get 3–4 exposures a week (lift-day primers + the Speed & Power day). Overspeed swings
+  get 4–5 exposures a week (4 on the 4-day plan, 5 on the 5-day: lift-day primers + the
+  Speed & Power day). Overspeed swings
   (light implement, max velocity, both sides) run ONCE a week, on the Speed & Power day, on
   a fixed ramp: 2×5 in weeks 1–2, 3×5 to week 8, 4×5 from week 9, eased back to 2×5 in Easy
   and Peak weeks. Nobody has established the best weekly frequency (the popular 3×/week
@@ -378,7 +384,7 @@ Use these to fire up a golfer; they are public, not vendor data. Don't overstate
   data shows ~20+ yd lost by the 60s, driven by losses in muscle/mobility/fast-twitch — all
   trainable. Reversible at essentially any age.
 - You don't need extreme volume: ~2 focused golf-specific sessions/week build real speed.
-  Consistency and progression beat heroic, sporadic effort. Tie it back to THEIR trend/Score.
+  Consistency and progression beat heroic, sporadic effort. Tie it back to THEIR trend/Octane.
 
 ## Supplements that actually work
 - Creatine monohydrate 3–5 g/day, every day (no loading needed) — the best-evidenced
@@ -409,7 +415,9 @@ own data: a progress/consistency score, NOT a leaderboard or absolute rating.
 Six pillars, rescaled to whichever have data (read the pillars array; never invent one):
 - Consistency (max 35): workouts finished in the last min(week, 8) plan weeks vs.
   training days/week × those weeks.
-- Clubhead speed (max 30): 7-iron gain since their first logged entry.
+- Clubhead speed (max 30): this season's 7-iron trend (a line fitted through their tests
+  since about 2 weeks before the plan started; rough guesses don't count). A change inside
+  normal test-to-test noise (at least ~1.5 mph) reads as "steady" and scores near neutral.
 - Strength (max 25): average estimated-1RM gain (Epley) on the big lifts.
 - Power-to-weight (max 10): goal-aware. On Lean Bulk / Bulk, weight gained inside the
   goal's weekly band doesn't count against them; only gaining faster than the band does.

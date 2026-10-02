@@ -416,18 +416,22 @@
     });
     m.addEventListener("keydown", function(e){ if(e.key==="Escape"){ e.preventDefault(); ffPaywallClose(); } });
   }
+  var ffPwPrevOverflow="";
   function ffPaywallOpen(reason){
     ffPaywallEnsure();
     var m=$("pwModal"); m.setAttribute("data-reason", reason||"");
     ffPwLoadPrices();
     $("pwBody").innerHTML=ffPaywallHtml(reason);
+    // Keep whatever scroll lock was already in place (the coach sheet sets its
+    // own) so closing this sheet hands it back instead of unlocking the page.
+    if(m.hidden) ffPwPrevOverflow=document.body.style.overflow||"";
     m.hidden=false; document.body.style.overflow="hidden";
     setTimeout(function(){ var b=m.querySelector("[data-pwbuy]"); if(b) try{ b.focus(); }catch(_){} }, 30);
     try{ if(window.FFHealth) window.FFHealth.track("paywall_shown",{reason:reason||"other"}); }catch(_){}
   }
   function ffPaywallClose(){
     var m=$("pwModal"); if(!m || m.hidden) return;
-    m.hidden=true; document.body.style.overflow="";
+    m.hidden=true; document.body.style.overflow=ffPwPrevOverflow||""; ffPwPrevOverflow="";
   }
   // Buying goes through the platform's store (FFBilling, contract above). What
   // we tell the user follows what the store reported — never a guess about money.

@@ -159,6 +159,10 @@ begin
     end if;
   end if;
 
+  -- One user's billing events apply one at a time (row lock), so the summary
+  -- below always sees every committed subscription of theirs.
+  perform 1 from public.profiles p where p.id = v_user for update;
+
   -- The out-of-order guard is per subscription, not per profile.
   insert into private.billing_subscriptions as s
     (provider, subscription_id, user_id, customer_id, status, plan,

@@ -420,7 +420,7 @@
         '<button type="button" class="wu-row primer" data-wu="1"><span class="wu-move">'+p.move+'</span><span class="wu-dose">'+p.dose+'</span></button>';
       if(p.note) h+='<div class="wu-note">'+p.note+'</div>';
       if(showNote) h+='<div class="wu-note caution">⚠️ '+PRIMER_NOTE+'</div>';
-    }
+    } else if(showNote) h+='<div class="wu-note caution">⚠️ '+PRIMER_NOTE+'</div>';   // speed day: same beginner caution
     return h+'</div>';
   }
   // One-glance purpose tag per exercise: 🏋️ strength · 💪 mass · ⚡ power/speed · 🌀 golf rotation
@@ -673,7 +673,7 @@
             '<b>'+(spDone?'✓ Speed session done — replay it':(((spWork||spSession)?ffIcon("play",13)+' Resume':ffIcon("play",13)+' Start')+' speed session'))+'</b>'+
             '<span class="pls-sub">Guided player — warm-up, max-intent drills, full rest</span></button>'+
           '<details class="prelift"><summary>🔥 Warm-up &amp; the why — do these first</summary><div class="prelift-body">'+
-            toggle+warmupHtml("speed", false)+
+            toggle+warmupHtml("speed", false, showPrimerNote)+
             '<div class="speed-intro">'+s.intro+'</div>'+
             '<div class="speed101-wrap">'+speed101Html()+'</div>'+
             '<div class="speed-why">'+p.speed.note+'</div>'+
@@ -684,7 +684,7 @@
       return '<div class="day speedday"><div class="day-head">'+d.name+' <span class="tag '+(d.tag)+'">'+labelFor(d.tag)+'</span></div>'+
         speedTestCardHtml()+
         toggle+
-        '<details class="prelift"><summary>🔥 Warm-up — do these first</summary><div class="prelift-body">'+warmupHtml("speed", false)+'</div></details>'+
+        '<details class="prelift"><summary>🔥 Warm-up — do these first</summary><div class="prelift-body">'+warmupHtml("speed", false, showPrimerNote)+'</div></details>'+
         '<div class="speed-intro">'+s.intro+'</div>'+
         '<div class="speed101-wrap">'+speed101Html()+'</div>'+
         '<table class="ex"><tr><th>Drill</th><th style="text-align:right">Sets × Reps</th></tr>'+srows+'</table>'+
@@ -960,9 +960,10 @@
     } else {
       var primerNoteShown=false;
       shown.forEach(function(d){
-        var lift = d.type!=="rest" && d.type!=="speed";
-        html+=dayCardHtml(d, lift && !primerNoteShown);
-        if(lift) primerNoteShown=true;
+        // The beginner caution shows once: on the first lift or speed day.
+        var note = d.type!=="rest" && !primerNoteShown;
+        html+=dayCardHtml(d, note);
+        if(note) primerNoteShown=true;
       });
     }
 

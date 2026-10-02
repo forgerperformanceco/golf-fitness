@@ -173,7 +173,7 @@ test("the calorie floor is truthful and a check-in trim it would swallow is neve
 });
 
 test("Apply clamps to the usable range, so ff_kcal_adj never piles up", () => {
-  assert.match(stats, /var nx=ffClamp\(cur\+a\.deltaKcal, cb\?cb\.lo:-600, cb\?cb\.hi:600\);/);
+  assert.match(stats, /var nx=Math\.round\(ffClamp\(cur\+a\.deltaKcal, cb\?cb\.lo:-600, cb\?cb\.hi:600\)\);/);
   assert.match(stats, /var cur=cb\?cb\.effAdj:/);
   // Simulated: ten trims at the floor leave the stored value at the range bottom.
   const f60 = { sex: "female", age: 60, weightLb: 120, heightCm: inch(5, 2), activity: 1.2, goal: GOALS.cut, fatMinPct: FAT_MIN_PCT };
@@ -264,7 +264,11 @@ test("the check-in corrects half the gap, in 50s, capped at ±250", () => {
 test("the scale band copy has units and matches the check-in", () => {
   const band = balanced(calc, "function targetBand(");
   assert.doesNotMatch(band, /~100–150 carbs/, "no unitless carb advice");
-  assert.match(band, /25–40 g carbs \(100–150 kcal\)/);
+  // The check-in corrects half the gap, capped at ±250 kcal (ffCheckin) — a
+  // stalled Bulk / Cut gets 200–250, so the copy names the cap, not 100–150.
+  assert.doesNotMatch(band, /100–150 kcal|25–40 g carbs/);
+  assert.equal((band.match(/up to ~250 kcal \(about 60 g carbs\) a day, sized to how far off you are/g) || []).length, 2);
+  assert.equal(ctx.ffCheckin({ ratePerWeek: 0, se: 0.05, n: 15, days: 14 }, -1.35, null).deltaKcal, -250);   // the cap the copy names
   assert.match(band, /more than ~½ lb\/week/);
   assert.doesNotMatch(band, /~1 lb\/week either way/);
   assert.match(band, /never below your daily minimum/);
@@ -313,4 +317,80 @@ test("older fuel days without slot weights keep the plain count", () => {
   assert.equal(c.ffFuelDayScore({ m: {}, n: 4 }), null);
   assert.match(fuel, /d\.w=fuelSlotW\(\);/);
   assert.match(fuel, /function fuelScoreFor\(iso\)\{ return ffFuelDayScore\(fuelDay\(iso\)\); \}/);
+});
+
+// --- Review round 2 ----------------------------------------------------------
+test("the tuning is whole kcal: no 'Tuned −81.07… kcal', and Apply stores integers", () => {
+  const f60 = { sex: "female", age: 60, weightLb: 120, heightCm: inch(5, 2), fatMinPct: FAT_MIN_PCT };
+  for (const goal of ["maintain", "cut", "leanbulk"]) for (const activity of ACTIVITY) for (const kcalAdj of [-600, -100, -31.07, 0, 250]) {
+    const d = ctx.ffDayTargets({ ...f60, activity, goal: GOALS[goal], kcalAdj });
+    assert.ok(Number.isInteger(d.lo) && Number.isInteger(d.effAdj), `${goal} ${activity} ${kcalAdj}: lo ${d.lo}, effAdj ${d.effAdj}`);
+    assert.ok(d.baseTarget + d.lo >= d.floorKcal - 1e-9, "the range never reaches under the floor");
+    for (const delta of [-250, -50, 50, 250]) {
+      const nx = Math.round(ctx.ffClamp(d.effAdj + delta, d.lo, d.hi));
+      assert.ok(Number.isInteger(nx) && nx >= d.lo && nx <= d.hi);
+    }
+  }
+  // The reviewer's case: Maintain, sedentary, ff_kcal_adj −100 → a whole number.
+  const m = ctx.ffDayTargets({ ...f60, activity: 1.2, goal: GOALS.maintain, kcalAdj: -100 });
+  assert.equal(m.effAdj, Math.round(m.effAdj)); assert.ok(m.effAdj < 0 && m.effAdj > -100);
+  assert.match(calc, /var adjNow=Math\.round\(r\.effAdj\|\|0\)/);
+});
+
+function checkinWorld(store, now) {
+  if (store.__all) store.ff_body = store.__all.filter((e) => e.ts <= now);   // only weigh-ins made by `now`
+  const c = { __store: store, Date: class extends Date { constructor(...a) { super(...(a.length ? a : [now])); } static now() { return now; } } };
+  vm.runInNewContext(`function lsGet(k,d){ var v=__store[k]; return v==null?d:v; }
+    function lsSet(k,v){ __store[k]=v; }`, c);
+  vm.runInNewContext(model, c);
+  for (const f of ["function weightTrend(", "function ffCheckinOkDay(", "function ffCheckinAck(", "function adaptiveDue("])
+    vm.runInNewContext(balanced(checkinUi, f), c);
+  return c;
+}
+test("'Got it' on an on-track check-in hides it 10 days but keeps the weigh-ins (windows merge)", () => {
+  const DAY = 864e5, t0 = Date.UTC(2026, 8, 1, 12);
+  const body = []; for (let d = 0; d <= 26; d += 2) body.push({ ts: t0 + d * DAY, w: String(150 + d * 0.01) });
+  const store = { __all: body, ff_lastcheckin: 0, ff_insights_seen: ["spr:x"] };
+  // Day 13: first look covers days 0–12.
+  let w = checkinWorld(store, t0 + 13 * DAY);
+  assert.equal(w.adaptiveDue(), true);
+  assert.equal(w.weightTrend().n, 7);
+  w.ffCheckinAck();
+  assert.equal(store.ff_lastcheckin, 0, "an acknowledgment never restarts the window");
+  assert.deepEqual(store.ff_insights_seen.filter((s) => !/^checkin-ok:/.test(s)), ["spr:x"]);
+  assert.equal(checkinWorld(store, t0 + 20 * DAY).adaptiveDue(), false, "hidden for 10 days");
+  // Day 27: due again, and the trend now spans BOTH windows.
+  w = checkinWorld(store, t0 + 27 * DAY);
+  assert.equal(w.adaptiveDue(), true);
+  assert.equal(w.weightTrend().n, 14); assert.ok(w.weightTrend().days >= 26);
+  w.ffCheckinAck();
+  assert.equal(store.ff_insights_seen.filter((s) => /^checkin-ok:/.test(s)).length, 1, "one mark, replaced");
+  // A calorie change still starts a fresh window.
+  assert.match(stats, /if\(act==="ok"\) ffCheckinAck\(\);\s*else lsSet\("ff_lastcheckin", Date\.now\(\)\);/);
+  assert.equal((checkinUi.match(/data-adapt="ok"/g) || []).length, 2, "on-track and at-limit cards");
+  assert.match(checkinUi, /data-adapt="snooze">Not now/);
+});
+
+test("at the floor on Maintain, the card never suggests 'weeks at maintenance'", () => {
+  const card = balanced(checkinUi, "function renderAdaptiveCard(");
+  const html = (a) => {
+    const c = { adaptiveDue: () => true, adaptiveCheck: () => a };
+    vm.runInNewContext(card, c);
+    return c.renderAdaptiveCard();
+  };
+  const base = { rate: 1, days: 14, n: 15, onTrack: false, atLimit: true, wantDown: true, pace: "drifting up", goalLabel: "In-Season Maintain", minKcal: 1200 };
+  const maint = html({ ...base, desired: 0 });
+  assert.doesNotMatch(maint, /at maintenance/); assert.match(maint, /Add a daily walk or more daily steps\./);
+  const cut = html({ ...base, desired: -1, pace: "losing slower than planned", goalLabel: "Lean Out" });
+  assert.match(cut, /take 2–4 weeks at maintenance before the next push/);
+});
+
+test("Lean Bulk copy names no fixed lb/week, and the goal help stays short", () => {
+  const template = readFileSync(new URL("../src/index.template.html", import.meta.url), "utf8");
+  assert.doesNotMatch(calc, /about 0\.5–1 lb for most/);
+  assert.doesNotMatch(template, /about 0\.5–1 lb for most/);
+  const help = template.slice(template.indexOf('<details class="goalhelp">'), template.indexOf("</details>", template.indexOf('<details class="goalhelp">')));
+  const lean = help.slice(help.indexOf("<b>Lean Bulk"), help.indexOf("<br>"));
+  assert.ok((lean.match(/[.?]/g) || []).length <= 4, lean);
+  assert.match(lean, /Lean Out/);
 });

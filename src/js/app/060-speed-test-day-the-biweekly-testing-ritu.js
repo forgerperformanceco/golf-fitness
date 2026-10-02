@@ -197,10 +197,6 @@
     }
     return best ? ('Best of the day: <b>'+best+' mph</b>') : 'Enter at least one swing.';
   }
-  // The speeds that count (ffSpeedRows), oldest first — the Octane drill-in sparkline.
-  function stSpeedHistory(){
-    return ffSpeedRows().map(function(r){ return r.s; });
-  }
   function renderSpeedTest(){
     var body=$("stBody"); if(!body || !stState) return;
     if(stState.saved){

@@ -276,6 +276,31 @@ test("p2w: a cut never maxes it from the scale alone — speed down drains it, s
   assert.equal(maint.p.pts, 5);
 });
 
+test("p2w: 'weight on plan' only inside the check-in's band — off-plan weight in the other direction is named", () => {
+  const steady = [80, 80.3, 79.8, 80.4, 80.1, 80.2], up = [80, 80.8, 81.6, 82.4, 83.2, 84];
+  const cases = [
+    ["cut", 0.25, up], ["cut", 0.25, steady],               // gaining ~0.45 lb/wk on a cut
+    ["leanbulk", -0.55, up], ["leanbulk", -0.55, steady],    // losing ~1 lb/wk on a Lean Bulk
+    ["maintain", -0.85, steady],                             // losing ~1.5 lb/wk on Maintain
+  ];
+  for (const [goal, pct, speeds] of cases) {
+    const { p, store, W } = p2wWorld({ goal, pct, speeds });
+    const label = `${goal} ${pct}%/wk ${speeds === up ? "faster" : "steady"}: ${p.pts} ${p.detail}`;
+    assert.doesNotMatch(p.detail, /on plan/i, label);
+    assert.match(p.detail, /weight off your goal’s pace/, label);
+    assert.match(p.lever, /Fuel check-in/, label);
+    // Same weigh-ins through the Fuel check-in: off track there too.
+    const pts = store.ff_body.filter((e) => e.w).map((e) => ({ t: e.ts, w: parseFloat(e.w) }));
+    const g = { cut: -0.0075, leanbulk: 0.00375, maintain: 0 }[goal];
+    const ci = W.ffCheckin(W.ffTrendFit(pts.slice(-9)), W.ffWeeklyLb(g, 180, 177.8));
+    assert.equal(ci.onTrack, false, label);
+    if (goal === "cut") assert.ok(p.pts <= 5, label);      // gaining on a cut never reads 10/10
+  }
+  // The on-plan cases keep their wording.
+  assert.match(p2wWorld({ goal: "leanbulk", pct: 0.375, speeds: up }).p.detail, /Faster, weight on plan/);
+  assert.match(p2wWorld({ goal: "cut", pct: -0.75, speeds: steady }).p.detail, /Lighter, speed holding/);
+});
+
 // ---------------------------------------------------------- season window (121)
 test("after a plan restart Octane's speed and p2w pillars measure this season, like strength and consistency", () => {
   const rows = [];
@@ -339,4 +364,24 @@ test("forecast: a range is never wider than the slope cap allows, and never a bi
   assert.equal(f.status, "ready");
   assert.ok(f.projectedGain.high <= 6, `high ${f.projectedGain.high}`);
   assert.equal(f.basis.length, 3); assert.match(f.disclaimer, /not a promise/);
+});
+
+// ------------------------------------------------------------- review round 2
+test("onboarding re-run: a guided test stays 'Measured', and a guess never replaces today's test", () => {
+  const today = dayStart(NOW);
+  const W = world({ store: { ff_body: [{ iso: iso(today), ts: today + 3600e3, date: "x", s: "82.4", ss: "t" }] } });
+  W.logBodyEntry("", "80", "", "g");                 // a rough-guess edit on the same day
+  let row = W.__store.ff_body[0];
+  assert.equal(row.s, "82.4"); assert.equal(row.ss, "t");
+  assert.equal(W.ffSpeedRows().length, 1, "the real test still counts");
+  W.logBodyEntry("", "81", "", "m");                 // a measured correction still lands
+  row = W.__store.ff_body[0];
+  assert.equal(row.s, "81"); assert.equal(row.ss, "m");
+  // The toggle starts from the prefilled row's tag.
+  assert.match(ONBOARD, /if\(ob\.speed\) ob\.speedSrc=\(oldBody\[obi\]\.ss==="g"\?"g":"m"\);/);
+});
+
+test("no dead speed helpers: the drill-in sparkline reads ffSeasonSpeedRows", () => {
+  assert.doesNotMatch(SPEED, /function stSpeedHistory\(/);
+  assert.match(PLAYER, /ffSeasonSpeedRows\(\)/);
 });

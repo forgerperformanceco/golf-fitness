@@ -130,7 +130,7 @@ training transfers; the extreme numbers and branded routines don't.
 | Rotational core power | Med-ball rotational throws/slams on the Speed & Power day + lift-day primers |
 | Thoracic/shoulder mobility | 90/90s, open-books, thread-the-needle in the warm-ups |
 | Grip / forearm | Direct wrist/grip work added on the pull day; heavy carries |
-| Speed as a skill | Jumps + throws on the Speed & Power day and as lift-day primers (3–4 exposures/week); overspeed swings (light, max-velocity) once a week as the last Speed & Power drill, ramped 2×5→3×5→4×5 (`overspeedDose`); all kept fast & fresh |
+| Speed as a skill | Jumps + throws on the Speed & Power day and as lift-day primers (4–5 exposures/week: 4 on the 4-day plan, 5 on the 5-day); overspeed swings (light, max-velocity) once a week as the last Speed & Power drill, ramped 2×5→3×5→4×5 (`overspeedDose`); all kept fast & fresh |
 
 Nothing in the fitness-first framework is missing from the plan — it's the same engine,
 trained concurrently and progressed by double progression in 6-week waves with a deload every

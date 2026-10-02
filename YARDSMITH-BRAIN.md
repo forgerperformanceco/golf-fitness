@@ -432,6 +432,16 @@ stores; we're a URL). Shipping the app matters more than more docs.
   week reveals one workout per day; after it, workouts/speed tests/coach are Pro;
   logged data is never locked.
 
+- **Deep audit, Oct 2026** (DESIGN-CHANGES top entry): 130 verified fixes. Load math
+  now honors the waves (Heavy weeks heavier, real reductions, no load bumps on ballistic
+  work), effort cues are wave/position-aware with a 2-week no-failure on-ramp for new
+  lifters, breaks decay loads (≥14 d no bump, ≥28 d ~90%), BMI-aware goal suggestion,
+  20% fat floor, noise-aware speed signals, honest copy everywhere. **Open owner
+  decisions** listed there: frequency/volume (upper body 1×/wk; hamstrings, delts,
+  calves under the app's own guidance), beginner volume on-ramp, pull-up gate, plyo
+  gating, in-season template, round-aware scheduling, gym speed-day throws, trap-bar
+  default.
+
 **Rejected (deliberately):**
 - **Blurring/hiding exercises after purchase or anti-screenshot measures** — the
   exercise list isn't the product; locking it only annoys payers.
@@ -555,6 +565,18 @@ Plan of record: **`ROADMAP.md`**. Phases:
   (4) decide what pre-launch early-access users get (founding price recommended —
   their free-week clocks are already months old, so they'd see the lock at once).
   Never flip `FF_PAYWALL` without (1): the buy button would only show a toast.
+- **Oct 2 audit additions to the launch checklist** (full list: GO-LIVE-CHECKLIST.md):
+  the bridge must follow the contract in the 036 header (sync boolean `isPro()`;
+  `trialDays` only for eligible users; `purchase()` → `{status, charged?}`;
+  `platform`/`manageUrl`/`termsUrl`; dispatch `ff-billing-changed`). A **store
+  webhook** (RevenueCat or App Store Server Notifications v2 + Play RTDN) must write
+  `profiles` before `REQUIRE_SUBSCRIPTION=1`, or the coach 402s paying store users.
+  Apply migration `20261001204500_billing_per_subscription_entitlement.sql` by hand.
+  Write terms.html (+ sw/build-www entries); allow Paddle in the CSP with the web
+  bridge; set `PADDLE_API_KEY`/`PADDLE_ENV` so delete-account cancels subscriptions;
+  Paddle dunning must end in canceled/paused. Entitlement is status-only, with
+  `past_due` as grace. **Owner questions:** is the live owner row ('active', no
+  provider) a deliberate comp? What do users on pre-billing native builds get?
 Cost control via prompt caching on the knowledge base.
 
 Secrets: Anthropic key, Paddle webhook secret, Supabase service-role, VAPID

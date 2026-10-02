@@ -257,7 +257,8 @@ event." The ramp is a design choice: the optimal weekly dose is unknown
   (`/Squat|Quads/` — both splits' Day 1, incl. the 4-day "Quads & Hinge" day
   since Oct 2026), Russian KB swing 5×5 (hinge), jump (other lower). A day
   rename can silently change a primer — re-check after any rename. With the speed day that is
-  3–4 speed exposures a week with no metabolic fatigue (NUTRITION §10). Don't
+  4–5 speed exposures a week (4 on the 4-day plan, 5 on the 5-day: one primer per lift day
+  plus the Speed & Power day) with no metabolic fatigue (NUTRITION §10). Don't
   sell primers as potentiation (PAP unproven in golf, CLUBHEAD §10.3).
 - **Effort copy** (`effortNote(t, name, ctx)`, ctx = {wave, band, first,
   easeIn, onRamp, beforeHeavy}): distance work → "heavy · rest ~90s"; explosive/
@@ -301,9 +302,15 @@ event." The ramp is a design choice: the optimal weekly dose is unknown
   (into a Heavy week or back to Build), the suggested load is rescaled by an
   Epley-style ratio `(1+(rRef+2)/30)/(1+(rNow+2)/30)` from the reps actually
   logged, clamped to 0.85–1.10, so Heavy weeks are actually heavier — not one
-  small increment — and the return to Build is a little lighter.
-- **Return after a break** (per lift, in `ffDose`): last full-dose session of
-  that lift **≥14 days** ago → **no** add-weight jump; **≥28 days** → **~90%**
+  small increment — and the return to Build is a little lighter. Because it
+  matches the reps actually done, missed (or extra) reps can move the load
+  against the target's rep change; then `ffDose` returns `shift:"match"` and the
+  loggers say only the load ("matched to the reps you got last time"), never
+  "more reps, so lighter" on a fewer-reps day.
+- **Return after a break** (per lift, in `ffDose` via `ffDaysSince`): the lift
+  last done at **any dose** (`_seen` from `lastSessionFor` — a planned deload or a
+  recovery-dose day is training, not a break; the full-dose entry stays the load
+  reference) **≥14 days** ago → **no** add-weight jump; **≥28 days** → **~90%**
   of the last working weight (`ffReduceLoad(ref, 0.9)`). (Evidence + rationale:
   NUTRITION §7 "Time off and coming back" — strength generally held up to ~4
   weeks; losses beyond ~2–4 weeks; faster regain than first gain. 90% is a
@@ -315,7 +322,7 @@ event." The ramp is a design choice: the optimal weekly dose is unknown
   prescription; only a deload/recovery log → no prescription; deload week →
   ~60% (`ffReduceLoad`, which always reduces); readiness "recharge" → ~75% cap;
   progression-ready → last + one increment, except never for ballistic drills,
-  in Peak weeks or ≥14 days after the last full-dose session; plus the
+  in Peak weeks or ≥14 days after the lift was last done (any dose); plus the
   rep-shift rescale and the 28-day ease-in. Read `ffDose` for the exact order.
   Prescriptions render as input **placeholders** with one-tap commit — never
   phantom logged values (a recorded deliberate preference).
@@ -327,28 +334,29 @@ event." The ramp is a design choice: the optimal weekly dose is unknown
 
 ### 5.1 The daily pipeline
 
-`calc()` (025) computes energy, then hands the macro split to the pure, DOM-free
-`ffMacroTargets()` (024), which is unit-tested in Node (`tests/macro-model.test.mjs`):
+`calc()` (025) calls the pure, DOM-free `ffDayTargets()` (024), which computes energy,
+clamps the check-in nudge, and hands the split to `ffMacroTargets()` (024) — both
+unit-tested in Node (`tests/macro-model.test.mjs`):
 
 ```
 weightKg = lb / 2.20462 ;  heightCm = (ft×12 + in) × 2.54
 BMR  = 10×weightKg + 6.25×heightCm − 5×age + (male ? +5 : −161)   // Mifflin–St Jeor
 TDEE = BMR × activity          // 1.2 / 1.375 / 1.55 / 1.725 / 1.9
-target = TDEE × (1 + goal.pct) + ff_kcal_adj                     // metabolism check-in nudge
-target = max(target, floorKcal)                                  // 1200 women / 1500 men
+base   = max(TDEE × (1 + goal.pct), floorKcal)                   // 1200 women / 1500 men
+adj    = clamp(ff_kcal_adj, max(−600, min(0, floorKcal − base)), +600)   // ffAdjRange
+target = max(base + adj, floorKcal)                               // metabolism check-in nudge
 referenceLb = min(weightLb, 30 × heightM² × 2.20462)             // BMI-30 cap
 proteinG = round5( referenceLb × goal.proteinPerLb )
 fatG     = round5( clamp(referenceLb × goal.fatPerLb, 45, 100) )
-fatG     = raised if needed so fatG × 9 ≥ ~20% of target          // Oct 2026 fat floor
+fatG     = max(fatG, ceil(target × 0.20 / 45) × 5)                // Oct 2026: fat ≥20% kcal (FAT_MIN_PCT), rounded up to 5 g; may pass 100 g
 carbG    = round5( max(0, (target − proteinG×4 − fatG×9) / 4) )
 target   = max(target, proteinG×4 + fatG×9 + carbG×4)
 ```
 
 Protein and the body-size fat anchor **don't depend on calories at all**, so the
 check-in nudge (`ff_kcal_adj`) lands in carbs — and, on a big-calorie day where the
-20% floor binds, partly in fat — unless the calorie floor binds. The exact rounding of
-the fat floor and which goals carry it: read `ffMacroTargets` and `GOALS` (the floor
-was added in the Oct 2026 fix round; the code wins over this block). Macro kcal values:
+20% floor binds, partly in fat — unless the calorie floor binds. The 20% fat floor
+(`FAT_MIN_PCT` in 025) applies to every goal; the code wins over this block. Macro kcal values:
 protein 4, carb 4, fat 9. `round5` = nearest multiple of 5. Results are stashed to
 `ff_targets` `{goal,kcal,proteinG,carbG,fatG,mealN,tdee}` for the AI coach.
 
@@ -366,7 +374,10 @@ protein 4, carb 4, fat 9. `round5` = nearest multiple of 5. Results are stashed 
 roughly 2.5–2.9 g/kg of **fat-free mass** at 12–25% body fat, inside Helms 2014's
 2.3–3.1 g/kg **FFM** range (Helms is per lean mass, not body weight — NUTRITION §4).
 Fat at 0.30–0.35 g/lb sits at or above the ~0.3 g/lb floor. Lean Bulk is the default
-goal, but onboarding suggests **Lean Out** at BMI ≥30 (a suggestion, never a lock).
+goal; onboarding suggests one from height + weight (`ffSuggestGoal` in 024): BMI <27 →
+Lean Bulk, 27–30 → In-Season Maintain (hold weight, recomp), ≥30 → **Lean Out** — a
+suggestion, never a lock. Gain bands (and the check-in's desired rate) scale from the
+BMI-30 reference weight, losses from total weight (`ffWeeklyLb`).
 Bulk is honest copy only: faster scale gain, mostly fat in trained lifters (Helms 2023),
 not extra strength or speed. The keys above are the only valid `state.goal` / profile
 `goal` values — test seeds must use them exactly (`'leanbulk'`, not `'lean'`).
@@ -404,20 +415,39 @@ not extra strength or speed. The keys above are the only valid `state.goal` / pr
 
 ### 5.4 The metabolism check-in (adaptive calories)
 
-`weightTrend` / `adaptiveCheck` / `adaptiveDue` in 070-workout-player…js + the
-apply handler in 085-progress-stats-view.js (grep recipes in Provenance).
-MacroFactor-style: the calculator is a starting guess; the scale is the meter.
+The pure math lives in 024-macro-model.js (`ffTrendFit`, `ffCheckin`,
+`ffAdjRange`); the wiring is `weightTrend` / `adaptiveCheck` / `adaptiveDue` /
+`renderAdaptiveCard` in 070-workout-player…js, the Apply / Got it handler in
+085-progress-stats-view.js (grep recipes in Provenance). MacroFactor-style: the
+calculator is a starting guess; the scale is the meter.
 
-- `weightTrend()`: least-squares slope over `ff_body` weights within
-  the last 32 days; needs ≥2 points spanning ≥10 days. Returns lb/week.
-- Due (`adaptiveDue`): a trend exists AND ≥10 days since `ff_lastcheckin`.
-- `adaptiveCheck()`: `desired` = midpoint of the goal's weekly band ×
-  bodyweight (0 for maintain); `error = measuredRate − desired`; tolerance
-  `max(0.25 lb/wk, |desired|×0.6)`. If off-track:
-  `delta = −round(error × 500 / 50) × 50`, clamped **±250 kcal** per check-in
-  (≈500 kcal/day per lb/wk of error ≈ 3500 kcal/lb ÷ 7).
-- Applying adds delta to `ff_kcal_adj`, clamped **±600 kcal total** (085),
-  stamps `ff_lastcheckin`, and reruns `calc()` — the change lands in carbs (§5.1).
+- `weightTrend()` (070): `ff_body` weigh-ins from the last 32 days **and** since
+  `ff_lastcheckin` (the last calorie change), fed to `ffTrendFit()` (024): a
+  least-squares slope with its standard error (SE), in lb/week. It needs **6+
+  weigh-ins over 12+ days** (`FF_TREND_MIN_N`, `FF_TREND_MIN_DAYS`); fewer can't
+  beat day-to-day scale noise.
+- `adaptiveCheck()` (070): `desired` = midpoint of the goal's weekly band through
+  `ffWeeklyLb` (gains scale from the BMI-30 reference weight `ffReferenceLb`,
+  losses from bodyweight; 0 for maintain). `ffCheckin()` (024): `error = rate −
+  desired`; **on track** within `max(0.5 lb/wk, 60% of |desired|, 2 SE)`. Off
+  track → correct **half the gap** at 500 kcal/day per lb/wk: `delta =
+  −round(error × 5) × 50`, i.e. in 50 kcal steps, capped **±250 kcal** and to the
+  room left in the range. If that room is zero the card says so (`atLimit`) and
+  offers no change. `deltaCarb` is recomputed through `ffMacroTargets` (the 20%
+  fat floor can take a little of it).
+- The range (`ffAdjRange`, applied in `ffDayTargets`): the total adjustment
+  `ff_kcal_adj` runs from **−600, or the calorie floor if that is higher** (whole
+  kcal, rounded up), to **+600**. The value in use (`effAdj`) is that clamp,
+  rounded to a whole kcal.
+- Due (`adaptiveDue`): a trend exists AND ≥10 days since `ff_lastcheckin` AND
+  ≥10 days since the last "Got it" (a `checkin-ok:<day>` mark in
+  `ff_insights_seen`).
+- Buttons (085): **Apply** adds delta to the in-use adjustment, clamps to the
+  range, rounds, stores `ff_kcal_adj`, stamps `ff_lastcheckin` (a fresh window)
+  and reruns `calc()` — the change lands in carbs (§5.1). **Not now** also stamps
+  `ff_lastcheckin`. **Got it** (on-track or at-the-limit card) only hides the card
+  for 10 days and keeps the window, so the next look judges a longer trend. A goal
+  switch stamps `ff_lastcheckin` too (025 `ffGoalSwitched`).
 
 ### 5.5 Fuel adherence score (feeds Octane pillar 6)
 
@@ -501,9 +531,9 @@ policy (OCTANE-SCORE.md, refreshed to six pillars in Oct 2026).
 | # | Pillar | Max | Formula (all `clamp`ed to [0, max]) | Needs |
 |---|---|---|---|---|
 | 1 | Consistency | 35 | `35 × clamp(done / (freq × weeksIn), 0, 1)`, `weeksIn = max(1, min(week,8))`; `done` = FINISHED `ff_log` sessions in the last `weeksIn` plan weeks (`sessionsByWeek`) — decays if you stop; freq from `planState.freq` (default 4) | ≥1 finished session |
-| 2 | Clubhead speed | 30 | `15 + speedGain% × 220` where gain = (last − first)/first over `ff_body` 7-iron entries; neutral start = 15/30 | ≥2 speed entries |
+| 2 | Clubhead speed | 30 | `15 + eff/base × 220`, over **this season's** speed rows (`ffSeasonSpeedRows`, 060: from 2 weeks before plan start; rough guesses never count; once a guided test exists older untagged numbers stop anchoring). `ffSpeedSignal` fits a least-squares line; the change counts only past `max(1.5 mph, 2 SE)` and `eff` shrinks it smoothly toward 0 inside that noise (Oct 2026; was first→last raw gain) | ≥2 season speed entries |
 | 3 | Strength (e1RM) | 25 | `10 + avgGain% × 150`; per-lift Epley e1RM, first session's top vs best-ever, averaged over the big compound lifts (`isBigLift` in 035 — excludes throws, speed work and Pallof) | logged weights across weeks |
-| 4 | Power-to-weight | 10 | **Goal-aware (Oct 2026)**, replacing the old 1:1 `5 + (speedGain% − weightGain%) × 250`, which scored ~0 for every on-plan Lean Bulk user. On a gaining goal only weight gained *above* the goal's weekly band (`GOALS[goal].weekly`) counts against you; on cut/maintain, weight loss alone earns nothing (speed must hold or rise); speed changes inside test-to-test noise count as zero. Read the p2w block in `ffScore()` for the exact constants. The "keep the surplus lean" lever is for over-band gainers only | ≥2 speeds AND ≥2 weights |
+| 4 | Power-to-weight | 10 | **Goal-aware (Oct 2026)**, replacing the old 1:1 `5 + (speedGain% − weightGain%) × 250`, which scored ~0 for every on-plan Lean Bulk user. On a gaining goal only weight gained *above* the goal's weekly band (`GOALS[goal].weekly`) counts against you; on cut/maintain, weight loss alone earns nothing (speed must hold or rise); speed changes inside test-to-test noise count as zero. `ffP2wRead()` (070): weight pace = least-squares slope over the season's last 8 weeks vs the goal's planned pace (`ffWeeklyLb`), tolerance `max(0.5 lb, 60% of the rate, 2 SE)` as in the check-in; `pts = 5 + (eff speed gain − excess gain) × 250`. The "keep the surplus lean" lever is for over-band gainers only. "Weight on plan" shows only when the rate is inside that band; off it in the other direction (a cut that gains, a Lean Bulk that loses) the detail reads "… — weight off your goal’s pace" and points to the Fuel check-in, and a cut that gains is capped at 5/10 | ≥2 speeds AND ≥2 weights |
 | 5 | Mobility | 10 | `lastScreenScore / 100 × 10`; "re-screen due" note past 35 days | ≥1 screen |
 | 6 | Fuel | 10 | `avg(fuelScoreFor) × 10` over the last **≤7 logged days within a 14-day lookback** (693-698) | ≥1 fuel-logged day |
 

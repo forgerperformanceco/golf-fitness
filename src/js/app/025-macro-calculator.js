@@ -37,7 +37,7 @@
       phase: "🏗️ Build phase · matches your <b>Lean Bulk</b> macros",
       lead: "<b>Add lean muscle</b> and turn it into <b>clubhead speed</b> — one consistent week that builds size, strength and speed together, all 20 weeks.",
       foldTitle: "📈 How to add the muscle (and keep your swing)",
-      rate: "<b>Clean surplus:</b> Lean Bulk (+10%), gain <b>~0.25–0.5% of bodyweight a week</b> (about 0.5–1 lb for most) — not a dirty bulk." },
+      rate: "<b>Clean surplus:</b> Lean Bulk (+10%), gain <b>~0.25–0.5% of bodyweight a week</b> — not a dirty bulk." },
     bulk: {
       phase: "💪 Mass phase · matches your <b>Bulk</b> macros",
       lead: "<b>Gain weight faster</b> on the same training week. A bigger surplus mostly adds fat, not extra muscle or speed — plan a Lean Out afterward.",
@@ -1215,9 +1215,9 @@
         ? (goal===GOALS.bulk
           ? 'This is faster than muscle can grow, so much of it will be fat — plan a Lean Out after. '
           : 'Going faster than this is mostly fat, not muscle. ')+
-          'If the weekly average stalls 2+ weeks, your check-in will suggest more food — about 25–40 g carbs (100–150 kcal) a day.'
+          'If the weekly average stalls 2+ weeks, your check-in will suggest more food — up to ~250 kcal (about 60 g carbs) a day, sized to how far off you are.'
         : 'Going faster than this costs muscle and speed. If the weekly average stalls 2+ weeks, your check-in will suggest a trim — '+
-          'about 25–40 g carbs (100–150 kcal) a day, never below your daily minimum.')+
+          'up to ~250 kcal (about 60 g carbs) a day, sized to how far off you are, never below your daily minimum.')+
       '</div></div>';
   }
 
@@ -1246,7 +1246,7 @@
     // Label from the real numbers: the goal % against maintenance as tuned by the
     // check-in (TDEE + the adjustment in use), and "minimum" when the safety floor
     // set the target — never a nominal "-20% deficit" next to a −6% number.
-    var adjNow=r.effAdj||0, maint=r.tdee+adjNow;
+    var adjNow=Math.round(r.effAdj||0), maint=r.tdee+adjNow;
     var realPct=maint>0 ? Math.round((r.target/maint-1)*100) : 0;
     var pctTxt = r.floored ? r.floorKcal.toLocaleString()+" kcal minimum"
       : (realPct===0?"maintenance":(realPct>0?"+"+realPct+"% surplus":realPct+"% deficit"));

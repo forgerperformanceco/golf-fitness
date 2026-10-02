@@ -77,7 +77,8 @@
     // Tuning moves the target from the floored base, so a nudge the floor
     // would swallow is never stored or offered (ffAdjRange / ffCheckin).
     var baseTarget=Math.max(tdee*(1+o.goal.pct), floorKcal);
-    var adjR=ffAdjRange(baseTarget, floorKcal), effAdj=ffClamp(Number(o.kcalAdj)||0, adjR.lo, adjR.hi);
+    // Whole kcal: the base has decimals, and a raw clamp showed "Tuned −81.0737… kcal".
+    var adjR=ffAdjRange(baseTarget, floorKcal), effAdj=Math.round(ffClamp(Number(o.kcalAdj)||0, adjR.lo, adjR.hi));
     var macroIn={ weightLb:weightLb, heightCm:heightCm, targetKcal:baseTarget, kcalAdj:effAdj,
       proteinPerLb:o.goal.proteinPerLb, fatPerLb:o.goal.fatPerLb, fatMinPct:o.fatMinPct, floorKcal:floorKcal };
     return { bmr:bmr, tdee:tdee, floorKcal:floorKcal, baseTarget:baseTarget, lo:adjR.lo, hi:adjR.hi,
@@ -211,7 +212,8 @@
   }
   // The range ff_kcal_adj may usefully take for a goal: never below what the
   // calorie floor would swallow, never past ±600. base = the goal target before
-  // tuning, already lifted to the floor.
+  // tuning, already lifted to the floor. Whole kcal (rounded up, so base+lo
+  // never dips under the floor).
   function ffAdjRange(base, floorKcal){
-    return { lo:Math.max(-600, Math.min(0, (Number(floorKcal)||0)-(Number(base)||0))), hi:600 };
+    return { lo:Math.max(-600, Math.min(0, Math.ceil((Number(floorKcal)||0)-(Number(base)||0)))), hi:600 };
   }

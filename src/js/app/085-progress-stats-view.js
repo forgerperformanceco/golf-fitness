@@ -96,12 +96,16 @@
   // Build-week sessions (a Heavy week's fewer reps, an easy week's ~60% and a
   // recovery dose all dip e1RM by design); lastAcc = the newest session is one.
   function bigLiftStats(){
-    var sess=sessionsByWeek(), hist={}, acc={}, lastAcc={};
+    var sess=sessionsByWeek(), hist={}, acc={}, lastAcc={}, lastW={};
     sess.forEach(function(se){ (se.s.ex||[]).forEach(function(x){
       if(!isBigLift(x.name, true)) return;
       var top=0; (x.sets||[]).forEach(function(st){ top=Math.max(top, e1RM(st.w, st.r)); });
       if(top<=0) return;
       (hist[x.name]=hist[x.name]||[]).push(top);
+      // Back after 4+ plan weeks away: the first sessions ease in (~90%), so the
+      // stall baseline restarts — only Build sessions since the return count.
+      if(lastW[x.name]!=null && se.w-lastW[x.name]>=4) acc[x.name]=[];
+      lastW[x.name]=se.w;
       var like=sessFullDose(se.s, se.w) && (se.s.wave||waveFor(se.w))==="accumulate";
       if(like) (acc[x.name]=acc[x.name]||[]).push(top);
       lastAcc[x.name]=like;
@@ -910,8 +914,12 @@
       if(a && a.deltaKcal){
         var cb=(typeof ffCalcBase!=="undefined" && ffCalcBase)?ffCalcBase:null;
         var cur=cb?cb.effAdj:(Number(lsGet("ff_kcal_adj",0))||0);
-        var nx=ffClamp(cur+a.deltaKcal, cb?cb.lo:-600, cb?cb.hi:600); lsSet("ff_kcal_adj", nx); } }
-    lsSet("ff_lastcheckin", Date.now());
+        var nx=Math.round(ffClamp(cur+a.deltaKcal, cb?cb.lo:-600, cb?cb.hi:600)); lsSet("ff_kcal_adj", nx); } }
+    // On track / at the limit: hide for 10 days, keep the weigh-ins collected so
+    // far (each window alone is too short to catch a slow stall). Apply and
+    // "Not now" start a fresh window as before.
+    if(act==="ok") ffCheckinAck();
+    else lsSet("ff_lastcheckin", Date.now());
     try{ calc(); }catch(_){}
     try{ renderFuelToday(); }catch(_){}
     try{ renderDash(); }catch(_){}

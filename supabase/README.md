@@ -20,8 +20,10 @@ supabase/
 - **Edge functions** deploy automatically through **Supabase's GitHub
   integration**: every merge to `main` that changes `supabase/functions/**`
   redeploys them (each keeps `verify_jwt = false` from `config.toml`).
-  `paddle-webhook` is out of auto-deploy until billing goes live — deploy it by
-  hand (`GO-LIVE-CHECKLIST.md` step 3).
+  That includes `paddle-webhook`: it ships on merge like the rest, and does
+  nothing until `PADDLE_WEBHOOK_SECRET` is set (no signature can verify, so
+  every request is rejected). A hand deploy (`GO-LIVE-CHECKLIST.md` step 3) is
+  only needed to get a change live before it merges.
 - **Function secrets** are set once in Supabase: Dashboard → Edge Functions →
   Secrets, or `supabase secrets set NAME=value`. Today: `ANTHROPIC_API_KEY`,
   `AI_COACH_MODEL`, `ALLOWED_ORIGIN`, the VAPID pair, `PUSH_CRON_SECRET`. At
