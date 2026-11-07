@@ -528,6 +528,24 @@ Two independent meta-analyses agree on the ranking of physical qualities vs club
   place as injury-proofing (§8), framed honestly — not sold as a speed hack.** (Direct evidence
   linking *thoracic* rotation ROM to clubhead speed was **not** confirmed in this pass — an open
   question, §11.8.)
+- **Plane matters (added Nov 2026).** Proficient golfers (handicap ≤5) had more *transverse-plane*
+  (rotation) flexibility at the shoulder, trunk and hip than average golfers (handicap 10–20), with
+  no difference in the sagittal or frontal planes; transverse hip flexibility accounted for ~48% of
+  ball-speed variance (McHugh 2022, JSCR, doi:10.1519/JSC.0000000000004167; n=25, cross-sectional).
+  Torso–pelvis separation at the top tracked ball velocity in 100 recreational golfers (Myers 2008,
+  J Sports Sci, doi:10.1080/02640410701373543). This refines, not reverses, the line above: *general*
+  flexibility still doesn't predict speed, and one small cross-sectional study doesn't make rotation
+  mobility a speed lever. It does mean rotation range is the part of mobility a golfer must not lose
+  while adding mass.
+- **Dose and timing for keeping it (added Nov 2026).** Static stretching gains need ≥~5 min per muscle
+  per week over ≥5 days; weekly time and frequency matter, single-session length doesn't (Thomas 2018,
+  Int J Sports Med, doi:10.1055/s-0044-101146). Static holds ≥60 s per muscle cost ~4.6% performance
+  immediately after (<60 s ~1.1%), and following them with active movement removed the effect (Behm
+  2016, APNM, doi:10.1139/apnm-2015-0235) — so holds go after lifting or on rest days. Resistance
+  training through full range improves ROM about as much as stretching (Alizadeh 2023, Sports Med,
+  55 studies), but only in the ranges trained — sagittal lifting doesn't train the turn. Across 19
+  studies, prior back pain, age and body mass were the clearest predictors of golf low-back pain, not
+  swing style (Smith 2018, Sports Health, doi:10.1177/1941738118795425).
 
 ### 11.7 Special populations (MEDIUM — thinner data)
 

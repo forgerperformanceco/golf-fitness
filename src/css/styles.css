@@ -1537,6 +1537,12 @@
   .prelift[open] > summary::after { content:"▴"; }
   .prelift .prelift-body { padding:0 4px 4px; }
   .prelift .warm, .prelift .primer { border-radius:0; }
+  /* Cool-down / rest-day routine — the cool counterpart of the amber warm-up box */
+  .prelift.cool { background:linear-gradient(165deg,#f1faf4,#e3f4e9); border-color:#c6e3d0; border-left-color:#2f9e5d; box-shadow:0 4px 14px rgba(47,158,93,.10); }
+  .prelift.cool > summary { color:#1d6b3f; }
+  .prelift.cool > summary::after { color:#5ea97b; }
+  .rest-routine { padding:0 7px; }
+  .pl-cd { margin:16px 0 6px; text-align:left; }
   /* Gym-readable warm-up & power primer — scannable, tappable rows */
   .wu { padding:4px 8px 8px; }
   .wu-h { font:800 11px/1.2 var(--font); letter-spacing:.05em; text-transform:uppercase; color:var(--muted); margin:12px 2px 7px; }
@@ -2526,6 +2532,8 @@
   html:not([data-theme="light"]) .il-add{ background:#152118; }
   html:not([data-theme="light"]) .prelift{ background:linear-gradient(165deg,#221c12,#292116); border:1px solid #493c29; border-left:4px solid #624d37; }
   html:not([data-theme="light"]) .prelift > summary{ color:#e0cfbe; }
+  html:not([data-theme="light"]) .prelift.cool{ background:linear-gradient(165deg,#122218,#16291d); border-color:#294833; }
+  html:not([data-theme="light"]) .prelift.cool > summary{ color:#c1e1cf; }
   html:not([data-theme="light"]) .wu-row{ background:#1a1a1a; }
   html:not([data-theme="light"]) .wu-row.done{ background:#152018; }
   html:not([data-theme="light"]) .wu-note.caution{ color:#e0d6be; background:#252014; border:1px solid #484129; }
@@ -2813,6 +2821,8 @@
   html[data-theme="dark"] .il-add{ background:#152118; }
   html[data-theme="dark"] .prelift{ background:linear-gradient(165deg,#221c12,#292116); border:1px solid #493c29; border-left:4px solid #624d37; }
   html[data-theme="dark"] .prelift > summary{ color:#e0cfbe; }
+  html[data-theme="dark"] .prelift.cool{ background:linear-gradient(165deg,#122218,#16291d); border-color:#294833; }
+  html[data-theme="dark"] .prelift.cool > summary{ color:#c1e1cf; }
   html[data-theme="dark"] .wu-row{ background:#1a1a1a; }
   html[data-theme="dark"] .wu-row.done{ background:#152018; }
   html[data-theme="dark"] .wu-note.caution{ color:#e0d6be; background:#252014; border:1px solid #484129; }

@@ -48,7 +48,8 @@ function decl(source, name, open) {
 const PLAN_FNS = ["effortNote", "ffOnRamp", "ffHealth", "ffHealthCaution", "heavyAfter", "warmupBase", "primerFor", "purposeFor", "isBallistic",
   "isBigLift", "isBodyweightEx", "trainRetain", "adjSets", "eventInfo", "waveFor", "bumpReps", "trimSets", "plainReps",
   "waveAdjust", "capSets", "plainSetCount", "ffInSeason", "ffInSeasonMode", "ffInSeasonPlan", "ffLowImpact", "speedRows", "effTarget", "overspeedDose", "speedDrillTarget", "prescribeW", "ffReduceLoad", "repShiftLoad",
-  "normName", "have", "equipNeedsFor", "equipOk", "speedMode", "resolveEx", "resolveDay", "activeDays", "ffSessionsPerWeek", "dayTargets", "sessionMinutes"];
+  "normName", "have", "equipNeedsFor", "equipOk", "speedMode", "resolveEx", "resolveDay", "activeDays", "ffSessionsPerWeek", "dayTargets", "sessionMinutes",
+  "cdHold", "cooldownBase", "cdAddFixes", "cooldownList", "recoveryList", "holdSecs", "listMinutes"];
 const LOGGER_FNS = ["lastSessionFor", "sessFullDose", "repsShifted", "topReps", "isDistEx", "repSeed", "incNum",
   "progressReady", "parseSets", "getLog", "sessionFinished", "swapOptionsFor", "exGroupFor"];
 
@@ -83,6 +84,7 @@ function engine({ goal = "leanbulk", equip = null, store = {}, week = 2, now = D
     if(__eq){ Object.keys(planState.equip).forEach(function(k){ planState.equip[k]=__eq.indexOf(k)!==-1; }); }
     this.api={ effortNote, ffOnRamp, heavyAfter, warmupBase, primerFor, purposeFor, isBallistic, isBigLift, waveFor,
       prescribeW, ffReduceLoad, repShiftLoad, incNum, ffDose, lastSessionFor, resolveDay, dayTargets, sessionMinutes,
+      cooldownList, recoveryList, listMinutes, holdSecs,
       effTarget, swapOptionsFor, ffReadinessAdaptSession, bigLiftStats, strengthGain, plLifetimeBests, ffInsights,
       PHASES, EXERCISE_DB, setWeek:function(w){ __week=w; } };
   `, ctx);
@@ -424,6 +426,46 @@ test("the speed day warms up with easy jumps and throws before max intent", () =
   assert.doesNotMatch(ctx.out.quiet, /New to jumps/);
   assert.equal((ctx.out.lift.match(/New to jumps/g) || []).length, 1);
   assert.match(PLAN, /warmupHtml\("speed", false, showPrimerNote\)/);
+});
+
+// ------------------------------------------------- 13b cool-down + rest day
+test("every session ends with rotation holds; the rest-day routine is the promised 10 min", () => {
+  const E = engine();
+  const days = [...E.PHASES[0].days4, ...E.PHASES[0].days5].filter((d) => d.ex);
+  for (const d of days) {
+    const list = E.cooldownList(d.type === "speed" ? "speed" : d.name);
+    assert.ok(list.some((m) => /^90\/90 hold/.test(m[0])), `${d.name}: 90/90 hold`);
+    assert.ok(list.length >= 2 && list.length <= 3, `${d.name}: ${list.length} holds`);
+    const mins = E.listMinutes(list);
+    assert.ok(mins >= 4 && mins <= 6, `${d.name}: ${mins} min`);
+  }
+  assert.equal(E.listMinutes(E.recoveryList()), 10);            // the rest hero says "10 MIN"
+  assert.equal(E.sessionMinutes({ type: "rest" }), 10);
+  assert.equal(E.holdSecs("2 × 30s/side"), 120);
+  assert.equal(E.holdSecs("×8/side"), 64);
+  // Long static holds stay out of the warm-up (Behm 2016): no timed hold of 30 s+ in any warm-up base.
+  for (const d of days) {
+    const wu = E.warmupBase(d.type === "speed" ? "speed" : d.name);
+    assert.ok(!wu.some((m) => { const t = /(\d+)\s*s\b/.exec(m[1]); return t && +t[1] >= 30; }), `${d.name} warm-up has no long static hold`);
+  }
+});
+
+test("mobility-screen flags reach the cool-down and rest day, never as duplicates", () => {
+  const ctx = {};
+  vm.runInNewContext(`
+    function mobLimits(){ return { trunk:true, hip:true, squat:true }; }
+    ${["cdHold", "cooldownBase", "cdAddFixes", "cooldownList", "recoveryList"].map((n) => fn(PLAN, n)).join("\n")}
+    this.out = { push: cooldownList("Day 2 — Upper (Push)"), lower: cooldownList("Day 1 — Lower (Quads)"),
+                 rest: recoveryList(), again: cooldownList("Day 2 — Upper (Push)") };
+  `, ctx);
+  const names = (l) => l.map((m) => m[0]);
+  assert.ok(names(ctx.out.push).includes("Thread-the-needle") && names(ctx.out.push).includes("90/90 lift-offs"));
+  assert.ok(!names(ctx.out.push).some((n) => /Deep squat/.test(n)), "squat fix is lower-day only");
+  assert.ok(names(ctx.out.lower).some((n) => /Deep squat/.test(n)));
+  assert.ok(names(ctx.out.rest).some((n) => /Deep squat/.test(n)));
+  for (const l of Object.values(ctx.out)) assert.equal(new Set(names(l)).size, l.length, "no duplicate move");
+  assert.ok(ctx.out.push.filter((m) => m[2] === "screen").every((m) => /Thread|lift-off/.test(m[0])));
+  assert.equal(ctx.out.again.length, ctx.out.push.length, "routing never leaks between calls");
 });
 
 // ------------------------------------------------------------- 14 trap bar

@@ -53,9 +53,9 @@
     try{ if($("view-account") && $("view-account").classList.contains("active")) renderAccount(); }catch(e){}
   }
   var MOB_FIX = {
-    trunk:"open-book T-spine rotations added to your warm-ups",
-    hip:"extra 90/90 + adductor rock-backs added to lower-day warm-ups",
-    squat:"deep-squat holds + ankle rockers added to lower-day warm-ups"
+    trunk:"open-book + thread-the-needle added to your warm-ups, cool-downs and rest days",
+    hip:"extra 90/90 work added to lower-day warm-ups, cool-downs and rest days",
+    squat:"deep-squat holds + ankle rockers added to lower-day warm-ups, cool-downs and rest days"
   };
   function renderMobility(){
     var body=$("mobBody"); if(!body || !mobState) return;

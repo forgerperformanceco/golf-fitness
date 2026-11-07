@@ -448,6 +448,11 @@ stores; we're a URL). Shipping the app matters more than more docs.
   Fewer sets / 2 days / 3 days), the week arranged automatically so rounds land on rest
   days, and a setup health check (PAR-Q+-style; any "yes" → a 4-week gentle start until
   a doctor's clearance is marked in You).
+- **Keep-your-turn dose (Nov 7, 2026)** — a ~5-min rotation cool-down after every session
+  (player recap + a folded card on Train) and a real 10-min rest-day routine behind "Start
+  recovery", with mobility-screen flags routed into both. Static holds sit after lifting, never
+  before (Behm 2016); the weekly dose follows Thomas 2018. Still durability, never a speed claim.
+  Prompted by the owner's own bulk on a traditional plan costing his coil (DESIGN-CHANGES, Nov 7).
 
 **Rejected (deliberately):**
 - **Blurring/hiding exercises after purchase or anti-screenshot measures** — the

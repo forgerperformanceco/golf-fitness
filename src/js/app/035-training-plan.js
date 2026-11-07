@@ -478,6 +478,75 @@
     if(prep.indexOf("knees")!==-1 && lower) addFix(["Supported split-squat hold","2 × 20s/side"], ["Reverse lunge (bodyweight)","×6/side"], /split.?squat hold|reverse lunge/i, "profile");
     return list;
   }
+  // Cool-down: static holds AFTER the lifts, rotation first. Long holds right
+  // before lifting cost a little strength (60 s+ per muscle ≈ −4.6%, Behm 2016),
+  // so they live here and on rest days, never in the warm-up. Range gains need
+  // ~5+ min per muscle per week spread over 5+ days (Thomas 2018) — a few minutes
+  // after each session plus the rest-day routine gets the hips, trunk and
+  // shoulders there; the warm-up alone can't. Framed as keeping your turn while
+  // you add mass, never as a speed lever (general flexibility doesn't predict
+  // CHS — Brennan 2024). Checklist only: nothing here is logged.
+  // The holds every list shares — fresh arrays per call, so a routed fix can
+  // never leak into another list.
+  function cdHold(k){
+    return { "9090":["90/90 hold, lean each way","2 × 30s/side"], book:["Open-book hold","2 × 30s/side"],
+      xbody:["Cross-body shoulder stretch","2 × 30s/side"] }[k];
+  }
+  function cooldownBase(name){
+    if(name==="speed") return [cdHold("9090"), cdHold("book")];
+    if(/Full Body/.test(name)) return [cdHold("9090"), cdHold("xbody"), cdHold("book")];
+    if(/Pull|Rotate/.test(name)) return [["Bench lat stretch, turn each way","2 × 30s"], cdHold("xbody"), cdHold("9090")];
+    if(/Push|Upper/.test(name)) return [["Doorway pec stretch","2 × 30s/side"], cdHold("xbody"), cdHold("9090")];
+    if(/Lower|Squat|Hinge|Quads/.test(name)) return [["Half-kneeling hip flexor stretch","2 × 30s/side"], cdHold("9090"), cdHold("book")];
+    return [cdHold("9090"), cdHold("book")];
+  }
+  // The mobility screen's flags add their fix after the session too (marked
+  // "screen" like the warm-up's). Never a duplicate of a move already listed.
+  function cdAddFixes(list, lower){
+    var lim=(typeof mobLimits==="function")?mobLimits():{};
+    function add(m, alreadyRe){ if(!list.some(function(x){ return alreadyRe.test(x[0]); })) list.push([m[0], m[1], "screen"]); }
+    if(lim.trunk) add(["Thread-the-needle","×6/side"], /thread/i);
+    if(lim.hip) add(["90/90 lift-offs","×5/side"], /lift-off/i);
+    if(lim.squat && lower) add(["Deep squat hold (hold a support)","3 × 20s"], /deep squat/i);
+    return list;
+  }
+  function cooldownList(name){
+    return cdAddFixes(cooldownBase(name), (name==="speed") || /Lower|Squat|Hinge|Quads|Full Body/.test(name));
+  }
+  // The rest-day routine behind "Start recovery" (the card promises 10 min):
+  // the turn's three links — trunk, hips, shoulders — at a dose a warm-up can't
+  // reach. The 90/90 hold's second set leans toward the back knee: lead-hip
+  // internal rotation is the range tied to golfers' low-back pain (§7 of the
+  // domain reference — an association, used for durability, not speed).
+  function recoveryList(){
+    return cdAddFixes([["Open-book T-spine","×8/side"],["90/90 hip switches","×8/side"],
+      ["90/90 hold, lean each way","2 × 45s/side"],["Golf-posture turns, hips still","×8/side"],
+      cdHold("xbody"),["Doorway pec stretch","2 × 30s/side"]], true);
+  }
+  // Seconds a checklist takes: "2 × 30s/side" = 120, "×8/side" ≈ 4 s a rep.
+  function holdSecs(dose){
+    var d=String(dose||""), side=/\/\s*side/i.test(d)?2:1, m=d.match(/(\d+)\s*×\s*(\d+)\s*s\b/);
+    if(m) return (+m[1])*(+m[2])*side;
+    var r=d.match(/×\s*(\d+)/); return r ? (+r[1])*4*side : 30;
+  }
+  function listMinutes(list){ return Math.max(3, Math.round(list.reduce(function(t,m){ return t+holdSecs(m[1]); },0)/60)); }
+  function wuRowHtml(m){
+    return '<button type="button" class="wu-row'+(m[2]==="screen"?' from-screen':(m[2]==="profile"?' from-profile':''))+'" data-wu="1"><span class="wu-move">'+m[0]+'</span><span class="wu-dose">'+m[1]+'</span></button>';
+  }
+  var HOLD_NOTE="Ease into each hold: a strong stretch, never a pinch, no bouncing. On the 90/90, lean over the front shin, then turn and lean toward the back knee.";
+  function cooldownHtml(name){
+    var list=cooldownList(name);
+    return '<div class="wu"><div class="wu-h">🌀 Cool-down <span>· ~'+listMinutes(list)+' min · keeps your turn · tap to check off</span></div>'+
+      list.map(wuRowHtml).join("")+'<div class="wu-note">'+HOLD_NOTE+'</div></div>';
+  }
+  function cooldownFoldHtml(name){
+    return '<details class="prelift cool"><summary>🌀 Cool-down — keep your turn</summary><div class="prelift-body">'+cooldownHtml(name)+'</div></details>';
+  }
+  function recoveryHtml(){
+    return '<div class="wu"><div class="wu-h">🌀 Keep your turn <span>· ~'+listMinutes(recoveryList())+' min · tap to check off</span></div>'+
+      recoveryList().map(wuRowHtml).join("")+
+      '<div class="wu-note">Muscle you add should never cost you rotation. '+HOLD_NOTE+' Golf-posture turns: club across your shoulders, belt buckle still on the ball.</div></div>';
+  }
   function primerFor(name){
     if(/Pull|Rotate/.test(name)) return {move:"Rotational med-ball throw", dose:"4 × 4 / side", note:"No ball? Band or cable rotation."};
     if(/Push/.test(name)) return {move:"Explosive med-ball chest pass", dose:"4 × 4", note:"No ball? Clap or explosive push-up."};
@@ -734,7 +803,9 @@
     if(d.type==="rest"){
       var rdone=restDone(curWeek(), dayKey(d));
       return '<div class="day'+(rdone?" rest-done":"")+'"><div class="day-head">'+d.name+' <span class="tag rest">Recover</span></div>'+
-        '<div class="restday">Walk a casual 9, stretch, foam roll. Recovery is when the gains land.</div>'+
+        '<div class="restday">Ten minutes to keep your turn, then walk a casual 9 if you can. Recovery is when the gains land.</div>'+
+        (interactive ? '<div class="rest-routine">'+recoveryHtml()+'</div>'
+          : '<details class="prelift cool"><summary>🌀 Keep your turn — the 10-min routine</summary><div class="prelift-body">'+recoveryHtml()+'</div></details>')+
         '<button class="rest-check'+(rdone?" done":"")+'" type="button" data-restday="'+escAttr(dayKey(d))+'">'+
           (rdone?"✓ Recovery logged — tap to undo":"Mark recovery done")+'</button></div>';
     }
@@ -787,7 +858,7 @@
             '<div class="speed-why">'+p.speed.note+'</div>'+
             '<div class="equip-note" style="padding:10px 15px 8px;">'+noGear+'</div>'+
           '</div></details>'+
-          spList+'</div>';
+          spList+cooldownFoldHtml("speed")+'</div>';
       }
       return '<div class="day speedday"><div class="day-head">'+d.name+' <span class="tag '+(d.tag)+'">'+labelFor(d.tag)+'</span></div>'+
         speedTestCardHtml()+
@@ -798,6 +869,7 @@
         '<table class="ex"><tr><th>Drill</th><th style="text-align:right">Sets × Reps</th></tr>'+srows+'</table>'+
         '<div class="speed-why">'+p.speed.note+'</div>'+
         '<div class="equip-note" style="padding:10px 15px 8px;">'+noGear+'</div>'+
+        cooldownFoldHtml("speed")+
         '<div style="padding:0 15px 4px;"><button class="pl-start" data-startplayer="'+escAttr(d.name)+'" type="button"><span class="pls-go">›</span>'+
           '<b>'+ffIcon("play",13)+' Start speed session</b><span class="pls-sub">Guided player — warm-up, max-intent drills, full rest</span></button></div>'+
         logFoot(d.name)+'</div>';
@@ -850,14 +922,14 @@
       return '<div class="day-focus">'+
         '<button class="pl-start" data-startplayer="'+escAttr(d.name)+'" type="button"><span class="pls-go">›</span>'+
           '<b>'+(plDone?'✓ Session finished — replay it':((hasWork?ffIcon("play",13)+' Resume':ffIcon("play",13)+' Start')+' workout'))+'</b>'+
-          '<span class="pls-sub">Guided player — warm-up, prescribed loads, rest timer, recap</span></button>'+
+          '<span class="pls-sub">Guided player — warm-up, prescribed loads, rest timer, cool-down</span></button>'+
         ffPullCapHtml(d)+
         // Warm-up/primer starts COLLAPSED — it's prep, not the workout, and the
         // guided player runs it for you anyway. One tap opens it; the exercise
         // list stays the visible focus. (Was open-by-default; user wanted the
         // whole Today card tighter.)
         '<details class="prelift"><summary>🔥 Warm-up &amp; power primer — do these first</summary><div class="prelift-body">'+warmPrimer+'</div></details>'+
-        body+'</div>';
+        body+cooldownFoldHtml(d.name)+'</div>';
     }
     // Full-week (non-interactive) day: fold the warm-up too — otherwise every
     // day in the week prints its whole checklist and the page runs for screens.
@@ -865,7 +937,8 @@
       '<details class="prelift"><summary>🔥 Warm-up &amp; power primer — do these first</summary><div class="prelift-body">'+warmPrimer+'</div></details>';
     return head +
       '<table class="ex"><tr><th>Exercise</th><th style="text-align:right">Sets × Reps</th></tr>'+rows+'</table>'+
-      '<div class="romcue">Full range, every rep — <b>control the lowering (1–2 sec)</b>, then drive up fast. Full-range lifting builds muscle and keeps your turn.</div>'+
+      '<div class="romcue">Full range, every rep — <b>control the lowering (1–2 sec)</b>, then drive up fast. Full-range lifting builds muscle; the 🌀 rotation work and the cool-down keep your turn.</div>'+
+      cooldownFoldHtml(d.name)+
       logFoot(d.name)+'</div>';
   }
   // Short chip label for the week strip: "Squat", "Push", "Speed", "Hinge", "Pull", "Rest".
@@ -932,7 +1005,7 @@
       var per=isDistEx(t) ? 40 : (/\d\s*s\b/.test(t) ? r*sides : r*3*sides);
       return n*per + Math.max(0,n-1)*rest;
     }
-    var secs=5*60;
+    var secs=5*60+listMinutes(cooldownList(d.type==="speed"?"speed":d.name))*60;
     if(d.type!=="speed") secs+=work(primerFor(d.name).dose, 60)+liftRest;   // primer: short rests, then on
     dayTargets(d, wk).forEach(function(x, i){ secs+=work(x.target, setRest)+(i?liftRest:0); });
     return Math.max(20, Math.min(120, Math.round(secs/60/5)*5));
