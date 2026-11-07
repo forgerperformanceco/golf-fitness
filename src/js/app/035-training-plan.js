@@ -486,16 +486,19 @@
   // shoulders there; the warm-up alone can't. Framed as keeping your turn while
   // you add mass, never as a speed lever (general flexibility doesn't predict
   // CHS — Brennan 2024). Checklist only: nothing here is logged.
-  var HOLD_9090=["90/90 hold, lean each way","2 × 30s/side"],
-      HOLD_BOOK=["Open-book hold","2 × 30s/side"],
-      HOLD_XBODY=["Cross-body shoulder stretch","2 × 30s/side"];
+  // The holds every list shares — fresh arrays per call, so a routed fix can
+  // never leak into another list.
+  function cdHold(k){
+    return { "9090":["90/90 hold, lean each way","2 × 30s/side"], book:["Open-book hold","2 × 30s/side"],
+      xbody:["Cross-body shoulder stretch","2 × 30s/side"] }[k];
+  }
   function cooldownBase(name){
-    if(name==="speed") return [HOLD_9090, HOLD_BOOK];
-    if(/Full Body/.test(name)) return [HOLD_9090, HOLD_XBODY, HOLD_BOOK];
-    if(/Pull|Rotate/.test(name)) return [["Bench lat stretch, turn each way","2 × 30s"], HOLD_XBODY, HOLD_9090];
-    if(/Push|Upper/.test(name)) return [["Doorway pec stretch","2 × 30s/side"], HOLD_XBODY, HOLD_9090];
-    if(/Lower|Squat|Hinge|Quads/.test(name)) return [["Half-kneeling hip flexor stretch","2 × 30s/side"], HOLD_9090, HOLD_BOOK];
-    return [HOLD_9090, HOLD_BOOK];
+    if(name==="speed") return [cdHold("9090"), cdHold("book")];
+    if(/Full Body/.test(name)) return [cdHold("9090"), cdHold("xbody"), cdHold("book")];
+    if(/Pull|Rotate/.test(name)) return [["Bench lat stretch, turn each way","2 × 30s"], cdHold("xbody"), cdHold("9090")];
+    if(/Push|Upper/.test(name)) return [["Doorway pec stretch","2 × 30s/side"], cdHold("xbody"), cdHold("9090")];
+    if(/Lower|Squat|Hinge|Quads/.test(name)) return [["Half-kneeling hip flexor stretch","2 × 30s/side"], cdHold("9090"), cdHold("book")];
+    return [cdHold("9090"), cdHold("book")];
   }
   // The mobility screen's flags add their fix after the session too (marked
   // "screen" like the warm-up's). Never a duplicate of a move already listed.
@@ -508,7 +511,7 @@
     return list;
   }
   function cooldownList(name){
-    return cdAddFixes(cooldownBase(name).slice(), (name==="speed") || /Lower|Squat|Hinge|Quads|Full Body/.test(name));
+    return cdAddFixes(cooldownBase(name), (name==="speed") || /Lower|Squat|Hinge|Quads|Full Body/.test(name));
   }
   // The rest-day routine behind "Start recovery" (the card promises 10 min):
   // the turn's three links — trunk, hips, shoulders — at a dose a warm-up can't
@@ -518,7 +521,7 @@
   function recoveryList(){
     return cdAddFixes([["Open-book T-spine","×8/side"],["90/90 hip switches","×8/side"],
       ["90/90 hold, lean each way","2 × 45s/side"],["Golf-posture turns, hips still","×8/side"],
-      HOLD_XBODY,["Doorway pec stretch","2 × 30s/side"]], true);
+      cdHold("xbody"),["Doorway pec stretch","2 × 30s/side"]], true);
   }
   // Seconds a checklist takes: "2 × 30s/side" = 120, "×8/side" ≈ 4 s a rep.
   function holdSecs(dose){
@@ -557,7 +560,9 @@
   var PRIMER_NOTE = "New to jumps &amp; throws? Start with 2 sets and build up. Stop the moment reps slow — power only counts when crisp.";
   function warmupHtml(name, withPrimer, showNote){
     var h='<div class="wu"><div class="wu-h">🔥 Warm-up <span>· 5 min · tap to check off</span></div>';
-    warmupList(name).forEach(function(m){ h+=wuRowHtml(m); });
+    warmupList(name).forEach(function(m){
+      h+='<button type="button" class="wu-row'+(m[2]==="screen"?' from-screen':(m[2]==="profile"?' from-profile':''))+'" data-wu="1"><span class="wu-move">'+m[0]+'</span><span class="wu-dose">'+m[1]+'</span></button>';
+    });
     if(withPrimer){
       var p=primerFor(name);
       h+='<div class="wu-h">⚡ Power primer <span>· do this first, fresh · max intent</span></div>'+
