@@ -58,7 +58,11 @@ still next; a flagged screen (trunk 1, hip 0, squat 1) routes thread-the-needle,
 and the deep-squat hold with no duplicate move in any list; no leaked `undefined`/`NaN`; zero
 page errors. Standing audits, run against this branch and an untouched `origin/main` worktree:
 audit-train 18/18, audit-scroll 16/16, audit-contrast clean (1,549 text nodes, up from 1,541 on
-main), audit-type 1 violation (Fuel "Ate it" — the same on main). Two environment notes for the
+main), audit-type 1 violation (Fuel "Ate it" — the same on main). `npm test` 210/210, with two new
+unit cases in tests/training-engine.test.mjs (every split's cool-down has a 90/90 hold at 4–6 min, the rest
+routine is exactly 10 min, no warm-up carries a 30 s+ hold; screen flags route without duplicates or leaking
+between calls). The helpers are plain functions (`cdHold`, not shared `var` arrays) so the test harness can
+extract them by name; `warmupHtml` keeps its inline rows for the same reason. Two environment notes for the
 next session: the audits look for `/opt/pw-browsers/chromium-*/chrome-linux/chrome`, which no
 longer exists (pass `PW_CHROME=/opt/pw-browsers/chromium`), and on a 127.0.0.1 server every
 audit and smoke.mjs fails on a CORS console error from the `product-health` telemetry call (also
