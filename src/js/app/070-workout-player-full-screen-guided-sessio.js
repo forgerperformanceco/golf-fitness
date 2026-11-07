@@ -271,10 +271,22 @@
         '<div class="pl-stat"><div class="v">'+octNow+(dOct>0?' <small style="color:#8be9ac">▲'+dOct+'</small>':'')+'</div><div class="k">Octane</div></div>'+
       '</div>'+
       '<div class="pl-cue" style="text-align:center">'+(prs.length?'Force is the raw material for clubhead speed — that PR is yards in the bank.':'Consistency is the biggest lever on your Octane. Session banked.')+'</div>'+
+      plCooldownHtml()+
       '<textarea class="pl-notes" id="plNote" rows="2" maxlength="240" placeholder="Session notes — sleep, energy, aches… (saved with the workout)">'+lbEsc(player.sess.note||"")+'</textarea>'+
       '<button class="pl-share" data-pladdlift="1" style="border-color:rgba(255,255,255,.25);color:#dff1e4;">＋ Add one more lift</button>'+
       '<button class="pl-share" data-plshare="1">'+ffIcon("share",15)+' Share this session</button>'+
       '</div>';
+  }
+  // Cool-down on the recap, before Finish: a few rotation holds so the mass you
+  // add never costs your turn (035 cooldownList). Taps toggle in place — no
+  // re-render, so the recap's count-ups and PR moment don't replay.
+  function plCooldownHtml(){
+    var cl=cooldownList(player.day.type==="speed"?"speed":player.dayName), cd=player.cdDone||{};
+    return '<div class="pl-cd"><div class="pl-skick">Cool-down · ~'+listMinutes(cl)+' min — keep your turn</div>'+
+      '<div class="pl-list">'+cl.map(function(m,i){
+        return '<button type="button" class="pl-item'+(cd[i]?" done":"")+'" data-plcd="'+i+'">'+
+          '<span>'+m[0]+(m[2]?' <small style="color:#d4b06a">· from your mobility screen</small>':'')+'</span><span class="dose">'+m[1]+'</span></button>';
+      }).join("")+'</div></div>';
   }
   function plRender(){
     if(!player) return;
@@ -365,6 +377,10 @@
         if(player.wuDone[wi]) delete player.wuDone[wi]; else player.wuDone[wi]=true;
         plRender(); return; }
       if(e.target.closest("[data-plprimer]")){ player.prDone=!player.prDone; plRender(); return; }
+      var cdb=e.target.closest("[data-plcd]");
+      if(cdb){ var ci=+cdb.getAttribute("data-plcd"); player.cdDone=player.cdDone||{};
+        if(player.cdDone[ci]) delete player.cdDone[ci]; else player.cdDone[ci]=true;
+        cdb.classList.toggle("done", !!player.cdDone[ci]); return; }
       if(e.target.closest("[data-plshare]")){ plShare(); return; }
       var stp=e.target.closest("[data-plstep]");
       if(stp){
@@ -853,7 +869,7 @@
     speed: "test your 7-iron speed every 2 weeks so the trend can climb",
     strength: "push the big lifts with double progression and log the weights",
     p2w: "keep the jumps and throws sharp — this pillar fills as speed climbs",
-    mobility: "run the 3-move mobility screen and hit the warm-up moves it adds",
+    mobility: "run the 3-move mobility screen and hit the warm-up and cool-down moves it adds",
     fuel: "check off your meals on the Fuel tab — ten seconds a day closes the loop"
   };
   function ffScoreSummary(r, noLever){

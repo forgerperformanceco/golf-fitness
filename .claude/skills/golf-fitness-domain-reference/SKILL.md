@@ -523,6 +523,18 @@ hack. Implementation (065-mobility-screen…js):
   open-book T-spine (alt: thread-the-needle); hip → 90/90 switches (alt:
   adductor rock-backs), lower days only; squat → deep-squat holds + ankle
   rockers, lower days only. Never duplicates a move already in the list.
+- **Cool-down + rest-day routine** (Nov 2026, 035 `cooldownList` / `recoveryList`):
+  ~4–6 min of static rotation holds after every session (player recap + a folded
+  `details.prelift.cool` on Train cards) and a ~10-min routine on rest days; screen
+  flags route in via `cdAddFixes` (trunk → thread-the-needle, hip → 90/90 lift-offs,
+  squat → deep-squat hold). Holds sit AFTER lifting, never in the warm-up (≥60 s/muscle
+  ≈ −4.6%, Behm 2016); the weekly dose follows Thomas 2018 (≥~5 min/muscle/week over
+  ≥5 days). Checklist only — no stored key, no Octane input.
+- **Plane nuance** (CLUBHEAD §11.6, added Nov 2026): McHugh 2022 found *transverse-plane*
+  (rotation) flexibility separated proficient from average golfers and tracked ball speed
+  (n=25, cross-sectional); sagittal/frontal didn't. Copy says "general flexibility doesn't
+  predict speed" — never "flexibility doesn't matter at all" — and still never sells
+  mobility as mph.
 
 ## 8. Octane — the pillar formulas (all six)
 

@@ -1,5 +1,69 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## Keep your turn: a rotation cool-down and a real rest-day routine (Nov 7, 2026)
+
+Owner, on his own winter bulk (on a traditional plan, not Yardsmith): "I’m finding that
+flexibility is becoming a problem … We need to make sure we account for flexibility and not
+just explosiveness", then "It’s the traditional golf coiling and twisting that becomes a
+problem", then "Can we fix yardsmijt or update it?"
+
+Yardsmith already had the warm-up side of this (the 3-move screen, routed warm-up moves, 🌀
+rotation lifts and rotational throws). The gap was dose: static holds never happened anywhere,
+and the rest-day card promised "TODAY’S ACTION · 10 MIN" with nothing behind it but "Walk a
+casual 9, stretch, foam roll." Range gains need ~5+ min per muscle per week over 5+ days
+(Thomas 2018); five minutes of moving warm-up drills can't reach that.
+
+- **Cool-down after every session** (`cooldownList` / `cooldownHtml` in 035): three static
+  holds, rotation first — 90/90 hold (one set over the front shin, one toward the back knee),
+  open-book hold, cross-body shoulder stretch (lead arm at the top), plus a pec stretch on push
+  days, a turning lat stretch on pull days, a half-kneeling hip-flexor stretch on lower days.
+  ~4–6 min. Shown in the guided player's recap above Finish (`plCooldownHtml`, taps toggle in
+  place so the recap's count-ups and PR moment don't replay) and as a collapsed green
+  `details.prelift.cool` fold on every lift and speed day card, Today and Full week.
+- **The rest-day routine is real now** (`recoveryList`): six moves, ~10 min, open on Today's
+  rest card, folded in Full week. The copy says "Ten minutes to keep your turn, then walk a
+  casual 9 if you can."
+- **Screen flags reach both** (`cdAddFixes`): trunk → thread-the-needle, hip → 90/90 lift-offs,
+  squat → deep-squat hold (lower days). `MOB_FIX` copy now says warm-ups, cool-downs and rest
+  days.
+- **Session estimates include the cool-down** (`sessionMinutes`), so "~N MIN" stays honest.
+- **Copy fixes:** the speed-day explainer said flexibility "doesn’t predict it at all"; it now
+  says *general* flexibility doesn't, and that rotation is the range a full turn needs (McHugh
+  2022 found transverse-plane hip flexibility tracked ball speed in 25 golfers — cross-sectional,
+  and it doesn't make mobility a speed lever). The Train romcue no longer claims full-range
+  lifting alone "keeps your turn"; the Fuel plan fold's mobility bullet points at the new
+  routines. The AI coach (`knowledge.ts`) knows about the cool-down and rest-day routine.
+
+**Design decisions**
+- **Holds after, never before.** Static holds of 60 s+ per muscle cut performance ~4.6% right
+  after (Behm 2016), so the warm-up stays dynamic and the holds sit in the cool-down and on rest
+  days. Two 30-second sets per side keep each hold under that threshold anyway.
+- **Folded on cards, open only where it's the day's job.** Calm doctrine: the cool-down is a
+  collapsed fold like the warm-up (the audit invariant still holds: no warm-up or cool-down fold
+  opens by default). The Today rest card shows the routine open, because it is that day's whole
+  action.
+- **Checklist only, nothing stored.** Same `data-wu` toggle as the warm-up; no new `ff_*` key,
+  no Octane input, nothing to sync. If cool-down adherence ever needs to count, that's a
+  data-model change (KEYS + MERGE) — not done here.
+- **Still durability, not speed.** No copy says stretching adds mph; every line frames it as
+  keeping your turn while you add muscle.
+
+**Verified** (Playwright on the built output, seeded week-2 user, light + dark,
+scratchpad/test-cooldown.mjs): 44/44 — Today shows a collapsed cool-down fold with 3 holds and
+a minutes estimate; tapping checks a hold off; Full week renders a cool-down/routine fold on all
+7 days (2 rest) with zero folds open; the rest routine lists 6 moves at ~10 min; the speed
+explainer says "general flexibility" and the old absolute line is gone; the player recap shows 3
+holds, toggles on/off in place with scroll kept (270→270 on a 560px-tall viewport) and Finish
+still next; a flagged screen (trunk 1, hip 0, squat 1) routes thread-the-needle, 90/90 lift-offs
+and the deep-squat hold with no duplicate move in any list; no leaked `undefined`/`NaN`; zero
+page errors. Standing audits, run against this branch and an untouched `origin/main` worktree:
+audit-train 18/18, audit-scroll 16/16, audit-contrast clean (1,549 text nodes, up from 1,541 on
+main), audit-type 1 violation (Fuel "Ate it" — the same on main). Two environment notes for the
+next session: the audits look for `/opt/pw-browsers/chromium-*/chrome-linux/chrome`, which no
+longer exists (pass `PW_CHROME=/opt/pw-browsers/chromium`), and on a 127.0.0.1 server every
+audit and smoke.mjs fails on a CORS console error from the `product-health` telemetry call (also
+on main) — filter it to see the real result. Release gate green.
+
 ## In-season plans, a week arranged around rounds, and a setup health check (Oct 2, 2026)
 
 User: "build these, make the 2-3 day in season plan optionable obviously" — the three items

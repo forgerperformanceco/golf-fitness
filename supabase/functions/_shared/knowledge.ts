@@ -198,7 +198,9 @@ speed/power work in, so the deficit costs fat, not mph. Never frame a cut as "ju
   straight bar works the hamstrings and spinal erectors a bit more (Camara 2016). Loads
   don't carry over 1:1: most people lift a little more on the trap bar. The 4-day plan's
   heavy hinge is the Romanian Deadlift.
-- Every day opens with a 5-min warm-up (hip + thoracic mobility, ramp sets).
+- Every day opens with a 5-min warm-up (hip + thoracic mobility, ramp sets) and ends with a
+  ~5-min rotation cool-down (90/90, open-book, shoulder holds); rest days carry a 10-min
+  keep-your-turn routine. Static holds sit after lifting, never before (Behm 2016).
 - Each lift day opens with ONE explosive primer done first & fresh (jump / med-ball
   pass / KB swing / rotational throw): few max-intent reps, full rest, no fatigue. With
   the Speed & Power day that gives speed 4–5 exposures a week (4 on the 4-day plan, 5 on

@@ -216,7 +216,7 @@
     return '<details class="fold speed101"><summary>🧠 New to speed work? How it works &amp; how to progress</summary><div class="fold-body">'+
       '<div class="pb-sec"><h4>⚙️ Why this makes you longer</h4>'+
         '<p>Lifting builds the <b>engine</b> — how much force your muscles can make (plus the mass behind the ball). But clubhead speed is about how <i>fast</i> you deliver that force, not just how much. This day is the <b>transmission</b>: it teaches your nervous system to fire your strength <b>fast</b>, in the swing’s pattern.</p>'+
-        '<p>That’s why in the research, <b>jump power and throw speed predict clubhead speed better than max strength</b> — and flexibility doesn’t predict it at all. <b>Strong-but-slow</b> is exactly the gap this day closes.</p></div>'+
+        '<p>That’s why in the research, <b>jump power and throw speed predict clubhead speed better than max strength</b> — and general flexibility doesn’t predict it. Rotation is different: you need the range to make a full turn, so the warm-ups, cool-downs and rest-day routine keep it as you add muscle. <b>Strong-but-slow</b> is exactly the gap this day closes.</p></div>'+
       '<div class="pb-sec"><h4>⚡ How to do it right</h4>'+
         '<p><b>Every rep max-velocity.</b> The opposite of a set to failure — move as fast as you physically can on every single rep.</p>'+
         '<p><b>Low reps, full rest.</b> 3–5 reps, then rest fully. The instant a rep visibly slows down, the set is over — a slow rep trains the engine, not the speed.</p>'+
