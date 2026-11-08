@@ -207,7 +207,8 @@ speed/power work in, so the deficit costs fat, not mph. Never frame a cut as "ju
   While on: the calorie surplus AND the target gain rate are halved (+10% → +5%, so the check-in
   doesn't add the calories back); chest, shoulder and arm isolation lose a set (floor 2) and
   rotation-through-range lifts (wood-chops, cable rotations) gain one; heavy lifts, power, legs
-  and upper-back work are unchanged. Tell the user to do every cool-down and the rest-day routine,
+  and upper-back work are unchanged. In an in-season mode (Fewer sets / 2 / 3 days) every lift is
+  already capped at 2 sets, so the guard only halves the surplus there. Tell the user to do every cool-down and the rest-day routine,
   and to re-screen after ~2+ weeks. It's durability for the swing, never a speed claim.
 - Each lift day opens with ONE explosive primer done first & fresh (jump / med-ball
   pass / KB swing / rotational throw): few max-intent reps, full rest, no fatigue. With

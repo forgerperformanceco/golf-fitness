@@ -65,6 +65,7 @@
   }
   function closeMobility(){
     var m=$("mobModal"); if(m) m.hidden=true; document.body.style.overflow=""; mobState=null;
+    try{ calc(); }catch(e){}   // a new screen can switch the turn guard (and Build's surplus) on or off
     try{ renderPhase(); }catch(e){} try{ renderDash(); }catch(e){}
     try{ if($("view-progress") && $("view-progress").classList.contains("active")) renderProgress(); }catch(e){}
     try{ if($("view-account") && $("view-account").classList.contains("active")) renderAccount(); }catch(e){}

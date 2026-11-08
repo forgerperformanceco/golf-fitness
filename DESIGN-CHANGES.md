@@ -33,6 +33,15 @@ own butt vibes" after 5–10 lb of muscle, approved this as step 3 of the golf-f
   non-lifters (Barlow 2002, PMID 12173950) and pec/delt-biased recreational lifters lost shoulder
   range (Kolber 2009); lifting in general improves range (Alizadeh 2023). So the guard trims the
   isolation that builds that mass, not legs or the heavy lifts that make speed.
+- **Codex review fixes (#113).** (1) Saving a screen re-renders Train and Home but never re-ran
+  `calc()`, so Fuel and `ff_targets` kept the old surplus until a reload — `closeMobility()` now
+  runs `calc()`, and an `ff-external-write` listener (deferred past 040's cache bust) re-runs it when
+  a cloud merge flips the guard (`ffGuardSig`). (2) In an in-season mode every lift is capped at 2
+  sets, so the guard's set changes were moot while the banner promised them; `ffTurnGuardTrains()`
+  now skips them there and the banner, plan bullet, card and coach mention only the halved surplus.
+  All three behaviours reproduced on the pre-fix build first (scratchpad/test-step3-review.mjs:
+  3080 → 3080 kcal after a screen, 3080 → 3080 after a merge, banner promising sets), then 16/16
+  fixed in light + dark.
 - **No "clear it now" button.** The re-screen action appears only 2+ weeks after the drop, so the
   guard can't be cleared by re-testing the same afternoon.
 

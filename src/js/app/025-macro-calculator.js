@@ -30,6 +30,18 @@
   // The goal as it applies today. On Build (or a legacy Bulk) with the turn guard
   // on, the surplus AND the target gain rate are halved together, so the 10-day
   // check-in judges the slower pace instead of adding the calories straight back.
+  // The guard state calc() last ran with — a cloud merge that flips it (a screen
+  // saved on another device) re-runs calc() so Fuel and ff_targets follow.
+  var ffGuardSig=null;
+  window.addEventListener("ff-external-write", function(){
+    setTimeout(function(){   // after 040's listener has busted the lsGet cache
+      var tg=(typeof ffTurnGuard==="function")?ffTurnGuard():null, sig=tg?String(tg.ts):"off";
+      if(ffGuardSig!==null && sig!==ffGuardSig){ try{ calc(); }catch(e){} try{ renderPhase(); }catch(e){} }
+    }, 0);
+  });
+  // In an in-season mode every lift is already capped at 2 sets, so the guard's
+  // set changes would be moot — it then only halves the surplus, and says so.
+  function ffTurnGuardTrains(){ return !(typeof ffInSeason==="function" && ffInSeason()); }
   function ffGoal(){
     var g=GOALS[state.goal]||GOALS.leanbulk;
     var tg=(typeof ffTurnGuard==="function")?ffTurnGuard():null;
@@ -75,7 +87,7 @@
     var pf=$("planFoldTitle"); if(pf) pf.innerHTML=g.foldTitle;
     var rb=$("planRateBullet"); if(rb) rb.innerHTML=g.rate;
     var tg=(typeof ffTurnGuard==="function")?ffTurnGuard():null;
-    if(rb && tg) rb.innerHTML="<b>Turn guard on:</b> your last turn check dropped ("+tg.label+"), so the surplus is halved and upper-body isolation trades a set for rotation work until a check holds steady.";
+    if(rb && tg) rb.innerHTML="<b>Turn guard on:</b> your last turn check dropped ("+tg.label+"), so the surplus is halved"+(ffTurnGuardTrains()?" and upper-body isolation trades a set for rotation work":"")+" until a check holds steady.";
   }
 
   // Anchor training hour (24h) per slot. Pre = 90 min before, post ≈ 90 min after start.
@@ -247,6 +259,7 @@
 
     var activity=parseFloat($("activity").value);
     var g=ffGoal();
+    ffGuardSig=g.turnGuard ? String(g.turnGuard.ts) : "off";
     // Protein scales with body size; fat with body size but never under 20% of
     // calories; carbs fill the rest. The check-in nudge (ff_kcal_adj, a correction
     // from the real weight trend) is clamped to the range that can still move the

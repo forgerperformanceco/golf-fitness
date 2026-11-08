@@ -681,6 +681,7 @@
     // set to rotation through range until a check holds steady. Heavy lifts,
     // power, legs and upper-back work are untouched.
     var tg=(typeof ffTurnGuard==="function")?ffTurnGuard():null;
+    if(tg && typeof ffTurnGuardTrains==="function" && !ffTurnGuardTrains()) tg=null;   // in-season caps sets anyway
     if(tg && p==="💪" && turnGuardTrims(name))
       return String(sr).replace(/^(\s*)(\d+)/, function(_, sp, n){ return sp + Math.max(2, parseInt(n,10)-1); });
     if(tg && p==="🌀" && turnGuardAdds(name))
@@ -1202,7 +1203,9 @@
     var wvKey=waveFor(wk), wave=WAVES[wvKey];
     if(wvKey!=="accumulate") html+='<div class="deload-banner">'+wave.ic+' <b>'+wave.label+' week.</b> '+wave.strap+' '+ffTerm('wave','How the weeks work ›')+'</div>';
     var tgB=(typeof ffTurnGuard==="function")?ffTurnGuard():null;
-    if(tgB) html+='<div class="deload-banner turn-guard">🌀 <b>Turn guard on.</b> Your last turn check dropped ('+tgB.label+'). Until a re-check holds steady, chest, shoulder and arm isolation drop a set, rotation lifts gain one, and the calorie surplus is halved. Do every cool-down.</div>';
+    if(tgB) html+='<div class="deload-banner turn-guard">🌀 <b>Turn guard on.</b> Your last turn check dropped ('+tgB.label+'). Until a re-check holds steady, '+
+      ((typeof ffTurnGuardTrains!=="function" || ffTurnGuardTrains()) ? 'chest, shoulder and arm isolation drop a set, rotation lifts gain one, and ' : '')+
+      'the calorie surplus is halved. Do every cool-down.</div>';
 
     if(mode==="today"){
       var todayDate = new Date();

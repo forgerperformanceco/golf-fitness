@@ -523,11 +523,12 @@ test("the turn guard fires on Build only when a turn check comes back worse", ()
 test("guarded Build trades upper-body isolation sets for rotation; heavy, power, legs and upper back untouched", () => {
   const ctx = {};
   vm.runInNewContext(`
-    var state={ goal:"leanbulk" }, __guard=true;
+    var state={ goal:"leanbulk" }, __guard=true, __inseason=false;
     function ffTurnGuard(){ return __guard ? { dropped:["hip"], label:"hips", ts:1 } : null; }
+    function ffTurnGuardTrains(){ return !__inseason; }
     ${["purposeFor", "trainRetain", "adjSets", "turnGuardTrims", "turnGuardAdds"].map((n) => fn(PLAN, n)).join("\n")}
     ${fn(LOGGER, "exGroupFor")}
-    this.adj = adjSets; this.off = function(){ __guard=false; };
+    this.adj = adjSets; this.off = function(){ __guard=false; }; this.inseason = function(v){ __inseason=v; };
   `, ctx);
   const cases = [
     ["Lateral Raise", "4 × 15", "3 × 15"], ["Incline DB Press", "3 × 10", "2 × 10"],
@@ -542,6 +543,11 @@ test("guarded Build trades upper-body isolation sets for rotation; heavy, power,
     ["Lateral Raise", "2 × 15", "2 × 15"],                       // floor of 2
   ];
   for (const [n, sr, want] of cases) assert.equal(ctx.adj(sr, n), want, n);
+  // In-season caps every lift at 2 anyway, so the guard makes no set changes there (Codex, #113).
+  ctx.inseason(true);
+  assert.equal(ctx.adj("4 × 15", "Lateral Raise"), "4 × 15", "in-season: no trim");
+  assert.equal(ctx.adj("3 × 10 / side", "Cable Wood-chop"), "3 × 10 / side", "in-season: no add");
+  ctx.inseason(false);
   ctx.off();
   assert.equal(ctx.adj("4 × 15", "Lateral Raise"), "4 × 15", "no guard, no change");
 });
