@@ -20,6 +20,10 @@ club in and chicken wing a bit."
   upper warm-ups and the cross-body stretch in every cool-down; lats → a dead hang in upper warm-ups
   and the lat stretch in every cool-down; hip rotation → the old hip fixes (90/90 or adductor
   rock-backs, and 90/90 lift-offs).
+- **Full-body days get both halves' fixes** (Codex review, #114): the in-season 2/3-day plans'
+  "Full Body A (Squat + Press)" named no upper-body word, so a tight lead arm or lats added nothing
+  to its warm-up. `warmupList` now counts "Full Body" as upper and lower. Reproduced with a failing
+  unit case first (no dead hang on Full Body A), then fixed; Full Body B already matched both.
 - The result screen's closing line said moving well "lets the new mass become speed" — off-thesis
   (mobility is durability, not a speed lever); it now says the muscle you add should never cost
   your turn.

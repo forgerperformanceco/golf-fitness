@@ -613,6 +613,14 @@ test("v2 flags route the right moves into warm-ups and cool-downs, never twice",
   assert.ok(names(ctx.cd(push)).includes("90/90 lift-offs"));
   for (const l of [ctx.wu(push), ctx.wu(pull), ctx.wu(lower), ctx.cd(push), ctx.cd(pull), ctx.cd(lower), ctx.rest()])
     assert.equal(new Set(names(l)).size, l.length, "no duplicate move");
+  // In-season full-body days train both halves, so they get the upper AND lower fixes (Codex, #114).
+  for (const fb of ["Day 1 — Full Body A (Squat + Press)", "Day 2 — Full Body B (Hinge + Pull)"]) {
+    const w = names(ctx.wu(fb));
+    assert.ok(w.some((n) => /Dead hang/.test(n)), `${fb}: lats → dead hang`);
+    assert.ok(w.some((n) => /Shoulder CARs|Band pull-aparts/.test(n)), `${fb}: lead arm → shoulder work`);
+    assert.ok(w.some((n) => /90\/90|Adductor/.test(n)), `${fb}: hip rotation → hip work`);
+    assert.equal(new Set(w).size, w.length, `${fb}: no duplicate move`);
+  }
 });
 
 // ------------------------------------------------------------- 14 trap bar

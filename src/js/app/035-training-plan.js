@@ -459,8 +459,10 @@
   // list already has the primary fix, the alternate goes in instead — never a dupe.
   function warmupList(name){
     var list=warmupBase(name), lim=(typeof mobLimits==="function")?mobLimits():{};
-    var lower=(name==="speed") || /Lower|Squat|Hinge/.test(name);
-    var upper=(name==="speed") || /Pull|Rotate|Push|Upper/.test(name);
+    // Full-body days (the in-season 2/3-day plans) train both halves, so they get
+    // the upper AND lower fixes — "Full Body A (Squat + Press)" names no upper word.
+    var lower=(name==="speed") || /Lower|Squat|Hinge|Quads|Full Body/.test(name);
+    var upper=(name==="speed") || /Pull|Rotate|Push|Upper|Full Body/.test(name);
     var prep=(typeof state!=="undefined"&&Array.isArray(state.prep))?state.prep:[];
     function addFix(primary, alt, alreadyRe, source){
       var has=list.some(function(m){ return alreadyRe.test(m[0]); });
