@@ -12,6 +12,7 @@ const GAME = src("080-game-day-round-day-fueling-warm-up-plan.js");
 const ONBOARD = src("090-first-run-onboarding.js");
 const PERSIST = src("020-persistence-remember-everything-per-devi.js");
 const MODEL = src("024-macro-model.js");
+const DRAG = src("042-week-drag-hold-a-day-to-move-it.js");
 
 function balanced(source, from, open) {
   let i = source.indexOf(open, from), depth = 0;
@@ -55,10 +56,15 @@ function engine({ inseason = false, freq = 4, store = {}, startWd = 1, week = 3,
        "ffHealthCaution", "ffHealthRedFlag", "ffHealthAdvice", "ffOnRamp", "ffLowImpact", "purposeFor", "trimSets",
        "capSets", "plainSetCount", "adjSets", "trainRetain", "eventInfo", "waveFor", "bumpReps", "plainReps", "waveAdjust",
        "effTarget"].map((n) => fn(PLAN, n)).join("\n")}
-    ${["stripDays", "ffHeavyLegs", "ffArrangeWeek", "ffPlayDaysNow", "ffOffDays", "ffOffDaysNow"].map((n) => fn(LOGGER, n)).join("\n")}
+    ${["stripDays", "ffHeavyLegs", "ffArrangeWeek", "ffPlayDaysNow", "ffOffDays", "ffOffDaysNow", "ffLayoutNow", "ffApplyLayout",
+       "dayKey", "getLog", "getSession", "getRest", "restDone", "cardioDone"].map((n) => fn(LOGGER, n)).join("\n")}
+    var __toasts=[], window={ dispatchEvent:function(){} }, Event=function(){};
+    function ffToast(m){ __toasts.push(m); } function renderPhase(){} function renderDash(){} function ffAccess(){ return "full"; }
+    ${fn(GAME, "gdState")} ${fn(GAME, "gdSave")} ${fn(PLAN, "wsShort")}
+    ${decl(DRAG, "FF_WD", "[")} ${fn(DRAG, "ffDayLogged")} ${fn(DRAG, "ffMoveDay")}
     ${fn(GAME, "ffPlayDays")}
     ${fn(MODEL, "ffBmi")}
-    this.api={ activeDays, ffSessionsPerWeek, ffInSeasonMode, stripDays, ffOnRamp, ffLowImpact, ffHealthCaution,
+    this.api={ ffMoveDay, store:__store, toasts:__toasts, activeDays, ffSessionsPerWeek, ffInSeasonMode, stripDays, ffOnRamp, ffLowImpact, ffHealthCaution,
       ffHealthAdvice, ffHealthQs, effTarget, PHASES, state:state };
   `, ctx);
   return ctx.api;
@@ -130,12 +136,13 @@ test("a play-day change made mid-week waits for next week", () => {
   const next = engine({ week: 4, store, startWd: 1 }).stripDays();
   assert.equal(next[5].type, "rest", "next week: Saturday is a rest day");
   // Play days and days off share one save that snapshots both before the change.
-  assert.match(LOGGER, /if\(busy\)\{ if\(!\(g\.arrangeWeek>wk\)\)\{ g\.prevDays=ffPlayDaysNow\(\)\.slice\(\); g\.prevOff=ffOffDaysNow\(\)\.slice\(\); \} g\.arrangeWeek=wk\+1; \}/);
+  assert.match(LOGGER, /if\(busy\)\{ if\(!\(g\.arrangeWeek>wk\)\)\{ g\.prevDays=ffPlayDaysNow\(\)\.slice\(\); g\.prevOff=ffOffDaysNow\(\)\.slice\(\); g\.prevLayout=ffLayoutNow\(\); \} g\.arrangeWeek=wk\+1; \}/);
   assert.match(LOGGER, /apply\(g\); gdSave\(g\);/);
   // A cardio check-off counts as logged work too (Codex, #117): rest marks are slot-keyed.
   assert.match(LOGGER, /restDone\(wk, dayKey\(x\)\) \|\| cardioDone\(wk, dayKey\(x\)\)/);
-  assert.match(PLAN, /ffSaveSchedule\(function\(g\)\{ g\.days=days\.sort\(\); \}\)/);
-  assert.match(PLAN, /ffSaveSchedule\(function\(g\)\{ g\.off=days\.sort\(\); \}\)/);
+  // …and a play-day / day-off change resets a hand-made week order (same queued rule).
+  assert.match(PLAN, /ffSaveSchedule\(function\(g\)\{ g\.days=days\.sort\(\); delete g\.layout; \}\)/);
+  assert.match(PLAN, /ffSaveSchedule\(function\(g\)\{ g\.off=days\.sort\(\); delete g\.layout; \}\)/);
 });
 
 test("days off: workouts move to the other days, same order, leg days apart", () => {
@@ -179,6 +186,66 @@ test("a day-off change made mid-week waits for next week; old pending changes ha
   // A play-day change queued before days off existed (no prevOff) keeps this week free of days off.
   const legacy = { ff_gameday: { days: [6], off: [0, 1], prevDays: [], arrangeWeek: 4 } };
   assert.deepEqual(names(engine({ week: 3, store: legacy }).stripDays()), names(engine({ week: 3 }).activeDays()));
+});
+
+test("your own week order: follows the saved layout by weekday; stale or queued layouts are handled", () => {
+  // 4-day keys: Quads&Hinge, Push, rest@2, Speed, rest@4, Pull, rest@6. Layout is by weekday, Sun..Sat.
+  const D = (n) => n, q = "Day 1 — Lower (Quads & Hinge)", pu = "Day 2 — Upper (Push)", sp = "Day 3 — Speed & Power", pl = "Day 4 — Upper (Pull + Rotate)";
+  const layout = ["rest@6", pu, q, "rest@2", sp, pl, "rest@4"];
+  for (const startWd of [1, 4, 0]) {
+    const week = engine({ startWd, store: { ff_gameday: { layout } } }).stripDays();
+    week.forEach((d, i) => {
+      const want = layout[(startWd + i) % 7];
+      assert.equal(d.type === "rest" ? "rest" : d.name, want.startsWith("rest@") ? "rest" : D(want), `start ${startWd}, slot ${i}`);
+    });
+  }
+  // Stale (5-day keys on the 4-day plan) → ignored: the automatic week.
+  const five = ["rest@6", "Day 1 — Lower (Quads)", "Day 2 — Upper (Push)", "rest@2", "Day 3 — Speed & Power", "Day 4 — Lower (Hinge + Power)", "Day 5 — Upper (Pull + Rotate)"];
+  assert.deepEqual(names(engine({ store: { ff_gameday: { layout: five } } }).stripDays()), names(engine().activeDays()));
+  assert.deepEqual(names(engine({ store: { ff_gameday: { layout: ["x"] } } }).stripDays()), names(engine().activeDays()), "junk ignored");
+  // Queued for next week: this week keeps prevLayout (here: none → automatic).
+  const queued = { ff_gameday: { layout, prevLayout: null, prevDays: [], prevOff: [], arrangeWeek: 4 } };
+  assert.deepEqual(names(engine({ week: 3, store: queued }).stripDays()), names(engine().activeDays()));
+  assert.equal(engine({ week: 4, store: queued, startWd: 1 }).stripDays()[0].name, pu, "next week: the new order");
+});
+
+test("hold-and-drag moves: swaps save your week; logged days, days off and queued changes are respected", () => {
+  // Week starts Monday (startWd 1), 4-day authored week: Mon Quads, Tue Push, Wed rest, Thu Speed, Fri rest, Sat Pull, Sun rest.
+  let E = engine({ startWd: 1, store: { ff_gameday: {} } });
+  let msg = E.ffMoveDay(1, 2);                                    // Push (Tue) → Wed (rest)
+  assert.match(msg, /^Moved Push to Wednesday\. Your week keeps this order\.$/);
+  let w = E.stripDays();
+  assert.equal(w[1].type, "rest"); assert.equal(w[2].name, "Day 2 — Upper (Push)");
+  const lay = E.store.ff_gameday.layout;
+  assert.equal(lay.length, 7); assert.equal(lay[3], "Day 2 — Upper (Push)", "saved by weekday (Wed = 3)");
+  // Two workouts swap.
+  msg = E.ffMoveDay(0, 5);
+  assert.match(msg, /^Swapped Quads \(Saturday\) and Pull \(Monday\)/);
+  // Rest ↔ rest is a no-op.
+  assert.equal(E.ffMoveDay(1, 4), "");
+  // Allowed but flagged: heavy legs the day before a round (plays Sunday; Quads → Saturday)…
+  E = engine({ startWd: 1, store: { ff_gameday: { days: [0] } } });
+  const quadsAt = E.stripDays().findIndex((d) => /Quads/.test(d.name)), satAt = 5;
+  assert.match(E.ffMoveDay(quadsAt, satAt), /Heads up: heavy legs the day before a round\./);
+  // …and legs on back-to-back days (5-day plan: Quads next to Hinge).
+  E = engine({ freq: 5, startWd: 1, store: { ff_gameday: {} } });
+  const w5 = E.stripDays(), hinge = w5.findIndex((d) => /Hinge/.test(d.name)), quads = w5.findIndex((d) => /Quads/.test(d.name));
+  assert.match(E.ffMoveDay(quads, hinge - 1 === quads ? hinge + 1 : hinge - 1), /Heads up: that puts legs on back-to-back days\./);
+  // A logged day stays put.
+  E = engine({ startWd: 1, week: 3, store: { ff_gameday: {}, ff_log: { "3|Day 2 — Upper (Push)": { ex: [] } } } });
+  assert.equal(E.ffMoveDay(1, 2), "Days you've already logged stay put.");
+  assert.equal(E.store.ff_gameday.layout, undefined, "nothing saved");
+  E = engine({ startWd: 1, week: 3, store: { ff_gameday: {}, ff_rest: { "3|rest@2|cardio": 5 } } });
+  assert.equal(E.ffMoveDay(1, 2), "Days you've already logged stay put.", "a cardio check counts");
+  // No workout onto a day off (Wednesday off → Wed is index 2 from Monday).
+  E = engine({ startWd: 1, store: { ff_gameday: { off: [3] } } });
+  const wOff = E.stripDays();
+  assert.equal(wOff[2].type, "rest", "Wednesday is a rest day");
+  assert.match(E.ffMoveDay(wOff.findIndex((d) => d.type !== "rest"), 2), /^Wednesday is a day off\. Turn it back on in Plan settings first\.$/);
+  assert.equal(E.store.ff_gameday.layout, undefined, "nothing saved");
+  // A queued schedule change blocks moves until it lands.
+  E = engine({ startWd: 1, week: 3, store: { ff_gameday: { arrangeWeek: 4, prevDays: [], prevOff: [] } } });
+  assert.match(E.ffMoveDay(1, 2), /^Your new days start next week/);
 });
 
 test("health check: any yes → a gentler start (4-week on-ramp, softer landings) until cleared", () => {
