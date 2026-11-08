@@ -434,10 +434,13 @@ test("every session ends with rotation holds; the rest-day routine is the promis
   const days = [...E.PHASES[0].days4, ...E.PHASES[0].days5].filter((d) => d.ex);
   for (const d of days) {
     const list = E.cooldownList(d.type === "speed" ? "speed" : d.name);
+    // Pull + Rotate days carry one extra hold: the straight-arm biceps stretch (step 5).
+    const pull = /Pull \+ Rotate/.test(d.name);
     assert.ok(list.some((m) => /^90\/90 hold/.test(m[0])), `${d.name}: 90/90 hold`);
-    assert.ok(list.length >= 2 && list.length <= 3, `${d.name}: ${list.length} holds`);
+    assert.ok(list.length >= 2 && list.length <= (pull ? 4 : 3), `${d.name}: ${list.length} holds`);
     const mins = E.listMinutes(list);
-    assert.ok(mins >= 4 && mins <= 6, `${d.name}: ${mins} min`);
+    assert.ok(mins >= 4 && mins <= (pull ? 7 : 6), `${d.name}: ${mins} min`);
+    assert.equal(list.some((m) => m[0] === "Wall biceps & chest stretch"), pull, `${d.name}: wall biceps stretch on pull days only`);
   }
   assert.equal(E.listMinutes(E.recoveryList()), 10);            // the rest hero says "10 MIN"
   assert.equal(E.sessionMinutes({ type: "rest" }), 10);
@@ -534,6 +537,7 @@ test("guarded Build trades upper-body isolation sets for rotation; heavy, power,
     ["Lateral Raise", "4 × 15", "3 × 15"], ["Incline DB Press", "3 × 10", "2 × 10"],
     ["DB Curl", "3 × 12", "2 × 12"], ["Cable Overhead Triceps Extension", "3 × 12", "2 × 12"],
     ["Cable Wood-chop", "3 × 10 / side", "4 × 10 / side"],
+    ["Half-Kneeling Cable Rotation", "2 × 8 / side (slow · pause at the end)", "3 × 8 / side (slow · pause at the end)"],
     ["Face Pull", "3 × 15", "3 × 15"], ["Pallof Press", "3 × 12 / side", "3 × 12 / side"],
     ["Barbell Bench Press", "4 × 5 (heavy · fast up)", "4 × 5 (heavy · fast up)"],
     ["Standing Overhead Press", "4 × 6", "4 × 6"], ["Hip Thrust", "4 × 8", "4 × 8"],
@@ -621,6 +625,59 @@ test("v2 flags route the right moves into warm-ups and cool-downs, never twice",
     assert.ok(w.some((n) => /90\/90|Adductor/.test(n)), `${fb}: hip rotation → hip work`);
     assert.equal(new Set(w).size, w.length, `${fb}: no duplicate move`);
   }
+});
+
+// ------------------------------------- 13f rotation through range + arm extension
+test("both Pull + Rotate days train the turn through range, light and slow, after the face pull", () => {
+  const E = engine();
+  for (const split of ["days4", "days5"]) {
+    const d = E.PHASES[0][split].find((x) => /Pull \+ Rotate/.test(x.name));
+    assert.ok(d, `${split}: has a Pull + Rotate day`);
+    const names = d.ex.map((r) => r[0]), i = names.indexOf("Half-Kneeling Cable Rotation");
+    assert.equal(names[i - 1], "Face Pull", `${split}: right after the face pull`);
+    assert.match(d.ex[i][1], /^2 × 8 \/ side \(slow · pause at the end\)$/);
+    assert.ok(names.indexOf("Weighted Pull-up") < i, `${split}: after the heavy lifts`);
+  }
+  // Rotation core work, not a max-intent drill: graded, wave-shielded, and the
+  // turn guard adds a set to it (never trims it).
+  for (const n of ["Half-Kneeling Cable Rotation", "Half-Kneeling Band Rotation", "Half-Kneeling Thoracic Rotation"]) {
+    assert.equal(E.purposeFor(n), "🌀", n);
+    assert.equal(E.isBallistic(n), false, n);
+  }
+  // Gear swaps keep the movement; no gear at all = the bodyweight version, its own dose.
+  const pick = (equip) => engine({ equip }).resolveDay([["Half-Kneeling Cable Rotation", "2 × 8 / side (slow · pause at the end)"]])[0];
+  assert.equal(pick(["cable", "bands", "bodyweight"]).name, "Half-Kneeling Cable Rotation");
+  assert.equal(pick(["bands", "bodyweight"]).name, "Half-Kneeling Band Rotation");
+  const bw = pick(["bodyweight"]);
+  assert.equal(bw.name, "Half-Kneeling Thoracic Rotation");
+  assert.match(bw.sr, /^2 × 10 \/ side/);
+  assert.ok(E.EXERCISE_DB["Core / anti-rotation"].includes("Half-Kneeling Cable Rotation"), "in the swap / add-a-lift catalog");
+});
+
+test("arm extension: curls coach a straight arm at the bottom; the wall stretch replaces the bent-arm one on rest days", () => {
+  const ctx = {};
+  vm.runInNewContext(`${fn(INLINE, "exerciseForm")}\n${fn(INLINE, "liftWhy")}\nthis.form = exerciseForm; this.why = liftWhy;`, ctx);
+  for (const n of ["DB Curl", "Hammer Curl", "Incline DB Curl", "Cable Curl", "Preacher Curl", "EZ-Bar Curl"]) {
+    const f = ctx.form(n);
+    assert.equal(f.mu, "Arms (biceps)", n);
+    assert.ok(f.cues.some((c) => /^Straighten the elbow all the way at the bottom/.test(c)), `${n}: full-extension cue`);
+  }
+  // Hamstring and wrist "curls" never get the biceps how-to.
+  for (const n of ["Lying Leg Curl", "Seated Leg Curl", "Nordic Curl", "Swiss Ball Hamstring Curl", "Wrist Curl + Reverse"])
+    assert.notEqual(ctx.form(n).mu, "Arms (biceps)", n);
+  // The slow rotation has its own how-to (hips square, turn from the upper back);
+  // the chop now coaches the end-range pause.
+  const rot = ctx.form("Half-Kneeling Cable Rotation");
+  assert.match(rot.mu, /upper-back rotation/);
+  assert.ok(rot.cues.some((c) => /Hips and front knee stay square/.test(c)));
+  assert.match(ctx.why("Half-Kneeling Cable Rotation").why, /full turn/);
+  assert.ok(ctx.form("Cable Wood-chop").cues.some((c) => /pause a beat at the end/.test(c)));
+  // Rest day: straight-arm wall stretch (biceps + chest), still exactly 10 min.
+  const E = engine();
+  const rest = E.recoveryList().map((m) => m[0]);
+  assert.ok(rest.includes("Wall biceps & chest stretch"));
+  assert.ok(!rest.includes("Doorway pec stretch"));
+  assert.equal(E.listMinutes(E.recoveryList()), 10);
 });
 
 // ------------------------------------------------------------- 14 trap bar

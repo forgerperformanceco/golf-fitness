@@ -1,5 +1,66 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## Rotation through range, and the arm that extends (Nov 8, 2026)
+
+Step 5 of the golf-first plan. Owner: "im down for whatever you think is a great idea and matches with
+science. you've heard my struggles: poor rotation, poor arm extension, stiff muscles."
+
+**The check first** (BRAIN thread 10 asked for it): the authored week already had the Cable Wood-chop
+(push day, 3 × 10/side, "rotate from the hips"), the Pallof Press (4-day pull day — anti-rotation, it
+resists turning) and rotational throws (speed day — ballistic). None of them loads the upper back
+slowly to the end of its turn with the hips held still, which is the range a bulk takes away.
+
+- **New lift: Half-Kneeling Cable Rotation, 2 × 8 / side (slow · pause at the end)**, on both
+  Pull + Rotate days (4-day Day 4, 5-day Day 5), right after the Face Pull. Gear swaps: bands →
+  Half-Kneeling Band Rotation (same dose); bodyweight only → Half-Kneeling Thoracic Rotation,
+  2 × 10 / side, hands behind the head. In the swap / add-a-lift catalog under Core.
+  Classifies 🌀 (wave-shielded, RIR-graded, not ballistic), and the turn guard's set add already
+  matches it (`turnGuardAdds`). Its own how-to (045 `exerciseForm` / `liftWhy`, ahead of the generic
+  rotation entry): hips and front knee stay square, the turn comes from the upper back, pause a beat
+  at the end, light.
+- **Wall biceps & chest stretch, 2 × 30s/side** (palm on a wall behind you at shoulder height, arm
+  straight, thumb down, turn away): added to the Pull + Rotate cool-down (now 4 holds, ~7 min), and it
+  replaces the bent-arm doorway pec stretch in the rest-day routine, which stays exactly 10 min. The
+  push-day cool-down keeps the doorway stretch, so the chest still gets both.
+- **Curls coach the straight arm.** Every biceps curl (not leg, hamstring, Nordic or wrist curls)
+  gets its own how-to: "Straighten the elbow all the way at the bottom of every rep — the stretched
+  bottom half grows the biceps more than the top does, and it helps keep your arm able to extend
+  through the ball."
+- **Chops coach the end range:** "Turn all the way through and pause a beat at the end, then control
+  the return."
+
+**Design decisions**
+- **Strength through range, not more stretching alone.** Resistance training through a full range
+  improves range about as well as stretching (Afonso 2021; Alizadeh 2023), and it builds strength at the
+  end of the turn, where a stretch can't. The stretch still earns its place for the biceps/front
+  shoulder, which no lift in the week lengthens.
+- **Why the wall stretch for the chicken wing.** The owner described the biceps "pulling back" as he
+  extends. The muscles that resist a straight lead arm through impact are the biceps (it crosses both
+  the elbow and shoulder) and the front of the chest/shoulder; a straight-arm, thumb-down stretch with
+  the arm behind the body lengthens both at once, which the bent-elbow doorway stretch doesn't.
+- **Why the curl cue.** Training elbow flexion in the extended-elbow half grew the distal biceps more
+  than the flexed half (Pedrosa 2023, doi 10.3390/sports11020039); long-muscle-length training tends to
+  be best for the biceps (Kassiano 2023 review, doi 10.1519/JSC.0000000000004415); full range and
+  lengthened partials come out about equal (Wolf 2025, doi 10.7717/peerj.18904; Gschneidner 2025,
+  doi 10.1080/02640414.2025.2567805). So "full range, all the way straight" costs no growth.
+- **Slow and light, after the heavy lifts.** It's range work, so it sits after the pull-ups, rows and
+  press, and the cue says it is not an oblique builder.
+- No speed claim anywhere: this is durability for the turn (claims-lint clean).
+
+**Verified** (Playwright on the built output, seeded week-2 user, light + dark,
+scratchpad/test-step5.mjs): 46/46 — on both the 4- and 5-day plans the Pull + Rotate card lists the
+Half-Kneeling Cable Rotation between Face Pull and DB Curl at 2 × 8 / side; its cool-down carries the
+wall biceps & chest stretch with its cue and reads ~7 min; the rest-day routine shows the wall stretch,
+no doorway stretch, ~10 min; the how-to sheets show the rotation cues, the curl's straight-arm cue and
+the chop's end-range pause; bands-only gear swaps to the band rotation at 2 × 8, bodyweight-only to the
+thoracic rotation at 2 × 10, both keeping the how-to; no leaked junk; zero page errors. `npm test`
+218/218 with two new cases (the authored rows, classification and gear swaps; the curl / rotation /
+chop how-tos and the rest-day swap), the cool-down bound now allowing the 4th pull-day hold, and a
+turn-guard case adding a set to the new lift; the new cases fail on the old source. Earlier suites
+re-ran green (step 1, turn guard, review fixes, turn check, cool-down). Standing audits: audit-train
+18/18, audit-scroll 16/16, audit-contrast clean (1,577 nodes), audit-type 1 (Fuel "Ate it", same as
+main). Release gate and claims-lint green.
+
 ## The turn check: five golf moves replace the 3-move screen (Nov 8, 2026)
 
 Step 4 of the golf-first plan (owner: "build it.."). He also described the problem it targets: late in

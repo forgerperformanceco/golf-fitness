@@ -215,6 +215,11 @@ speed/power work in, so the deficit costs fat, not mph. Never frame a cut as "ju
   posture), lead arm across the chest, and an overhead reach against a wall (lats). Older screens
   were trunk / 90/90 hip switch / overhead squat. A tight lead arm or lats often shows as a bent lead
   arm or "chicken wing" through the finish; the fixes are the cross-body and lat stretches it adds.
+- Rotation through range (Nov 2026): both Pull + Rotate days include the Half-Kneeling Cable Rotation,
+  2 × 8 / side, light and slow — hips square, the chest turns from the upper back, pause at the end.
+  The pull-day cool-down and the rest-day routine include a wall biceps & chest stretch (palm on a wall
+  behind you at shoulder height, arm straight, thumb down, turn away) for a lead arm that won't extend.
+  Curls are coached to straighten the elbow fully at the bottom of every rep. Durability, not speed.
 - Each lift day opens with ONE explosive primer done first & fresh (jump / med-ball
   pass / KB swing / rotational throw): few max-intent reps, full rest, no fatigue. With
   the Speed & Power day that gives speed 4–5 exposures a week (4 on the 4-day plan, 5 on

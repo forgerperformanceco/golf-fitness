@@ -50,7 +50,7 @@
         ]},
         { name:"Day 5 \u2014 Upper (Pull + Rotate)", tag:"Lift", ex:[
           ["Weighted Pull-up","4 \u00d7 6 (fast up)"],["Chest-Supported Row","3 \u00d7 8"],["Lat Pulldown","3 \u00d7 12"],["Single-Arm DB Bench Press","3 \u00d7 8 / side"],
-          ["Face Pull","3 \u00d7 15"],["DB Curl","3 \u00d7 12"],["Wrist Curl + Reverse","2 \u00d7 15"]
+          ["Face Pull","3 \u00d7 15"],["Half-Kneeling Cable Rotation","2 \u00d7 8 / side (slow \u00b7 pause at the end)"],["DB Curl","3 \u00d7 12"],["Wrist Curl + Reverse","2 \u00d7 15"]
         ]},
         { name:"Rest / Play 18", tag:"rest", type:"rest" }
       ],
@@ -68,7 +68,7 @@
         { name:"Rest / Play 18", tag:"rest", type:"rest" },
         { name:"Day 4 \u2014 Upper (Pull + Rotate)", tag:"Lift", ex:[
           ["Weighted Pull-up","4 \u00d7 6 (fast up)"],["Chest-Supported Row","3 \u00d7 8"],["Lat Pulldown","3 \u00d7 12"],["Single-Arm DB Bench Press","3 \u00d7 8 / side"],
-          ["Face Pull","3 \u00d7 15"],["DB Curl","3 \u00d7 12"],["Pallof Press","3 \u00d7 12 / side"],["Wrist Curl + Reverse","2 \u00d7 15"]
+          ["Face Pull","3 \u00d7 15"],["Half-Kneeling Cable Rotation","2 \u00d7 8 / side (slow \u00b7 pause at the end)"],["DB Curl","3 \u00d7 12"],["Pallof Press","3 \u00d7 12 / side"],["Wrist Curl + Reverse","2 \u00d7 15"]
         ]},
         { name:"Rest / Play 18", tag:"rest", type:"rest" }
       ],
@@ -182,6 +182,7 @@
     // 13.5% (Maeo 2023) — the plan's default since the Sep 2026 evidence update.
     "Cable Overhead Triceps Extension":{needs:["cable"],subs:[{needs:["dumbbells"],name:"Overhead Triceps Extension"},{needs:["bands"],name:"Band Overhead Triceps Extension"},{needs:["bodyweight"],name:"Diamond Push-up",sr:"3 \u00d7 10 (too hard? knees down)"}]},
     "Cable Triceps Pushdown":{needs:["cable"],subs:[{needs:["bands"],name:"Band Triceps Pushdown"},{needs:["bodyweight"],name:"Diamond Push-up",sr:"3 \u00d7 10 (too hard? knees down)"}]},
+    "Half-Kneeling Cable Rotation":{needs:["cable"],subs:[{needs:["bands"],name:"Half-Kneeling Band Rotation"},{needs:["bodyweight"],name:"Half-Kneeling Thoracic Rotation",sr:"2 \u00d7 10 / side (hands behind head, slow)"}]},
     "Cable Wood-chop":{needs:["cable"],subs:[{needs:["bands"],name:"Band Wood-chop"},{needs:["medball"],name:"Med-Ball Rotational Throw"},{needs:["bodyweight"],name:"Speed Russian Twist"}]},
     "Deadlift":{needs:["barbell"],subs:[{needs:["dumbbells"],name:"DB Romanian Deadlift"},{needs:["kettlebell"],name:"Kettlebell Deadlift"},{needs:["bodyweight"],name:"Single-leg RDL",sr:"3 \u00d7 10 / leg"}]},
     "Hip Thrust":{needs:["barbell","bench"],subs:[{needs:["dumbbells","bench"],name:"DB Hip Thrust"},{needs:["bodyweight"],name:"Single-leg Glute Bridge",sr:"3 \u00d7 12 / leg"}]},
@@ -500,7 +501,7 @@
   function cooldownBase(name){
     if(name==="speed") return [cdHold("9090"), cdHold("book")];
     if(/Full Body/.test(name)) return [cdHold("9090"), cdHold("xbody"), cdHold("book")];
-    if(/Pull|Rotate/.test(name)) return [["Bench lat stretch, turn each way","2 × 30s"], cdHold("xbody"), cdHold("9090")];
+    if(/Pull|Rotate/.test(name)) return [["Bench lat stretch, turn each way","2 × 30s"], cdHold("xbody"), ["Wall biceps & chest stretch","2 × 30s/side"], cdHold("9090")];
     if(/Push|Upper/.test(name)) return [["Doorway pec stretch","2 × 30s/side"], cdHold("xbody"), cdHold("9090")];
     if(/Lower|Squat|Hinge|Quads/.test(name)) return [["Half-kneeling hip flexor stretch","2 × 30s/side"], cdHold("9090"), cdHold("book")];
     return [cdHold("9090"), cdHold("book")];
@@ -528,7 +529,7 @@
   function recoveryList(){
     return cdAddFixes([["Open-book T-spine","×8/side"],["90/90 hip switches","×8/side"],
       ["90/90 hold, lean each way","2 × 45s/side"],["Golf-posture turns, hips still","×8/side"],
-      cdHold("xbody"),["Doorway pec stretch","2 × 30s/side"]], true);
+      cdHold("xbody"),["Wall biceps & chest stretch","2 × 30s/side"]], true);
   }
   // Seconds a checklist takes: "2 × 30s/side" = 120, "×8/side" ≈ 4 s a rep.
   function holdSecs(dose){
@@ -600,6 +601,7 @@
       "Cross-body shoulder stretch": "Pull one arm across your chest at the elbow, shoulder down. That's your lead arm at the top.",
       "Bench lat stretch, turn each way": "Kneel, elbows on a bench, palms together, sit the hips back. Turn the chest to each side.",
       "Doorway pec stretch": "Forearm on a door frame, elbow at shoulder height. Step through until the chest stretches.",
+      "Wall biceps & chest stretch": "Palm flat on a wall behind you at shoulder height, arm straight, thumb down. Turn away until the front of the arm stretches.",
       "Half-kneeling hip flexor stretch": "One knee down. Squeeze that glute, ribs down, shift forward. Don't arch your back.",
       "Golf-posture turns, hips still": "Address posture, club across your shoulders. Turn back and through, belt buckle on the ball.",
       "Trunk rotations": "Arms crossed, feet planted. Turn your shoulders each way while the hips stay quiet.",
