@@ -843,7 +843,7 @@
     var den=n*sxx-sx*sx; if(den<=0) return null;
     var rate=(n*sxy-sx*sy)/den, a=(sy-rate*sx)/n, se=0;          // lb/week
     if(n>2){ var rss=0; pts.forEach(function(p){ var r=p.w-(a+rate*(p.t-t0)/6048e5); rss+=r*r; }); se=Math.sqrt(rss/(n-2)/(den/n)); }
-    var w0=sy/n, g=(typeof GOALS!=="undefined" && GOALS[state.goal]) || {};
+    var w0=sy/n, g=(typeof ffGoal==="function" && typeof GOALS!=="undefined") ? ffGoal() : ((typeof GOALS!=="undefined" && GOALS[state.goal]) || {});
     var base=(typeof ffCalcBase!=="undefined")?ffCalcBase:null, hcm=0;
     try{ hcm=(base && base.heightCm) || (num("heightFt")*12+num("heightIn"))*2.54; }catch(_){}
     var desired=g.weekly ? ffWeeklyLb((g.weekly[0]+g.weekly[1])/2, w0, hcm) : 0;
@@ -1115,7 +1115,7 @@
     return ffTrendFit(pts);
   }
   function adaptiveCheck(){
-    var g=GOALS[state.goal]; if(!g) return null;
+    var g=(typeof ffGoal==="function")?ffGoal():GOALS[state.goal]; if(!g) return null;
     var tr=weightTrend(); if(!tr) return null;
     var base=(typeof ffCalcBase!=="undefined")?ffCalcBase:null;
     var weightLb=num("weight")||tr.lastW;

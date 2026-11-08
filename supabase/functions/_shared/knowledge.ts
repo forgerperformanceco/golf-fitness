@@ -202,6 +202,13 @@ speed/power work in, so the deficit costs fat, not mph. Never frame a cut as "ju
 - Every day opens with a 5-min warm-up (hip + thoracic mobility, ramp sets) and ends with a
   ~5-min rotation cool-down (90/90, open-book, shoulder holds); rest days carry a 10-min
   keep-your-turn routine. Static holds sit after lifting, never before (Behm 2016).
+- Turn guard (Nov 2026): on Build (or a legacy Bulk), a mobility screen that scores lower on
+  any move than the screen before it switches the guard on until a later screen doesn't drop.
+  While on: the calorie surplus AND the target gain rate are halved (+10% → +5%, so the check-in
+  doesn't add the calories back); chest, shoulder and arm isolation lose a set (floor 2) and
+  rotation-through-range lifts (wood-chops, cable rotations) gain one; heavy lifts, power, legs
+  and upper-back work are unchanged. Tell the user to do every cool-down and the rest-day routine,
+  and to re-screen after ~2+ weeks. It's durability for the swing, never a speed claim.
 - Each lift day opens with ONE explosive primer done first & fresh (jump / med-ball
   pass / KB swing / rotational throw): few max-intent reps, full rest, no fatigue. With
   the Speed & Power day that gives speed 4–5 exposures a week (4 on the 4-day plan, 5 on

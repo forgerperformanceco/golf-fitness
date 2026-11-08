@@ -18,6 +18,23 @@
   ];
   function mobTests(){ var t=lsGet("ff_mobility",[]); return Array.isArray(t)?t:[]; }
   function lastMob(){ var t=mobTests(); return t.length?t[t.length-1]:null; }
+  // Turn guardrail (Nov 2026): on a gaining goal, a screen that came back worse
+  // than the one before it means the build is starting to cost the turn. The
+  // guard holds until the next screen that doesn't drop. Compares whatever tests
+  // both entries share, so a future screen with different moves still works.
+  // Called from calc() before this module's vars exist — hence the literal names.
+  function ffTurnGuard(){
+    if(typeof state==="undefined" || !state || (state.goal!=="leanbulk" && state.goal!=="bulk")) return null;
+    var t=mobTests(); if(t.length<2) return null;
+    var a=t[t.length-2], b=t[t.length-1];
+    if(!a || !b || !a.tests || !b.tests) return null;
+    var names={ trunk:"trunk rotation", hip:"hips", squat:"deep squat" };
+    var dropped=Object.keys(b.tests).filter(function(k){
+      return Object.prototype.hasOwnProperty.call(a.tests,k) && (b.tests[k]|0) < (a.tests[k]|0); });
+    if(!dropped.length) return null;
+    return { dropped:dropped, ts:b.ts||0,
+      label:dropped.map(function(k){ return names[k]||k; }).join(" and ") };
+  }
   function mobDue(){ var lm=lastMob(); return !lm || (Date.now()-lm.ts)>=28*864e5; }
   // Which areas the latest screen flagged (score < pass) → drives warm-up routing.
   function mobLimits(){

@@ -530,6 +530,11 @@ hack. Implementation (065-mobility-screen…js):
   squat → deep-squat hold). Holds sit AFTER lifting, never in the warm-up (≥60 s/muscle
   ≈ −4.6%, Behm 2016); the weekly dose follows Thomas 2018 (≥~5 min/muscle/week over
   ≥5 days). Checklist only — no stored key, no Octane input.
+- **Turn guard** (Nov 2026, 065 `ffTurnGuard`): on Build / legacy Bulk, a screen scoring lower on
+  any shared test than the screen before it. While on: `ffGoal()` (025) halves `pct` and `weekly`
+  for every reader (calc, power-to-weight, check-in); `adjSets` trims a set off chest/shoulder/arm
+  💪 isolation (by `exGroupFor`, floor 2) and adds one to rotation-through-range 🌀 lifts. Off on the
+  next screen that doesn't drop.
 - **Plane nuance** (CLUBHEAD §11.6, added Nov 2026): McHugh 2022 found *transverse-plane*
   (rotation) flexibility separated proficient from average golfers and tracked ball speed
   (n=25, cross-sectional); sagittal/frontal didn't. Copy says "general flexibility doesn't

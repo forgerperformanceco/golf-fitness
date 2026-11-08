@@ -672,8 +672,33 @@
   // stay at full intensity — that's what protects muscle and clubhead speed.
   function trainRetain(){ return state.goal==="maintain" || state.goal==="cut"; }
   function adjSets(sr, name){
-    if(!trainRetain() || purposeFor(name)!=="💪") return sr;
-    return String(sr).replace(/^(\s*)(\d+)/, function(_, sp, n){ return sp + Math.max(2, parseInt(n,10)-1); });
+    var p=purposeFor(name);
+    if(trainRetain()){
+      if(p!=="💪") return sr;
+      return String(sr).replace(/^(\s*)(\d+)/, function(_, sp, n){ return sp + Math.max(2, parseInt(n,10)-1); });
+    }
+    // Turn guard (Build, a turn check that dropped): upper-body isolation gives a
+    // set to rotation through range until a check holds steady. Heavy lifts,
+    // power, legs and upper-back work are untouched.
+    var tg=(typeof ffTurnGuard==="function")?ffTurnGuard():null;
+    if(tg && p==="💪" && turnGuardTrims(name))
+      return String(sr).replace(/^(\s*)(\d+)/, function(_, sp, n){ return sp + Math.max(2, parseInt(n,10)-1); });
+    if(tg && p==="🌀" && turnGuardAdds(name))
+      return String(sr).replace(/^(\s*)(\d+)/, function(_, sp, n){ return sp + (parseInt(n,10)+1); });
+    return sr;
+  }
+  // Chest, shoulder and arm isolation — the mass that blocks the lead arm and
+  // costs shoulder rotation (Barlow 2002; Kolber 2009). Rear delts and face pulls
+  // are upper back, which golf wants, so they stay. Reuses the history grouping.
+  function turnGuardTrims(name){
+    var grp=(typeof exGroupFor==="function")?exGroupFor(name):"";
+    return /^(Triceps|Biceps|Push — )/.test(grp) && !/Face Pull|Rear.?Delt|Reverse Pec Deck/i.test(name);
+  }
+  // Rotation THROUGH range (chops, cable rotations) — not anti-rotation holds and
+  // not the ballistic throws/chops on the speed day.
+  function turnGuardAdds(name){
+    return /Wood-?chop|\bChop\b|Rotation\b|Landmine Rotation/i.test(name) &&
+      !/Throw|Toss|Punch|Lateral Chop|Slam|Pallof|Anti/i.test(name);
   }
   /* ---- Periodization wave: the 20 weeks run in 6-week cycles so the plan itself
      changes — Accumulate (volume) → Intensify (heavy) → Deload (recover) — closing
@@ -1176,6 +1201,8 @@
 
     var wvKey=waveFor(wk), wave=WAVES[wvKey];
     if(wvKey!=="accumulate") html+='<div class="deload-banner">'+wave.ic+' <b>'+wave.label+' week.</b> '+wave.strap+' '+ffTerm('wave','How the weeks work ›')+'</div>';
+    var tgB=(typeof ffTurnGuard==="function")?ffTurnGuard():null;
+    if(tgB) html+='<div class="deload-banner turn-guard">🌀 <b>Turn guard on.</b> Your last turn check dropped ('+tgB.label+'). Until a re-check holds steady, chest, shoulder and arm isolation drop a set, rotation lifts gain one, and the calorie surplus is halved. Do every cool-down.</div>';
 
     if(mode==="today"){
       var todayDate = new Date();

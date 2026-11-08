@@ -455,6 +455,9 @@ stores; we're a URL). Shipping the app matters more than more docs.
   Prompted by the owner's own bulk on a traditional plan costing his coil (DESIGN-CHANGES, Nov 7).
 - **Build, not Bulk (Nov 8, 2026)** — the +10% goal is called Build (key stays `leanbulk`); every
   mobility move shows a one-line how-to.
+- **Turn guard (Nov 8, 2026)** — on Build, a mobility screen that drops vs the one before halves
+  the surplus and target rate (`ffGoal`), trims a set from chest/shoulder/arm isolation and adds one
+  to rotation lifts until a screen holds steady.
 
 **Rejected (deliberately):**
 - **A "Bulk" (+20%) goal** — retired Nov 8, 2026. Golfers build, they don't bulk: in trained
@@ -647,10 +650,9 @@ publishable key + VAPID public key ship client.
 10. **Golf-first goals (OPEN, Nov 2026).** Owner decision after his physique bulk cost him
    mobility: every goal trains a golfer; the goal changes the dials, not the identity. Shipped:
    the keep-your-turn cool-down + rest-day routine (Nov 7), Build-not-Bulk + move cues (Nov 8).
-   Next, one PR each: (2) goal dials — Build's extra sets go to legs, glutes, hamstrings, upper
-   back and grip, with chest / front-delt / arm isolation capped; (3) a turn guardrail on Build —
-   a dropped mobility score shows one card, slows the surplus and swaps one upper-body muscle
-   exercise for rotation strength; (4) a golf-specific turn check (hip rotation per side, shoulder–
+   Step (2), goal dials, was DROPPED: the Build week already favours legs, glutes and back over
+   chest and delts (NUTRITION §9a), so moving more sets would be a guess. Step (3), the turn
+   guard, SHIPPED Nov 8. Next, one PR each: (4) a golf-specific turn check (hip rotation per side, shoulder–
    hip separation, lead arm across the chest) — a stored-data change; (5) rotation strength through
    range in the authored week. Evidence for the direction: bodybuilders ~11° less shoulder internal
    rotation (Barlow 2002, PMID 12173950); pec/delt-biased recreational lifters lose shoulder range
