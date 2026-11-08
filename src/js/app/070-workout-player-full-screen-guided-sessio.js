@@ -789,7 +789,7 @@
         detail: mobStale ? "Re-screen due (4-week check)" : (lm.score>=84 ? "Moving well" : "Tight spots — warm-ups tuned") });
     } else {
       parts.push({ key:"mobility", label:"Mobility", have:false, max:10, pts:0,
-        detail:"Take the 3-move screen" });
+        detail:"Take the 5-move turn check" });
     }
 
     // 6) Fuel (10) — adherence to the plan the app wrote (last 7 logged days, 14-day window).
@@ -870,7 +870,7 @@
     speed: "test your 7-iron speed every 2 weeks so the trend can climb",
     strength: "push the big lifts with double progression and log the weights",
     p2w: "keep the jumps and throws sharp — this pillar fills as speed climbs",
-    mobility: "run the 3-move mobility screen and hit the warm-up and cool-down moves it adds",
+    mobility: "run the 5-move turn check and hit the warm-up and cool-down moves it adds",
     fuel: "check off your meals on the Fuel tab — ten seconds a day closes the loop"
   };
   function ffScoreSummary(r, noLever){

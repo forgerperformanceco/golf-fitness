@@ -47,11 +47,11 @@
     var mobLast=(typeof lastMob==="function")?lastMob():null;
     if(!mobLast && hasData)
       out.push({prio:79, sig:"mob0", ic:"🧭", title:"3-minute mobility screen",
-        body:"Adding muscle should never cost you turn. Three quick self-tests — trunk rotation, hips, deep squat — become your Octane's <b>5th pillar</b> and tune your warm-ups to whatever's tight.",
+        body:"Adding muscle should never cost you turn. Five quick self-tests for your golf turn — trunk, hips, coil, lead arm and overhead reach — become your Octane's <b>5th pillar</b> and tune your warm-ups to whatever's tight.",
         act:"mobscreen", actLabel:"🧭 Take the screen"});
     else if(mobLast && (Date.now()-mobLast.ts)>=28*864e5)
       out.push({prio:72, sig:"mobre:"+Math.floor(Date.now()/(14*864e5)), ic:"🧭", title:"Mobility re-screen due",
-        body:"It's been 4+ weeks since your last screen (score <b>"+mobLast.score+"/100</b>). Re-run the 3 moves to prove the new mass is staying mobile — and to clear the extra warm-up work if you've loosened up.",
+        body:"It's been 4+ weeks since your last screen (score <b>"+mobLast.score+"/100</b>). Re-run the 5 moves to prove the new mass is staying mobile — and to clear the extra warm-up work if you've loosened up.",
         act:"mobscreen", actLabel:"🧭 Re-run the screen"});
 
     // The biweekly retest ritual — testing is the scoreboard, so it gets its own nudge.
@@ -221,7 +221,7 @@
     if(mobDue())
       return '<button type="button" class="nu-card alt" data-mobscreen="1">'+
         '<div class="nu-kick">Today · 3 minutes</div><div class="nu-title">🧭 Mobility check</div>'+
-        '<div class="nu-sub">Three quick moves — trunk, hips, deep squat. It tunes your warm-ups.</div>'+
+        '<div class="nu-sub">Five quick moves for your turn: trunk, hips, coil, lead arm, overhead reach. It tunes your sessions.</div>'+
         nuCta("Start the check")+'</button>';
     if(d && d.type==="rest"){
       // A logged round IS today's activity — it satisfies the rest/"Play 18" day

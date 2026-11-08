@@ -473,7 +473,7 @@ test("every warm-up, cool-down, rest-day, speed-test and game-day move carries a
   const ctx = {};
   vm.runInNewContext(`
     var state={ prep:["back","hips","shoulders","knees"] };
-    function mobLimits(){ return { trunk:true, hip:true, squat:true }; }
+    function mobLimits(){ return { trunk:true, hip:true, squat:true, hiprot:true, coil:true, leadarm:true, lats:true }; }
     ${["moveCue", "warmupBase", "warmupList", "cdHold", "cooldownBase", "cdAddFixes", "cooldownList", "recoveryList"].map((n) => fn(PLAN, n)).join("\n")}
     this.moveCue = moveCue; this.lists = function(names){
       var out=[]; names.forEach(function(n){ out=out.concat(warmupList(n), cooldownList(n)); });
@@ -573,6 +573,54 @@ test("a guarded Build halves the surplus and the target gain rate together", () 
   assert.match(MACRO_SRC, /var g=ffGoal\(\);/);
   const PLAYER_SRC = readFileSync(new URL("../src/js/app/070-workout-player-full-screen-guided-sessio.js", import.meta.url), "utf8");
   assert.equal((PLAYER_SRC.match(/ffGoal\(\)/g) || []).length, 2, "power-to-weight and the check-in");
+});
+
+// ------------------------------------------- 13e the golf turn check (v2)
+test("the turn check saves five golf moves, and old 3-move screens still route", () => {
+  const ctx = { __entries: [] };
+  vm.runInNewContext(`
+    function lsGet(k,d){ return k==="ff_mobility" ? __entries : d; }
+    ${MOB.match(/var MOB_TESTS = \[[\s\S]*?\n  \];/)[0]}
+    ${["mobEntry", "mobTests", "lastMob", "mobLimits"].map((n) => fn(MOB, n)).join("\n")}
+    this.entry = mobEntry; this.limits = function(e){ __entries=[e]; return mobLimits(); }; this.keys = MOB_TESTS.map(function(t){ return t.key; });
+  `, ctx);
+  assert.deepEqual([...ctx.keys], ["trunk", "hiprot", "coil", "leadarm", "lats"]);
+  const e = ctx.entry({ trunk: 2, hiprot: 1, coil: 2, leadarm: 0, lats: 2 }, 5, "d");
+  assert.equal(e.v, 2); assert.equal(e.score, 70); assert.equal(e.ts, 5);
+  assert.deepEqual(Object.keys(e.tests), ["trunk", "hiprot", "coil", "leadarm", "lats"]);
+  assert.equal(ctx.entry({}, 1, "d").score, 0, "unanswered moves count as 0, never NaN");
+  assert.deepEqual(Object.keys(ctx.limits(e)).sort(), ["hiprot", "leadarm"]);
+  assert.deepEqual(Object.keys(ctx.limits({ ts: 1, tests: { trunk: 2, hip: 1, squat: 0 } })).sort(), ["hip", "squat"], "a v1 screen still routes");
+});
+
+test("v2 flags route the right moves into warm-ups and cool-downs, never twice", () => {
+  const ctx = {};
+  vm.runInNewContext(`
+    var state={ prep:[] };
+    function mobLimits(){ return { coil:true, leadarm:true, lats:true, hiprot:true }; }
+    ${["warmupBase", "warmupList", "cdHold", "cooldownBase", "cdAddFixes", "cooldownList", "recoveryList"].map((n) => fn(PLAN, n)).join("\n")}
+    this.wu = warmupList; this.cd = cooldownList; this.rest = recoveryList;
+  `, ctx);
+  const names = (l) => l.map((m) => m[0]);
+  const push = "Day 2 — Upper (Push)", lower = "Day 1 — Lower (Quads)", pull = "Day 4 — Upper (Pull + Rotate)";
+  assert.ok(names(ctx.wu(push)).includes("Golf-posture turns, hips still"), "coil → golf-posture turns in every warm-up");
+  assert.ok(names(ctx.wu(lower)).includes("Golf-posture turns, hips still"));
+  assert.ok(names(ctx.wu(push)).some((n) => /Dead hang/.test(n)), "lats → dead hang on upper days");
+  assert.ok(!names(ctx.wu(lower)).some((n) => /Dead hang/.test(n)), "…not on lower days");
+  assert.ok(names(ctx.wu(lower)).includes("90/90 hip switches"), "hip rotation → 90/90 on lower days");
+  assert.ok(names(ctx.cd(lower)).includes("Cross-body shoulder stretch"), "lead arm → cross-body stretch even on lower days");
+  assert.ok(names(ctx.cd(push)).includes("Bench lat stretch, turn each way"), "lats → lat stretch in the cool-down");
+  assert.ok(names(ctx.cd(push)).includes("90/90 lift-offs"));
+  for (const l of [ctx.wu(push), ctx.wu(pull), ctx.wu(lower), ctx.cd(push), ctx.cd(pull), ctx.cd(lower), ctx.rest()])
+    assert.equal(new Set(names(l)).size, l.length, "no duplicate move");
+  // In-season full-body days train both halves, so they get the upper AND lower fixes (Codex, #114).
+  for (const fb of ["Day 1 — Full Body A (Squat + Press)", "Day 2 — Full Body B (Hinge + Pull)"]) {
+    const w = names(ctx.wu(fb));
+    assert.ok(w.some((n) => /Dead hang/.test(n)), `${fb}: lats → dead hang`);
+    assert.ok(w.some((n) => /Shoulder CARs|Band pull-aparts/.test(n)), `${fb}: lead arm → shoulder work`);
+    assert.ok(w.some((n) => /90\/90|Adductor/.test(n)), `${fb}: hip rotation → hip work`);
+    assert.equal(new Set(w).size, w.length, `${fb}: no duplicate move`);
+  }
 });
 
 // ------------------------------------------------------------- 14 trap bar

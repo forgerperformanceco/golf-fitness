@@ -512,10 +512,12 @@ So mobility work stays in the program — framed as injury insurance and
 "the mass you add never costs you rotation" — and is never pitched as a speed
 hack. Implementation (065-mobility-screen…js):
 
-- **3-move self-screen**, ~3 min, no gear: seated trunk rotation, 90/90 hip
-  switch, overhead deep squat — each scored 0/1/2 (lines 8-18).
-- **Score = round(sum / 6 × 100)** → 0–100 (line 88); entries `{ts, date,
-  tests{trunk,hip,squat}, score}` capped at 40 (line 90).
+- **Turn check (v2, Nov 2026)**, ~4 min, no gear: seated trunk rotation, seated hip
+  rotation, coil (shoulders vs hips in golf posture), lead arm across the chest, overhead
+  reach against a wall (lats) — each 0/1/2 (`MOB_TESTS`). v1 (to Nov 2026) was trunk /
+  90/90 hip switch / overhead deep squat; v1 entries stay readable (`mobLimits` reads any keys).
+- **Score = round(sum / (2 × moves) × 100)** → 0–100 (`mobEntry`); entries `{ts, date, v:2,
+  tests{trunk,hiprot,coil,leadarm,lats}, score}` capped at 40.
 - Cadence: re-screen due every **28 days** (`mobDue`, 21); the Octane pillar
   shows "Re-screen due" past **35 days** (070:683).
 - **Warm-up routing** (`mobLimits` 23-27 → `warmupList` 035:312-324): any test

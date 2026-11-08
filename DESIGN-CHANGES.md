@@ -1,5 +1,57 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## The turn check: five golf moves replace the 3-move screen (Nov 8, 2026)
+
+Step 4 of the golf-first plan (owner: "build it.."). He also described the problem it targets: late in
+a bulk, "when I try to extend my arms in a golf swing, my biceps feel too big. Like I want to pull the
+club in and chicken wing a bit."
+
+- **Five moves, each 0/1/2** (`MOB_TESTS`, 065): seated trunk rotation (unchanged — its key `trunk`
+  carries across versions), seated hip rotation (`hiprot`), coil — shoulders vs hips in golf posture
+  (`coil`), lead arm across the chest (`leadarm`), and an overhead reach against a wall for the lats
+  (`lats`). The 90/90 switch and overhead deep squat are gone. ~4 minutes; copy across Home, the quick
+  sheet, Stats, the You plan card and the coach says 5 moves.
+- **Entries** come from a pure `mobEntry()` (unit-tested): every v2 key, `v:2`, and the score over
+  however many moves were scored, so the Octane pillar stays 0–100.
+- **Old screens stay readable.** `mobLimits()` reads whatever keys an entry holds, so a v1 screen keeps
+  routing its fixes until it's re-run, and the turn guard compares only shared keys, so the v1 → v2
+  switch can only trip on trunk rotation (proven through the real sheet in test-step3-review).
+- **New routing** (035): coil → golf-posture turns in every warm-up; lead arm → shoulder CARs in
+  upper warm-ups and the cross-body stretch in every cool-down; lats → a dead hang in upper warm-ups
+  and the lat stretch in every cool-down; hip rotation → the old hip fixes (90/90 or adductor
+  rock-backs, and 90/90 lift-offs).
+- **Full-body days get both halves' fixes** (Codex review, #114): the in-season 2/3-day plans'
+  "Full Body A (Squat + Press)" named no upper-body word, so a tight lead arm or lats added nothing
+  to its warm-up. `warmupList` now counts "Full Body" as upper and lower. Reproduced with a failing
+  unit case first (no dead hang on Full Body A), then fixed; Full Body B already matched both.
+- The result screen's closing line said moving well "lets the new mass become speed" — off-thesis
+  (mobility is durability, not a speed lever); it now says the muscle you add should never cost
+  your turn.
+
+**Design decisions**
+- **Why these five.** Better golfers differ from average ones in rotation range, not front-to-back
+  flexibility (McHugh 2022), and shoulder–hip separation tracks ball speed (Myers 2008) — so trunk,
+  hips and coil. Bodybuilding-style training costs shoulder rotation (Barlow 2002; Kolber 2009), and
+  the owner's chicken-wing describes the lead arm and lats — so the cross-body reach and the wall reach.
+  The overhead squat mostly tested ankles and was the least golf-specific move.
+- **New keys, not reused ones.** Reusing `hip` for a different test would let the guard compare a
+  90/90 switch against a seated rotation and fire falsely at the version switch.
+- **One score per move**, with "one side clearly tighter" as the 🟡 — per-side storage would double the
+  data model for little gain at this stage.
+
+**Verified** (Playwright on the built output, seeded week-2 user, light + dark,
+scratchpad/test-step4.mjs): 34/34 — the quick sheet reads "5 moves · ~4 minutes"; the sheet shows the
+five moves in order with save disabled until all are scored; answers 2/1/1/0/1 save as a v2 entry
+`{trunk,hiprot,coil,leadarm,lats}` scoring 50/100 with 4 flagged moves and their fixes; Train's Full
+week then carries golf-posture turns, dead hang, shoulder CARs, adductor rock-back (90/90 is already in
+the lower warm-up), the cross-body stretch, the lat stretch and 90/90 lift-offs, all marked from the
+screen; a seeded v1 screen still routes the deep-squat hold and lift-offs; no leaked junk; zero page
+errors. `npm test` 216/216 with two new cases (`mobEntry` + v1/v2 `mobLimits`; v2 routing with no
+duplicates), and the cue-coverage test now includes every v2 fix. Earlier suites re-ran green (turn guard
+30/30, review fixes 16/16 — its sheet now answers v2 moves —, step 1 28/28, cool-down 46/46). Standing
+audits: audit-train 18/18, audit-scroll 16/16, audit-contrast clean (1,577 nodes), audit-type 1 (Fuel
+"Ate it", same as main). Release gate green.
+
 ## The turn guard: a Build that starts costing your turn slows itself down (Nov 8, 2026)
 
 Owner, worried a golf-first build would still leave him "too rigid … can't turn around and wipe my
