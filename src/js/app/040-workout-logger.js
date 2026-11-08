@@ -203,8 +203,11 @@
   // force stays in force until then. The snapshot is taken BEFORE apply(g) runs —
   // lsGet hands back its cached object, so g IS what ffPlayDaysNow/ffOffDaysNow read.
   function ffSaveSchedule(apply){
+    // Any check-off this week freezes the layout: rest-day marks (recovery AND
+    // cardio) are keyed by the rest slot, so re-arranging would move them to
+    // another calendar day (Codex, #117).
     var g=gdState(), wk=planStart()?curWeek():0, busy=wk && stripDays().some(function(x){
-      return x.type==="rest" ? restDone(wk, dayKey(x)) : !!getSession(wk, x.name); });
+      return x.type==="rest" ? (restDone(wk, dayKey(x)) || cardioDone(wk, dayKey(x))) : !!getSession(wk, x.name); });
     if(busy){ if(!(g.arrangeWeek>wk)){ g.prevDays=ffPlayDaysNow().slice(); g.prevOff=ffOffDaysNow().slice(); } g.arrangeWeek=wk+1; }
     else { delete g.arrangeWeek; delete g.prevDays; delete g.prevOff; }
     apply(g); gdSave(g);
@@ -269,6 +272,12 @@
   // (an undo must out-stamp the check-off on every device, so never delete).
   function restDone(w,d){ return getRest()[w+"|"+d] > 0; }
   function toggleRestDone(w,d){ var r=getRest(), k=w+"|"+d; r[k]=(r[k] > 0) ? -Date.now() : Date.now(); lsSet("ff_rest",r); }
+  // Easy (Zone 2) cardio on a rest day (Nov 2026): its own check-off, stored in
+  // ff_rest under "week|day|cardio" with the same signed-timestamp convention, so
+  // it syncs (unionDeleted), clears with a plan reset and drops with an old season
+  // exactly like the rest check-off — and never touches restDone("week|day").
+  function cardioDone(w,d){ return getRest()[w+"|"+d+"|cardio"] > 0; }
+  function toggleCardioDone(w,d){ var r=getRest(), k=w+"|"+d+"|cardio"; r[k]=(r[k] > 0) ? -Date.now() : Date.now(); lsSet("ff_rest",r); }
   // Every rest day shares the display name "Rest / Play 18", so key its check-off
   // by the day's slot position in the week — otherwise both rest days would toggle
   // as one. Training days have unique names, so they key by name as before.

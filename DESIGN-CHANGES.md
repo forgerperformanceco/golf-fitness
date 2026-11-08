@@ -1,5 +1,47 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## Easy (Zone 2) cardio on rest days (Nov 8, 2026)
+
+Owner, planning cardio or stretches on his days off: "easy cardio stuff. Can you like work that in so
+that we could check it or click it or do something?"
+
+- **Every rest day card** (Train › Today and Full week, so days off too) now ends with a
+  **🚶 Easy cardio (Zone 2)** block, *optional · 20–40 min*: "Walk (9 holes counts), an incline
+  treadmill or the bike, easy enough to talk in full sentences. Skip running and hard intervals here:
+  they cut into power the most." A **Mark cardio done** button checks it off (tap again to undo).
+- **Its own check-off**, separate from "Mark recovery done" (the stretch routine): `cardioDone` /
+  `toggleCardioDone` (040) store `ff_rest["week|dayKey|cardio"]` with the same signed-timestamp
+  convention as rest check-offs. So it syncs through `ff_rest`'s existing `unionDeleted` merge (latest
+  tap wins on every device), clears with a plan reset, drops with an old season, and counts as activity
+  for the welcome-back screen — with no new key and no `cloud-sync.js` change. `restDone("week|dayKey")`
+  is untouched.
+- **A cardio check-off freezes the week's layout** (Codex review, #117), like a recovery check-off:
+  rest-day marks are keyed by the rest slot, so a days-off or play-day change applied mid-week would
+  move the ✓ to another calendar day. `ffSaveSchedule`'s busy test now counts `cardioDone` too.
+  Reproduced first (old build: the change applied at once, `arrangeWeek` unset), then fixed — the
+  change queues for next week, the row says "Starts next week" and today keeps its ✓
+  (scratchpad/test-cardio-busy.mjs, 10/10).
+
+**Design decisions**
+- **Easy only.** The concurrent-training note (NUTRITION ref §10) is the rule: interference mainly
+  blunts power and running is the worst offender, so the block steers to walking and cycling at a
+  talking pace and away from runs and intervals. The talk test is the intensity check — no heart-rate
+  zones to set up. No speed or fat-loss claim.
+- **A check, not a log.** No minutes or heart-rate entry: he asked for something to tap. The 10-day
+  calorie check-in already corrects for the extra burn through the weight trend.
+- Home's rest-day card is unchanged (it is one big tap target that marks the rest day); the cardio
+  check lives on the Train card with the stretch routine.
+
+**Verified** (Playwright on the built output, seeded week-2 user with today set as a day off, light +
+dark, scratchpad/test-cardio.mjs): 24/24 — today's rest card shows the block with its copy; tapping
+logs it ("✓ Cardio logged — tap to undo") and stores only `2|rest@2|cardio` (the recovery button stays
+unchecked); it survives a reload; a second tap undoes it with a negative stamp; the Full week shows one
+block per rest day; no leaked junk; zero page errors. `npm test` 221/221 with a new case (own key,
+undo stamps, independent of the rest check, two-device merge via the real `unionDeleted`). Earlier
+suites green (cool-down, days off, overbooked days off, step 5). Audits: audit-train 18/18,
+audit-scroll 16/16, audit-contrast clean (1,595 nodes), audit-type 1 (Fuel "Ate it", same as main).
+Release gate and claims-lint green.
+
 ## Days off: pick the days you never train (Nov 8, 2026)
 
 Owner: "I'm taking Sunday off, possibly even Monday … Can we like reorganize the days? That'd be

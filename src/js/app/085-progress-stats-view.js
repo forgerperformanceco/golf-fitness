@@ -745,6 +745,10 @@
     if(spm){ lsSet("ff_speedmode", spm.getAttribute("data-speedmode")); renderPhase(); return; }
     var fdc=e.target.closest("[data-focusday]");
     if(fdc){ focusDay=fdc.getAttribute("data-focusday"); renderPhase(); return; }
+    var cdc=e.target.closest("[data-cardio]");
+    if(cdc){ toggleCardioDone(curWeek(), cdc.getAttribute("data-cardio"));
+      try{ window.dispatchEvent(new Event("ff-data-changed")); }catch(_){}   // nudge cloud-sync
+      renderPhase(); return; }
     var rdc=e.target.closest("[data-restday]");
     if(rdc){ toggleRestDone(curWeek(), rdc.getAttribute("data-restday"));
       try{ window.dispatchEvent(new Event("ff-data-changed")); }catch(_){}   // nudge cloud-sync
