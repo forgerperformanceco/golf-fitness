@@ -106,10 +106,16 @@ test("in-season copy describes the mode the app actually runs (Oct 2026: 2 hard 
 test("Bulk is sold honestly: faster gain, more fat — not more speed", () => {
   for (const [file, s] of [["025", MACRO], ["090", ONBOARD], ["template", TEMPLATE]]) {
     assert.doesNotMatch(s, /max strength &amp; speed|max out speed|Maximize speed potential/, file);
-    assert.match(s, /more of it is fat/, file);
   }
+  // Bulk is retired (Nov 2026: golfers build, they don't bulk). Setup no longer offers it;
+  // the Fuel picker hides it unless the user is already on it, and that copy stays honest.
+  assert.doesNotMatch(ONBOARD, /v:"bulk"/, "setup must not offer Bulk");
+  assert.match(TEMPLATE, /data-goal="bulk" hidden/);
+  for (const [file, s] of [["025", MACRO], ["template", TEMPLATE]]) assert.match(s, /more of it is fat/, file);
+  // A shared link from a legacy Bulk user must not enrol a new visitor in Bulk (Codex review, #112).
+  assert.match(MACRO, /state\.goal=\(g==="bulk"\) \? "leanbulk" : g;/);
   // Lean-bulk numbers agree with the calculator's band (GOALS.leanbulk.weekly 0.25–0.5%/wk).
-  assert.match(MACRO, /leanbulk: \{ label: "Lean Bulk", pct: 0\.10, proteinPerLb: 0\.9, fatPerLb: 0\.35, weekly:\[0\.0025,0\.005\]/);
+  assert.match(MACRO, /leanbulk: \{ label: "Build", pct: 0\.10, proteinPerLb: 0\.9, fatPerLb: 0\.35, weekly:\[0\.0025,0\.005\]/);
   for (const s of [MACRO, TEMPLATE]) {
     assert.match(s, /0\.25–0\.5% of bodyweight a week/);
     assert.doesNotMatch(s, /~0\.5–0\.75 lb\/week/);

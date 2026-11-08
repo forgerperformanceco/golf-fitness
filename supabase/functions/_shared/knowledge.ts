@@ -88,16 +88,17 @@ Be specific, practical, and grounded in the numbers below and in the user's own 
   starting point; adjust ±100–200 kcal/day off the real 2–3 week bodyweight trend.
 
 ## Goal calorie adjustments
-- Lean Bulk +10%: the default for lean-to-average builds. Setup suggests a goal from height
-  and weight: BMI under 27 → Lean Bulk; 27–30 → In-Season Maintain (hold weight while
+- Build +10% (shown as "Lean Bulk" before Nov 2026; key leanbulk): the default for
+  lean-to-average builds. Setup suggests a goal from height and weight: BMI under 27 → Build; 27–30 → In-Season Maintain (hold weight while
   lifting: muscle up, fat down); 30+ (the obese range) → Lean Out, because with high protein
   and heavy lifting muscle still builds in a deficit, and a surplus at that size mostly adds
   fat. It's only a suggestion: BMI misreads very muscular lifters, and they can pick any goal
   on the Fuel tab.
-- Bulk +20%: faster scale gain, but in trained lifters the extra mostly lands as fat, not
-  extra muscle, strength or speed (Helms 2023: a +15% vs +5% surplus over 8 weeks added fat,
-  not muscle thickness or 1-RM). It suits newer, leaner lifters who accept a Lean Out after.
-  Never sell it as the way to "max out" strength or speed.
+- Bulk +20% is RETIRED (Nov 2026): golfers build, they don't bulk. New users can't pick it;
+  anyone already on it keeps it until they switch. In trained lifters the extra surplus mostly
+  lands as fat, not extra muscle, strength or speed (Helms 2023: a +15% vs +5% surplus over 8
+  weeks added fat, not muscle thickness or 1-RM). If a user is on Bulk, suggest Build.
+  Never sell a bigger surplus as the way to "max out" strength or speed.
 - Maintain ±0% (In-Season Maintain).
 - Cut / Lean Out -20% (fat loss, protect muscle).
 A bigger surplus mostly adds fat, not extra muscle. A modest surplus (~+10%) is the sweet spot.
@@ -259,7 +260,7 @@ speed/power work in, so the deficit costs fat, not mph. Never frame a cut as "ju
   muscle rather than pure-physique volume — exactly what converts to clubhead speed.
 - Effort (RIR = reps in reserve), as the app shows it: heavy compounds RIR 2 (rest 2–3
   min); other lifts RIR 1–2 (RIR 1 at 13+ reps), rest ≥90 s. Easy weeks and readiness
-  "recovery" days are easy on EVERY lift (RIR 3+). On Lean Bulk / Bulk the LAST set of a
+  "recovery" days are easy on EVERY lift (RIR 3+). On Build (or a legacy Bulk) the LAST set of a
   hypertrophy accessory goes to failure (RIR 0–1) in Build and Heavy weeks, but never in
   Peak weeks, on lunges / split squats / step-ups / Nordics, on an accessory that comes
   before a heavy compound that day, in a new lifter's first 2 weeks, the first time they
@@ -433,7 +434,7 @@ Use these to fire up a golfer; they are public, not vendor data. Don't overstate
 
 ## ~10 lb of muscle is a 10–20 month project for an intermediate, not weeks.
 Lean gain ~0.5–1 lb/month intermediate (a true beginner ~1–1.5 lb/month, so ~7–10 months;
-advanced less). These are practitioner rules of thumb, not trial data. The Lean Bulk scale
+advanced less). These are practitioner rules of thumb, not trial data. The Build scale
 target is ~0.25–0.5% of bodyweight/week (advanced lifters: the low end) — and much of that
 scale gain is fat, water and glycogen, not muscle. That's normal; plan a short Lean Out after.
 Faster gain mostly adds fat (Helms 2023).
@@ -450,7 +451,7 @@ Six pillars, rescaled to whichever have data (read the pillars array; never inve
   since about 2 weeks before the plan started; rough guesses don't count). A change inside
   normal test-to-test noise (at least ~1.5 mph) reads as "steady" and scores near neutral.
 - Strength (max 25): average estimated-1RM gain (Epley) on the big lifts.
-- Power-to-weight (max 10): goal-aware. On Lean Bulk / Bulk, weight gained inside the
+- Power-to-weight (max 10): goal-aware. On Build (or a legacy Bulk), weight gained inside the
   goal's weekly band doesn't count against them; only gaining faster than the band does.
   On Lean Out / Maintain, weight loss alone earns nothing; speed has to hold or rise.
   Small speed changes inside normal test-to-test noise count as no change.

@@ -468,6 +468,31 @@ test("mobility-screen flags reach the cool-down and rest day, never as duplicate
   assert.equal(ctx.out.again.length, ctx.out.push.length, "routing never leaks between calls");
 });
 
+// ------------------------------------------- 13c every mobility move has a how-to
+test("every warm-up, cool-down, rest-day, speed-test and game-day move carries a how-to cue", () => {
+  const ctx = {};
+  vm.runInNewContext(`
+    var state={ prep:["back","hips","shoulders","knees"] };
+    function mobLimits(){ return { trunk:true, hip:true, squat:true }; }
+    ${["moveCue", "warmupBase", "warmupList", "cdHold", "cooldownBase", "cdAddFixes", "cooldownList", "recoveryList"].map((n) => fn(PLAN, n)).join("\n")}
+    this.moveCue = moveCue; this.lists = function(names){
+      var out=[]; names.forEach(function(n){ out=out.concat(warmupList(n), cooldownList(n)); });
+      return out.concat(recoveryList());
+    };
+  `, ctx);
+  const E = engine();
+  const names = ["speed", ...[...E.PHASES[0].days4, ...E.PHASES[0].days5].filter((d) => d.ex).map((d) => d.name),
+    "Day 1 — Full Body A (Squat + Press)", "Something else"];
+  const moves = ctx.lists(names).map((m) => m[0]);
+  const ST = readFileSync(new URL("../src/js/app/060-speed-test-day-the-biweekly-testing-ritu.js", import.meta.url), "utf8");
+  const GD = readFileSync(new URL("../src/js/app/080-game-day-round-day-fueling-warm-up-plan.js", import.meta.url), "utf8");
+  for (const m of ST.match(/var wu=\[(\[.*?\])\];/)[1].matchAll(/\["([^"]+)"/g)) moves.push(m[1]);
+  for (const m of GD.match(/var wu=\[([^\]]+)\];/)[1].matchAll(/"([^"|]+)\|/g)) if (!/^Optional/.test(m[1])) moves.push(m[1]);
+  const missing = [...new Set(moves)].filter((n) => !ctx.moveCue(n));
+  assert.deepEqual(missing, [], "moves without a how-to cue");
+  assert.ok(new Set(moves).size >= 25, `covered ${new Set(moves).size} distinct moves`);
+});
+
 // ------------------------------------------------------------- 14 trap bar
 test("the deadlift keeps its name; the trap bar is the first one-tap swap", () => {
   const E = engine();

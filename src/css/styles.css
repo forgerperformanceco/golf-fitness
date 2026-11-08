@@ -1552,6 +1552,7 @@
     background:#fff; border:1px solid var(--line); border-radius:10px; padding:11px 13px; margin-bottom:7px; cursor:pointer; }
   .wu-row:active { transform:translateY(1px); }
   .wu-move { font:600 13.5px var(--font); color:var(--ink); }
+  .wu-cue { display:block; font:500 12px/1.35 var(--font); color:var(--muted); margin-top:3px; }
   .wu-dose { font:800 13px var(--font); color:var(--green-700); white-space:nowrap; }
   .wu-row.done { opacity:.5; background:#f3f7f4; }
   .wu-row.done .wu-move { text-decoration:line-through; }
@@ -2178,6 +2179,7 @@
     font-weight:700; font-size:15px; color:#e9f5ec; cursor:pointer; }
   .pl-item.done{ background:rgba(47,158,93,.16); border-color:#2f9e5d; }
   .pl-item .dose{ color:#9fc4ac; font-weight:800; font-size:13px; flex:0 0 auto; }
+  .pl-item .pl-move-cue{ display:block; font-size:12px; font-weight:500; line-height:1.35; color:#b5d3bf; margin-top:3px; }
   .pl-note{ margin-top:12px; font-size:13px; color:#9fc4ac; line-height:1.55; }
   .pl-restbar{ flex:0 0 auto; padding:0 16px 8px; }
   .pl-rest-in{ background:rgba(255,255,255,.08); border-radius:14px; padding:10px 14px; display:flex; align-items:center; gap:12px; }

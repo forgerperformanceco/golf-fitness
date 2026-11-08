@@ -1,5 +1,49 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## Build, not Bulk — and a how-to under every stretch (Nov 8, 2026)
+
+Owner, the day after the keep-your-turn cool-down shipped: "How do I do those keep your turn
+stretches lol" — the lists named moves without saying how to do them. Then, after a golfer friend
+told him to train for golf rather than bodybuilding: "We just need to have build, not bulk. I'm not
+sure that golfers are trying to bulk. They're trying to build."
+
+- **A how-to under every mobility move** (`moveCue` / `cueHtml` in 035): one line under each move in
+  the Train warm-up, cool-down and rest-day lists, the guided player's warm-up station and recap
+  (`plCueHtml`, 070), the speed-test warm-up (060) and the Game Day warm-up (080). 31 moves. Exact
+  names on purpose — `exerciseForm`'s first-match regex chain would mis-cue them ("Open-book
+  rotation" reads as a rotation lift). Power primers are lifts, so they keep the lift how-to sheet.
+- **Build replaces Lean Bulk** (label only — the stored key stays `leanbulk`). Fuel picker, setup,
+  plan copy and the coach's knowledge say Build. `lbGoalTag` maps an old "Lean Bulk" leaderboard row
+  to Build.
+- **Bulk (+20%) is retired.** Setup no longer offers it; the Fuel picker's Bulk button is `hidden`
+  unless the user is already on it (`ffSyncSegs` and the profile `restore()` both un-hide it for
+  them). A legacy Bulk user keeps their setting; after tapping Build, Bulk stays visible for that
+  visit so an accidental tap can be undone, and is gone on the next load. The key `bulk` and its
+  GOALS entry stay — never rename or delete a stored value someone may hold.
+- **Shared links can't enrol anyone in Bulk** (Codex review on #112): `applyShareParams` maps `?g=bulk`
+  to Build for a new visitor. Reproduced first on the pre-fix build (a fresh visitor landed on Bulk with
+  the button showing), then fixed — scratchpad/test-sharelink.mjs 4/4.
+- The goal help is "Which goal should I pick?" and explains why there's no Bulk.
+
+**Design decisions**
+- **Why retire rather than reword.** The app already said a +20% surplus mostly adds fat with no
+  extra speed (Helms 2023). Offering it anyway contradicted the thesis; the owner's own physique
+  bulk cost him mobility. Golf-first goals are now Build / In-Season / Lean Out.
+- **Inline cue, not a sheet.** Mobility rows are a checklist people tap through mid-session; one
+  muted line under the name reads in the gym without opening anything.
+
+**Verified** (Playwright on the built output, seeded week-2 user, light + dark,
+scratchpad/test-step1.mjs): 28/28 — Full week shows 51 checklist rows, every one with a cue except the
+4 power primers; the player's warm-up (4/4) and recap cool-down (3/3) carry cues; Fuel's summary and
+view say Build with no "Lean Bulk"; visible goals are Build | In-Season | Lean Out; the help reads
+"Which goal should I pick?"; a seeded legacy Bulk user sees Bulk visible and active, can switch to
+Build (saved as `leanbulk`) and still sees Bulk that visit; no leaked junk; zero page errors. That
+legacy test caught a real bug first: `restore()` set Bulk active but left it hidden. `npm test`
+211/211, including a new coverage test that fails if any move in any of the five lists lacks a cue. The Nov 7 cool-down suite re-ran 46/46; its recap scroll check now scrolls the last hold to the bottom first (the taller, cued recap made the old check measure Playwright's own auto-scroll), and the tap keeps 193→193.
+Standing audits (filtered for the localhost telemetry CORS noise): audit-train 18/18, audit-scroll
+16/16, audit-contrast clean at 1,577 text nodes, audit-type 1 violation (Fuel "Ate it", same as
+main). Release gate green.
+
 ## Keep your turn: a rotation cool-down and a real rest-day routine (Nov 7, 2026)
 
 Owner, on his own winter bulk (on a traditional plan, not Yardsmith): "I’m finding that

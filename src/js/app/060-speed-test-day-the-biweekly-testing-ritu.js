@@ -222,7 +222,7 @@
     var wu=[["Leg swings","×10/side"],["90/90 hip switches","×6/side"],["Open-book T-spine","×8/side"],["Build-up swings","10 · ramp 50→90%"]];
     body.innerHTML=
       '<div class="st-sec">1 · Warm up <small>— never test cold (~5 min, tap to check off)</small></div>'+
-      '<div class="wu">'+wu.map(function(x){ return '<button type="button" class="wu-row" data-stwu="1"><span class="wu-move">'+x[0]+'</span><span class="wu-dose">'+x[1]+'</span></button>'; }).join("")+'</div>'+
+      '<div class="wu">'+wu.map(function(x){ return '<button type="button" class="wu-row" data-stwu="1"><span class="wu-move">'+x[0]+(typeof cueHtml==="function"?cueHtml(x[0]):"")+'</span><span class="wu-dose">'+x[1]+'</span></button>'; }).join("")+'</div>'+
       '<div class="st-sec">2 · Three max swings <small>— 7-iron, full rest between, same tool every test</small></div>'+
       '<div class="st-swings">'+[0,1,2].map(function(i){
         return '<input class="st-swing" type="number" inputmode="decimal" placeholder="Swing '+(i+1)+'" data-sts="'+i+'" value="'+escAttr(stState.swings[i]||"")+'" />';

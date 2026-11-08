@@ -531,9 +531,9 @@
   }
   function listMinutes(list){ return Math.max(3, Math.round(list.reduce(function(t,m){ return t+holdSecs(m[1]); },0)/60)); }
   function wuRowHtml(m){
-    return '<button type="button" class="wu-row'+(m[2]==="screen"?' from-screen':(m[2]==="profile"?' from-profile':''))+'" data-wu="1"><span class="wu-move">'+m[0]+'</span><span class="wu-dose">'+m[1]+'</span></button>';
+    return '<button type="button" class="wu-row'+(m[2]==="screen"?' from-screen':(m[2]==="profile"?' from-profile':''))+'" data-wu="1"><span class="wu-move">'+m[0]+cueHtml(m[0])+'</span><span class="wu-dose">'+m[1]+'</span></button>';
   }
-  var HOLD_NOTE="Ease into each hold: a strong stretch, never a pinch, no bouncing. On the 90/90, lean over the front shin, then turn and lean toward the back knee.";
+  var HOLD_NOTE="Ease into each hold: a strong stretch, never a pinch, no bouncing.";
   function cooldownHtml(name){
     var list=cooldownList(name);
     return '<div class="wu"><div class="wu-h">🌀 Cool-down <span>· ~'+listMinutes(list)+' min · keeps your turn · tap to check off</span></div>'+
@@ -545,7 +545,7 @@
   function recoveryHtml(){
     return '<div class="wu"><div class="wu-h">🌀 Keep your turn <span>· ~'+listMinutes(recoveryList())+' min · tap to check off</span></div>'+
       recoveryList().map(wuRowHtml).join("")+
-      '<div class="wu-note">Muscle you add should never cost you rotation. '+HOLD_NOTE+' Golf-posture turns: club across your shoulders, belt buckle still on the ball.</div></div>';
+      '<div class="wu-note">Muscle you add should never cost you rotation. '+HOLD_NOTE+'</div></div>';
   }
   function primerFor(name){
     if(/Pull|Rotate/.test(name)) return {move:"Rotational med-ball throw", dose:"4 × 4 / side", note:"No ball? Band or cable rotation."};
@@ -557,11 +557,56 @@
     if(/Lower/.test(name)) return {move:"Box or squat jump", dose:"4 × 3", note:"Land soft, reset every rep."};
     return {move:"Box or squat jump", dose:"4 × 3", note:""};
   }
+  // How-to for every mobility / prep move (warm-up, cool-down, rest day, speed
+  // test, game day). EXACT names on purpose: these are short checklists, and a
+  // regex chain like exerciseForm's would collide ("Open-book rotation" ≈ a
+  // rotation lift). Added after the owner asked "how do I do those keep your turn
+  // stretches lol" — a list of names alone wasn't enough.
+  function moveCue(n){
+    var nineNine="Sit with both knees bent 90°, one in front, one behind. Rotate both knees to the other side, chest tall.",
+        book="On your side, knees bent and stacked. Sweep the top arm open to the other side, eyes follow, knees stay down.";
+    var C={
+      "90/90 hip switches": nineNine, "Hip 90/90 switches": nineNine,
+      "Open-book T-spine": book, "Open-book rotation": book,
+      "Open-book hold": "The open-book, but stay open with the top arm resting toward the floor. Breathe and let it sink.",
+      "Leg swings": "Hold a wall. Swing one leg front-to-back, then side-to-side, a little bigger each rep.",
+      "Build-up swings": "Real swings, smooth, building from about half speed to 90%.",
+      "Ramp-up jumps and throws": "Easy reps of today's first jumps and throws, building toward fast.",
+      "Light ramp-up sets": "About half your working weight for 10, then three-quarters for 5. Not logged.",
+      "Ramp to working weight": "Two lighter sets building up to your first working weight.",
+      "Band pull-aparts": "Arms straight at chest height. Pull the band apart to your chest, squeeze the shoulder blades.",
+      "Cat–cow": "On hands and knees, slowly round your back up, then let it sag. The whole spine moves.",
+      "Dead hang": "Hang from a bar, shoulders relaxed. Keep your toes on a box if your back complains.",
+      "Shoulder CARs": "Arm straight, draw the biggest slow circle you can without your body moving.",
+      "World's greatest stretch": "Deep lunge, same-side elbow toward the floor, then turn that arm up to the ceiling.",
+      "Dynamic flow": "Five easy minutes: leg swings, arm circles, gentle trunk turns.",
+      "Mobilize hips & T-spine": "90/90 switches and open-books, slow and easy.",
+      "Thread-the-needle": "On hands and knees, slide one arm under the other and turn the upper back, then reach it up.",
+      "Adductor rock-back": "On hands and knees with one leg straight out to the side. Rock your hips back slowly.",
+      "Deep squat hold (hold a support)": "Hold a rack or door frame and sit as deep as your heels allow, chest tall.",
+      "Ankle rockers": "Half-kneeling, drive the front knee forward past the toes with the heel flat. Back and forth.",
+      "Bird dog": "On hands and knees, reach the opposite arm and leg long and hold 2 seconds. Back stays flat.",
+      "Supported split-squat hold": "Hold a support, lower into a split squat and hold the bottom, front heel down.",
+      "Reverse lunge (bodyweight)": "Step back into a lunge, back knee just above the floor, drive up through the front heel.",
+      "90/90 hold, lean each way": "In the 90/90: first set lean over the front shin, second set turn and lean toward the back knee.",
+      "90/90 lift-offs": "In the 90/90, lift the back foot and knee an inch and hold 2 seconds. A cramp is normal at first.",
+      "Cross-body shoulder stretch": "Pull one arm across your chest at the elbow, shoulder down. That's your lead arm at the top.",
+      "Bench lat stretch, turn each way": "Kneel, elbows on a bench, palms together, sit the hips back. Turn the chest to each side.",
+      "Doorway pec stretch": "Forearm on a door frame, elbow at shoulder height. Step through until the chest stretches.",
+      "Half-kneeling hip flexor stretch": "One knee down. Squeeze that glute, ribs down, shift forward. Don't arch your back.",
+      "Golf-posture turns, hips still": "Address posture, club across your shoulders. Turn back and through, belt buckle on the ball.",
+      "Trunk rotations": "Arms crossed, feet planted. Turn your shoulders each way while the hips stay quiet.",
+      "Band or club rotations": "Address posture, club across your shoulders. Turn back and through, smooth.",
+      "Full-speed swings": "A few real swings with the club you'll hit first, building to full speed."
+    };
+    return C[n]||"";
+  }
+  function cueHtml(n){ var c=moveCue(n); return c ? '<small class="wu-cue">'+c+'</small>' : ''; }
   var PRIMER_NOTE = "New to jumps &amp; throws? Start with 2 sets and build up. Stop the moment reps slow — power only counts when crisp.";
   function warmupHtml(name, withPrimer, showNote){
     var h='<div class="wu"><div class="wu-h">🔥 Warm-up <span>· 5 min · tap to check off</span></div>';
     warmupList(name).forEach(function(m){
-      h+='<button type="button" class="wu-row'+(m[2]==="screen"?' from-screen':(m[2]==="profile"?' from-profile':''))+'" data-wu="1"><span class="wu-move">'+m[0]+'</span><span class="wu-dose">'+m[1]+'</span></button>';
+      h+='<button type="button" class="wu-row'+(m[2]==="screen"?' from-screen':(m[2]==="profile"?' from-profile':''))+'" data-wu="1"><span class="wu-move">'+m[0]+(typeof cueHtml==="function"?cueHtml(m[0]):"")+'</span><span class="wu-dose">'+m[1]+'</span></button>';
     });
     if(withPrimer){
       var p=primerFor(name);
