@@ -133,12 +133,15 @@
      the starting point rotates), as is spacing where possible: back-to-back
      training days and two leg days in a row cost points. Deterministic, and
      the same every week (weekdays repeat), so it only moves when play days
-     change — and a change made mid-week applies from next week (ffPlayDaysNow). */
+     change — and a change made mid-week applies from next week (ffPlayDaysNow).
+     Days off (Nov 2026, ff_gameday.off): weekdays the golfer never trains. They
+     block a slot exactly like a round does, without the legs-before-a-round rule. */
   function ffHeavyLegs(d){ return !!d && d.type!=="rest" && d.type!=="speed" && /Lower|Squat|Hinge|Quads|Full Body/.test(d.name); }
   function ffArrangeWeek(ds){
-    var play=ffPlayDaysNow(); if(!play.length) return ds;
+    var play=ffPlayDaysNow(), off=ffOffDaysNow(); if(!play.length && !off.length) return ds;
     var ws=weekStartDate(); if(!ws) return ds;
-    var wd0=ws.getDay(), isPlay=function(i){ return play.indexOf((wd0+i)%7)!==-1; };
+    var wd0=ws.getDay(), isPlay=function(i){ return play.indexOf((wd0+i)%7)!==-1; },
+      isOff=function(i){ return off.indexOf((wd0+i)%7)!==-1; };
     var train=ds.filter(function(d){ return d.type!=="rest"; }), rests=ds.filter(function(d){ return d.type==="rest"; });
     var k=train.length; if(!k || k>7) return ds;
     var authored=ds.map(function(d){ return d.type!=="rest"; });
@@ -154,7 +157,7 @@
         slots.forEach(function(si, j){ week[si]=train[(j+r)%k]; });
         for(var i=0;i<7;i++){
           var d=week[i], nx=week[(i+1)%7];
-          if(d && isPlay(i)) sc+=100;                              // never train on a round day
+          if(d && (isPlay(i) || isOff(i))) sc+=100;                // never train on a round day or a day off
           if(ffHeavyLegs(d) && isPlay((i+1)%7)) sc+=10;            // no heavy legs the day before
           if(d && nx) sc+=1;                                        // spacing (wraps into next week)
           if(ffHeavyLegs(d) && ffHeavyLegs(nx)) sc+=3;              // never two leg days in a row
@@ -177,6 +180,31 @@
     if(g && g.arrangeWeek && curWeek()<g.arrangeWeek && Array.isArray(g.prevDays))
       return g.prevDays.filter(function(x){ return x===(x|0) && x>=0 && x<=6; });
     return ffPlayDays();
+  }
+  // Weekdays the golfer never trains (0 = Sunday), set in Train › Plan settings.
+  // On the existing roaming ff_gameday object, like play days — no new key.
+  function ffOffDays(){
+    var g=lsGet("ff_gameday", null), d=(g && Array.isArray(g.off)) ? g.off : [];
+    return d.filter(function(x){ return x===(x|0) && x>=0 && x<=6; });
+  }
+  // The days off in force for THIS week (same mid-week rule as play days). A
+  // pending change saved before days off existed has no prevOff: none were set.
+  function ffOffDaysNow(){
+    var g=lsGet("ff_gameday", null);
+    if(g && g.arrangeWeek && curWeek()<g.arrangeWeek)
+      return (Array.isArray(g.prevOff) ? g.prevOff : []).filter(function(x){ return x===(x|0) && x>=0 && x<=6; });
+    return ffOffDays();
+  }
+  // Save a play-day / day-off change. If this week already has logged work, the
+  // new layout waits for next week: snapshot BOTH lists once, so whatever was in
+  // force stays in force until then. The snapshot is taken BEFORE apply(g) runs —
+  // lsGet hands back its cached object, so g IS what ffPlayDaysNow/ffOffDaysNow read.
+  function ffSaveSchedule(apply){
+    var g=gdState(), wk=planStart()?curWeek():0, busy=wk && stripDays().some(function(x){
+      return x.type==="rest" ? restDone(wk, dayKey(x)) : !!getSession(wk, x.name); });
+    if(busy){ if(!(g.arrangeWeek>wk)){ g.prevDays=ffPlayDaysNow().slice(); g.prevOff=ffOffDaysNow().slice(); } g.arrangeWeek=wk+1; }
+    else { delete g.arrangeWeek; delete g.prevDays; delete g.prevOff; }
+    apply(g); gdSave(g);
   }
   // Start (or re-anchor) the plan so that "today" lands in the given week.
   // Outside Pro (once billing is on) every start is week 1 — no week jump (036).

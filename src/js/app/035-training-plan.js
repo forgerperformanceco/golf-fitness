@@ -1302,6 +1302,10 @@
       '<div class="set-row"><span class="set-lbl">Training days / week</span><div class="seg sm" id="freqSeg">'+
         '<button type="button" data-freq="4" '+(planState.freq===4?'class="active"':'')+'>4</button>'+
         '<button type="button" data-freq="5" '+(planState.freq===5?'class="active"':'')+'>5</button></div></div>'+
+      '<div class="set-row set-play"><span class="set-lbl">Days off<small>'+ffOffSub()+'</small></span><div class="play-days" id="offDays">'+
+        ["S","M","T","W","T","F","S"].map(function(l, i){ var on=ffOffDays().indexOf(i)!==-1;
+          return '<button type="button" data-offday="'+i+'" aria-pressed="'+on+'" aria-label="'+["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][i]+' off"'+(on?' class="active"':'')+'>'+l+'</button>'; }).join("")+
+      '</div></div>'+
       '<div class="set-row set-season"><span class="set-lbl">In-season<small>'+ffSeasonSub()+'</small></span><div class="seg sm" id="seasonSeg">'+
         [["0","Off"],["lite","Fewer sets"],["2","2 days"],["3","3 days"]].map(function(o){
           var m=ffInSeasonMode(), on=(o[0]==="0"&&!m)||(o[0]==="lite"&&m==="lite")||(String(m)===o[0]);
@@ -1323,6 +1327,19 @@
       '<div id="equipBar" class="settings-equip"></div>'+
       '</div></details>';
     return html;
+  }
+  // How many weekdays are still open for training (not a day off, not a round).
+  function ffOpenDays(off, play){
+    var n=0; for(var i=0;i<7;i++) if(off.indexOf(i)===-1 && play.indexOf(i)===-1) n++;
+    return n;
+  }
+  function ffOffSub(){
+    var g=lsGet("ff_gameday", null), wk=planStart()?curWeek():0, off=ffOffDays(), k=ffSessionsPerWeek();
+    if(!off.length) return "Tap the days you never train. Your workouts move to the other days, same order.";
+    if(g && g.arrangeWeek && wk && wk<g.arrangeWeek) return "Starts next week, so this week’s workouts stay put.";
+    var open=ffOpenDays(off, ffPlayDays());
+    if(open<k) return k+" workouts but only "+open+" open days, so one lands on a day off. Free a day or train fewer days a week.";
+    return "Your workouts move to the other days, same order, with leg days kept apart.";
   }
   function ffPlaySub(){
     var g=lsGet("ff_gameday", null), wk=planStart()?curWeek():0;
@@ -1371,15 +1388,31 @@
     if(playDays){
       playDays.addEventListener("click", function(e){
         var btn=e.target.closest("[data-playday]"); if(!btn) return;
-        var d=parseInt(btn.getAttribute("data-playday"),10), g=gdState(), days=ffPlayDays().slice(), i=days.indexOf(d);
+        var d=parseInt(btn.getAttribute("data-playday"),10), days=ffPlayDays().slice(), i=days.indexOf(d);
         if(i===-1) days.push(d); else days.splice(i,1);
         // The week rearranges around rounds. If this week already has logged
-        // work, the new layout starts next week (ffPlayDaysNow in 040).
-        var wk=planStart()?curWeek():0, busy=wk && stripDays().some(function(x){
-          return x.type==="rest" ? restDone(wk, dayKey(x)) : !!getSession(wk, x.name); });
-        if(busy){ if(!(g.arrangeWeek>wk)) g.prevDays=ffPlayDaysNow().slice(); g.arrangeWeek=wk+1; }
-        else { delete g.arrangeWeek; delete g.prevDays; }
-        g.days=days.sort(); gdSave(g); focusDay=null; renderPhase();
+        // work, the new layout starts next week (ffSaveSchedule in 040).
+        ffSaveSchedule(function(g){ g.days=days.sort(); });
+        focusDay=null; renderPhase();
+        try{ renderDash(); }catch(_){}
+      });
+    }
+    var offDays=$("offDays");
+    if(offDays){
+      offDays.addEventListener("click", function(e){
+        var btn=e.target.closest("[data-offday]"); if(!btn) return;
+        var d=parseInt(btn.getAttribute("data-offday"),10), days=ffOffDays().slice(), i=days.indexOf(d);
+        if(i===-1){
+          // Never take away a day the week needs: every workout keeps a day.
+          var k=ffSessionsPerWeek();
+          if(ffOpenDays(days.concat([d]), ffPlayDays())<k){
+            ffToast("You train "+k+" days a week, so that would leave too few days. Train fewer days a week first.");
+            return;
+          }
+          days.push(d);
+        } else days.splice(i,1);
+        ffSaveSchedule(function(g){ g.off=days.sort(); });
+        focusDay=null; renderPhase();
         try{ renderDash(); }catch(_){}
       });
     }

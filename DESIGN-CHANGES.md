@@ -1,5 +1,47 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## Days off: pick the days you never train (Nov 8, 2026)
+
+Owner: "I'm taking Sunday off, possibly even Monday … Can we like reorganize the days? That'd be
+pretty sick if you could rearrange them based on how you want to."
+
+- **Train › Plan settings › Days off** — seven day buttons (S M T W T F S), right under Training
+  days / week. Tap the days you never train; the week strip moves the workouts onto the other days,
+  **same order**, with leg days kept apart. Rest days fill the days off.
+- **Same engine as play days.** `ffArrangeWeek` (040) already moved the week so rounds land on rest
+  days; a day off now blocks a slot exactly like a round, without the no-heavy-legs-the-day-before
+  rule (that one is about rounds). Both can be set together.
+- **Every workout always keeps a day.** A day off that would leave fewer open days than workouts is
+  refused with a toast ("You train 5 days a week, so that would leave too few days…"). If the count
+  later changes (4 → 5 days a week), the row says one workout now lands on a day off.
+- **Mid-week changes wait for next week**, like play days: if this week already has logged work, the
+  layout switches next week and the row says "Starts next week, so this week's workouts stay put."
+  One save (`ffSaveSchedule`) snapshots both play days and days off before the change — `lsGet` hands
+  back its cached object, so the snapshot has to come first.
+- **Storage:** `ff_gameday.off` (weekdays, 0 = Sunday), next to `ff_gameday.days` — the same roaming
+  setting object, no new key, no `cloud-sync.js` change. A change queued before this existed (no
+  `prevOff`) reads as no days off for the rest of that week.
+
+**Design decisions**
+- **Pick days off, not drag workouts around.** Free placement invites two leg days in a row or heavy
+  legs the day before a round. Choosing the days and letting the plan keep its order and spacing gives
+  the control he asked for without breaking the program.
+- Two days off on the 5-day plan means five training days in a row. That's allowed (it's a split, and
+  leg days stay apart), and the row doesn't nag about it.
+
+**Verified** (Playwright on the built output, seeded week-2 user, light + dark,
+scratchpad/test-daysoff.mjs): 52/52 — on the 4- and 5-day plans, tapping S and M marks them off, the
+week strip shows Rest on Sunday and Monday with all 4/5 workouts on the other days, the sub-label
+confirms; on 5 days a 3rd day off is refused with the toast; the choice survives a reload as
+`ff_gameday.off = [0,1]`; un-tapping Monday puts it back; with work already logged this week the row
+says "Starts next week", the strip doesn't move and the change is queued for week 3; no leaked junk;
+zero page errors. The play-day toggle still saves and rearranges (test-playday-regress 4/4). `npm test`
+220/220 with two new cases (Sun+Mon off across four week-start days and 4/5/2/3-day plans: nothing on a
+day off, every workout kept in order, no two leg days in a row, days off + rounds together, junk
+ignored; the mid-week rule incl. a pending change saved before days off existed). Earlier suites green
+(cool-down, step 5, foldable screens). Audits: audit-train 18/18, audit-scroll 16/16, audit-contrast
+clean (1,595 nodes), audit-type 1 (Fuel "Ate it", same as main).
+
 ## Rotation through range, and the arm that extends (Nov 8, 2026)
 
 Step 5 of the golf-first plan. Owner: "im down for whatever you think is a great idea and matches with
