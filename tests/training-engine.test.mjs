@@ -82,7 +82,7 @@ function engine({ goal = "leanbulk", equip = null, store = {}, week = 2, now = D
     MACHINES.forEach(function(m){ planState.equip[m.key]=true; });
     var __eq=${JSON.stringify(equip)};
     if(__eq){ Object.keys(planState.equip).forEach(function(k){ planState.equip[k]=__eq.indexOf(k)!==-1; }); }
-    this.api={ effortNote, ffOnRamp, heavyAfter, warmupBase, primerFor, purposeFor, isBallistic, isBigLift, waveFor,
+    this.api={ effortNote, ffOnRamp, heavyAfter, warmupBase, primerFor, purposeFor, isBallistic, isBigLift, isBodyweightEx, waveFor,
       prescribeW, ffReduceLoad, repShiftLoad, incNum, ffDose, lastSessionFor, resolveDay, dayTargets, sessionMinutes,
       cooldownList, recoveryList, listMinutes, holdSecs,
       effTarget, swapOptionsFor, ffReadinessAdaptSession, bigLiftStats, strengthGain, plLifetimeBests, ffInsights,
@@ -651,6 +651,10 @@ test("both Pull + Rotate days train the turn through range, light and slow, afte
   const bw = pick(["bodyweight"]);
   assert.equal(bw.name, "Half-Kneeling Thoracic Rotation");
   assert.match(bw.sr, /^2 × 10 \/ side/);
+  // Hands behind the head: the loggers show a BW cell, not a weight box (Codex, #115).
+  assert.equal(E.isBodyweightEx("Half-Kneeling Thoracic Rotation"), true);
+  for (const n of ["Half-Kneeling Cable Rotation", "Half-Kneeling Band Rotation", "Landmine Rotation"])
+    assert.equal(E.isBodyweightEx(n), false, `${n} is loaded`);
   assert.ok(E.EXERCISE_DB["Core / anti-rotation"].includes("Half-Kneeling Cable Rotation"), "in the swap / add-a-lift catalog");
 });
 

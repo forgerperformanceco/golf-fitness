@@ -28,6 +28,11 @@ slowly to the end of its turn with the hips held still, which is the range a bul
   through the ball."
 - **Chops coach the end range:** "Turn all the way through and pause a beat at the end, then control
   the return."
+- **The no-gear version logs as BW** (Codex review, #115): `isBodyweightEx` only knew jumps and
+  plyos, so a bodyweight-only user got a weight box (and load progression) on the hands-behind-the-head
+  thoracic rotation. It now counts "Thoracic Rotation" as no-load. Reproduced first: the player showed
+  2 weight inputs and no BW cell on the old build; after the fix, a BW cell and no weight box, while the
+  cable version keeps its weight box (scratchpad/test-step5-bw.mjs, light + dark, 12/12).
 
 **Design decisions**
 - **Strength through range, not more stretching alone.** Resistance training through a full range

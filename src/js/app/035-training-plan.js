@@ -673,7 +673,8 @@
   function isBodyweightEx(n){
     n=n||"";
     if(/Trap-?bar|Dumbbell|\bDB\b|Barbell|\bBar\b|Kettlebell|\bKB\b|Weighted|Med-?ball|Medicine|Landmine|Cable|Band|Sled/i.test(n)) return false;
-    return /\bJump\b|\bBound\b|Plyo|Pogo|\bHop\b|Skater|Broad|Overspeed|Footwork/i.test(n);
+    // Thoracic Rotation: the no-gear half-kneeling rotation, hands behind the head.
+    return /\bJump\b|\bBound\b|Plyo|Pogo|\bHop\b|Skater|Broad|Overspeed|Footwork|Thoracic Rotation/i.test(n);
   }
   // Build vs Retain: derived from the macro goal. Build = full volume (gaining).
   // Retain = trim ONE set off hypertrophy accessories (💪 only) to fit lower recovery
