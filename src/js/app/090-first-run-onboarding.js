@@ -64,8 +64,7 @@
     function close(){ document.body.style.overflow=""; root.remove(); }
 
     var GOAL_CARDS=[
-      {v:"leanbulk", ic:"🏗️", t:"Lean Bulk", tag:"+10%", d:"Slow, quality mass — add power and keep your swing mobile."},
-      {v:"bulk", ic:"💪", t:"Bulk", tag:"+20%", d:"Faster weight gain, but more of it is fat — no extra speed over Lean Bulk. Plan a Lean Out after."},
+      {v:"leanbulk", ic:"🏗️", t:"Build", tag:"+10%", d:"Slow, quality muscle — add power and keep the range your turn needs."},
       {v:"maintain", ic:"⛳", t:"In-Season", tag:"Maintain", d:"Hold your build & energy through a tournament stretch.",
         rd:"Hold your weight while you lift — muscle up, fat down. Also fits a tournament stretch."},
       {v:"cut", ic:"🔥", t:"Lean Out", tag:"−20%", d:"Drop fat, protect muscle — better power-to-weight = more speed."}
@@ -264,7 +263,7 @@
             '<span class="obo-t">'+g.t+' <span class="obo-tag">'+g.tag+'</span></span>'+
             '<span class="obo-d">'+((best && g.rd) || g.d)+(best?' <b>Best default'+(sug!=="leanbulk"?' for your height and weight':'')+'.</b>':'')+'</span></span></button>';
         }).join("")+'</div>'+
-          (sug!=="leanbulk" ? '<p class="ob-p ob-quiet">At your height and weight you can build muscle without a calorie surplus — lift heavy and keep protein high. Very muscular? Lean Bulk is fine.</p>' : '')+
+          (sug!=="leanbulk" ? '<p class="ob-p ob-quiet">At your height and weight you can build muscle without a calorie surplus — lift heavy and keep protein high. Very muscular? Build is fine.</p>' : '')+
           '<div class="ob-mission"><span>20-WEEK DISTANCE MISSION</span><div class="ob-seg" id="obGoalYds">'+[10,15,25].map(function(y){
             return '<button type="button" data-v="'+y+'" class="'+(String(ob.goalyds)===String(y)?"sel":"")+'">+'+y+' yds</button>';
           }).join("")+'</div></div>';

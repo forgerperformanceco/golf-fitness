@@ -86,7 +86,7 @@ test("onboarding asks body first, preselects the suggestion, and never overrides
   // "Best default" is no longer hard-wired to Lean Bulk — it follows the suggestion.
   assert.doesNotMatch(onboarding, /keep your swing mobile\. Best default\."/);
   assert.match(onboarding, /var best=\(g\.v===sug\);/);
-  assert.match(onboarding, /Very muscular\? Lean Bulk is fine\./);
+  assert.match(onboarding, /Very muscular\? Build is fine\./);
 });
 
 test("fat never drops under ~20% of calories, and the gram floors still hold", () => {
@@ -390,7 +390,7 @@ test("Lean Bulk copy names no fixed lb/week, and the goal help stays short", () 
   assert.doesNotMatch(calc, /about 0\.5–1 lb for most/);
   assert.doesNotMatch(template, /about 0\.5–1 lb for most/);
   const help = template.slice(template.indexOf('<details class="goalhelp">'), template.indexOf("</details>", template.indexOf('<details class="goalhelp">')));
-  const lean = help.slice(help.indexOf("<b>Lean Bulk"), help.indexOf("<br>"));
+  const lean = help.slice(help.indexOf("<b>Build"), help.indexOf("<br>"));
   assert.ok((lean.match(/[.?]/g) || []).length <= 4, lean);
   assert.match(lean, /Lean Out/);
 });

@@ -580,7 +580,8 @@
   }
   function lbGoalTag(g){
     if(GOALS[g]) return GOALS[g].label;
-    var key=Object.keys(GOALS).find(function(k){ return GOALS[k].label===g; });
+    // Older rows may carry the pre-Nov-2026 label "Lean Bulk" (now "Build").
+    var key=Object.keys(GOALS).find(function(k){ return GOALS[k].label===g; }) || ({"Lean Bulk":"leanbulk"})[g];
     return key ? GOALS[key].label : "";
   }
   function lbWeekSessions(r){ return (r.week_start===weekStartStr()) ? (r.week_sessions||0) : 0; }

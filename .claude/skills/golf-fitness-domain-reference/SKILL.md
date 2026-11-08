@@ -368,8 +368,8 @@ protein 4, carb 4, fat 9. `round5` = nearest multiple of 5. Results are stashed 
 
 | Goal (key) | kcal adj | Protein g/lb ref | Fat g/lb ref (45–100 g, ≥~20% kcal) | Weekly BW target | Rec. meals |
 |---|---|---|---|---|---|
-| Lean Bulk (`leanbulk`) | **+10%** | 0.90 | 0.35 | +0.25–0.5%/wk | 4 |
-| Bulk (`bulk`) | **+20%** | 0.90 | 0.35 | +0.5–0.75%/wk | 5 |
+| Build (`leanbulk`; "Lean Bulk" before Nov 2026) | **+10%** | 0.90 | 0.35 | +0.25–0.5%/wk | 4 |
+| Bulk (`bulk`) — **retired Nov 2026**, legacy users only | **+20%** | 0.90 | 0.35 | +0.5–0.75%/wk | 5 |
 | In-Season Maintain (`maintain`) | ±0% | 0.85 | 0.35 | hold | 4 |
 | Lean Out / Cut (`cut`) | **−20%** | **1.00** | 0.30 | −1 to −0.5%/wk | 3 |
 

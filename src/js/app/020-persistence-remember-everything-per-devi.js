@@ -35,6 +35,8 @@
     if(data.goal){ state.goal=data.goal;
       Array.prototype.forEach.call($("goals").querySelectorAll(".goal"), function(b){
         b.classList.toggle("active", b.getAttribute("data-goal")===data.goal);
+        // Bulk is retired from the picker; it reappears only for someone already on it.
+        if(b.getAttribute("data-goal")==="bulk") b.hidden = data.goal!=="bulk";
       });
     }
     if(typeof data.meals!=="undefined") state.meals=data.meals;

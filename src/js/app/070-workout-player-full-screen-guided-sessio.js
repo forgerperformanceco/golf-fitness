@@ -143,7 +143,7 @@
         '<div class="pl-cue">~5 minutes. Tap each move as you finish it.</div>'+
         '<div class="pl-list">'+items.map(function(m,i){
           return '<button type="button" class="pl-item'+(player.wuDone[i]?" done":"")+'" data-plwu="'+i+'">'+
-            '<span>'+(player.wuDone[i]?"✓ ":"")+m[0]+(m[2]?' <small style="color:#d4b06a">· from your mobility screen</small>':'')+'</span><span class="dose">'+m[1]+'</span></button>';
+            '<span>'+(player.wuDone[i]?"✓ ":"")+m[0]+(m[2]?' <small style="color:#d4b06a">· from your mobility screen</small>':'')+plCueHtml(m[0])+'</span><span class="dose">'+m[1]+'</span></button>';
         }).join("")+'</div>';
     }
     if(st.type==="primer"){
@@ -280,12 +280,13 @@
   // Cool-down on the recap, before Finish: a few rotation holds so the mass you
   // add never costs your turn (035 cooldownList). Taps toggle in place — no
   // re-render, so the recap's count-ups and PR moment don't replay.
+  function plCueHtml(n){ var c=(typeof moveCue==="function")?moveCue(n):""; return c ? '<small class="pl-move-cue">'+c+'</small>' : ''; }
   function plCooldownHtml(){
     var cl=cooldownList(player.day.type==="speed"?"speed":player.dayName), cd=player.cdDone||{};
     return '<div class="pl-cd"><div class="pl-skick">Cool-down · ~'+listMinutes(cl)+' min — keep your turn</div>'+
       '<div class="pl-list">'+cl.map(function(m,i){
         return '<button type="button" class="pl-item'+(cd[i]?" done":"")+'" data-plcd="'+i+'">'+
-          '<span>'+m[0]+(m[2]?' <small style="color:#d4b06a">· from your mobility screen</small>':'')+'</span><span class="dose">'+m[1]+'</span></button>';
+          '<span>'+m[0]+(m[2]?' <small style="color:#d4b06a">· from your mobility screen</small>':'')+plCueHtml(m[0])+'</span><span class="dose">'+m[1]+'</span></button>';
       }).join("")+'</div></div>';
   }
   function plRender(){

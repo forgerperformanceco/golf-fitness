@@ -453,8 +453,14 @@ stores; we're a URL). Shipping the app matters more than more docs.
   recovery", with mobility-screen flags routed into both. Static holds sit after lifting, never
   before (Behm 2016); the weekly dose follows Thomas 2018. Still durability, never a speed claim.
   Prompted by the owner's own bulk on a traditional plan costing his coil (DESIGN-CHANGES, Nov 7).
+- **Build, not Bulk (Nov 8, 2026)** — the +10% goal is called Build (key stays `leanbulk`); every
+  mobility move shows a one-line how-to.
 
 **Rejected (deliberately):**
+- **A "Bulk" (+20%) goal** — retired Nov 8, 2026. Golfers build, they don't bulk: in trained
+  lifters the bigger surplus mostly adds fat with no extra strength or speed (Helms 2023), and the
+  owner's own physique bulk cost him mobility. Legacy users keep the setting until they switch.
+  *Don't revive.*
 - **Blurring/hiding exercises after purchase or anti-screenshot measures** — the
   exercise list isn't the product; locking it only annoys payers.
 - **One free workout as the demo** — too thin for a 20-week product; a free week
@@ -638,6 +644,18 @@ publishable key + VAPID public key ship client.
    top, four folded groups). Rule going forward: one clear thing on top,
    everything else folded; don't add a card without removing or folding one.
    Tab merging stays deferred — revisit only if real usage says people get lost.
+10. **Golf-first goals (OPEN, Nov 2026).** Owner decision after his physique bulk cost him
+   mobility: every goal trains a golfer; the goal changes the dials, not the identity. Shipped:
+   the keep-your-turn cool-down + rest-day routine (Nov 7), Build-not-Bulk + move cues (Nov 8).
+   Next, one PR each: (2) goal dials — Build's extra sets go to legs, glutes, hamstrings, upper
+   back and grip, with chest / front-delt / arm isolation capped; (3) a turn guardrail on Build —
+   a dropped mobility score shows one card, slows the surplus and swaps one upper-body muscle
+   exercise for rotation strength; (4) a golf-specific turn check (hip rotation per side, shoulder–
+   hip separation, lead arm across the chest) — a stored-data change; (5) rotation strength through
+   range in the authored week. Evidence for the direction: bodybuilders ~11° less shoulder internal
+   rotation (Barlow 2002, PMID 12173950); pec/delt-biased recreational lifters lose shoulder range
+   (Kolber 2009); lifting in general improves range (Alizadeh 2023). The owner trials Yardsmith on
+   Build himself once (2)–(3) ship.
 
 ---
 

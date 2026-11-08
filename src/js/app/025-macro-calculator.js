@@ -10,14 +10,14 @@
   var MEALS_REC = { leanbulk: 4, bulk: 5, maintain: 4, cut: 3 };
 
   var GOALS = {
-    leanbulk: { label: "Lean Bulk", pct: 0.10, proteinPerLb: 0.9, fatPerLb: 0.35, weekly:[0.0025,0.005],
+    leanbulk: { label: "Build", pct: 0.10, proteinPerLb: 0.9, fatPerLb: 0.35, weekly:[0.0025,0.005],
       preFrac: 0.25, postFrac: 0.30,
       timing: "Post-workout is your <b>build window</b> — keep it the biggest carb meal of the day.",
       note: "A clean surplus builds <b>quality mass and force</b> — the lean, fast body out-drives the heavy one." },
     bulk: { label: "Bulk", pct: 0.20, proteinPerLb: 0.9, fatPerLb: 0.35, weekly:[0.005,0.0075],
       preFrac: 0.25, postFrac: 0.35,
       timing: "<b>Load post-workout hard</b> — your biggest glycogen-refill and growth window.",
-      note: "Faster scale gain, but <b>more of it is fat</b> — it doesn’t add more strength or speed than Lean Bulk for most lifters. Suits newer lifters who start lean. Quality food, and plan a Lean Out after." },
+      note: "Faster scale gain, but <b>more of it is fat</b> — it doesn’t add more strength or speed than Build for most lifters. Suits newer lifters who start lean. Quality food, and plan a Lean Out after." },
     maintain: { label: "In-Season Maintain", pct: 0.0, proteinPerLb: 0.85, fatPerLb: 0.35, weekly:null,
       preFrac: 0.25, postFrac: 0.25,
       timing: "Split carbs <b>evenly around training</b>, and save some to fuel your round.",
@@ -34,10 +34,10 @@
   // there is no separate in-season template, so the copy must not promise one.
   var GOAL_TRAIN = {
     leanbulk: {
-      phase: "🏗️ Build phase · matches your <b>Lean Bulk</b> macros",
+      phase: "🏗️ Build phase · matches your <b>Build</b> macros",
       lead: "<b>Add lean muscle</b> and turn it into <b>clubhead speed</b> — one consistent week that builds size, strength and speed together, all 20 weeks.",
       foldTitle: "📈 How to add the muscle (and keep your swing)",
-      rate: "<b>Clean surplus:</b> Lean Bulk (+10%), gain <b>~0.25–0.5% of bodyweight a week</b> — not a dirty bulk." },
+      rate: "<b>Clean surplus:</b> Build (+10%), gain <b>~0.25–0.5% of bodyweight a week</b> — not a dirty bulk." },
     bulk: {
       phase: "💪 Mass phase · matches your <b>Bulk</b> macros",
       lead: "<b>Gain weight faster</b> on the same training week. A bigger surplus mostly adds fat, not extra muscle or speed — plan a Lean Out afterward.",
@@ -173,7 +173,8 @@
     }
     act("sexSeg","data-sex",state.sex); act("workoutSeg","data-workout",state.workout);
     if($("goals")) Array.prototype.forEach.call($("goals").querySelectorAll(".goal"), function(b){
-      b.classList.toggle("active", b.getAttribute("data-goal")===state.goal); });
+      b.classList.toggle("active", b.getAttribute("data-goal")===state.goal);
+      if(b.getAttribute("data-goal")==="bulk") b.hidden = state.goal!=="bulk"; });
   }
   // A shared link pre-fills the calculator for a NEW visitor. It never overwrites a
   // profile already saved on this device (a friend's numbers would otherwise become
