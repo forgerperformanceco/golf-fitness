@@ -447,7 +447,8 @@ stores; we're a URL). Shipping the app matters more than more docs.
   a flagged back, seated chest throw on the gym speed day when there's a med ball.
   **Then built (Oct 2, 2026):** an optional in-season 2-/3-day plan (Plan settings: Off /
   Fewer sets / 2 days / 3 days), the week arranged automatically so rounds land on rest
-  days, and a setup health check (PAR-Q+-style; any "yes" → a 4-week gentle start until
+  days (and, from Nov 8 2026, on the owner's ask, around **days off** the golfer picks — same
+  order, leg days apart; DESIGN-CHANGES "Days off"), and a setup health check (PAR-Q+-style; any "yes" → a 4-week gentle start until
   a doctor's clearance is marked in You).
 - **Keep-your-turn dose (Nov 7, 2026)** — a ~5-min rotation cool-down after every session
   (player recap + a folded card on Train) and a real 10-min rest-day routine behind "Start

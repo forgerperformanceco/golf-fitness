@@ -55,7 +55,7 @@ function engine({ inseason = false, freq = 4, store = {}, startWd = 1, week = 3,
        "ffHealthCaution", "ffHealthRedFlag", "ffHealthAdvice", "ffOnRamp", "ffLowImpact", "purposeFor", "trimSets",
        "capSets", "plainSetCount", "adjSets", "trainRetain", "eventInfo", "waveFor", "bumpReps", "plainReps", "waveAdjust",
        "effTarget"].map((n) => fn(PLAN, n)).join("\n")}
-    ${["stripDays", "ffHeavyLegs", "ffArrangeWeek", "ffPlayDaysNow"].map((n) => fn(LOGGER, n)).join("\n")}
+    ${["stripDays", "ffHeavyLegs", "ffArrangeWeek", "ffPlayDaysNow", "ffOffDays", "ffOffDaysNow"].map((n) => fn(LOGGER, n)).join("\n")}
     ${fn(GAME, "ffPlayDays")}
     ${fn(MODEL, "ffBmi")}
     this.api={ activeDays, ffSessionsPerWeek, ffInSeasonMode, stripDays, ffOnRamp, ffLowImpact, ffHealthCaution,
@@ -129,7 +129,54 @@ test("a play-day change made mid-week waits for next week", () => {
   assert.deepEqual(names(engine({ week: 3, store }).stripDays()), names(engine({ week: 3 }).activeDays()), "this week: old layout");
   const next = engine({ week: 4, store, startWd: 1 }).stripDays();
   assert.equal(next[5].type, "rest", "next week: Saturday is a rest day");
-  assert.match(PLAN, /if\(busy\)\{ if\(!\(g\.arrangeWeek>wk\)\) g\.prevDays=ffPlayDaysNow\(\)\.slice\(\); g\.arrangeWeek=wk\+1; \}/);
+  // Play days and days off share one save that snapshots both before the change.
+  assert.match(LOGGER, /if\(busy\)\{ if\(!\(g\.arrangeWeek>wk\)\)\{ g\.prevDays=ffPlayDaysNow\(\)\.slice\(\); g\.prevOff=ffOffDaysNow\(\)\.slice\(\); \} g\.arrangeWeek=wk\+1; \}/);
+  assert.match(LOGGER, /apply\(g\); gdSave\(g\);/);
+  assert.match(PLAN, /ffSaveSchedule\(function\(g\)\{ g\.days=days\.sort\(\); \}\)/);
+  assert.match(PLAN, /ffSaveSchedule\(function\(g\)\{ g\.off=days\.sort\(\); \}\)/);
+});
+
+test("days off: workouts move to the other days, same order, leg days apart", () => {
+  const wdOf = (startWd) => (i) => (startWd + i) % 7;
+  for (const startWd of [0, 1, 3, 6]) for (const [freq, inseason] of [[4, false], [5, false], [4, 2], [4, 3]]) {
+    const E = engine({ freq, inseason, startWd, store: { ff_gameday: { off: [0, 1] } } });
+    const week = E.stripDays(), wd = wdOf(startWd), tag = `start ${startWd}, ${freq}/${inseason}`;
+    assert.equal(week.length, 7);
+    week.forEach((d, i) => { if ([0, 1].includes(wd(i))) assert.equal(d.type, "rest", `${tag}: trains on day off ${wd(i)} → ${names(week)}`); });
+    const trainOrder = E.activeDays().filter((d) => d.type !== "rest").map((d) => d.name);
+    const placed = week.filter((d) => d.type !== "rest").map((d) => d.name);
+    assert.equal(placed.length, trainOrder.length, `${tag}: every workout kept`);
+    const rot = trainOrder.indexOf(placed[0]);
+    assert.deepEqual(placed, trainOrder.slice(rot).concat(trainOrder.slice(0, rot)), `${tag}: same order`);
+    for (let i = 0; i < 7; i++) {
+      const a = week[i], b = week[(i + 1) % 7];
+      assert.ok(!(/Lower|Squat|Hinge/.test(a.name) && a.type !== "rest" && /Lower|Squat|Hinge/.test(b.name) && b.type !== "rest"),
+        `${tag}: two leg days in a row → ${names(week)}`);
+    }
+  }
+  // Days off and rounds together: Sunday off, plays Saturday → both rest, no heavy legs Friday.
+  const both = engine({ freq: 4, startWd: 1, store: { ff_gameday: { off: [0], days: [6] } } }).stripDays();
+  assert.equal(both[5].type, "rest"); assert.equal(both[6].type, "rest");
+  assert.ok(both[4].type === "rest" || !/Lower|Squat|Hinge/.test(both[4].name), `Friday before a round: ${both[4].name}`);
+  // Overbooked (Codex, #116): Sun + Mon off and Tuesday play on 5 days leaves 4 open days. The
+  // extra workout goes on the round day, never on a day the golfer marked off.
+  const over = engine({ freq: 5, startWd: 1, store: { ff_gameday: { off: [0, 1], days: [2] } } }).stripDays();
+  assert.equal(over[0].type, "rest", `Monday off stays off → ${names(over)}`);
+  assert.equal(over[6].type, "rest", `Sunday off stays off → ${names(over)}`);
+  assert.equal(over.filter((d) => d.type !== "rest").length, 5, "all five workouts kept");
+  // Junk in storage is ignored.
+  assert.deepEqual([...engine({ store: { ff_gameday: { off: [9, -1, "x", 2.5] } } }).stripDays()].map((d) => d.name),
+    [...engine().activeDays()].map((d) => d.name));
+});
+
+test("a day-off change made mid-week waits for next week; old pending changes had no days off", () => {
+  const store = { ff_gameday: { off: [0, 1], prevOff: [], prevDays: [], arrangeWeek: 4 } };
+  assert.deepEqual(names(engine({ week: 3, store }).stripDays()), names(engine({ week: 3 }).activeDays()), "this week: old layout");
+  const next = engine({ week: 4, store, startWd: 1 }).stripDays();
+  assert.equal(next[0].type, "rest", "next week: Monday off"); assert.equal(next[6].type, "rest", "next week: Sunday off");
+  // A play-day change queued before days off existed (no prevOff) keeps this week free of days off.
+  const legacy = { ff_gameday: { days: [6], off: [0, 1], prevDays: [], arrangeWeek: 4 } };
+  assert.deepEqual(names(engine({ week: 3, store: legacy }).stripDays()), names(engine({ week: 3 }).activeDays()));
 });
 
 test("health check: any yes → a gentler start (4-week on-ramp, softer landings) until cleared", () => {
