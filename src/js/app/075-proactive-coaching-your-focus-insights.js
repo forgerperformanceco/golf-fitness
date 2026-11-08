@@ -28,6 +28,21 @@
         act:"speedtest", actLabel:"🎯 Run the test",
         ask:"I haven't logged a clubhead speed yet — how do I measure my 7-iron speed and what's a realistic number for my level?"});
 
+    // Turn guard — a dropped turn check during Build. Above the re-screen nudge;
+    // the re-screen button appears only after 2 weeks so it can't be cleared by
+    // re-testing the same afternoon.
+    var tgd=(typeof ffTurnGuard==="function")?ffTurnGuard():null;
+    if(tgd){
+      var tgAge=Date.now()-(tgd.ts||0), tgCard={prio:84, sig:"turnguard:"+tgd.ts, ic:"🌀", title:"Protecting your turn",
+        body:"Your <b>"+tgd.label+"</b> scored lower than last check. While you build, Yardsmith has halved the calorie surplus"+
+          ((typeof ffTurnGuardTrains!=="function" || ffTurnGuardTrains()) ? ", chest, shoulder and arm isolation each drop a set, and your rotation lifts gain one" : "")+
+          ". Do the cool-down and the rest-day routine every time. It all lifts when a re-check holds steady."};
+      // Home surfaces insights as one "Ask the coach" row — this is its question.
+      tgCard.ask="My turn check dropped ("+tgd.label+") while I'm on Build. What has Yardsmith changed in my plan, and what should I do until my next check?";
+      if(tgAge>=14*864e5){ tgCard.act="mobscreen"; tgCard.actLabel="🧭 Re-check your turn"; }
+      out.push(tgCard);
+    }
+
     // Mobility screen — first-time nudge, then the 4-week re-screen cadence.
     var mobLast=(typeof lastMob==="function")?lastMob():null;
     if(!mobLast && hasData)

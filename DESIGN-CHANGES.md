@@ -1,5 +1,61 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## The turn guard: a Build that starts costing your turn slows itself down (Nov 8, 2026)
+
+Owner, worried a golf-first build would still leave him "too rigid … can't turn around and wipe my
+own butt vibes" after 5–10 lb of muscle, approved this as step 3 of the golf-first plan ("Do it").
+
+- **Trigger** (`ffTurnGuard`, 065): on Build or a legacy Bulk, the latest mobility screen scoring
+  lower on any move than the screen before it. It holds until a later screen doesn't drop. It
+  compares whatever tests both screens share, so the planned golf-specific screen (step 4) works
+  unchanged.
+- **Calories** (`ffGoal`, 025): one goal object for every reader — `calc()`, power-to-weight and
+  the 10-day check-in (070). Guarded, the surplus AND the target gain rate are halved (+10% → +5%;
+  0.25–0.5%/wk → 0.125–0.25%/wk), so the check-in judges the slower pace instead of adding the
+  calories back. `GOALS` itself is never mutated; a deficit is never "halved".
+- **Training** (`adjSets` + `turnGuardTrims` / `turnGuardAdds`, 035): chest, shoulder and arm 💪
+  isolation lose a set (floor 2) and rotation-through-range 🌀 lifts (wood-chops, cable rotations)
+  gain one. Classified with the existing history grouping (`exGroupFor`), not a new name regex.
+  Heavy 🏋️ lifts, ⚡ power, legs, face pulls / rear delts, Pallof (anti-rotation) and the speed
+  day's ballistic throws and chops are untouched.
+- **Where it shows:** Home's coach row reads "Protecting your turn" (its ask opens the coach on what
+  changed); Train shows a `deload-banner turn-guard` line; Fuel reads "Build · +5% surplus" with
+  the guard note; the plan fold's rate bullet says so. The coach knowledge (`knowledge.ts`)
+  describes the guard.
+
+**Design decisions**
+- **Step 2 (goal dials) dropped.** Yardsmith's Build week already puts the volume where golf wants
+  it (§9a: chest 10, side delts 6 vs quads 10–13, glutes 10–15.5, hamstrings 9.5–13 sets/week; the
+  owner's physique plan ran chest 14, side delts 10, glutes 2). Reshuffling more sets would be a
+  guess, not evidence. The guard is the response that's earned: it acts only when this user's own
+  screen shows a loss.
+- **Why those muscles.** Bodybuilders showed ~11° less shoulder internal rotation than
+  non-lifters (Barlow 2002, PMID 12173950) and pec/delt-biased recreational lifters lost shoulder
+  range (Kolber 2009); lifting in general improves range (Alizadeh 2023). So the guard trims the
+  isolation that builds that mass, not legs or the heavy lifts that make speed.
+- **Codex review fixes (#113).** (1) Saving a screen re-renders Train and Home but never re-ran
+  `calc()`, so Fuel and `ff_targets` kept the old surplus until a reload — `closeMobility()` now
+  runs `calc()`, and an `ff-external-write` listener (deferred past 040's cache bust) re-runs it when
+  a cloud merge flips the guard (`ffGuardSig`). (2) In an in-season mode every lift is capped at 2
+  sets, so the guard's set changes were moot while the banner promised them; `ffTurnGuardTrains()`
+  now skips them there and the banner, plan bullet, card and coach mention only the halved surplus.
+  All three behaviours reproduced on the pre-fix build first (scratchpad/test-step3-review.mjs:
+  3080 → 3080 kcal after a screen, 3080 → 3080 after a merge, banner promising sets), then 16/16
+  fixed in light + dark.
+- **No "clear it now" button.** The re-screen action appears only 2+ weeks after the drop, so the
+  guard can't be cleared by re-testing the same afternoon.
+
+**Verified** (Playwright on the built output, seeded week-2 user with two screens, light + dark,
+scratchpad/test-step3.mjs): 30/30. Guarded: Home's coach row says "Protecting your turn"; Train
+shows the banner naming hips; Lateral Raise 3 × 15 → 2 × 15 (the new-lifter on-ramp already took one
+set) and Cable Wood-chop 3 → 4 × 10/side; Face Pull and Bench unchanged; Fuel reads "Build · +5%
+surplus" with the guard note and targets 2,940 kcal vs 3,080 unguarded. No drop: no row, no banner,
++10%. Lean Out with a drop: never guarded. No leaked junk, zero page errors. `npm test` 214/214 with
+three new cases (the trigger, 17 exercise outcomes including the floor of 2, and `ffGoal` halving
+both numbers without mutating `GOALS`). Earlier suites re-ran: step 1 28/28, cool-down 46/46.
+Standing audits: audit-train 18/18, audit-scroll 16/16, audit-contrast clean (1,577 nodes),
+audit-type 1 (Fuel "Ate it", same as main). Release gate green.
+
 ## Build, not Bulk — and a how-to under every stretch (Nov 8, 2026)
 
 Owner, the day after the keep-your-turn cool-down shipped: "How do I do those keep your turn

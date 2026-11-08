@@ -27,6 +27,32 @@
       timing: "<b>Concentrate limited carbs around the workout</b>; stay lower the rest of the day.",
       note: "A cut here is <b>in service of speed</b>: a high-protein deficit that protects muscle while you drop fat, so you <b>keep or gain clubhead speed</b> at a lighter, more powerful bodyweight. Don't crash — that costs muscle and speed." }
   };
+  // The goal as it applies today. On Build (or a legacy Bulk) with the turn guard
+  // on, the surplus AND the target gain rate are halved together, so the 10-day
+  // check-in judges the slower pace instead of adding the calories straight back.
+  // The guard state calc() last ran with — a cloud merge that flips it (a screen
+  // saved on another device) re-runs calc() so Fuel and ff_targets follow.
+  var ffGuardSig=null;
+  window.addEventListener("ff-external-write", function(){
+    setTimeout(function(){   // after 040's listener has busted the lsGet cache
+      var tg=(typeof ffTurnGuard==="function")?ffTurnGuard():null, sig=tg?String(tg.ts):"off";
+      if(ffGuardSig!==null && sig!==ffGuardSig){ try{ calc(); }catch(e){} try{ renderPhase(); }catch(e){} }
+    }, 0);
+  });
+  // In an in-season mode every lift is already capped at 2 sets, so the guard's
+  // set changes would be moot — it then only halves the surplus, and says so.
+  function ffTurnGuardTrains(){ return !(typeof ffInSeason==="function" && ffInSeason()); }
+  function ffGoal(){
+    var g=GOALS[state.goal]||GOALS.leanbulk;
+    var tg=(typeof ffTurnGuard==="function")?ffTurnGuard():null;
+    if(!tg || !(g.pct>0)) return g;
+    var c={}; for(var k in g) if(Object.prototype.hasOwnProperty.call(g,k)) c[k]=g[k];
+    c.pct=g.pct/2;
+    if(g.weekly) c.weekly=[g.weekly[0]/2, g.weekly[1]/2];
+    c.turnGuard=tg;
+    c.note="<b>Turn guard on:</b> your last turn check dropped ("+tg.label+"), so "+g.label+" runs at half the surplus until a check holds steady. Muscle still builds; the scale just climbs slower.";
+    return c;
+  }
   var ACTIVITY_LABELS = { "1.2":"Sedentary","1.375":"Light","1.55":"Moderate","1.725":"Very Active","1.9":"Athlete" };
 
   // Training-page copy that matches the chosen macro goal. The only training change
@@ -60,6 +86,8 @@
     var pl=$("planLead"); if(pl) pl.innerHTML=g.lead;
     var pf=$("planFoldTitle"); if(pf) pf.innerHTML=g.foldTitle;
     var rb=$("planRateBullet"); if(rb) rb.innerHTML=g.rate;
+    var tg=(typeof ffTurnGuard==="function")?ffTurnGuard():null;
+    if(rb && tg) rb.innerHTML="<b>Turn guard on:</b> your last turn check dropped ("+tg.label+"), so the surplus is halved"+(ffTurnGuardTrains()?" and upper-body isolation trades a set for rotation work":"")+" until a check holds steady.";
   }
 
   // Anchor training hour (24h) per slot. Pre = 90 min before, post ≈ 90 min after start.
@@ -230,7 +258,8 @@
     if(weightLb<=0||heightCm<=0||age<=0){ $("results").innerHTML=placeholder(); updateFoodTargets(0,0,0); try{ renderFFMeals(); }catch(e){} return; }
 
     var activity=parseFloat($("activity").value);
-    var g=GOALS[state.goal];
+    var g=ffGoal();
+    ffGuardSig=g.turnGuard ? String(g.turnGuard.ts) : "off";
     // Protein scales with body size; fat with body size but never under 20% of
     // calories; carbs fill the rest. The check-in nudge (ff_kcal_adj, a correction
     // from the real weight trend) is clamped to the range that can still move the

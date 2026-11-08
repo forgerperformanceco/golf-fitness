@@ -493,6 +493,88 @@ test("every warm-up, cool-down, rest-day, speed-test and game-day move carries a
   assert.ok(new Set(moves).size >= 25, `covered ${new Set(moves).size} distinct moves`);
 });
 
+// ----------------------------------------------- 13d turn guardrail on Build
+const MOB = readFileSync(new URL("../src/js/app/065-mobility-screen-the-3-move-durability-ch.js", import.meta.url), "utf8");
+const MACRO_SRC = readFileSync(new URL("../src/js/app/025-macro-calculator.js", import.meta.url), "utf8");
+function guardCtx(goal, screens) {
+  const ctx = { __screens: screens };
+  vm.runInNewContext(`
+    var state={ goal:${JSON.stringify(goal)} };
+    function lsGet(k,d){ return k==="ff_mobility" ? __screens : d; }
+    ${fn(MOB, "mobTests")}
+    ${fn(MOB, "ffTurnGuard")}
+    this.tg = ffTurnGuard();
+  `, ctx);
+  return ctx.tg;
+}
+test("the turn guard fires on Build only when a turn check comes back worse", () => {
+  const s = (trunk, hip, squat, ts) => ({ ts, tests: { trunk, hip, squat } });
+  const drop = guardCtx("leanbulk", [s(2, 2, 1, 1), s(2, 1, 1, 2)]);
+  assert.deepEqual([...drop.dropped], ["hip"]); assert.equal(drop.label, "hips"); assert.equal(drop.ts, 2);
+  assert.equal(guardCtx("leanbulk", [s(2, 1, 1, 1), s(2, 1, 2, 2)]), null, "no drop, no guard");
+  assert.equal(guardCtx("leanbulk", [s(2, 2, 2, 1)]), null, "one screen can't drop");
+  assert.ok(guardCtx("bulk", [s(2, 2, 2, 1), s(1, 2, 2, 2)]), "legacy Bulk is guarded too");
+  for (const g of ["cut", "maintain"]) assert.equal(guardCtx(g, [s(2, 2, 2, 1), s(0, 0, 0, 2)]), null, `${g} never guards`);
+  // A later screen with different moves compares only what both share.
+  const mixed = guardCtx("leanbulk", [s(2, 2, 2, 1), { ts: 2, tests: { trunk: 1, coil: 0 } }]);
+  assert.deepEqual([...mixed.dropped], ["trunk"]);
+});
+
+test("guarded Build trades upper-body isolation sets for rotation; heavy, power, legs and upper back untouched", () => {
+  const ctx = {};
+  vm.runInNewContext(`
+    var state={ goal:"leanbulk" }, __guard=true, __inseason=false;
+    function ffTurnGuard(){ return __guard ? { dropped:["hip"], label:"hips", ts:1 } : null; }
+    function ffTurnGuardTrains(){ return !__inseason; }
+    ${["purposeFor", "trainRetain", "adjSets", "turnGuardTrims", "turnGuardAdds"].map((n) => fn(PLAN, n)).join("\n")}
+    ${fn(LOGGER, "exGroupFor")}
+    this.adj = adjSets; this.off = function(){ __guard=false; }; this.inseason = function(v){ __inseason=v; };
+  `, ctx);
+  const cases = [
+    ["Lateral Raise", "4 × 15", "3 × 15"], ["Incline DB Press", "3 × 10", "2 × 10"],
+    ["DB Curl", "3 × 12", "2 × 12"], ["Cable Overhead Triceps Extension", "3 × 12", "2 × 12"],
+    ["Cable Wood-chop", "3 × 10 / side", "4 × 10 / side"],
+    ["Face Pull", "3 × 15", "3 × 15"], ["Pallof Press", "3 × 12 / side", "3 × 12 / side"],
+    ["Barbell Bench Press", "4 × 5 (heavy · fast up)", "4 × 5 (heavy · fast up)"],
+    ["Standing Overhead Press", "4 × 6", "4 × 6"], ["Hip Thrust", "4 × 8", "4 × 8"],
+    ["Leg Extension", "3 × 12", "3 × 12"], ["Single-Arm DB Bench Press", "3 × 8 / side", "3 × 8 / side"],
+    ["Rotational med-ball throw", "4 × 4 / side", "4 × 4 / side"], ["Cable lateral chop", "3 × 4 / side", "3 × 4 / side"],
+    ["Wrist Curl + Reverse", "2 × 15", "2 × 15"], ["Hanging Leg Raise", "3 × 12", "3 × 12"],
+    ["Lateral Raise", "2 × 15", "2 × 15"],                       // floor of 2
+  ];
+  for (const [n, sr, want] of cases) assert.equal(ctx.adj(sr, n), want, n);
+  // In-season caps every lift at 2 anyway, so the guard makes no set changes there (Codex, #113).
+  ctx.inseason(true);
+  assert.equal(ctx.adj("4 × 15", "Lateral Raise"), "4 × 15", "in-season: no trim");
+  assert.equal(ctx.adj("3 × 10 / side", "Cable Wood-chop"), "3 × 10 / side", "in-season: no add");
+  ctx.inseason(false);
+  ctx.off();
+  assert.equal(ctx.adj("4 × 15", "Lateral Raise"), "4 × 15", "no guard, no change");
+});
+
+test("a guarded Build halves the surplus and the target gain rate together", () => {
+  const ctx = {};
+  vm.runInNewContext(`
+    var state={ goal:"leanbulk" }, __guard=null;
+    function ffTurnGuard(){ return __guard; }
+    ${decl(MACRO_SRC, "GOALS", "{")}
+    ${fn(MACRO_SRC, "ffGoal")}
+    this.run = function(goal, guard){ state.goal=goal; __guard=guard; return ffGoal(); };
+    this.GOALS = GOALS;
+  `, ctx);
+  const tg = { dropped: ["hip"], label: "hips", ts: 1 };
+  assert.equal(ctx.run("leanbulk", null), ctx.GOALS.leanbulk, "unguarded: the goal itself");
+  const g = ctx.run("leanbulk", tg);
+  assert.equal(g.pct, 0.05); assert.deepEqual([...g.weekly], [0.00125, 0.0025]);
+  assert.equal(g.label, "Build"); assert.match(g.note, /Turn guard on/);
+  assert.equal(ctx.GOALS.leanbulk.pct, 0.10, "GOALS itself is never mutated");
+  assert.equal(ctx.run("cut", tg), ctx.GOALS.cut, "a deficit is never 'halved'");
+  // Every reader of the goal's numbers goes through ffGoal().
+  assert.match(MACRO_SRC, /var g=ffGoal\(\);/);
+  const PLAYER_SRC = readFileSync(new URL("../src/js/app/070-workout-player-full-screen-guided-sessio.js", import.meta.url), "utf8");
+  assert.equal((PLAYER_SRC.match(/ffGoal\(\)/g) || []).length, 2, "power-to-weight and the check-in");
+});
+
 // ------------------------------------------------------------- 14 trap bar
 test("the deadlift keeps its name; the trap bar is the first one-tap swap", () => {
   const E = engine();
