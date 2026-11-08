@@ -15,6 +15,12 @@ that we could check it or click it or do something?"
   tap wins on every device), clears with a plan reset, drops with an old season, and counts as activity
   for the welcome-back screen — with no new key and no `cloud-sync.js` change. `restDone("week|dayKey")`
   is untouched.
+- **A cardio check-off freezes the week's layout** (Codex review, #117), like a recovery check-off:
+  rest-day marks are keyed by the rest slot, so a days-off or play-day change applied mid-week would
+  move the ✓ to another calendar day. `ffSaveSchedule`'s busy test now counts `cardioDone` too.
+  Reproduced first (old build: the change applied at once, `arrangeWeek` unset), then fixed — the
+  change queues for next week, the row says "Starts next week" and today keeps its ✓
+  (scratchpad/test-cardio-busy.mjs, 10/10).
 
 **Design decisions**
 - **Easy only.** The concurrent-training note (NUTRITION ref §10) is the rule: interference mainly

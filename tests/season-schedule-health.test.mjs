@@ -132,6 +132,8 @@ test("a play-day change made mid-week waits for next week", () => {
   // Play days and days off share one save that snapshots both before the change.
   assert.match(LOGGER, /if\(busy\)\{ if\(!\(g\.arrangeWeek>wk\)\)\{ g\.prevDays=ffPlayDaysNow\(\)\.slice\(\); g\.prevOff=ffOffDaysNow\(\)\.slice\(\); \} g\.arrangeWeek=wk\+1; \}/);
   assert.match(LOGGER, /apply\(g\); gdSave\(g\);/);
+  // A cardio check-off counts as logged work too (Codex, #117): rest marks are slot-keyed.
+  assert.match(LOGGER, /restDone\(wk, dayKey\(x\)\) \|\| cardioDone\(wk, dayKey\(x\)\)/);
   assert.match(PLAN, /ffSaveSchedule\(function\(g\)\{ g\.days=days\.sort\(\); \}\)/);
   assert.match(PLAN, /ffSaveSchedule\(function\(g\)\{ g\.off=days\.sort\(\); \}\)/);
 });

@@ -203,8 +203,11 @@
   // force stays in force until then. The snapshot is taken BEFORE apply(g) runs —
   // lsGet hands back its cached object, so g IS what ffPlayDaysNow/ffOffDaysNow read.
   function ffSaveSchedule(apply){
+    // Any check-off this week freezes the layout: rest-day marks (recovery AND
+    // cardio) are keyed by the rest slot, so re-arranging would move them to
+    // another calendar day (Codex, #117).
     var g=gdState(), wk=planStart()?curWeek():0, busy=wk && stripDays().some(function(x){
-      return x.type==="rest" ? restDone(wk, dayKey(x)) : !!getSession(wk, x.name); });
+      return x.type==="rest" ? (restDone(wk, dayKey(x)) || cardioDone(wk, dayKey(x))) : !!getSession(wk, x.name); });
     if(busy){ if(!(g.arrangeWeek>wk)){ g.prevDays=ffPlayDaysNow().slice(); g.prevOff=ffOffDaysNow().slice(); } g.arrangeWeek=wk+1; }
     else { delete g.arrangeWeek; delete g.prevDays; delete g.prevOff; }
     apply(g); gdSave(g);
