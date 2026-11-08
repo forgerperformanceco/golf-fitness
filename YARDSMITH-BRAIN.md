@@ -653,11 +653,16 @@ publishable key + VAPID public key ship client.
 10. **Golf-first goals (OPEN, Nov 2026).** Owner decision after his physique bulk cost him
    mobility: every goal trains a golfer; the goal changes the dials, not the identity.
    - SHIPPED: the keep-your-turn cool-down + rest-day routine (Nov 7); Build-not-Bulk + move
-     cues (Nov 8); the Build turn guard (Nov 8); the 5-move golf turn check (Nov 8).
+     cues (Nov 8); the Build turn guard (Nov 8); the 5-move golf turn check (Nov 8); rotation
+     through range + arm extension (Nov 8): Half-Kneeling Cable Rotation 2 × 8/side on both
+     Pull + Rotate days, the straight-arm wall biceps & chest stretch (pull cool-down + rest day),
+     curls coached to a straight arm, chops to an end-range pause (DESIGN-CHANGES, same date).
+   - The check behind step 5: the chop turns from the hips, the Pallof resists turning and the
+     throws are ballistic — nothing loaded the upper back slowly at the end of its turn.
    - DROPPED: goal dials (moving more sets per goal) — the Build week already favours legs,
      glutes and back over chest and delts (NUTRITION §9a), so it would be a guess.
-   - NEXT: rotation strength through range in the authored week — first check how much the
-     existing chops, Pallof and rotational throws already cover.
+   - NEXT: none queued. Revisit after the owner's 1–2 week trial and his first two turn checks
+     (does the turn guard fire, and do the flagged moves come back?).
    - Evidence for the direction: bodybuilders ~11° less shoulder internal rotation (Barlow 2002,
      PMID 12173950); pec/delt-biased recreational lifters lose shoulder range (Kolber 2009);
      lifting in general improves range (Alizadeh 2023); better golfers differ in rotation range,

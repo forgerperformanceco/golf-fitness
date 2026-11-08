@@ -526,7 +526,7 @@ hack. Implementation (065-mobility-screen…js):
   adductor rock-backs), lower days only; squat → deep-squat holds + ankle
   rockers, lower days only. Never duplicates a move already in the list.
 - **Cool-down + rest-day routine** (Nov 2026, 035 `cooldownList` / `recoveryList`):
-  ~4–6 min of static rotation holds after every session (player recap + a folded
+  ~4–7 min of static rotation holds after every session (Pull + Rotate is the 7) (player recap + a folded
   `details.prelift.cool` on Train cards) and a ~10-min routine on rest days; screen
   flags route in via `cdAddFixes` (trunk → thread-the-needle, hip → 90/90 lift-offs,
   squat → deep-squat hold). Holds sit AFTER lifting, never in the warm-up (≥60 s/muscle
@@ -537,6 +537,14 @@ hack. Implementation (065-mobility-screen…js):
   for every reader (calc, power-to-weight, check-in); `adjSets` trims a set off chest/shoulder/arm
   💪 isolation (by `exGroupFor`, floor 2) and adds one to rotation-through-range 🌀 lifts. Off on the
   next screen that doesn't drop.
+- **Rotation through range + arm extension** (Nov 2026): both Pull + Rotate days carry the
+  Half-Kneeling Cable Rotation, 2 × 8 / side slow with an end-range pause (🌀; bands / bodyweight
+  subs in `EX`), because the chop turns from the hips, the Pallof resists turning and the throws
+  are ballistic. Full-range lifting improves range about as well as stretching (Afonso 2021;
+  Alizadeh 2023). The pull cool-down (~7 min) and the rest day carry a straight-arm, thumb-down
+  wall biceps & chest stretch for the lead arm; curls are coached to a straight arm at the bottom
+  (long-length elbow-flexion work grows the distal biceps more — Pedrosa 2023; full ≈ lengthened
+  partials — Wolf 2025).
 - **Plane nuance** (CLUBHEAD §11.6, added Nov 2026): McHugh 2022 found *transverse-plane*
   (rotation) flexibility separated proficient from average golfers and tracked ball speed
   (n=25, cross-sectional); sagittal/frontal didn't. Copy says "general flexibility doesn't
