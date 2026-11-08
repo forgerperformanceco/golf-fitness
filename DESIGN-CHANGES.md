@@ -21,6 +21,17 @@ control, so this adds it with the same guard rails expressed as rules and warnin
 - **Changing days off or round days resets a custom order** (the week is re-arranged around them,
   with a toast), through the same `ffSaveSchedule`, which now snapshots `prevLayout` with the other
   lists, so a mid-week change still waits for next week. **Reset to automatic** follows the same rule.
+- **Review fixes** (Codex, #118), each reproduced in the browser first (scratchpad/test-drag-review.mjs,
+  14/14 after):
+  - *Train's featured workout follows the arranged week.* `nextWorkout()` (070) walked the plan's
+    authored order, so after swapping the week's first and last workouts the strip led with Pull while
+    Train's hero and Start button still offered Quads. It now walks the strip (calendar) order once a
+    plan has started — which also keeps it in step with a week arranged around rounds or days off.
+  - *"Your own order" only when it applies.* After a 4 ↔ 5-day switch the saved order is kept for the
+    way back but isn't shaping the week; the hint still claimed it and its Reset would have deleted it.
+    `ffLayoutActive()` (040) now drives the hint and the reset toasts.
+  - Found while re-testing: the release of a drag swallows the next click for 0.35 s (was 0.5 s), long
+    enough for the release's own click and short enough not to eat a deliberate tap.
 - **Gesture** (042): touch uses touch events — moving more than 10 px before the hold fires cancels it
   (it's a scroll or a tap), and once the hold fires `touchmove` is cancelled so the page doesn't scroll
   under the finger; mouse/pen use pointer events. A long press never opens a context menu, and the
@@ -39,10 +50,11 @@ saves a 7-slot `ff_gameday.layout`, and the hint offers Reset; a quick tap still
 order survives a reload; two workouts swap ("Swapped …"); Reset brings back the automatic week; a REAL
 touch drag (CDP touch events with vertical wobble) moves the day without scrolling the page, and a quick
 swipe moves nothing; a logged workout stays put; a workout can't land on a day off; no leaked junk; zero
-page errors. `npm test` 223/223 with two new cases (layout by weekday across week starts, stale and
+page errors. `npm test` 224/224 with three new cases (layout by weekday across week starts, stale and
 junk layouts ignored, queued layouts; moves: save by weekday, swaps, rest ↔ rest no-op, round and
 back-to-back-legs warnings, logged workout and logged cardio locked, day-off refusal, queued change
-blocks). Earlier suites green (days off, overbooked, cardio, cardio-busy, cool-down, play days).
+blocks; next workout in calendar order) and `ffLayoutActive` cases. Earlier suites green (steps 1, 3, 4,
+days off, overbooked, cardio, cardio-busy, cool-down, play days).
 Audits: audit-train 18/18, audit-scroll 16/16, audit-contrast clean (1,597 nodes), audit-type 1 (Fuel
 "Ate it", same as main). Release gate and claims-lint green.
 

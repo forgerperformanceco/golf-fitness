@@ -56,7 +56,7 @@ function engine({ inseason = false, freq = 4, store = {}, startWd = 1, week = 3,
        "ffHealthCaution", "ffHealthRedFlag", "ffHealthAdvice", "ffOnRamp", "ffLowImpact", "purposeFor", "trimSets",
        "capSets", "plainSetCount", "adjSets", "trainRetain", "eventInfo", "waveFor", "bumpReps", "plainReps", "waveAdjust",
        "effTarget"].map((n) => fn(PLAN, n)).join("\n")}
-    ${["stripDays", "ffHeavyLegs", "ffArrangeWeek", "ffPlayDaysNow", "ffOffDays", "ffOffDaysNow", "ffLayoutNow", "ffApplyLayout",
+    ${["stripDays", "ffBaseWeek", "ffLayoutActive", "ffHeavyLegs", "ffArrangeWeek", "ffPlayDaysNow", "ffOffDays", "ffOffDaysNow", "ffLayoutNow", "ffApplyLayout",
        "dayKey", "getLog", "getSession", "getRest", "restDone", "cardioDone"].map((n) => fn(LOGGER, n)).join("\n")}
     var __toasts=[], window={ dispatchEvent:function(){} }, Event=function(){};
     function ffToast(m){ __toasts.push(m); } function renderPhase(){} function renderDash(){} function ffAccess(){ return "full"; }
@@ -64,7 +64,7 @@ function engine({ inseason = false, freq = 4, store = {}, startWd = 1, week = 3,
     ${decl(DRAG, "FF_WD", "[")} ${fn(DRAG, "ffDayLogged")} ${fn(DRAG, "ffMoveDay")}
     ${fn(GAME, "ffPlayDays")}
     ${fn(MODEL, "ffBmi")}
-    this.api={ ffMoveDay, store:__store, toasts:__toasts, activeDays, ffSessionsPerWeek, ffInSeasonMode, stripDays, ffOnRamp, ffLowImpact, ffHealthCaution,
+    this.api={ ffMoveDay, ffLayoutActive, store:__store, toasts:__toasts, activeDays, ffSessionsPerWeek, ffInSeasonMode, stripDays, ffOnRamp, ffLowImpact, ffHealthCaution,
       ffHealthAdvice, ffHealthQs, effTarget, PHASES, state:state };
   `, ctx);
   return ctx.api;
@@ -203,6 +203,10 @@ test("your own week order: follows the saved layout by weekday; stale or queued 
   const five = ["rest@6", "Day 1 — Lower (Quads)", "Day 2 — Upper (Push)", "rest@2", "Day 3 — Speed & Power", "Day 4 — Lower (Hinge + Power)", "Day 5 — Upper (Pull + Rotate)"];
   assert.deepEqual(names(engine({ store: { ff_gameday: { layout: five } } }).stripDays()), names(engine().activeDays()));
   assert.deepEqual(names(engine({ store: { ff_gameday: { layout: ["x"] } } }).stripDays()), names(engine().activeDays()), "junk ignored");
+  // "Your order" only when the saved order actually shapes this week (Codex, #118).
+  assert.equal(engine({ store: { ff_gameday: { layout } } }).ffLayoutActive(), true);
+  assert.equal(engine({ store: { ff_gameday: { layout: five } } }).ffLayoutActive(), false, "stale: kept, not active");
+  assert.equal(engine({ freq: 5, store: { ff_gameday: { layout: five } } }).ffLayoutActive(), true, "switch back: active again");
   // Queued for next week: this week keeps prevLayout (here: none → automatic).
   const queued = { ff_gameday: { layout, prevLayout: null, prevDays: [], prevOff: [], arrangeWeek: 4 } };
   assert.deepEqual(names(engine({ week: 3, store: queued }).stripDays()), names(engine().activeDays()));

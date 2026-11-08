@@ -1237,7 +1237,7 @@
       html+='<div class="weekstrip">'+strip+'</div>';
       // Hold-and-drag (042) — say it's there, and offer the way back.
       if(access==="full")
-        html+='<div class="ws-hint">'+(ffLayoutNow()
+        html+='<div class="ws-hint">'+(ffLayoutActive()
           ? 'Your own order. <button type="button" class="ws-reset" data-layoutreset="1">Reset to automatic</button>'
           : 'Hold a day, then drag it onto another day to swap them.')+'</div>';
       // A future day is a PREVIEW, never an active session: rendering it
@@ -1406,7 +1406,7 @@
         // The week rearranges around rounds. If this week already has logged
         // work, the new layout starts next week (ffSaveSchedule in 040).
         // A new round day re-arranges the week, so a hand-made order resets.
-        var hadLay=!!ffLayoutNow();
+        var hadLay=ffLayoutActive();
         ffSaveSchedule(function(g){ g.days=days.sort(); delete g.layout; });
         if(hadLay) ffToast("Your week was re-arranged around your rounds. Hold a day to move it.");
         focusDay=null; renderPhase();
@@ -1428,7 +1428,7 @@
           }
           days.push(d);
         } else days.splice(i,1);
-        var hadLay=!!ffLayoutNow();
+        var hadLay=ffLayoutActive();
         ffSaveSchedule(function(g){ g.off=days.sort(); delete g.layout; });
         if(hadLay) ffToast("Your week was re-arranged around your days off. Hold a day to move it.");
         focusDay=null; renderPhase();

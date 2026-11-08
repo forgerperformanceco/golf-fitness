@@ -1058,7 +1058,9 @@
 
   /* ----- Dashboard (home overview) ----- */
   function nextWorkout(){
-    var wk=curWeek(), days=activeDays(), L=getLog();
+    // Walk the week in CALENDAR order (the strip: arranged around rounds/days off, or
+    // the golfer's own order) so "next" agrees with the strip and Home (Codex, #118).
+    var wk=curWeek(), days=(typeof planStart==="function" && planStart() && typeof stripDays==="function") ? stripDays() : activeDays(), L=getLog();
     // A session the user explicitly skipped is resolved — never offer it as next.
     function skipped(n){ return typeof sessionSkipped==="function" && sessionSkipped(wk, n); }
     // Resume the first unfinished workout before offering a new one. A partial

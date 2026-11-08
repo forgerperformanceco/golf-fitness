@@ -113,7 +113,7 @@
       s.chip.classList.remove("ws-lift");
       if(s.chip.parentElement) s.chip.parentElement.classList.remove("ws-dragging");
       if(s.over) s.over.classList.remove("ws-over");
-      swallowUntil=Date.now()+500;              // the release must not also tap a day
+      swallowUntil=Date.now()+350;              // the release's own click must not also tap a day
       if(drop && s.over && s.over.parentElement) ffMoveDay(s.from, idx(s.over));
     }
     // Touch

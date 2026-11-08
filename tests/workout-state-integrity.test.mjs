@@ -57,6 +57,26 @@ test("the journey resumes a partial workout and does not advance or count it", (
   assert.deepEqual({ ...context.weekDoneCount() }, { done: 1, total: 2 });
 });
 
+test("next workout walks the week in calendar order once the plan has started (Codex, #118)", () => {
+  // Authored order Day 1, Day 2; the golfer's arranged week puts Day 2 first.
+  const days = [{ name: "Day 1", type: "lift" }, { name: "Day 2", type: "lift" }];
+  const log = {};
+  const base = {
+    curWeek: () => 1, activeDays: () => days, getLog: () => log,
+    sessionInProgress: (s) => !!(s && !s.finishedAt),
+  };
+  const started = { ...base, planStart: () => "2026-11-01", stripDays: () => [days[1], { name: "Rest", type: "rest" }, days[0]] };
+  vm.runInNewContext(functionSource(player, "nextWorkout"), started);
+  assert.equal(started.nextWorkout(), "Day 2", "the strip's first open workout");
+  log["1|Day 2"] = { finishedAt: "x" };
+  assert.equal(started.nextWorkout(), "Day 1");
+  // Before a plan starts (no strip yet) it falls back to the authored order.
+  const fresh = { ...base, planStart: () => null, stripDays: () => { throw new Error("not before a plan"); } };
+  delete log["1|Day 2"];
+  vm.runInNewContext(functionSource(player, "nextWorkout"), fresh);
+  assert.equal(fresh.nextWorkout(), "Day 1");
+});
+
 test("all completion surfaces use the finished-session truth", () => {
   assert.match(train, /sessionFinished\(getSession\(wk, d\.name\)\)/);
   assert.match(player, /if\(sessionFinished\(L\[k\]\)\)/);
