@@ -684,6 +684,38 @@ test("arm extension: curls coach a straight arm at the bottom; the wall stretch 
   assert.equal(E.listMinutes(E.recoveryList()), 10);
 });
 
+// ------------------------------------------- 13g easy (Zone 2) cardio check-off
+test("rest-day cardio is its own check-off: own key, undo stamps, syncs, never touches the rest check", () => {
+  const SYNC = readFileSync(new URL("../cloud-sync.js", import.meta.url), "utf8");
+  const ctx = { store: {} };
+  vm.runInNewContext(`
+    var __t=1000; Date.now=function(){ return __t+=1000; };
+    function lsGet(k,d){ var v=store[k]; return v==null?d:v; }
+    function lsSet(k,v){ store[k]=v; }
+    ${["getRest", "restDone", "toggleRestDone", "cardioDone", "toggleCardioDone"].map((n) => fn(LOGGER, n)).join("\n")}
+    ${fn(SYNC, "unionDeleted")}
+    this.api={ restDone, toggleRestDone, cardioDone, toggleCardioDone, unionDeleted };
+  `, ctx);
+  const A = ctx.api;
+  assert.equal(A.cardioDone(2, "rest@2"), false);
+  A.toggleCardioDone(2, "rest@2");
+  assert.equal(A.cardioDone(2, "rest@2"), true);
+  assert.equal(A.restDone(2, "rest@2"), false, "cardio never checks off the rest day");
+  assert.ok(ctx.store.ff_rest["2|rest@2|cardio"] > 0);
+  A.toggleRestDone(2, "rest@2");
+  assert.equal(A.restDone(2, "rest@2"), true); assert.equal(A.cardioDone(2, "rest@2"), true, "and vice versa");
+  A.toggleCardioDone(2, "rest@2");
+  assert.equal(A.cardioDone(2, "rest@2"), false);
+  assert.ok(ctx.store.ff_rest["2|rest@2|cardio"] < 0, "undo is a negative stamp, never a delete");
+  assert.equal(A.cardioDone(2, "rest@6"), false, "per day");
+  // Two devices: the later tap wins, whichever way it went.
+  const phone = { "2|rest@2|cardio": 5000 }, laptop = { "2|rest@2|cardio": -9000 };
+  assert.ok(A.unionDeleted(phone, laptop)["2|rest@2|cardio"] < 0);
+  assert.ok(A.unionDeleted({ "2|rest@2|cardio": 12000 }, laptop)["2|rest@2|cardio"] > 0);
+  // ff_rest is already a synced, merged, season-pruned key: no new key needed.
+  assert.match(SYNC, /ff_rest:\s+unionDeleted/);
+});
+
 // ------------------------------------------------------------- 14 trap bar
 test("the deadlift keeps its name; the trap bar is the first one-tap swap", () => {
   const E = engine();

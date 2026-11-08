@@ -269,6 +269,12 @@
   // (an undo must out-stamp the check-off on every device, so never delete).
   function restDone(w,d){ return getRest()[w+"|"+d] > 0; }
   function toggleRestDone(w,d){ var r=getRest(), k=w+"|"+d; r[k]=(r[k] > 0) ? -Date.now() : Date.now(); lsSet("ff_rest",r); }
+  // Easy (Zone 2) cardio on a rest day (Nov 2026): its own check-off, stored in
+  // ff_rest under "week|day|cardio" with the same signed-timestamp convention, so
+  // it syncs (unionDeleted), clears with a plan reset and drops with an old season
+  // exactly like the rest check-off — and never touches restDone("week|day").
+  function cardioDone(w,d){ return getRest()[w+"|"+d+"|cardio"] > 0; }
+  function toggleCardioDone(w,d){ var r=getRest(), k=w+"|"+d+"|cardio"; r[k]=(r[k] > 0) ? -Date.now() : Date.now(); lsSet("ff_rest",r); }
   // Every rest day shares the display name "Rest / Play 18", so key its check-off
   // by the day's slot position in the week — otherwise both rest days would toggle
   // as one. Training days have unique names, so they key by name as before.

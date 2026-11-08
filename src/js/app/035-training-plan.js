@@ -882,13 +882,19 @@
   function dayCardHtml(d, showPrimerNote, interactive){
     var p = PHASES[planState.phase];
     if(d.type==="rest"){
-      var rdone=restDone(curWeek(), dayKey(d));
+      var rdone=restDone(curWeek(), dayKey(d)), cdone=cardioDone(curWeek(), dayKey(d));
       return '<div class="day'+(rdone?" rest-done":"")+'"><div class="day-head">'+d.name+' <span class="tag rest">Recover</span></div>'+
         '<div class="restday">Ten minutes to keep your turn, then walk a casual 9 if you can. Recovery is when the gains land.</div>'+
         (interactive ? '<div class="rest-routine">'+recoveryHtml()+'</div>'
           : '<details class="prelift cool"><summary>🌀 Keep your turn — the 10-min routine</summary><div class="prelift-body">'+recoveryHtml()+'</div></details>')+
         '<button class="rest-check'+(rdone?" done":"")+'" type="button" data-restday="'+escAttr(dayKey(d))+'">'+
-          (rdone?"✓ Recovery logged — tap to undo":"Mark recovery done")+'</button></div>';
+          (rdone?"✓ Recovery logged — tap to undo":"Mark recovery done")+'</button>'+
+        // Optional easy cardio. Easy on purpose: hard running and intervals are what
+        // blunt power most when mixed with lifting (NUTRITION ref, concurrent note).
+        '<div class="z2"><div class="z2-h">🚶 Easy cardio (Zone 2) <small>optional · 20–40 min</small></div>'+
+          '<div class="z2-b">Walk (9 holes counts), an incline treadmill or the bike, easy enough to talk in full sentences. Skip running and hard intervals here: they cut into power the most.</div>'+
+          '<button class="rest-check z2-check'+(cdone?" done":"")+'" type="button" data-cardio="'+escAttr(dayKey(d))+'">'+
+            (cdone?"✓ Cardio logged — tap to undo":"Mark cardio done")+'</button></div></div>';
     }
     if(d.type==="speed"){
       var smode=speedMode(), s=p.speed[smode];
