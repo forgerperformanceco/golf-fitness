@@ -158,6 +158,12 @@ test("days off: workouts move to the other days, same order, leg days apart", ()
   const both = engine({ freq: 4, startWd: 1, store: { ff_gameday: { off: [0], days: [6] } } }).stripDays();
   assert.equal(both[5].type, "rest"); assert.equal(both[6].type, "rest");
   assert.ok(both[4].type === "rest" || !/Lower|Squat|Hinge/.test(both[4].name), `Friday before a round: ${both[4].name}`);
+  // Overbooked (Codex, #116): Sun + Mon off and Tuesday play on 5 days leaves 4 open days. The
+  // extra workout goes on the round day, never on a day the golfer marked off.
+  const over = engine({ freq: 5, startWd: 1, store: { ff_gameday: { off: [0, 1], days: [2] } } }).stripDays();
+  assert.equal(over[0].type, "rest", `Monday off stays off → ${names(over)}`);
+  assert.equal(over[6].type, "rest", `Sunday off stays off → ${names(over)}`);
+  assert.equal(over.filter((d) => d.type !== "rest").length, 5, "all five workouts kept");
   // Junk in storage is ignored.
   assert.deepEqual([...engine({ store: { ff_gameday: { off: [9, -1, "x", 2.5] } } }).stripDays()].map((d) => d.name),
     [...engine().activeDays()].map((d) => d.name));

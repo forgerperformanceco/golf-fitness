@@ -135,7 +135,8 @@
      the same every week (weekdays repeat), so it only moves when play days
      change — and a change made mid-week applies from next week (ffPlayDaysNow).
      Days off (Nov 2026, ff_gameday.off): weekdays the golfer never trains. They
-     block a slot exactly like a round does, without the legs-before-a-round rule. */
+     block a slot like a round does (without the legs-before-a-round rule), and
+     outrank rounds when the week is overbooked. */
   function ffHeavyLegs(d){ return !!d && d.type!=="rest" && d.type!=="speed" && /Lower|Squat|Hinge|Quads|Full Body/.test(d.name); }
   function ffArrangeWeek(ds){
     var play=ffPlayDaysNow(), off=ffOffDaysNow(); if(!play.length && !off.length) return ds;
@@ -157,7 +158,9 @@
         slots.forEach(function(si, j){ week[si]=train[(j+r)%k]; });
         for(var i=0;i<7;i++){
           var d=week[i], nx=week[(i+1)%7];
-          if(d && (isPlay(i) || isOff(i))) sc+=100;                // never train on a round day or a day off
+          // Never train on a day off or a round day. If the week is overbooked, a
+          // workout lands on a round day before it ever lands on a day off.
+          if(d && isOff(i)) sc+=1000; else if(d && isPlay(i)) sc+=100;
           if(ffHeavyLegs(d) && isPlay((i+1)%7)) sc+=10;            // no heavy legs the day before
           if(d && nx) sc+=1;                                        // spacing (wraps into next week)
           if(ffHeavyLegs(d) && ffHeavyLegs(nx)) sc+=3;              // never two leg days in a row

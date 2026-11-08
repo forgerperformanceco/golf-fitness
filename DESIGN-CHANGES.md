@@ -11,9 +11,17 @@ pretty sick if you could rearrange them based on how you want to."
 - **Same engine as play days.** `ffArrangeWeek` (040) already moved the week so rounds land on rest
   days; a day off now blocks a slot exactly like a round, without the no-heavy-legs-the-day-before
   rule (that one is about rounds). Both can be set together.
-- **Every workout always keeps a day.** A day off that would leave fewer open days than workouts is
-  refused with a toast ("You train 5 days a week, so that would leave too few days…"). If the count
+- **Every workout always keeps a day.** A day off that would leave fewer non-off days than workouts
+  is refused with a toast ("You train 5 days a week, so that would leave too few days…"). If the count
   later changes (4 → 5 days a week), the row says one workout now lands on a day off.
+- **Days off outrank rounds when the week is overbooked** (Codex review, #116). Sunday + Monday off
+  and Tuesday play on 5 days leaves 4 open days, and the arranger used to put the 5th workout on
+  Monday. A day off now costs 1000 and a round 100, so the extra workout lands on the round day, and
+  the play row says "5 workouts but only 4 open days, so one lands on a round day. Train fewer days a
+  week, or try In-season." The play day itself is never refused (it also drives round-day fueling),
+  and the day-off cap counts only days off, so a Saturday golfer can still take Sunday and Monday off.
+  Reproduced first: a unit case (Monday got Upper (Push)) and the browser (old build: Pull on Monday;
+  Monday-off refused with Saturday play), then fixed (scratchpad/test-daysoff-over.mjs, 24/24).
 - **Mid-week changes wait for next week**, like play days: if this week already has logged work, the
   layout switches next week and the row says "Starts next week, so this week's workouts stay put."
   One save (`ffSaveSchedule`) snapshots both play days and days off before the change — `lsGet` hands

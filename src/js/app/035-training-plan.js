@@ -1337,14 +1337,16 @@
     var g=lsGet("ff_gameday", null), wk=planStart()?curWeek():0, off=ffOffDays(), k=ffSessionsPerWeek();
     if(!off.length) return "Tap the days you never train. Your workouts move to the other days, same order.";
     if(g && g.arrangeWeek && wk && wk<g.arrangeWeek) return "Starts next week, so this week’s workouts stay put.";
-    var open=ffOpenDays(off, ffPlayDays());
-    if(open<k) return k+" workouts but only "+open+" open days, so one lands on a day off. Free a day or train fewer days a week.";
+    // Rounds give way before days off do, so only the days off themselves can overbook this row.
+    if(7-off.length<k) return k+" workouts but only "+(7-off.length)+" days left, so one lands on a day off. Free a day or train fewer days a week.";
     return "Your workouts move to the other days, same order, with leg days kept apart.";
   }
   function ffPlaySub(){
     var g=lsGet("ff_gameday", null), wk=planStart()?curWeek():0;
     if(!ffPlayDays().length) return "Your week moves so rounds land on rest days.";
     if(g && g.arrangeWeek && wk && wk<g.arrangeWeek) return "Your week rearranges from next week, so this week’s workouts stay put.";
+    var k=ffSessionsPerWeek(), open=ffOpenDays(ffOffDays(), ffPlayDays()), over=k-open;
+    if(over>0) return k+" workouts but only "+open+" open days, so "+(over===1?"one lands":over+" land")+" on a round day. Train fewer days a week, or try In-season.";
     return "Your week is arranged so rounds land on rest days, with no heavy legs the day before.";
   }
   function ffSeasonSub(){
@@ -1403,9 +1405,10 @@
         var btn=e.target.closest("[data-offday]"); if(!btn) return;
         var d=parseInt(btn.getAttribute("data-offday"),10), days=ffOffDays().slice(), i=days.indexOf(d);
         if(i===-1){
-          // Never take away a day the week needs: every workout keeps a day.
+          // Never take away a day the week needs: every workout keeps a day that
+          // isn't a day off. (Rounds give way when the week is overbooked.)
           var k=ffSessionsPerWeek();
-          if(ffOpenDays(days.concat([d]), ffPlayDays())<k){
+          if(ffOpenDays(days.concat([d]), [])<k){
             ffToast("You train "+k+" days a week, so that would leave too few days. Train fewer days a week first.");
             return;
           }
