@@ -203,7 +203,8 @@
     if(q.has("ac") && ffActivityOk(q.get("ac"))) $("activity").value=q.get("ac");
     var s=q.get("s"), g=q.get("g"), w=q.get("w"), m=parseInt(q.get("m"),10);
     if(s==="male" || s==="female") state.sex=s;
-    if(ffHas(GOALS,g)) state.goal=g;
+    // Bulk is retired for new users: a link from someone still on it opens as Build.
+    if(ffHas(GOALS,g)) state.goal=(g==="bulk") ? "leanbulk" : g;
     if(ffHas(WORKOUT_SLOTS,w)) state.workout=w;
     if(m>=3 && m<=6) state.meals=m;
     ffSyncSegs();

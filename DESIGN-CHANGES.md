@@ -20,6 +20,9 @@ sure that golfers are trying to bulk. They're trying to build."
   them). A legacy Bulk user keeps their setting; after tapping Build, Bulk stays visible for that
   visit so an accidental tap can be undone, and is gone on the next load. The key `bulk` and its
   GOALS entry stay — never rename or delete a stored value someone may hold.
+- **Shared links can't enrol anyone in Bulk** (Codex review on #112): `applyShareParams` maps `?g=bulk`
+  to Build for a new visitor. Reproduced first on the pre-fix build (a fresh visitor landed on Bulk with
+  the button showing), then fixed — scratchpad/test-sharelink.mjs 4/4.
 - The goal help is "Which goal should I pick?" and explains why there's no Bulk.
 
 **Design decisions**
