@@ -140,8 +140,9 @@ First visit to each tab fires a one-time coaching tip.
   (grouped by pattern), **plus a custom-exercise entry** for anything not in the
   library. Per-exercise coaching (form cues, common mistakes, "why for your
   swing"), **per-lift history sheets + session notes**.
-- **Mobility screen** — a 3-move durability self-check that routes warm-ups and
-  feeds Octane's 5th pillar.
+- **Mobility screen ("turn check")** — a 5-move golf-turn self-check (trunk, hip rotation, coil,
+  lead arm, overhead reach; v2 since Nov 2026) that routes warm-ups, cool-downs and rest days,
+  drives the Build turn guard, and feeds Octane's 5th pillar.
 - **Rest days are check-off-able** (own `ff_rest` key so they never inflate
   training stats); the weekly "X of N done" nudge stays training-only.
 
@@ -458,6 +459,8 @@ stores; we're a URL). Shipping the app matters more than more docs.
 - **Turn guard (Nov 8, 2026)** — on Build, a mobility screen that drops vs the one before halves
   the surplus and target rate (`ffGoal`), trims a set from chest/shoulder/arm isolation and adds one
   to rotation lifts until a screen holds steady.
+- **Turn check v2 (Nov 8, 2026)** — the mobility screen became five golf moves: trunk rotation, hip
+  rotation, coil, lead arm across the chest, overhead reach (lats). v1 screens stay readable.
 
 **Rejected (deliberately):**
 - **A "Bulk" (+20%) goal** — retired Nov 8, 2026. Golfers build, they don't bulk: in trained
@@ -648,16 +651,18 @@ publishable key + VAPID public key ship client.
    everything else folded; don't add a card without removing or folding one.
    Tab merging stays deferred — revisit only if real usage says people get lost.
 10. **Golf-first goals (OPEN, Nov 2026).** Owner decision after his physique bulk cost him
-   mobility: every goal trains a golfer; the goal changes the dials, not the identity. Shipped:
-   the keep-your-turn cool-down + rest-day routine (Nov 7), Build-not-Bulk + move cues (Nov 8).
-   Step (2), goal dials, was DROPPED: the Build week already favours legs, glutes and back over
-   chest and delts (NUTRITION §9a), so moving more sets would be a guess. Step (3), the turn
-   guard, SHIPPED Nov 8. Next, one PR each: (4) a golf-specific turn check (hip rotation per side, shoulder–
-   hip separation, lead arm across the chest) — a stored-data change; (5) rotation strength through
-   range in the authored week. Evidence for the direction: bodybuilders ~11° less shoulder internal
-   rotation (Barlow 2002, PMID 12173950); pec/delt-biased recreational lifters lose shoulder range
-   (Kolber 2009); lifting in general improves range (Alizadeh 2023). The owner trials Yardsmith on
-   Build himself once (2)–(3) ship.
+   mobility: every goal trains a golfer; the goal changes the dials, not the identity.
+   - SHIPPED: the keep-your-turn cool-down + rest-day routine (Nov 7); Build-not-Bulk + move
+     cues (Nov 8); the Build turn guard (Nov 8); the 5-move golf turn check (Nov 8).
+   - DROPPED: goal dials (moving more sets per goal) — the Build week already favours legs,
+     glutes and back over chest and delts (NUTRITION §9a), so it would be a guess.
+   - NEXT: rotation strength through range in the authored week — first check how much the
+     existing chops, Pallof and rotational throws already cover.
+   - Evidence for the direction: bodybuilders ~11° less shoulder internal rotation (Barlow 2002,
+     PMID 12173950); pec/delt-biased recreational lifters lose shoulder range (Kolber 2009);
+     lifting in general improves range (Alizadeh 2023); better golfers differ in rotation range,
+     not general flexibility (McHugh 2022).
+   - The owner trials Yardsmith on Build himself (back flare permitting — see his plan page).
 
 ---
 

@@ -454,7 +454,7 @@
     if(/Lower|Squat|Hinge/.test(name)) return [["Leg swings","×10/side"],["90/90 hip switches","×8/side"],["World's greatest stretch","×5/side"],["Light ramp-up sets","×2"]];
     return [["Dynamic flow","5 min"],["Mobilize hips & T-spine","—"],["Ramp to working weight","×2 sets"]];
   }
-  // Mobility-screen routing: anything the 3-move screen flagged adds a targeted move
+  // Mobility-screen routing: anything the turn check flagged adds a targeted move
   // to the relevant warm-ups (marked so the user knows why it's there). If the day's
   // list already has the primary fix, the alternate goes in instead — never a dupe.
   function warmupList(name){
@@ -468,7 +468,10 @@
       if(pick && !list.some(function(m){ return m[0]===pick[0]; })) list.push([pick[0], pick[1], source||"screen"]);
     }
     if(lim.trunk) addFix(["Open-book T-spine","×8/side"], ["Thread-the-needle","×6/side"], /open.?book/i);
-    if(lim.hip && lower) addFix(["90/90 hip switches","×8/side"], ["Adductor rock-back","×8/side"], /90\/90/);
+    if((lim.hip || lim.hiprot) && lower) addFix(["90/90 hip switches","×8/side"], ["Adductor rock-back","×8/side"], /90\/90/);
+    if(lim.coil) addFix(["Golf-posture turns, hips still","×8/side"], null, /golf-posture/i);
+    if(lim.leadarm && upper) addFix(["Shoulder CARs","×5/side"], ["Band pull-aparts","×20"], /shoulder cars/i);
+    if(lim.lats && upper) addFix(["Dead hang","20–30s"], null, /dead hang/i);
     if(lim.squat && lower){ addFix(["Deep squat hold (hold a support)","3 × 20s"], null, /deep squat/i); addFix(["Ankle rockers","×10/side"], null, /ankle/i); }
     // Setup can add conservative preparation—not diagnose or replace the
     // mobility screen. The screen remains the higher-confidence adjustment.
@@ -506,7 +509,9 @@
     var lim=(typeof mobLimits==="function")?mobLimits():{};
     function add(m, alreadyRe){ if(!list.some(function(x){ return alreadyRe.test(x[0]); })) list.push([m[0], m[1], "screen"]); }
     if(lim.trunk) add(["Thread-the-needle","×6/side"], /thread/i);
-    if(lim.hip) add(["90/90 lift-offs","×5/side"], /lift-off/i);
+    if(lim.hip || lim.hiprot) add(["90/90 lift-offs","×5/side"], /lift-off/i);
+    if(lim.leadarm) add(cdHold("xbody"), /cross-body/i);
+    if(lim.lats) add(["Bench lat stretch, turn each way","2 × 30s"], /lat stretch/i);
     if(lim.squat && lower) add(["Deep squat hold (hold a support)","3 × 20s"], /deep squat/i);
     return list;
   }

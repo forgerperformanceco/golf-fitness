@@ -970,7 +970,7 @@
         '<button type="button" class="qsheet-act" data-roundlog="1">⛳<span>Log a round<span class="qa-sub">score, longest drive, how the body held up</span></span><span class="qa-go">›</span></button>'+
         '<button type="button" class="qsheet-act" data-goview="gameday">🏌️<span>Playing today?<span class="qa-sub">warm-up and snack plan built around your tee time</span></span><span class="qa-go">›</span></button>'+
         '<button type="button" class="qsheet-act" data-speedtest="1">'+ffIcon("target",18)+'<span>Speed test<span class="qa-sub">3 max swings — best one counts</span></span><span class="qa-go">›</span></button>'+
-        '<button type="button" class="qsheet-act" data-mobscreen="1">'+ffIcon("compass",18)+'<span>Mobility screen<span class="qa-sub">3 moves · ~3 minutes</span></span><span class="qa-go">›</span></button>'+
+        '<button type="button" class="qsheet-act" data-mobscreen="1">'+ffIcon("compass",18)+'<span>Mobility screen<span class="qa-sub">5 moves · ~4 minutes</span></span><span class="qa-go">›</span></button>'+
         '</div></div>';
       sheet.hidden=false; document.body.style.overflow="hidden";
     }

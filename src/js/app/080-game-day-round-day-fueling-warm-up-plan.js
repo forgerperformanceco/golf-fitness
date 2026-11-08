@@ -645,7 +645,7 @@
     G.plan+='<div class="acct-card"><div class="acct-head">🧭 Mobility screen</div>'+
       '<p class="acct-p">'+(lmA
         ? ('Last screen: <b>'+lmA.score+'/100</b> · '+lmA.date+'. Re-screen every 4 weeks — it keeps the muscle you’re adding from costing you rotation.')
-        : 'A 3-move self-check (~3 min, no gear): trunk rotation, hips, deep squat. It becomes the 5th pillar of your Octane and tunes your warm-ups to what’s tight.')+'</p>'+
+        : 'A 5-move self-check of your golf turn (~4 min, no gear): trunk, hips, coil, lead arm and overhead reach. It becomes the 5th pillar of your Octane and tunes your warm-ups to what’s tight.')+'</p>'+
       '<button class="acct-btn ghost" data-mobscreen="1">'+(lmA?'↻ Re-run the screen':'Take the screen')+'</button></div>';
     G.data+='<div class="acct-card"><div class="acct-head">💾 Backup &amp; export</div>'+
       '<p class="acct-p">'+(user
