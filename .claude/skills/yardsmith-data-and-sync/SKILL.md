@@ -96,7 +96,7 @@ is a *setting*: on conflict the **cloud value wins wholesale**.
 | `ff_handle` | string, leaderboard handle (085:467) | setting | DB enforces 2-20 chars, unique lower(handle) |
 | `ff_kcal_adj` | int, clamped ±600 (085:678) | setting | metabolism check-in nudge; flows into carbs (025:206) |
 | `ff_lastcheckin` | ts (085:679) | setting | |
-| `ff_gameday` | `{teeTime, holes, transport, days?, off?, arrangeWeek?, prevDays?, prevOff?}` (080; days = play weekdays, off = days off, 0 = Sunday; arrangeWeek/prev* = a mid-week change queued for next week, 040 `ffSaveSchedule`) | setting | |
+| `ff_gameday` | `{teeTime, holes, transport, days?, off?, layout?, arrangeWeek?, prevDays?, prevOff?, prevLayout?}` (080; days = play weekdays, off = days off, 0 = Sunday; layout = the golfer's own week order, 7 dayKeys indexed by weekday, set by hold-and-drag (042), ignored when stale; arrangeWeek/prev* = a mid-week change queued for next week, 040 `ffSaveSchedule`) | setting | |
 | `ff_foodprefs` | `{liked[], avoid[], restrict[]}` (025:577-578) | setting | |
 | `ff_insights_seen` | `[sig]`, cap 40 (075:7-8) | setting | dismissed coaching cards |
 | `ff_region` | region override string | setting | current code only **reads** it (025:731) and clears it when a ZIP is typed (raw `removeItem`, 025:1077) — region now derives from `ff_zip` |

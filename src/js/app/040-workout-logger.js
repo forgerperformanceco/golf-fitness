@@ -117,14 +117,44 @@
   // The week strip as a full 7-day week: each training/speed day, then the program's
   // rest entry repeated to fill out every remaining calendar day.
   function stripDays(){
-    // The day arrays are authored as a full 7-slot week with rest days already in position
-    // (distributed, never two in a row) — keep that order; pad with a rest if a week is short.
+    var ds=ffBaseWeek();
+    return ffApplyLayout(ds, ffLayoutNow()) || ffArrangeWeek(ds);
+  }
+  // The day arrays are authored as a full 7-slot week with rest days already in position
+  // (distributed, never two in a row) — keep that order; pad with a rest if a week is short.
+  function ffBaseWeek(){
     var ds = activeDays().slice(0,7);
     if(ds.length < 7){
       var restDay=null; activeDays().forEach(function(d){ if(d.type==="rest" && !restDay) restDay=d; });
       while(ds.length < 7 && restDay) ds.push(restDay);
     }
-    return ffArrangeWeek(ds);
+    return ds;
+  }
+  // Is a hand-made order actually shaping this week? (A saved order for a different
+  // plan size is kept for when you switch back, but it isn't "your order" right now.)
+  function ffLayoutActive(){ return !!ffApplyLayout(ffBaseWeek(), ffLayoutNow()); }
+  /* The golfer's own week order (Nov 2026): set by holding a day in the week
+     strip and dragging it onto another (042). ff_gameday.layout = 7 dayKeys
+     indexed by WEEKDAY (0 = Sunday), so it repeats every week whatever day the
+     plan started on. It wins over the automatic arrangement; it is ignored
+     unless it holds exactly this week's days (a 4↔5-day or in-season switch
+     makes it stale, and switching back brings it back). */
+  function ffLayoutNow(){
+    var g=lsGet("ff_gameday", null); if(!g) return null;
+    var lay=(g.arrangeWeek && curWeek()<g.arrangeWeek) ? g.prevLayout : g.layout;
+    return (Array.isArray(lay) && lay.length===7) ? lay : null;
+  }
+  function ffApplyLayout(ds, lay){
+    if(!lay) return null;
+    var ws=weekStartDate(); if(!ws) return null;
+    var pool=ds.slice(), out=[], wd0=ws.getDay();
+    for(var i=0;i<7;i++){
+      var k=lay[(wd0+i)%7], j=-1;
+      for(var x=0;x<pool.length;x++) if(dayKey(pool[x])===k){ j=x; break; }
+      if(j===-1) return null;
+      out.push(pool.splice(j,1)[0]);
+    }
+    return out;
   }
   /* Arrange the week around rounds. With play days set (Train › Plan settings,
      ff_gameday.days), the training days move so rounds land on rest days and a
@@ -208,8 +238,8 @@
     // another calendar day (Codex, #117).
     var g=gdState(), wk=planStart()?curWeek():0, busy=wk && stripDays().some(function(x){
       return x.type==="rest" ? (restDone(wk, dayKey(x)) || cardioDone(wk, dayKey(x))) : !!getSession(wk, x.name); });
-    if(busy){ if(!(g.arrangeWeek>wk)){ g.prevDays=ffPlayDaysNow().slice(); g.prevOff=ffOffDaysNow().slice(); } g.arrangeWeek=wk+1; }
-    else { delete g.arrangeWeek; delete g.prevDays; delete g.prevOff; }
+    if(busy){ if(!(g.arrangeWeek>wk)){ g.prevDays=ffPlayDaysNow().slice(); g.prevOff=ffOffDaysNow().slice(); g.prevLayout=ffLayoutNow(); } g.arrangeWeek=wk+1; }
+    else { delete g.arrangeWeek; delete g.prevDays; delete g.prevOff; delete g.prevLayout; }
     apply(g); gdSave(g);
   }
   // Start (or re-anchor) the plan so that "today" lands in the given week.
