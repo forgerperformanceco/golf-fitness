@@ -4,7 +4,8 @@
    Called every hour by pg_cron (see the cron.schedule snippet at the bottom of
    supabase/schema.sql). For each subscription in push_subs it computes "now"
    in the subscriber's timezone; when the local hour matches their training
-   slot and nothing was sent today, it sends today's entry from the row's
+   slot (or the day's own `h`, e.g. the round-day evening nudge) and nothing
+   was sent today, it sends today's entry from the row's
    7-day `week` schedule (written by the app on every open — same day-aware
    copy as the in-app reminders). A stale schedule (no entry for today = the
    app hasn't been opened in over a week) falls back to a re-engagement nudge,
@@ -31,6 +32,7 @@ type SubRow = {
 
 type DayMsg = {
   d?: string;
+  h?: number;      // optional send hour for this day only (7–20), e.g. the round-day evening nudge
   title?: string;
   body?: string;
   kind?: string;
@@ -80,6 +82,13 @@ function sameSecret(a: string, b: string): boolean {
   return diff === 0;
 }
 
+// The hour a day's message goes out: its own `h` when valid (inside the app's
+// "never before 7 AM or after 8 PM" promise), otherwise the subscription's hour.
+function sendHour(today: DayMsg | undefined, fallback: number): number {
+  const h = today ? today.h : undefined;
+  return typeof h === "number" && Number.isInteger(h) && h >= 7 && h <= 20 ? h : fallback;
+}
+
 function localNow(tz: string): { date: string; hour: number } | null {
   try {
     const parts = new Intl.DateTimeFormat("en-CA", {
@@ -120,17 +129,16 @@ Deno.serve(async (req: Request) => {
 
   async function handle(s: SubRow): Promise<void> {
     const now = localNow(s.tz || "UTC");
-    if (!now || now.hour !== s.hour || s.last_sent === now.date) { skipped++; return; }
-    if (!allowedEndpoint(s.endpoint)) { blocked++; return; }
-
+    if (!now || s.last_sent === now.date) { skipped++; return; }   // one notification max per local day
     const week: DayMsg[] = Array.isArray(s.week) ? (s.week as DayMsg[]) : [];
     const today = week.find((m) => m && m.d === now.date);
+    if (now.hour !== sendHour(today, s.hour)) { skipped++; return; }
+    if (!allowedEndpoint(s.endpoint)) { blocked++; return; }
+
     const msg = (today && today.title) ? today : FALLBACK;
-    if (today?.skip) {
-      skipped++;
-      await admin.from("push_subs").update({ last_sent: now.date }).eq("endpoint", s.endpoint);
-      return;
-    }
+    // A quiet day sends nothing and does NOT use up the day: the schedule can still
+    // change later (log a round → an evening stretch nudge), and last_sent marks sends only.
+    if (today?.skip) { skipped++; return; }
     const kind = safeKind(msg.kind);
     const title = safeText(msg.title, FALLBACK.title, 80);
     const body = safeText(msg.body, FALLBACK.body, 180);

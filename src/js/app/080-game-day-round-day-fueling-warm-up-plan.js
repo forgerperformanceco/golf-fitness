@@ -72,6 +72,12 @@
   }
   function ffNotifOn(){ return !!lsGet("ff_notif", false); }
   var FF_SLOT_HOUR = { morning:7, midday:12, afternoon:16, evening:19 };
+  var FF_EVENING_HOUR = 20;   // the round-day stretch nudge: 8 PM, the latest the reminder promise allows
+  // A day's send hour: its own h when it carries one (7–20 only), else the usual hour.
+  function ffMsgHour(msg, hour){
+    var h=msg && msg.h;
+    return (typeof h==="number" && h===(h|0) && h>=7 && h<=20) ? h : hour;
+  }
   function ffReminderMode(){ return lsGet("ff_reminder_mode","essential")==="daily"?"daily":"essential"; }
   function ffReminderLead(){ return lsGet("ff_reminder_lead",0)===1?1:0; }
   function ffReminderHour(){
@@ -94,6 +100,16 @@
     // land on the lock. Judged on the reminder's OWN day, so a schedule built
     // during the free week stops at day 8. Week-review and recovery notes stay.
     var locked=ffAccessAt(date)==="locked";
+    // Played 18 on a rest day (Nov 2026): the round was today's work, so no
+    // catch-up nudge. Not stretched yet → today's one reminder becomes the
+    // keep-your-turn routine, moved to the evening (h overrides the usual hour;
+    // the senders keep it inside the 7 AM–8 PM promise). Stretched → quiet.
+    if(offset===0 && !locked && day.type==="rest" && typeof roundToday==="function" && roundToday()){
+      if(restDone(wk, dayKey(day))) return {d:ffLocalISO(date),skip:true,kind:"rest"};
+      return {d:ffLocalISO(date),kind:"turn",h:FF_EVENING_HOUR,title:"Played today? Keep your turn 🌀",
+        body:"10 minutes of turn stretches before bed. The round twisted you one way all day.",
+        url:"./?go=plan&src=push&kind=turn"};
+    }
     if(offset===0 && !locked){
       var missed=(typeof missedWorkout==="function")?missedWorkout():null;
       if(missed) return {d:ffLocalISO(date),kind:"catchup",title:"Pick up the thread ⛳",
@@ -140,9 +156,9 @@
     if(dayOfPlan()==null) return;                       // plan not started yet
     var list=[], now=Date.now();
     for(var o=0;o<7;o++){
-      var d=new Date(); d.setDate(d.getDate()+o); d.setHours(hour,0,0,0);
-      if(d.getTime()<=now) continue;                    // today's slot already passed
       var msg=ffReminderMessage(o); if(msg.skip) continue;
+      var d=new Date(); d.setDate(d.getDate()+o); d.setHours(ffMsgHour(msg, hour),0,0,0);
+      if(d.getTime()<=now) continue;                    // today's slot already passed
       list.push({ id:100+o,
         title:msg.title, body:msg.body, extra:{kind:msg.kind,url:msg.url},
         schedule:{ at:d, allowWhileIdle:true } });
@@ -293,10 +309,9 @@
       if(lsGet("ff_push_on",false)) return;            // the server sends these now
       if(!ffWebNotifSupported() || !ffNotifOn() || Notification.permission!=="granted") return;
       if(planStart()==null) return;
-      var hour=ffReminderHour();
-      if(new Date().getHours()<hour) return;                 // slot not reached yet today
-      if(lsGet("ff_notif_lastday","")===todayStr()) return;  // already nudged today
+      if(lsGet("ff_notif_lastday","")===todayStr()) return;  // already nudged today (one a day)
       var msg=ffReminderMessage(0); if(msg.skip) return;
+      if(new Date().getHours()<ffMsgHour(msg, ffReminderHour())) return;   // slot not reached yet today
       lsSet("ff_notif_lastday", todayStr());
       navigator.serviceWorker.getRegistration().then(function(reg){
         var opts={body:msg.body,icon:"icon-192.png",badge:"icon-192.png",tag:"ff-daily",
