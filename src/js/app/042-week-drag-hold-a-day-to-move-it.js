@@ -43,6 +43,7 @@
     var lay=new Array(7);
     for(var i=0;i<7;i++) lay[(wd0+i)%7]=dayKey(s[i]);
     g.layout=lay; gdSave(g);
+    try{ if(typeof ffTick==="function") ffTick(10); }catch(_){}        // it landed (light)
     // Flag (don't block) the combos the automatic arrangement avoids.
     var play=ffPlayDays(), warn="";
     for(var j=0;j<7 && !warn;j++){
@@ -89,7 +90,7 @@
         st.drag=true;
         st.chip.classList.add("ws-lift");
         if(st.chip.parentElement) st.chip.parentElement.classList.add("ws-dragging");
-        try{ if(typeof ffTick==="function") ffTick(); }catch(_){}
+        try{ if(typeof ffTick==="function") ffTick(18); }catch(_){}      // the "picked up" buzz (medium)
       }, HOLD);
     }
     function move(x, y){
@@ -103,6 +104,7 @@
       if(c!==st.over){
         if(st.over) st.over.classList.remove("ws-over");
         st.over=c; if(c) c.classList.add("ws-over");
+        if(c) try{ if(typeof ffTick==="function") ffTick(8); }catch(_){}   // a light tick per day you pass over
       }
       return true;
     }

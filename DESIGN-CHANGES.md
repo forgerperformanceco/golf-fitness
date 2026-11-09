@@ -1,5 +1,38 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## A buzz when you pick up a day (Nov 9, 2026)
+
+Owner: "Can you make it vibrate on the hard press?"
+
+- **The week drag now has feel:** a medium buzz when the held day lifts, a light tick for each day you
+  slide over, and a light tap when it lands (042 → `ffTick(18 / 8 / 10)`).
+- **`ffTick` (007) uses the native Haptics plugin inside the app shell** (`window.Capacitor.Plugins.
+  Haptics`, already a dependency; same access pattern as LocalNotifications): numbers map to
+  light (< 12) / medium (12–19) / heavy (≥ 20) Taptic impacts, celebration patterns to the "success"
+  buzz. In a browser it stays `navigator.vibrate`. Every existing tick (set check-offs, PRs, round
+  logged) gets real iPhone haptics the same way once the native app ships.
+- **Reduce Motion no longer mutes native taps.** It's an animation setting; natively the OS haptics
+  switch (iOS: Settings › Sounds & Haptics › System Haptics) decides. In a browser — which exposes no
+  haptics setting — reduced motion still turns vibration off.
+
+**Honest limit — iPhone in Safari / home-screen web app: no buzz.** Safari has never supported the
+Vibration API, and the only workaround (a hidden `<input type="checkbox" switch>`) was restricted to a
+direct tap (WebKit bug 285120, fixed Jan 2025) and, per the `ios-haptics` package's README, closed in
+iOS 26.5. The hold fires on a timer, not a tap, so it couldn't use that trick anyway. Android Chrome
+vibrates today; iPhone gets it with the native app (TestFlight / App Store). The native path is
+unit- and browser-tested against a stubbed plugin, not yet on a device — check it on the first
+TestFlight build.
+
+**Verified** (Playwright on the built output, light + dark, scratchpad/test-haptics.mjs): 36/36 —
+browser path (navigator.vibrate recorded) and native-shell path (stubbed Capacitor Haptics recorded),
+mouse and real touch drags: exactly one lift buzz (vibrate 18 / impact MEDIUM), a light tick per day
+passed over (2 × vibrate 8 / impact LIGHT), a landing tap (vibrate 10 / impact LIGHT) with the day
+moved; native taps still fire with Reduce Motion on; a browser with Reduce Motion on stays silent and
+the move still works; zero page errors. `npm test` 227/227 with a new `haptics.test.mjs` (strength
+mapping, success buzz, rejected plugin promise swallowed, browser vibrate, reduced-motion rules, the
+drag's three ticks). Drag suites, step 1, cool-down and days off re-ran green; audit-train 18/18;
+release gate and claims-lint green.
+
 ## Hold a day and drag it: your own week order (Nov 8, 2026)
 
 Owner, after Days off shipped: "be able to long press on the days of the week and drag them around, I

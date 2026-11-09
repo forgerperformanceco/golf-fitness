@@ -7,10 +7,28 @@
     try{ return window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){ return false; }
   }
 
-  // Haptic tick. Android Chrome vibrates; iOS Safari ignores navigator.vibrate
-  // silently, so this is a free upgrade where supported and a no-op elsewhere.
+  // Haptic tick. In the native app shell (Capacitor) it uses the Haptics plugin,
+  // so iPhones get a real Taptic tap; in a browser, Android Chrome vibrates and
+  // iOS Safari ignores navigator.vibrate silently (no web API reaches the iPhone
+  // Taptic Engine — the <input switch> workaround needs a direct tap and was
+  // closed in iOS 26.5). Short numbers map to light/medium/heavy taps; an array
+  // (a celebration pattern) maps to the native "success" buzz.
+  // Reduce Motion is about animation, not touch: natively the OS's own haptics
+  // switch (iOS Settings › Sounds & Haptics › System Haptics) decides, so taps
+  // aren't muted there. A browser exposes no haptics setting, so reduced motion
+  // stays the off switch for navigator.vibrate.
   function ffTick(pattern){
-    try{ if(!ffReduced() && navigator.vibrate) navigator.vibrate(pattern||10); }catch(e){}
+    try{
+      var H=window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Haptics;
+      if(H){
+        var n=Array.isArray(pattern) ? 0 : (pattern||10),
+            p=Array.isArray(pattern) ? H.notification({ type:"SUCCESS" })
+              : H.impact({ style: n>=20 ? "HEAVY" : (n>=12 ? "MEDIUM" : "LIGHT") });
+        if(p && p.catch) p.catch(function(){});
+        return;
+      }
+      if(!ffReduced() && navigator.vibrate) navigator.vibrate(pattern||10);
+    }catch(e){}
   }
 
   // Count-up: any element rendered as
