@@ -555,6 +555,9 @@
   .z2-h small { margin-left:4px; font-size:12px; font-weight:500; color:var(--muted); }
   .z2-b { margin-top:4px; font-size:13px; line-height:1.45; color:var(--muted); }
   .rest-check.z2-check { width:100%; margin:10px 0 0; }
+  .rest-check.round-check { border-style:dashed; }
+  .rest-check.round-check.done { border-style:solid; }
+  .restday.round-day { color:var(--ink); }
   .day.rest-done .day-head .tag.rest { background:#1f9d52; color:#fff; }
 
   /* speed day — same clean table as lifts, kept distinct with a warm accent */
