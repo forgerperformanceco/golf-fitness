@@ -1,5 +1,37 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## Closed-app reminders actually reach the server (Nov 9, 2026)
+
+Owner turned reminders on and asked "can you check it's working?" — it wasn't. The phone (installed
+PWA, signed in, permission granted, push subscription created) sent its save and got **403
+`permission denied for table push_subs`**; the app silently fell back to open-tab reminders, so
+nothing arrived with the app closed. `push_subs` had **zero rows**: no one's closed-app reminders had
+ever registered since the July hardening (#73).
+
+- **Root cause:** #73 moved `push_subs` to column grants and left `endpoint` out of UPDATE. The client
+  saves with an upsert (`ON CONFLICT (endpoint) DO UPDATE SET endpoint = EXCLUDED.endpoint, …`) and
+  Postgres checks UPDATE on every SET column, even when no conflict happens, so every save failed.
+  Reproduced with the exact statement as `authenticated` (rolled back) before touching anything.
+- **Fix (DB):** migration `20261109234611_push_subs_upsert_endpoint_grant` — `grant update (endpoint)`.
+  RLS still scopes updates to the caller's own rows (they could already delete + insert them);
+  `last_sent` / `created_at` stay server-only. Same rolled-back statement now succeeds.
+- **Self-heal (080 `ffPushResync`):** reminders on (`ff_notif`) but never registered (`ff_push_on`
+  unset) → one forced save per app load once push is possible (signed in, permission granted), so
+  existing installs reconnect on their next open with no re-toggle. Not spent while signed out.
+- **One a day across the handover (`ffPushWeek`):** if this browser already showed today's nudge on
+  the open-tab path, the uploaded schedule marks today `skip`, so the server can't send a second.
+- **Honest card:** reminders on but not connected now reads "Closed-app delivery isn't connected yet.
+  Yardsmith retries each time you open it; until then reminders fire while it's open." (It used to
+  say "Turn them on…" while they were on.)
+
+**Verified:** `tests/push-subscribe-heal.test.mjs` (7) pins the UPDATE grant to the exact columns the
+client upserts (replaying every migration and schema.sql), the heal rules and the today-skip; 5 of 7
+fail on the old code. `npm test` 246/246. Playwright (built app, light + dark): reminders on + no
+`ff_push_on` → sign-in makes exactly one forced save carrying the endpoint and a 7-day week,
+`ff_push_on` flips, card says "Delivered even when the app is closed"; a failed save leaves the
+honest copy, tries once per load, and the next load connects; zero page errors. Release gate and
+claims-lint clean.
+
 ## Played today? Keep your turn — the evening round reminder (Nov 9, 2026)
 
 Owner: rounds happen during the day, so "I'd like to do something that evening" — yes to an evening

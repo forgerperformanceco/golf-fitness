@@ -237,6 +237,9 @@
   function ffPushWeek(){
     var out=[];
     for(var o=0;o<7;o++) out.push(ffReminderMessage(o));
+    // This browser already showed today's nudge itself (the open-tab path, before
+    // the server had its subscription), so the server skips today: one a day.
+    if(out[0] && !out[0].skip && lsGet("ff_notif_lastday","")===todayStr()) out[0]={d:out[0].d,skip:true,kind:"none"};
     return out;
   }
   function ffPushSubscribe(force){
@@ -291,9 +294,17 @@
     }, 4000);
   });
   // Keep the server's 7-day schedule fresh (mirrors ffNotifReschedule for Capacitor).
+  // Reminders on but the server never took this browser's subscription (turned on
+  // while signed out, or the save failed, as every save did Jul–Nov 2026 under the
+  // push_subs grant bug): retry with a forced save once per app load, so it heals
+  // on the next open without the user re-toggling.
+  var ffPushHealTried=false;
   function ffPushResync(){
-    if(!lsGet("ff_push_on",false) || !ffPushCapable() || Notification.permission!=="granted") return Promise.resolve();
-    return ffPushSubscribe().catch(function(){});
+    if(!ffPushCapable() || Notification.permission!=="granted") return Promise.resolve();
+    if(lsGet("ff_push_on",false)) return ffPushSubscribe().catch(function(){});
+    if(!ffNotifOn() || ffPushHealTried) return Promise.resolve();
+    ffPushHealTried=true;
+    return ffPushSubscribe(true).catch(function(){});
   }
 
   function ffWebNotifToggle(){
@@ -626,7 +637,8 @@
       G.remind+='<div class="acct-card notif-card"><div class="acct-head">🔔 Smart reminders</div>'+
         '<p class="acct-p">Yardsmith checks what is actually unfinished before nudging. '+
         (pushLive ? '<b>Delivered even when the app is closed.</b>'
-         : (pushReady && user ? 'Turn them on for delivery even when the app is closed.'
+         : (pushReady && user ? (nonW ? 'Closed-app delivery isn’t connected yet. Yardsmith retries each time you open it; until then reminders fire while it’s open.'
+                                      : 'Turn them on for delivery even when the app is closed.')
          : (pushReady ? '<b>Sign in</b> for closed-app delivery; signed out reminders only fire while Yardsmith is open.'
                       : 'This browser supports reminders only while Yardsmith is open.')))+'</p>'+
         ffReminderSettingsHtml(nonW,pushLive?"closed-app delivery":"this browser")+
