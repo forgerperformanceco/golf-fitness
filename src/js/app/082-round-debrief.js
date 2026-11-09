@@ -98,6 +98,7 @@
       ffToast("Round logged ⛳");
     }
     try{ renderDash(); }catch(e){}
+    try{ renderPhase(); }catch(e){}        // Train's rest card: a round covers today's cardio
     try{ if($("view-progress")&&$("view-progress").classList.contains("active")) renderProgress(); }catch(e){}
     try{ if($("view-gameday")&&$("view-gameday").classList.contains("active")) renderGameDay(); }catch(e){}
   }

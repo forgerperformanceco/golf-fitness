@@ -193,6 +193,9 @@
         nuCta("See what’s next")+'</button>';
     if(ffAccess()==="locked") return ffLockedWithResumeHtml("home");   // free week over, no Pro: a started workout stays finishable (036)
     var wk=curWeek(), missed=missedWorkout(), d=todaySlot();
+    // Played 18 on a rest day: today's activity is done — don't push a missed
+    // workout on top of it. The catch-up comes back tomorrow (and sits on Train).
+    if(missed && d && d.type==="rest" && typeof roundToday==="function" && roundToday()) missed=null;
     if(missed){
       var old=getSession(wk,missed.name), mid=sessionInProgress(old);
       return '<div class="nu-catchup"><button type="button" class="nu-card catchup" data-startplayer="'+escAttr(missed.name)+'" data-catchup="1">'+

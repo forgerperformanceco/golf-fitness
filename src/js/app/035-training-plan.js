@@ -877,24 +877,40 @@
     var step=incNum(x.name)||5, out=Math.round(w*f/step)*step;
     return out>0 ? out : null;
   }
+  // A round logged TODAY, when d is today's slot (Nov 2026: "I played 18 this morning —
+  // don't tell me to do Zone 2"). A round counts as the day's activity: the rest card
+  // drops the cardio, the strip chip ticks, the hero says so. Rounds key by date.
+  function ffTodayRound(d){
+    if(!d || typeof roundToday!=="function") return null;
+    var dop=dayOfPlan(); if(!dop) return null;
+    var t=stripDays()[dop-1];
+    return (t && dayKey(t)===dayKey(d)) ? roundToday() : null;
+  }
   // One day's full card (rest / speed / lift) — used by both Today and Full-week views.
   // interactive=true → the featured "today" lift day renders the inline logger.
   function dayCardHtml(d, showPrimerNote, interactive){
     var p = PHASES[planState.phase];
     if(d.type==="rest"){
-      var rdone=restDone(curWeek(), dayKey(d)), cdone=cardioDone(curWeek(), dayKey(d));
-      return '<div class="day'+(rdone?" rest-done":"")+'"><div class="day-head">'+d.name+' <span class="tag rest">Recover</span></div>'+
-        '<div class="restday">Ten minutes to keep your turn, then walk a casual 9 if you can. Recovery is when the gains land.</div>'+
+      var rdone=restDone(curWeek(), dayKey(d)), cdone=cardioDone(curWeek(), dayKey(d)), rnd=ffTodayRound(d),
+          isToday=(function(){ var dop=dayOfPlan(), t=dop?stripDays()[dop-1]:null; return !!(t && dayKey(t)===dayKey(d)); })();
+      return '<div class="day'+((rdone||rnd)?" rest-done":"")+'"><div class="day-head">'+d.name+' <span class="tag rest">'+(rnd?"Played":"Recover")+'</span></div>'+
+        (rnd
+          ? '<div class="restday round-day">⛳ <b>Round logged — that’s today’s work.</b> Skip the cardio. The 10-minute stretch below still helps your turn after 18.</div>'
+          : '<div class="restday">Ten minutes to keep your turn, then walk a casual 9 if you can. Recovery is when the gains land.</div>')+
         (interactive ? '<div class="rest-routine">'+recoveryHtml()+'</div>'
           : '<details class="prelift cool"><summary>🌀 Keep your turn — the 10-min routine</summary><div class="prelift-body">'+recoveryHtml()+'</div></details>')+
         '<button class="rest-check'+(rdone?" done":"")+'" type="button" data-restday="'+escAttr(dayKey(d))+'">'+
           (rdone?"✓ Recovery logged — tap to undo":"Mark recovery done")+'</button>'+
+        (rnd
+          // Played today: the round IS the cardio. Edit it from here.
+          ? '<button class="rest-check round-check done" type="button" data-roundlog="1">⛳ Round logged — cardio covered · tap to edit</button></div>'
+          : (isToday ? '<button class="rest-check round-check" type="button" data-roundlog="1">⛳ Played a round today? Log it — it counts as your cardio</button>' : '')+
         // Optional easy cardio. Easy on purpose: hard running and intervals are what
         // blunt power most when mixed with lifting (NUTRITION ref, concurrent note).
         '<div class="z2"><div class="z2-h">🚶 Easy cardio (Zone 2) <small>optional · 20–40 min</small></div>'+
           '<div class="z2-b">Walk (9 holes counts), an incline treadmill or the bike, easy enough to talk in full sentences. Skip running and hard intervals here: they cut into power the most.</div>'+
           '<button class="rest-check z2-check'+(cdone?" done":"")+'" type="button" data-cardio="'+escAttr(dayKey(d))+'">'+
-            (cdone?"✓ Cardio logged — tap to undo":"Mark cardio done")+'</button></div></div>';
+            (cdone?"✓ Cardio logged — tap to undo":"Mark cardio done")+'</button></div></div>');
     }
     if(d.type==="speed"){
       var smode=speedMode(), s=p.speed[smode];
@@ -1201,7 +1217,10 @@
 
     if(mode==="today" && !featLocked){
       if(typeof ffReadinessInlineHtml==="function") html+=ffReadinessInlineHtml(featured);
-      if(featured.type==="rest"){
+      if(featured.type==="rest" && ffTodayRound(featured)){
+        html+='<button type="button" class="train-today-cta recovery done" data-roundlog="1">'+
+          '<span><small>TODAY · GOLF DAY</small><b>Round logged ⛳</b></span><i>›</i></button>';
+      } else if(featured.type==="rest"){
         var heroRestDone=restDone(wk,featKey);
         html+='<button type="button" class="train-today-cta recovery'+(heroRestDone?' done':'')+'" data-restday="'+escAttr(featKey)+'">'+
           '<span><small>TODAY’S ACTION · 10 MIN</small><b>'+(heroRestDone?'Recovery done ✓':'Start recovery')+'</b></span><i>›</i></button>';
@@ -1226,7 +1245,7 @@
     if(mode==="today"){
       var todayDate = new Date();
       var strip = stripDays().map(function(d, i){
-        var done = d.type==="rest" ? restDone(wk, dayKey(d)) : sessionFinished(getSession(wk, d.name));
+        var done = d.type==="rest" ? (restDone(wk, dayKey(d)) || !!ffTodayRound(d)) : sessionFinished(getSession(wk, d.name));
         var cd = chipDate(i), isToday = sameDay(cd, todayDate);
         var dateLbl = isToday ? "Today" : (cd ? fmtChipDate(cd) : ("Day "+(i+1)));
         var lockd = access==="preview" && d.type!=="rest" && isFutureDay(d.name);

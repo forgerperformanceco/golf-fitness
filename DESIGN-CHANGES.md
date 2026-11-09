@@ -1,5 +1,42 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## Played 18? Train counts it (Nov 9, 2026)
+
+Owner: "I played this morning, and now I'm looking at it, and it's like, oh, rest day, do these things.
+But I don't want to do zone 2 cardio because I played a round."
+
+- **Today's rest card on Train** gets **⛳ Played a round today? Log it — it counts as your cardio**,
+  which opens the existing 20-second round log (`data-roundlog`, 082 — score, longest drive, how the
+  body held up; feeds Stats and the driver-carry trend).
+- **Once today has a round** (`ffTodayRound`, 035 — `roundToday()` when the card is today's slot):
+  the card's tag reads **Played**, the copy says the round was today's work and to skip the cardio,
+  the **Zone 2 box is replaced** by "⛳ Round logged — cardio covered · tap to edit", today's strip chip
+  ticks ✓, and the Train hero reads **Round logged ⛳** (tap to edit). The 10-minute stretch routine
+  stays (optional), since it helps the turn after 18. Other rest days keep their cardio.
+- **Saving a round re-renders Train** (082 `rdSave` now calls `renderPhase()`; before, only Home
+  refreshed).
+- **Home doesn't push a missed workout on a rest day you played** (075): the catch-up card yields to
+  the existing "Round logged ⛳" card for today; it comes back tomorrow and is always on Train's strip.
+
+**Design decisions**
+- **Reuse the round log, not a new "I played" toggle**: one tap more, but the round lands in Stats and
+  the gym-to-course story instead of a dead flag; rounds are date-keyed, so nothing moves with the week
+  layout.
+- **Rest days only.** On a lift day a morning round doesn't cancel the lift; the existing Skip /
+  catch-up flow covers that.
+
+**Verified** (Playwright on the built output, seeded week-2 user with today a day off and a recent turn
+check, light + dark, scratchpad/test-roundday.mjs): 34/34 — before, Home leads with the missed
+workout and today's rest card shows Zone 2 plus the "Played a round today?" button; it opens the round
+log; logging Strong all 18 / 84 stores the round and Train re-renders on its own: no Zone 2 box, the
+round note and edit button, the "Played" tag, the stretch routine still there, the hero "Round logged
+⛳", today's chip ✓; edit reopens today's round (84); the full week keeps Zone 2 on the other rest days
+(2 of 3); Home shows "Round logged ⛳"; no leaked junk; zero page errors. `npm test` 229/229 with a new
+`round-day.test.mjs` (today's slot only, no round / no plan → nothing; the card, chip, hero, re-render
+and Home guards). Earlier suites green (cardio, cardio-busy, cool-down, days off, drag, turn guard).
+Audits: audit-train 18/18, audit-scroll 16/16, audit-contrast clean (1,591 nodes), audit-type 1 (Fuel
+"Ate it", same as main). Release gate and claims-lint green.
+
 ## A buzz when you pick up a day (Nov 9, 2026)
 
 Owner: "Can you make it vibrate on the hard press?"
