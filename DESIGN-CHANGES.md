@@ -32,15 +32,29 @@ the PR existed. It found **2 major** (native path could send two in a day after 
 round; the open-tab fallback could fire after 8 PM), **4 minor** (Next-reminder time + broken
 emoji; a played Sunday losing the week review; "8 PM" landing at 8:05–8:59; an unchecked
 `last_sent` write) and test gaps — every one confirmed and fixed above before pushing for review.
-My own tests had passed on all of them. Whatever Codex still finds on the PR is the comparison.
+My own tests had passed on all of them.
 
-**Verified:** `npm test` 236/236 with `tests/round-evening-reminder.test.mjs` (the message: played vs
+**Then Codex on the PR found 4 more (all P2), and the pattern matters:** three were edge cases in
+the *fix* for the reviewer's top finding — the new `ff_notif_today` record was written even when
+`schedule()` failed, was left behind when reminders were switched off before tonight's slot
+(re-enabling later would wrongly treat the day as spent), and travelled in backups — and one asked
+for the `last_sent` write to be retried, not just logged. All four reproduced as failing unit cases
+first, then fixed: the record is kept only once the schedule succeeds, a pending one is cleared on
+disable / no-plan / failed schedule (a delivered one stays), `ff_notif_today` and `ff_notif_lastday`
+join `ffBackupSkip`, and push-daily retries the marker up to 3 times. **Trial result:** the
+pre-PR reviewer caught the two biggest problems (double notification, after-8-PM ping) and the
+Codex round still earned its keep on the code those fixes added. Both layers are worth keeping for
+changes of this size; a second pre-PR pass on the fix commit would likely have caught Codex's three.
+
+**Verified:** `npm test` 239/239 with `tests/round-evening-reminder.test.mjs` (the message: played vs
 stretched vs missed vs daily mode vs speed-test fall-through, lift days and future days unchanged;
 client/server hour rule 7–19 run from the real TypeScript via esbuild; the server's one-a-day and
 quiet-day source guards; native scheduling at the day's hour + no second notification after today's
 was due + a cancelled pending one clears the record + yesterday's record ignored; open tab: not yet /
 7 PM shown / one a day / nothing at 8 PM or later for any kind; the settings line at 7:00 PM with no
-broken emoji); the new cases fail on the old source. Playwright, light + dark
+broken emoji; the Codex round: no record after a failed schedule, a pending record cleared on
+disable and a delivered one kept, bookkeeping keys skipped by backups, the marker retry); the new
+cases fail on the old source. Playwright, light + dark
 (scratchpad/test-round-reminder.mjs, native path with a LocalNotifications stub, clock at 2 PM):
 12/12 — no nudge before the round; logging a round on Train schedules exactly one, tonight at 19:00,
 still one notification today; marking recovery done cancels it; zero page errors. Earlier suites

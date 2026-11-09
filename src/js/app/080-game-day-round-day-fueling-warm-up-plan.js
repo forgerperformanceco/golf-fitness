@@ -153,16 +153,23 @@
       var pend=await LN.getPending();
       if(pend && pend.notifications && pend.notifications.length) await LN.cancel({ notifications: pend.notifications.map(function(n){ return { id:n.id }; }) });
     }catch(e){}
-    if(!ffNotifOn()) return;
-    var hour=ffReminderHour();
-    if(dayOfPlan()==null) return;                       // plan not started yet
-    var list=[], now=Date.now();
     // One a day: a day's slot can now move later (the 7 PM round nudge), so remember
     // when today's notification was due on this device. Once it has passed, today is
-    // spent: a later reschedule must not add a second one. Device-local (not synced);
-    // written only on change, since every lsSet fires ff-data-changed → reschedule.
-    var todayISO=ffLocalISO(new Date()), rec=lsGet("ff_notif_today",null), nextRec=null;
+    // spent: a later reschedule must not add a second one. Device-local (not synced,
+    // never in a backup); written only on change, since every lsSet fires
+    // ff-data-changed → reschedule. A slot that came due stays recorded; a pending one
+    // that was just cancelled (reminders off, nothing due today, or a failed schedule)
+    // goes, so it can't wrongly mark the day spent later.
+    var now=Date.now(), todayISO=ffLocalISO(new Date()), rec=lsGet("ff_notif_today",null);
     var spent=!!(rec && rec.d===todayISO && rec.at<=now);
+    function keepRec(next){
+      var keep=spent ? rec : (next||null);
+      if(JSON.stringify(keep)!==JSON.stringify(rec)){ if(keep) lsSet("ff_notif_today", keep); else lsRemove("ff_notif_today"); }
+    }
+    if(!ffNotifOn()){ keepRec(null); return; }
+    var hour=ffReminderHour();
+    if(dayOfPlan()==null){ keepRec(null); return; }      // plan not started yet
+    var list=[], nextRec=null;
     for(var o=0;o<7;o++){
       if(o===0 && spent) continue;
       var msg=ffReminderMessage(o); if(msg.skip) continue;
@@ -173,9 +180,9 @@
         title:msg.title, body:msg.body, extra:{kind:msg.kind,url:msg.url},
         schedule:{ at:d, allowWhileIdle:true } });
     }
-    if(list.length){ try{ await LN.schedule({ notifications:list }); }catch(e){} }
-    var keep=spent ? rec : nextRec;                     // a pending one that got cancelled clears the record
-    if(JSON.stringify(keep)!==JSON.stringify(rec)){ if(keep) lsSet("ff_notif_today", keep); else lsRemove("ff_notif_today"); }
+    var ok=!list.length;
+    if(list.length){ try{ await LN.schedule({ notifications:list }); ok=true; }catch(e){} }
+    keepRec(ok ? nextRec : null);                       // record today only once it's really scheduled
   }
   async function ffNotifToggle(){
     var LN=ffNotifPlugin(); if(!LN) return false;
@@ -415,7 +422,8 @@
   // one signed-in account's server answer (036), the rest is sync and push
   // bookkeeping for THIS device.
   function ffBackupSkip(k){
-    return k==="ff_pro" || k.indexOf("ff_sync_")===0 || k==="ff_push_on" || k==="ff_push_sig";
+    return k==="ff_pro" || k.indexOf("ff_sync_")===0 || k==="ff_push_on" || k==="ff_push_sig" ||
+      k==="ff_notif_today" || k==="ff_notif_lastday";   // this device's reminder bookkeeping
   }
   // The free-week clock only ever moves EARLIER (the cloud merge's rule too):
   // a backup can shorten the free week, never extend it.

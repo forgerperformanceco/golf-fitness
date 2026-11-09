@@ -86,7 +86,7 @@ test("server: one per local day, matched on the day's hour, and a quiet day does
   assert.ok(sender.indexOf("update({ last_sent: now.date })") > sender.indexOf("webpush.sendNotification("));
 });
 
-function nativeRun({ nowHour, msgs, rec = null }) {
+function nativeRun({ nowHour, msgs, rec = null, rejects = false, on = true }) {
   const scheduled = [], store = { ff_notif_today: rec };
   const RealDate = Date;
   const fixed = new RealDate(); fixed.setHours(nowHour, 30, 0, 0);
@@ -94,8 +94,8 @@ function nativeRun({ nowHour, msgs, rec = null }) {
   const ctx = {
     Date: FixedDate, Promise, JSON,
     ffNotifPlugin: () => ({ getPending: async () => ({ notifications: [] }), cancel: async () => {},
-      schedule: async (o) => { scheduled.push(...o.notifications); } }),
-    ffNotifOn: () => true, ffReminderHour: () => 7, dayOfPlan: () => 1,
+      schedule: async (o) => { if (rejects) throw new Error("denied"); scheduled.push(...o.notifications); } }),
+    ffNotifOn: () => on, ffReminderHour: () => 7, dayOfPlan: () => 1,
     ffReminderMessage: (o) => msgs[o] || { skip: true },
     lsGet: (k, d) => (store[k] ?? d), lsSet: (k, v) => { store[k] = v; }, lsRemove: (k) => { delete store[k]; },
   };
@@ -131,6 +131,36 @@ test("native app: each day at its own hour, and never a second notification on a
   r = nativeRun({ nowHour: 14, msgs: { 0: TURN }, rec: { d: iso(yest), at: yest.getTime() } });
   await r.ctx.run();
   assert.equal(r.scheduled.filter((n) => n.extra.kind === "turn").length, 1);
+});
+
+test("native record: written only after a successful schedule; disabling clears a pending one (Codex #121)", async () => {
+  const iso = (d) => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  // schedule() rejects → nothing was scheduled, so today must not be recorded as due.
+  let r = nativeRun({ nowHour: 14, msgs: { 0: TURN }, rejects: true });
+  await r.ctx.run();
+  assert.ok(r.store.ff_notif_today == null, "failed schedule: no record");
+  // Reminders turned off before tonight's pending one → the record goes, so re-enabling later today still works.
+  const tonight = new Date(); tonight.setHours(19, 0, 0, 0);
+  r = nativeRun({ nowHour: 15, msgs: { 0: TURN }, rec: { d: iso(tonight), at: tonight.getTime() }, on: false });
+  await r.ctx.run();
+  assert.equal(r.store.ff_notif_today, undefined, "disabled: pending record cleared");
+  // …but one that already went out today stays spent through an off/on.
+  const morning = new Date(); morning.setHours(7, 0, 0, 0);
+  r = nativeRun({ nowHour: 15, msgs: { 0: TURN }, rec: { d: iso(morning), at: morning.getTime() }, on: false });
+  await r.ctx.run();
+  assert.equal(r.store.ff_notif_today.at, morning.getTime(), "disabled: a delivered one stays recorded");
+});
+
+test("device-only reminder bookkeeping never travels in a backup (Codex #121)", () => {
+  const c = {};
+  vm.runInNewContext(fn(app, "ffBackupSkip"), c);
+  for (const k of ["ff_notif_today", "ff_notif_lastday", "ff_push_on", "ff_push_sig", "ff_pro"]) assert.equal(c.ffBackupSkip(k), true, k);
+  for (const k of ["ff_log", "ff_rest", "ff_rounds", "ff_gameday"]) assert.equal(c.ffBackupSkip(k), false, k);
+});
+
+test("server: the last_sent marker is retried before giving up (Codex #121)", () => {
+  assert.match(sender, /for \(let attempt = 0; attempt < 3; attempt\+\+\)/);
+  assert.match(sender, /push_mark_failed/);
 });
 
 test("open-tab fallback: waits for the day's own hour, still one a day", () => {

@@ -154,9 +154,12 @@ Deno.serve(async (req: Request) => {
       sent++;
       console.log(JSON.stringify({ kind:"push_sent", message_kind:kind }));
       // last_sent is what stops a second send later the same day (a day's hour can
-      // move, e.g. the evening round nudge), so a failed write is worth a log line.
-      const { error: markErr } = await admin.from("push_subs").update({ last_sent: now.date }).eq("endpoint", s.endpoint);
-      if (markErr) console.error(JSON.stringify({ kind: "push_mark_failed", message: markErr.message }));
+      // move, e.g. the evening round nudge), so retry the write before giving up.
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const { error: markErr } = await admin.from("push_subs").update({ last_sent: now.date }).eq("endpoint", s.endpoint);
+        if (!markErr) break;
+        if (attempt === 2) console.error(JSON.stringify({ kind: "push_mark_failed", message: markErr.message }));
+      }
     } catch (e) {
       const code = (e as { statusCode?: number }).statusCode ?? 0;
       if (code === 404 || code === 410) {
