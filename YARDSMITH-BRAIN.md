@@ -678,6 +678,11 @@ publishable key + VAPID public key ship client.
 
 - **Edit `src/`, never the generated root files;** rebuild (`node scripts/build.mjs`)
   and commit source + outputs together. No manual SW cache bump.
+- **Bigger changes get an independent review before the PR** (adopted Nov 2026 after a trial on
+  the evening round reminder, DESIGN-CHANGES): a fresh-context reviewer agent gets the spec and the
+  diff — never the builder's reasoning — and its findings are fixed with tests before pushing; Codex
+  still reviews the PR. In the trial it caught the 2 biggest bugs; Codex then caught 4 edge cases in
+  the code those fixes added, so re-review a large fix commit too. Small tweaks skip the pre-PR pass.
 - **Evidence ethos:** independent/public/peer-reviewed sources, cited with
   confidence levels. Never copy a competitor's data, branded protocol, trademark,
   or written/marketing content. Demo/anecdote numbers are illustrative, not effects.

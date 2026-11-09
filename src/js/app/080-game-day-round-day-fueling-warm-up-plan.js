@@ -72,6 +72,14 @@
   }
   function ffNotifOn(){ return !!lsGet("ff_notif", false); }
   var FF_SLOT_HOUR = { morning:7, midday:12, afternoon:16, evening:19 };
+  // The round-day stretch nudge goes at 7 PM: the hourly server run lands at :05–:59,
+  // so 19 is the last hour that stays inside "never before 7 AM or after 8 PM".
+  var FF_EVENING_HOUR = 19;
+  // A day's send hour: its own h when it carries one (7–19 only), else the usual hour.
+  function ffMsgHour(msg, hour){
+    var h=msg && msg.h;
+    return (typeof h==="number" && h===(h|0) && h>=7 && h<=19) ? h : hour;
+  }
   function ffReminderMode(){ return lsGet("ff_reminder_mode","essential")==="daily"?"daily":"essential"; }
   function ffReminderLead(){ return lsGet("ff_reminder_lead",0)===1?1:0; }
   function ffReminderHour(){
@@ -94,8 +102,18 @@
     // land on the lock. Judged on the reminder's OWN day, so a schedule built
     // during the free week stops at day 8. Week-review and recovery notes stay.
     var locked=ffAccessAt(date)==="locked";
+    // Played 18 on a rest day (Nov 2026): the round was today's work, so no
+    // catch-up nudge today. Not stretched yet → today's one reminder becomes the
+    // keep-your-turn routine, moved to the evening (h overrides the usual hour;
+    // every sender keeps it inside the 7 AM–8 PM promise). Stretched → the
+    // normal rest-day path (a week review or speed test can still go out).
+    var played=offset===0 && !locked && day.type==="rest" && typeof roundToday==="function" && !!roundToday();
+    if(played && !restDone(wk, dayKey(day)))
+      return {d:ffLocalISO(date),kind:"turn",h:FF_EVENING_HOUR,title:"Played today? Keep your turn 🌀",
+        body:"10 minutes of turn stretches this evening. The round twisted you one way all day.",
+        url:"./?go=plan&src=push&kind=turn"};
     if(offset===0 && !locked){
-      var missed=(typeof missedWorkout==="function")?missedWorkout():null;
+      var missed=(!played && typeof missedWorkout==="function")?missedWorkout():null;
       if(missed) return {d:ffLocalISO(date),kind:"catchup",title:"Pick up the thread ⛳",
         body:missed.name.replace(/^Day \d+ — /,"")+" is waiting. No reset — one session keeps the plan moving.",
         url:"./?go=plan&src=push&kind=catchup"};
@@ -135,19 +153,36 @@
       var pend=await LN.getPending();
       if(pend && pend.notifications && pend.notifications.length) await LN.cancel({ notifications: pend.notifications.map(function(n){ return { id:n.id }; }) });
     }catch(e){}
-    if(!ffNotifOn()) return;
+    // One a day: a day's slot can now move later (the 7 PM round nudge), so remember
+    // when today's notification was due on this device. Once it has passed, today is
+    // spent: a later reschedule must not add a second one. Device-local (not synced,
+    // never in a backup); written only on change, since every lsSet fires
+    // ff-data-changed → reschedule. A slot that came due stays recorded; a pending one
+    // that was just cancelled (reminders off, nothing due today, or a failed schedule)
+    // goes, so it can't wrongly mark the day spent later.
+    var now=Date.now(), todayISO=ffLocalISO(new Date()), rec=lsGet("ff_notif_today",null);
+    var spent=!!(rec && rec.d===todayISO && rec.at<=now);
+    function keepRec(next){
+      var keep=spent ? rec : (next||null);
+      if(JSON.stringify(keep)!==JSON.stringify(rec)){ if(keep) lsSet("ff_notif_today", keep); else lsRemove("ff_notif_today"); }
+    }
+    if(!ffNotifOn()){ keepRec(null); return; }
     var hour=ffReminderHour();
-    if(dayOfPlan()==null) return;                       // plan not started yet
-    var list=[], now=Date.now();
+    if(dayOfPlan()==null){ keepRec(null); return; }      // plan not started yet
+    var list=[], nextRec=null;
     for(var o=0;o<7;o++){
-      var d=new Date(); d.setDate(d.getDate()+o); d.setHours(hour,0,0,0);
-      if(d.getTime()<=now) continue;                    // today's slot already passed
+      if(o===0 && spent) continue;
       var msg=ffReminderMessage(o); if(msg.skip) continue;
+      var d=new Date(); d.setDate(d.getDate()+o); d.setHours(ffMsgHour(msg, hour),0,0,0);
+      if(d.getTime()<=now) continue;                    // today's slot already passed
+      if(o===0) nextRec={ d:todayISO, at:d.getTime() };
       list.push({ id:100+o,
         title:msg.title, body:msg.body, extra:{kind:msg.kind,url:msg.url},
         schedule:{ at:d, allowWhileIdle:true } });
     }
-    if(list.length){ try{ await LN.schedule({ notifications:list }); }catch(e){} }
+    var ok=!list.length;
+    if(list.length){ try{ await LN.schedule({ notifications:list }); ok=true; }catch(e){} }
+    keepRec(ok ? nextRec : null);                       // record today only once it's really scheduled
   }
   async function ffNotifToggle(){
     var LN=ffNotifPlugin(); if(!LN) return false;
@@ -293,10 +328,10 @@
       if(lsGet("ff_push_on",false)) return;            // the server sends these now
       if(!ffWebNotifSupported() || !ffNotifOn() || Notification.permission!=="granted") return;
       if(planStart()==null) return;
-      var hour=ffReminderHour();
-      if(new Date().getHours()<hour) return;                 // slot not reached yet today
-      if(lsGet("ff_notif_lastday","")===todayStr()) return;  // already nudged today
+      if(lsGet("ff_notif_lastday","")===todayStr()) return;  // already nudged today (one a day)
       var msg=ffReminderMessage(0); if(msg.skip) return;
+      var hn=new Date().getHours();
+      if(hn<ffMsgHour(msg, ffReminderHour()) || hn>=20) return;   // not yet, or past 8 PM: never a late-night ping
       lsSet("ff_notif_lastday", todayStr());
       navigator.serviceWorker.getRegistration().then(function(reg){
         var opts={body:msg.body,icon:"icon-192.png",badge:"icon-192.png",tag:"ff-daily",
@@ -332,10 +367,11 @@
     var hour=ffReminderHour(), now=Date.now();
     for(var o=0;o<7;o++){
       var msg=ffReminderMessage(o); if(msg.skip) continue;
-      var d=new Date(); d.setDate(d.getDate()+o); d.setHours(hour,0,0,0);
+      var mh=ffMsgHour(msg, hour);
+      var d=new Date(); d.setDate(d.getDate()+o); d.setHours(mh,0,0,0);
       if(d.getTime()<=now) continue;
       var when=o===0?"Today":(o===1?"Tomorrow":d.toLocaleDateString(undefined,{weekday:"short"}));
-      return when+" · "+fmtMin(hour*60)+" · "+msg.title.replace(/[⛳🎯🌱]/g,"").trim();
+      return when+" · "+fmtMin(mh*60)+" · "+msg.title.replace(/[⛳🎯🌱🌀]/gu,"").trim();
     }
     return "No interruption scheduled in the next 7 days";
   }
@@ -386,7 +422,8 @@
   // one signed-in account's server answer (036), the rest is sync and push
   // bookkeeping for THIS device.
   function ffBackupSkip(k){
-    return k==="ff_pro" || k.indexOf("ff_sync_")===0 || k==="ff_push_on" || k==="ff_push_sig";
+    return k==="ff_pro" || k.indexOf("ff_sync_")===0 || k==="ff_push_on" || k==="ff_push_sig" ||
+      k==="ff_notif_today" || k==="ff_notif_lastday";   // this device's reminder bookkeeping
   }
   // The free-week clock only ever moves EARLIER (the cloud merge's rule too):
   // a backup can shorten the free week, never extend it.
