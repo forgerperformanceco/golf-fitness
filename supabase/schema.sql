@@ -666,7 +666,12 @@ create index if not exists push_subs_user_id_idx on public.push_subs (user_id);
 revoke all on table public.push_subs from anon, authenticated;
 grant select, delete on table public.push_subs to authenticated;
 grant insert (endpoint, user_id, p256dh, auth, tz, hour, week) on table public.push_subs to authenticated;
-grant update (user_id, p256dh, auth, tz, hour, week, updated_at) on table public.push_subs to authenticated;
+-- endpoint is in the UPDATE list because the client saves with an upsert
+-- (ON CONFLICT (endpoint) DO UPDATE SET endpoint = EXCLUDED.endpoint, ...) and
+-- Postgres checks UPDATE on every SET column. Leaving it out made every save
+-- fail with 42501 from Jul to Nov 2026 (migration 20261109234611). RLS still
+-- scopes updates to the caller's own rows; last_sent/created_at stay server-only.
+grant update (endpoint, user_id, p256dh, auth, tz, hour, week, updated_at) on table public.push_subs to authenticated;
 
 -- Hourly trigger for the sender. Requires the pg_cron + pg_net extensions
 -- (Dashboard → Database → Extensions → enable both), then run — with the two

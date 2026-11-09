@@ -299,6 +299,21 @@ or `pharmerbobby` as stale.
 
 ---
 
+## 9a. Closed-app reminders never registered — the `push_subs` UPDATE grant (Jul 12 → Nov 9, 2026; status: RESOLVED)
+
+- **Symptom:** reminders "on", but nothing arrives with the app closed; `push_subs` has zero rows;
+  product-health shows `reminder_enabled {delivery:"web"}` even on a signed-in installed PWA.
+- **Root cause:** #73 (`2875af9`) column-granted `push_subs` and omitted `endpoint` from UPDATE. The
+  client's upsert puts every payload column in `DO UPDATE SET`, and Postgres checks UPDATE on all of
+  them up front → 42501 / HTTP 403 on every save. `ffWebNotifToggle` swallowed it and fell back to
+  open-tab delivery, so it looked like it worked.
+- **Fix:** migration `20261109234611` (`grant update (endpoint)`), `ffPushResync` self-heal (one forced
+  save per load when on-but-unregistered), honest card copy. Guard: `tests/push-subscribe-heal.test.mjs`
+  replays every migration's grants against the columns the client sends.
+- **Lesson:** a column-grant hardening must be checked against what the client actually writes,
+  including upsert SET lists. Diagnose push from `edge_logs` (POST `/rest/v1/push_subs` status) +
+  `postgres_logs`, not from the UI.
+
 ## 10. Deliberate U-turns — settled battles, do not re-fight
 
 Zero of these were `git revert`s; each is a forward-fix with rationale in the

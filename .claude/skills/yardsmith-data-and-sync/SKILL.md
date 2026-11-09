@@ -375,6 +375,11 @@ device's changes until it next writes or re-signs-in.
   send hour `h`, 7–19 — the round-day evening nudge, Nov 2026), `last_sent`
   dedupe (written only after a real send; a `skip` day no longer marks it).
   The client upsert is deduped by the `ff_push_sig` payload hash (080:157).
+  Column grants: `authenticated` may UPDATE `endpoint, user_id, p256dh, auth, tz,
+  hour, week, updated_at`. `endpoint` MUST stay there: the upsert's `DO UPDATE SET`
+  lists every column it sends, and leaving it out failed every save Jul–Nov 2026
+  (failure-archaeology §9a). Any new column the client upserts needs INSERT and
+  UPDATE grants; `tests/push-subscribe-heal.test.mjs` enforces it.
   pg_cron snippets for the hourly sender + 90-day prune are **deliberately
   commented out** (:342-364) so `supabase db push` never fails on projects
   without pg_cron — they are applied by hand (see `yardsmith-run-and-deploy`).

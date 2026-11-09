@@ -46,7 +46,9 @@ of every hour and can also be run manually for verification.
 
 1. On your phone (installed PWA or browser), sign in, Account → Smart reminders
    → Turn on reminders. In Table Editor, `push_subs` should now have a row whose
-   `week` holds 7 dated jobs with `kind`, `url`, and optional `skip`.
+   `week` holds 7 dated jobs with `kind`, `url`, and optional `skip`. No row? Check
+   `edge_logs` for `POST /rest/v1/push_subs`: a 403 means a column the client sends
+   lacks an UPDATE grant (the Jul–Nov 2026 bug; migration 20261109234611).
 2. Force a send without waiting for the hourly schedule: temporarily set that
    row's `hour` to the current hour in your timezone and `last_sent` to null
    (an entry with its own `h` — the round-day evening nudge — sends at that hour instead),
