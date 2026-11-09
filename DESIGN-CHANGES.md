@@ -1,5 +1,53 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## Played today? Keep your turn — the evening round reminder (Nov 9, 2026)
+
+Owner: rounds happen during the day, so "I'd like to do something that evening" — yes to an evening
+stretch reminder on round days.
+
+- **On a rest day with a round logged today and the stretch routine not yet marked done**
+  (`ffReminderMessage`, 080), today's one reminder becomes **"Played today? Keep your turn 🌀 — 10
+  minutes of turn stretches this evening. The round twisted you one way all day."** at **7 PM**
+  (`kind:"turn"`, deep-links to Train). Marking recovery done turns it off; the normal rest-day path
+  then resumes (a due speed test or the Sunday week review can still go out), but the missed-workout
+  catch-up stays off that day, as on Home (#120). Lift days and future days are unchanged.
+- **A day can carry its own send hour** (`h`, bounded **7–19** by every sender: `ffMsgHour` in the
+  app, `sendHour` in push-daily). 19 because the hourly run fires at :05 and GitHub often starts it
+  later — 7:05–7:59 PM keeps the "never before 7 AM or after 8 PM" promise; an 8 PM slot would not.
+- **Still one notification a day, on every path:**
+  - *Server* (push-daily): skips once `last_sent` is today, matches on the day's own hour, and a
+    quiet (`skip`) day **no longer writes `last_sent`** — a round logged after the usual hour can still
+    get its evening nudge. A failed `last_sent` write is now logged (it is what prevents a second
+    send later that day).
+  - *Native app* (`ffNotifReschedule`): a device-local `ff_notif_today` records when today's
+    notification was due; once that time has passed, today is spent and a later reschedule can't add
+    a second one. Written only on change (every `lsSet` fires `ff-data-changed` → reschedule).
+  - *Open tab* (`ffWebNotifCheck`): judged on the day's own hour, never at or after 8 PM, one a day.
+- The settings line **Next reminder** uses the day's own hour, and its emoji strip is now
+  Unicode-aware (`/u`) — 🌀 is an astral character and left a broken half without it.
+
+**Process trial — independent review before the PR** (owner agreed after the planner/builder/
+reviewer cards): a fresh-context reviewer agent got the spec and the diff, not my reasoning, before
+the PR existed. It found **2 major** (native path could send two in a day after a late-logged
+round; the open-tab fallback could fire after 8 PM), **4 minor** (Next-reminder time + broken
+emoji; a played Sunday losing the week review; "8 PM" landing at 8:05–8:59; an unchecked
+`last_sent` write) and test gaps — every one confirmed and fixed above before pushing for review.
+My own tests had passed on all of them. Whatever Codex still finds on the PR is the comparison.
+
+**Verified:** `npm test` 236/236 with `tests/round-evening-reminder.test.mjs` (the message: played vs
+stretched vs missed vs daily mode vs speed-test fall-through, lift days and future days unchanged;
+client/server hour rule 7–19 run from the real TypeScript via esbuild; the server's one-a-day and
+quiet-day source guards; native scheduling at the day's hour + no second notification after today's
+was due + a cancelled pending one clears the record + yesterday's record ignored; open tab: not yet /
+7 PM shown / one a day / nothing at 8 PM or later for any kind; the settings line at 7:00 PM with no
+broken emoji); the new cases fail on the old source. Playwright, light + dark
+(scratchpad/test-round-reminder.mjs, native path with a LocalNotifications stub, clock at 2 PM):
+12/12 — no nudge before the round; logging a round on Train schedules exactly one, tonight at 19:00,
+still one notification today; marking recovery done cancels it; zero page errors. Earlier suites
+green (round day, cardio, days off, drag). Audits: audit-train 18/18, audit-scroll 16/16,
+audit-contrast clean (1,591 nodes), audit-type 1 (Fuel "Ate it", same as main). Release gate and
+claims-lint green. Not testable here: real web push delivery (needs a signed-in, subscribed device).
+
 ## Played 18? Train counts it (Nov 9, 2026)
 
 Owner: "I played this morning, and now I'm looking at it, and it's like, oh, rest day, do these things.

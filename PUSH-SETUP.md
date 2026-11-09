@@ -48,7 +48,8 @@ of every hour and can also be run manually for verification.
    → Turn on reminders. In Table Editor, `push_subs` should now have a row whose
    `week` holds 7 dated jobs with `kind`, `url`, and optional `skip`.
 2. Force a send without waiting for the hourly schedule: temporarily set that
-   row's `hour` to the current hour in your timezone and `last_sent` to null,
+   row's `hour` to the current hour in your timezone and `last_sent` to null
+   (an entry with its own `h` — the round-day evening nudge — sends at that hour instead),
    then run **Send Smart Reminders** from GitHub Actions. Its response reports
    `{sent, gone, skipped, failed}` and the notification should hit the device
    with the app closed.

@@ -32,7 +32,7 @@ type SubRow = {
 
 type DayMsg = {
   d?: string;
-  h?: number;      // optional send hour for this day only (7–20), e.g. the round-day evening nudge
+  h?: number;      // optional send hour for this day only (7–19), e.g. the round-day evening nudge
   title?: string;
   body?: string;
   kind?: string;
@@ -82,11 +82,12 @@ function sameSecret(a: string, b: string): boolean {
   return diff === 0;
 }
 
-// The hour a day's message goes out: its own `h` when valid (inside the app's
-// "never before 7 AM or after 8 PM" promise), otherwise the subscription's hour.
+// The hour a day's message goes out: its own `h` when valid, otherwise the
+// subscription's hour. 7–19: this run fires at :05 past the hour (often later),
+// so hour 19 is the last that keeps the app's "never after 8 PM" promise.
 function sendHour(today: DayMsg | undefined, fallback: number): number {
   const h = today ? today.h : undefined;
-  return typeof h === "number" && Number.isInteger(h) && h >= 7 && h <= 20 ? h : fallback;
+  return typeof h === "number" && Number.isInteger(h) && h >= 7 && h <= 19 ? h : fallback;
 }
 
 function localNow(tz: string): { date: string; hour: number } | null {
@@ -152,7 +153,10 @@ Deno.serve(async (req: Request) => {
       );
       sent++;
       console.log(JSON.stringify({ kind:"push_sent", message_kind:kind }));
-      await admin.from("push_subs").update({ last_sent: now.date }).eq("endpoint", s.endpoint);
+      // last_sent is what stops a second send later the same day (a day's hour can
+      // move, e.g. the evening round nudge), so a failed write is worth a log line.
+      const { error: markErr } = await admin.from("push_subs").update({ last_sent: now.date }).eq("endpoint", s.endpoint);
+      if (markErr) console.error(JSON.stringify({ kind: "push_mark_failed", message: markErr.message }));
     } catch (e) {
       const code = (e as { statusCode?: number }).statusCode ?? 0;
       if (code === 404 || code === 410) {

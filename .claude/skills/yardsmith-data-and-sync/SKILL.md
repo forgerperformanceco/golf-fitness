@@ -371,7 +371,9 @@ device's changes until it next writes or re-signs-in.
   (cloud-sync.js:125-163); a duplicate-handle error is translated to "that
   handle is taken".
 - **`push_subs`** (:297-340): `endpoint` PK, per-user RLS all four verbs,
-  `tz`/`hour` (0-23) + 7-day jsonb `week` schedule, `last_sent` dedupe.
+  `tz`/`hour` (0-23) + 7-day jsonb `week` schedule (an entry may carry its own
+  send hour `h`, 7–19 — the round-day evening nudge, Nov 2026), `last_sent`
+  dedupe (written only after a real send; a `skip` day no longer marks it).
   The client upsert is deduped by the `ff_push_sig` payload hash (080:157).
   pg_cron snippets for the hourly sender + 90-day prune are **deliberately
   commented out** (:342-364) so `supabase db push` never fails on projects
