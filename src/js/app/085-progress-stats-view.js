@@ -903,7 +903,8 @@
     var nr=e.target.closest("[data-nurest]");
     if(nr){ toggleRestDone(curWeek(), nr.getAttribute("data-nurest"));
       try{ window.dispatchEvent(new Event("ff-data-changed")); }catch(_){}
-      renderDash(); return; }
+      renderDash(); try{ renderPhase(); }catch(_){}   // keep Train's card in step (a stale tap there would undo this)
+      return; }
     // [data-goview] and [data-qopen] are handled by document-level listeners
     // (015-coach-tips navigator; the quick-log sheet below).
   });

@@ -25,12 +25,12 @@ function fn(source, name) {
   throw new Error(`Could not extract ${name}`);
 }
 
-function reminder({ rested = true, mode = "essential", speedDue = false } = {}) {
+function reminder({ rested = true, mode = "essential", speedDue = false, missed = null } = {}) {
   const store = { ff_reminder_mode: mode, ff_body: speedDue ? [{ s: 80 }] : [], ff_weekly_reviews: {} };
   const push = { type: "lift", name: "Day 2 — Upper (Push)" };
   const ctx = {
     Date, dayOfPlan: () => 1, stripDays: () => [push, { type: "lift", name: "Day 3 — Speed & Power" }],
-    curWeek: () => 3, missedWorkout: () => null, getSession: () => null,
+    curWeek: () => 3, missedWorkout: () => missed, getSession: () => null,
     sessionFinished: (s) => !!(s && s.finishedAt), speedTestDue: () => speedDue, ffAccessAt: () => "full",
     lsGet: (k, d) => store[k] ?? d, roundToday: () => null, restDone: () => false,
     dayKey: (d) => d.name, ffRestInstead: (w, d) => rested && w === 3 && d === push,
@@ -51,14 +51,20 @@ test("reminders: a rested day gets no workout nudge, and no speed test on a sore
   assert.equal(reminder()(1).kind, "train", "tomorrow is untouched");
 });
 
-test("the week count leaves a rested workout out (3 of 3, not 3 of 4 forever)", () => {
+test("reminders: rested today, no catch-up nudge for an earlier missed workout (it's back tomorrow)", () => {
+  const quads = { type: "lift", name: "Day 1 — Lower (Quads)" };
+  assert.equal(reminder({ rested: false, missed: quads })(0).kind, "catchup", "control");
+  assert.notEqual(reminder({ missed: quads })(0).kind, "catchup");
+});
+
+test("the week count keeps a rested workout in the total, like the Scorecard (no '3 of 3' vs '3 of 4')", () => {
   const days = [{ name: "A", type: "lift" }, { name: "B", type: "lift" }, { name: "rest", type: "rest" }];
   const ctx = {
     curWeek: () => 1, activeDays: () => days, getSession: (w, d) => (d === "A" ? { finishedAt: "x" } : null),
-    sessionFinished: (s) => !!(s && s.finishedAt), ffRestInstead: (w, d) => d.name === "B",
+    sessionFinished: (s) => !!(s && s.finishedAt), ffRestInstead: () => true,
   };
   vm.runInNewContext(fn(PLAYER, "weekDoneCount"), ctx);
-  assert.deepEqual({ ...ctx.weekDoneCount() }, { done: 1, total: 1 });
+  assert.deepEqual({ ...ctx.weekDoneCount() }, { done: 1, total: 2 });
 });
 
 test("Home: a rested today leads as a rest day, ahead of a speed test or mobility check", () => {
@@ -67,15 +73,22 @@ test("Home: a rested today leads as a rest day, ahead of a speed test or mobilit
   assert.ok(ri > 0 && ri < speed && ri < mob, "the rest-instead card comes before the speed test and mobility check");
   assert.match(lead, /Today · Rest day/);
   assert.match(lead, /ffRestTodayBtnHtml\(d\.name, "nu-skip"\)/, "today's workout card offers it");
+  assert.match(lead, /if\(missed && d && ffRestInstead\(wk, d\)\) missed=null;/, "rested today: no catch-up lead");
+  assert.match(lead, /\(restable \? ffRestTodayBtnHtml\(restable\.name, "nu-skip"\) : ''\)\+'<\/div>';/, "the catch-up card offers it for today too");
 });
 
 test("the readiness check-in offers rest today — only for today's own workout", () => {
   assert.match(fn(READY, "ffReadinessResult"), /ffIsTodaySlot\(ffReadyDay\)\) \? ffRestTodayBtnHtml\(ffReadyDay, "ready-link"\)/);
 });
 
-test("Train offers it on today's unfinished lift and speed cards, never once it's done", () => {
-  const card = fn(PLAN, "dayCardHtml");
-  assert.match(card, /\(!plDone && ffIsTodaySlot\(d\.name\)\) \? ffRestTodayBtnHtml\(d\.name\)/);
-  assert.match(card, /\(!spDone && ffIsTodaySlot\(d\.name\)\) \? ffRestTodayBtnHtml\(d\.name\)/);
+test("Train offers it under the hero for today's own workout, whichever day is featured", () => {
+  const card = fn(PLAN, "dayCardHtml"), week = fn(PLAN, "trainWeekHtml");
+  assert.doesNotMatch(card, /ffRestTodayBtnHtml/);
+  assert.match(week, /var restable=ffRestableToday\(\);\s+if\(restable\) html\+=ffRestTodayBtnHtml\(restable\.name\);/);
   assert.match(card, /if\(ffRestInstead\(curWeek\(\), d\)\) return restInsteadCardHtml\(d, interactive\);/);
+});
+
+test("resting mid-session: the paused-workout bar steps aside (kept for Undo), and the abandoned sets don't drive progression", () => {
+  assert.match(fn(PLAYER, "plPauseSync"), /if\(st && st\.day && !player && sessionSkipped\(st\.week\|\|curWeek\(\), st\.day\)\) st=null;\s+else if/);
+  assert.match(fn(src("040-workout-logger.js"), "lastSessionFor"), /if\(!s\.finishedAt && sessionSkipped\(w, dn\)\) return;/);
 });

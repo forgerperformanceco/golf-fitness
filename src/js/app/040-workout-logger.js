@@ -291,9 +291,12 @@
     var s=getSkippedSessions(), k=w+"|"+d;
     if(s[k] > 0){ s[k]=-Date.now(); lsSet("ff_skipped_sessions",s); }
   }
-  // A skipped, unfinished workout day plays as a rest day ("Rest today", 043).
+  // Today's workout, skipped and unfinished, plays as a rest day ("Rest today", 043).
+  // Today only: a day skipped earlier (the catch-up's "Skip it") keeps its workout
+  // card, so it can still be logged late.
   function ffRestInstead(w,d){
-    return !!(d && d.type!=="rest" && sessionSkipped(w,d.name) && !sessionFinished(getSession(w,d.name)));
+    return !!(d && d.type!=="rest" && w===curWeek() && ffIsTodaySlot(d.name) &&
+      sessionSkipped(w,d.name) && !sessionFinished(getSession(w,d.name)));
   }
   function saveSession(w,d,s){
     if(s) s._ts=Date.now();
@@ -358,6 +361,8 @@
       var i=k.indexOf("|"); if(i<0) return;
       var w=parseInt(k.slice(0,i),10), dn=k.slice(i+1), s=L[k];
       if(!(w<beforeW) || !s || !s.ex) return;
+      // Started, then skipped ("Rest today" mid-session): an abandoned set isn't a dose to progress from.
+      if(!s.finishedAt && sessionSkipped(w, dn)) return;
       var full=sessFullDose(s, w), ts=done[w+"|"+dn]||(typeof s._ts==="number"?s._ts:0);
       s.ex.forEach(function(x){
         if(!x || !x.name || !(x.sets||[]).some(function(st2){ return st2 && (st2.w||st2.r); })) return;

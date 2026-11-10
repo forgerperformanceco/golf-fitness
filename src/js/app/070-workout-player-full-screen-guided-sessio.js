@@ -658,7 +658,9 @@
     }
     var st=lsGet("ff_pl_paused", null);
     var show=false, doneSets=0;
-    if(st && st.day && (!player)){
+    // Rested today mid-session ("Rest today", 043): the bar steps aside, kept for Undo.
+    if(st && st.day && !player && sessionSkipped(st.week||curWeek(), st.day)) st=null;
+    else if(st && st.day && (!player)){
       var sess=getSession(st.week||curWeek(), st.day);
       if(sess && !sess.finishedAt && sess.ex){
         sess.ex.forEach(function(x){ (x.sets||[]).forEach(function(s2){ if(s2.done) doneSets++; }); });
@@ -1077,7 +1079,7 @@
   // "week complete", so nailing every workout always reads as a complete week.
   function weekDoneCount(){
     var wk=curWeek(), total=0, done=0;
-    activeDays().forEach(function(d){ if(d.type==="rest" || ffRestInstead(wk,d)) return; total++; if(sessionFinished(getSession(wk,d.name))) done++; });
+    activeDays().forEach(function(d){ if(d.type==="rest") return; total++; if(sessionFinished(getSession(wk,d.name))) done++; });
     return { done:done, total:total };
   }
   // One shared "Log today" block — identical fields, styling and behavior on

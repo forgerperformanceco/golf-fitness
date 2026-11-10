@@ -112,14 +112,15 @@
       return {d:ffLocalISO(date),kind:"turn",h:FF_EVENING_HOUR,title:"Played today? Keep your turn 🌀",
         body:"10 minutes of turn stretches this evening. The round twisted you one way all day.",
         url:"./?go=plan&src=push&kind=turn"};
+    var restInstead=!rest && typeof ffRestInstead==="function" && ffRestInstead(planWeek, day);   // "Rest today" (043)
     if(offset===0 && !locked){
-      var missed=(!played && typeof missedWorkout==="function")?missedWorkout():null;
+      // Played 18 or rested today: no catch-up nudge today (it comes back tomorrow).
+      var missed=(!played && !restInstead && typeof missedWorkout==="function")?missedWorkout():null;
       if(missed) return {d:ffLocalISO(date),kind:"catchup",title:"Pick up the thread ⛳",
         body:missed.name.replace(/^Day \d+ — /,"")+" is waiting. No reset — one session keeps the plan moving.",
         url:"./?go=plan&src=push&kind=catchup"};
       if(!rest && sessionFinished(getSession(wk,day.name))) rest=true;
     }
-    var restInstead=!rest && typeof ffRestInstead==="function" && ffRestInstead(planWeek, day);   // "Rest today" (043)
     if(restInstead) rest=true;
     if(!rest && !locked) return {d:ffLocalISO(date),kind:"train",title:"Your next rep is ready ⛳",
       body:(day.name||"Your session").replace(/^Day \d+ — /,"")+" · Week "+planWeek+" — open straight into the plan.",

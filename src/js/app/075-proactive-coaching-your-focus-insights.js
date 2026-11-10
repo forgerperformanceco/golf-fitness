@@ -196,6 +196,9 @@
     // Played 18 on a rest day: today's activity is done — don't push a missed
     // workout on top of it. The catch-up comes back tomorrow (and sits on Train).
     if(missed && d && d.type==="rest" && typeof roundToday==="function" && roundToday()) missed=null;
+    // Rested today ("Rest today", 043): same — the catch-up comes back tomorrow.
+    if(missed && d && ffRestInstead(wk, d)) missed=null;
+    var restable=ffRestableToday();
     if(missed){
       var old=getSession(wk,missed.name), mid=sessionInProgress(old);
       return '<div class="nu-catchup"><button type="button" class="nu-card catchup" data-startplayer="'+escAttr(missed.name)+'" data-catchup="1">'+
@@ -203,7 +206,8 @@
         '<div class="nu-title">'+missed.name.replace(/^Day \d+ — /,"")+'</div>'+
         '<div class="nu-sub">'+(mid?'You started this one — finish it today and your plan stays on track.':'You missed this one — do it today and your plan stays on track.')+'</div>'+
         nuCta(mid?'Finish workout':'Start workout')+'</button>'+
-        '<button type="button" class="nu-skip" data-skipsession="'+escAttr(missed.name)+'" data-skipweek="'+wk+'">Skip it <span>and keep my plan moving</span></button></div>';
+        '<button type="button" class="nu-skip" data-skipsession="'+escAttr(missed.name)+'" data-skipweek="'+wk+'">Skip it <span>and keep my plan moving</span></button>'+
+        (restable ? ffRestTodayBtnHtml(restable.name, "nu-skip") : '')+'</div>';
     }
     // "Rest today" (043): today's workout was skipped, so today is a rest day —
     // and it leads, ahead of a speed test or mobility check (not on a sore day).

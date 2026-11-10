@@ -959,7 +959,6 @@
           '<button class="pl-start" data-startplayer="'+escAttr(d.name)+'" type="button"><span class="pls-go">›</span>'+
             '<b>'+(spDone?'✓ Speed session done — replay it':(((spWork||spSession)?ffIcon("play",13)+' Resume':ffIcon("play",13)+' Start')+' speed session'))+'</b>'+
             '<span class="pls-sub">Guided player — warm-up, max-intent drills, full rest</span></button>'+
-          ((!spDone && ffIsTodaySlot(d.name)) ? ffRestTodayBtnHtml(d.name) : '')+
           '<details class="prelift"><summary>🔥 Warm-up &amp; the why — do these first</summary><div class="prelift-body">'+
             toggle+warmupHtml("speed", false, showPrimerNote)+
             '<div class="speed-intro">'+s.intro+'</div>'+
@@ -1032,7 +1031,6 @@
         '<button class="pl-start" data-startplayer="'+escAttr(d.name)+'" type="button"><span class="pls-go">›</span>'+
           '<b>'+(plDone?'✓ Session finished — replay it':((hasWork?ffIcon("play",13)+' Resume':ffIcon("play",13)+' Start')+' workout'))+'</b>'+
           '<span class="pls-sub">Guided player — warm-up, prescribed loads, rest timer, cool-down</span></button>'+
-        ((!plDone && ffIsTodaySlot(d.name)) ? ffRestTodayBtnHtml(d.name) : '')+
         ffPullCapHtml(d)+
         // Warm-up/primer starts COLLAPSED — it's prep, not the workout, and the
         // guided player runs it for you anyway. One tap opens it; the exercise
@@ -1236,6 +1234,8 @@
         html+='<button type="button" class="train-today-cta" data-startplayer="'+escAttr(featured.name)+'">'+
           '<span><small>TODAY’S WORKOUT · ~'+sessionMinutes(featured)+' MIN</small><b>'+(heroFinished?'Replay finished session':(heroSession?'Resume workout':'Start workout'))+'</b></span><i>›</i></button>';
       }
+      var restable=ffRestableToday();
+      if(restable) html+=ffRestTodayBtnHtml(restable.name);   // "Rest today" (043)
     }
 
     if(access==="full")
@@ -1314,7 +1314,7 @@
     // Manual logging is opt-in (the player is the default); the row only offers
     // it on a workout day that can be logged, and never while it's already on.
     var dop=dayOfPlan(), today=dop?stripDays()[dop-1]:null;
-    if(planViewMode()==="today" && ffAccess()!=="locked" && !lsGet("ff_manual_log", false) && !seasonComplete() && today && today.type!=="rest")
+    if(planViewMode()==="today" && ffAccess()!=="locked" && !lsGet("ff_manual_log", false) && !seasonComplete() && today && today.type!=="rest" && !ffRestInstead(curWeek(), today))
       html+=homeRow("⌨️","Log by typing instead","Enter sets yourself — no player",' data-manuallog="1"');
     html+=homeRow("💬","Adjust this week","Ask the coach to rework it",' data-ask="train"');
     html+=homeRow("📖","Workout history","Every session, all time",' data-gohistory="1"');
