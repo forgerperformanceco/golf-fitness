@@ -131,6 +131,7 @@
       '<div class="ready-safety">Sharp pain, a new injury, dizziness, or illness? Skip training and get appropriate medical care.</div>'+
       '<button type="button" class="ready-primary" data-readystart="adapt">Start today’s dose</button>'+
       (rec.band!=="ready"?'<button type="button" class="ready-link" data-readystart="original">Keep the original session</button>':'')+
+      ((typeof ffIsTodaySlot==="function" && ffIsTodaySlot(ffReadyDay)) ? ffRestTodayBtnHtml(ffReadyDay, "ready-link") : '')+
       '</div>';
   }
   function ffReadinessLaunch(day,mode){

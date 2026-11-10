@@ -51,7 +51,7 @@ const PLAN_FNS = ["effortNote", "ffOnRamp", "ffHealth", "ffHealthCaution", "heav
   "normName", "have", "equipNeedsFor", "equipOk", "speedMode", "resolveEx", "resolveDay", "activeDays", "ffSessionsPerWeek", "dayTargets", "sessionMinutes",
   "cdHold", "cooldownBase", "cdAddFixes", "cooldownList", "recoveryList", "holdSecs", "listMinutes"];
 const LOGGER_FNS = ["lastSessionFor", "sessFullDose", "repsShifted", "topReps", "isDistEx", "repSeed", "incNum",
-  "progressReady", "parseSets", "getLog", "sessionFinished", "swapOptionsFor", "exGroupFor"];
+  "progressReady", "parseSets", "getLog", "sessionFinished", "swapOptionsFor", "exGroupFor", "getSkippedSessions", "sessionSkipped"];
 
 function engine({ goal = "leanbulk", equip = null, store = {}, week = 2, now = Date.now(), freq = 4 } = {}) {
   const code = [
@@ -791,4 +791,15 @@ test("the player's PR check uses lifetime bests — no false 'New ceiling' after
   const best = E.plLifetimeBests();
   assert.ok(best["Barbell Bench Press"] > 220, String(best["Barbell Bench Press"]));   // 185×6 e1RM ≈ 222
   assert.match(PLAYER, /var prevBest=plLifetimeBests\(\);/);
+});
+
+test("rested mid-session (Nov 2026): a skipped, unfinished session's sets don't set next week's loads", () => {
+  const now = Date.now();
+  const done = { finishedAt: "x", _ts: now - 14 * DAY, ex: [logged("Leg Press", "4 × 6", 300, [6, 6, 6, 6])] };
+  const abandoned = { _ts: now - 7 * DAY, ex: [logged("Leg Press", "4 × 6", 200, [3])] };          // back went, one light set
+  const log = { "2|Day 1": done, "3|Day 1": abandoned };
+  let E = engine({ store: { ff_start: startFor(4, now), ff_log: log }, now, week: 4 });
+  assert.equal(E.lastSessionFor("Day 1", 4).ex[0].sets[0].w, "200", "control: an unfinished session still counts (older rule)");
+  E = engine({ store: { ff_start: startFor(4, now), ff_log: log, ff_skipped_sessions: { "3|Day 1": now - 7 * DAY } }, now, week: 4 });
+  assert.equal(E.lastSessionFor("Day 1", 4).ex[0].sets[0].w, "300", "rested instead: last real session wins");
 });

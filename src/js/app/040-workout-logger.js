@@ -235,9 +235,10 @@
   function ffSaveSchedule(apply){
     // Any check-off this week freezes the layout: rest-day marks (recovery AND
     // cardio) are keyed by the rest slot, so re-arranging would move them to
-    // another calendar day (Codex, #117).
+    // another calendar day (Codex, #117). A skip too: "Rest today" pins the
+    // skipped workout to today's calendar day (043).
     var g=gdState(), wk=planStart()?curWeek():0, busy=wk && stripDays().some(function(x){
-      return x.type==="rest" ? (restDone(wk, dayKey(x)) || cardioDone(wk, dayKey(x))) : !!getSession(wk, x.name); });
+      return x.type==="rest" ? (restDone(wk, dayKey(x)) || cardioDone(wk, dayKey(x))) : (!!getSession(wk, x.name) || sessionSkipped(wk, x.name)); });
     if(busy){ if(!(g.arrangeWeek>wk)){ g.prevDays=ffPlayDaysNow().slice(); g.prevOff=ffOffDaysNow().slice(); g.prevLayout=ffLayoutNow(); } g.arrangeWeek=wk+1; }
     else { delete g.arrangeWeek; delete g.prevDays; delete g.prevOff; delete g.prevLayout; }
     apply(g); gdSave(g);
@@ -285,6 +286,18 @@
     var s=getSkippedSessions(), k=w+"|"+d;
     s[k]=Date.now();
     lsSet("ff_skipped_sessions",s);
+  }
+  function unskipSession(w,d){
+    var s=getSkippedSessions(), k=w+"|"+d;
+    if(s[k] > 0){ s[k]=-Date.now(); lsSet("ff_skipped_sessions",s); }
+  }
+  // A skipped, unfinished workout day that plays as a rest day ("Rest today", 043):
+  // today's, or an earlier one that has its recovery or cardio logged (it stays a
+  // rest day with its ✓, and stays put — Codex, #123). A plain catch-up "Skip it"
+  // keeps its workout card, so it can still be logged late.
+  function ffRestInstead(w,d){
+    if(!(d && d.type!=="rest" && sessionSkipped(w,d.name) && !sessionFinished(getSession(w,d.name)))) return false;
+    return (w===curWeek() && ffIsTodaySlot(d.name)) || restDone(w,dayKey(d)) || cardioDone(w,dayKey(d));
   }
   function saveSession(w,d,s){
     if(s) s._ts=Date.now();
@@ -349,6 +362,8 @@
       var i=k.indexOf("|"); if(i<0) return;
       var w=parseInt(k.slice(0,i),10), dn=k.slice(i+1), s=L[k];
       if(!(w<beforeW) || !s || !s.ex) return;
+      // Started, then skipped ("Rest today" mid-session): an abandoned set isn't a dose to progress from.
+      if(!s.finishedAt && sessionSkipped(w, dn)) return;
       var full=sessFullDose(s, w), ts=done[w+"|"+dn]||(typeof s._ts==="number"?s._ts:0);
       s.ex.forEach(function(x){
         if(!x || !x.name || !(x.sets||[]).some(function(st2){ return st2 && (st2.w||st2.r); })) return;

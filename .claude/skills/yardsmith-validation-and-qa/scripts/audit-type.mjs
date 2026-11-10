@@ -73,7 +73,7 @@ function startServer(ROOT) {
   });
   return new Promise(r => server.listen(0, () => r(server)));
 }
-const FILTER = /net::ERR|Failed to load resource/i;
+const FILTER = /net::ERR|Failed to load resource|blocked by CORS policy/i;   // network failures, incl. CORS on the analytics beacon from a local origin
 
 /* ---------- seeds: lived-in account so all surfaces render real content ---------- */
 function seeds() {

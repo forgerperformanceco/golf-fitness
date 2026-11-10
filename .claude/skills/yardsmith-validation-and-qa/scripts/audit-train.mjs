@@ -74,7 +74,7 @@ function startServer(ROOT) {
   return new Promise(r => server.listen(0, () => r(server)));
 }
 // Console-error filter: sandbox network noise only — never app errors.
-const FILTER = /net::ERR|Failed to load resource/i;
+const FILTER = /net::ERR|Failed to load resource|blocked by CORS policy/i;   // network failures, incl. CORS on the analytics beacon from a local origin
 
 /* ---------- seeds ---------- */
 // Post-onboarding profile. Keys/values must match src/js/app/020-persistence…

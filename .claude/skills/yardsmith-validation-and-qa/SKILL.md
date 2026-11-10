@@ -137,7 +137,7 @@ needed): `YS_ROOT=<repo root>`, `PW_CHROME=<chromium binary>`, `DEBUG=1`
 
 | # | Invariant | Threshold | Enforced by | Origin |
 |---|---|---|---|---|
-| 1 | Page/console errors | **Zero**, in every state, both themes (sandbox network noise `net::ERR`/`Failed to load resource` filtered — nothing else) | all four audits + every ad-hoc script | every Verified paragraph |
+| 1 | Page/console errors | **Zero**, in every state, both themes (sandbox network noise `net::ERR`/`Failed to load resource`/`blocked by CORS policy` filtered — nothing else; the CORS one is the product-health beacon from a local origin, added Nov 2026) | all four audits + every ad-hoc script | every Verified paragraph |
 | 2 | Leaked placeholder text | No `undefined`, `NaN`, `[object Object]`, or unreplaced `{{V}}` in rendered text | audit-train | §60 |
 | 3 | Tap targets | ≥ 44px tall: `.planview-seg button`, `.ws-chip`, `.logbtn` (the §60 set) + `.pl-start`, `.sb-go` | audit-train | §60 (bumped 33/37/39px → 44) |
 | 4 | Log button width | `.logbtn` ≥ 0.8 × its `.day-foot` width (no half-pills) | audit-train | §59/§60 |

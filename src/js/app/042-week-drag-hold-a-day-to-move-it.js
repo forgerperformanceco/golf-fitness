@@ -15,6 +15,7 @@
   function ffDayLogged(wk, d){
     if(!d) return false;
     if(d.type==="rest") return restDone(wk, dayKey(d)) || cardioDone(wk, dayKey(d));
+    if(ffRestInstead(wk, d) && (restDone(wk, dayKey(d)) || cardioDone(wk, dayKey(d)))) return true;
     return !!getSession(wk, d.name);
   }
   var FF_WD=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
@@ -44,6 +45,8 @@
     for(var i=0;i<7;i++) lay[(wd0+i)%7]=dayKey(s[i]);
     g.layout=lay; gdSave(g);
     try{ if(typeof ffTick==="function") ffTick(10); }catch(_){}        // it landed (light)
+    // Moving a skipped workout ("Rest today", 043) means you'll do it there.
+    [da,db].forEach(function(x){ if(x.type!=="rest" && sessionSkipped(wk, x.name)) unskipSession(wk, x.name); });
     // Flag (don't block) the combos the automatic arrangement avoids.
     var play=ffPlayDays(), warn="";
     for(var j=0;j<7 && !warn;j++){

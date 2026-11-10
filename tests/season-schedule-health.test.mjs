@@ -13,6 +13,7 @@ const ONBOARD = src("090-first-run-onboarding.js");
 const PERSIST = src("020-persistence-remember-everything-per-devi.js");
 const MODEL = src("024-macro-model.js");
 const DRAG = src("042-week-drag-hold-a-day-to-move-it.js");
+const REST = src("043-rest-today.js");
 
 function balanced(source, from, open) {
   let i = source.indexOf(open, from), depth = 0;
@@ -40,7 +41,7 @@ function decl(source, name, open) {
 }
 
 // startWd: weekday the plan's week starts on (0 = Sunday); store = localStorage.
-function engine({ inseason = false, freq = 4, store = {}, startWd = 1, week = 3, health = null, profile = {} } = {}) {
+function engine({ inseason = false, freq = 4, store = {}, startWd = 1, week = 3, health = null, profile = {}, dop = 1 } = {}) {
   const ctx = { __store: { fairwayfuel: profile, ...store } };
   vm.runInNewContext(`
     var state={goal:"leanbulk", inseason:${JSON.stringify(inseason)}, health:${JSON.stringify(health)}};
@@ -48,6 +49,7 @@ function engine({ inseason = false, freq = 4, store = {}, startWd = 1, week = 3,
     function lsGet(k,d){ var v=__store[k]; return v==null?d:v; }
     function lsSet(k,v){ __store[k]=v; }
     function curWeek(){ return ${week}; }
+    function dayOfPlan(){ return ${dop}; }
     function planStart(){ return lsGet("ff_start", null); }
     function weekStartDate(){ var d=new Date(2026,9,4); while(d.getDay()!==${startWd}) d.setDate(d.getDate()+1); return d; }
     ${decl(PLAN, "PHASES", "[")}
@@ -57,14 +59,19 @@ function engine({ inseason = false, freq = 4, store = {}, startWd = 1, week = 3,
        "capSets", "plainSetCount", "adjSets", "trainRetain", "eventInfo", "waveFor", "bumpReps", "plainReps", "waveAdjust",
        "effTarget"].map((n) => fn(PLAN, n)).join("\n")}
     ${["stripDays", "ffBaseWeek", "ffLayoutActive", "ffHeavyLegs", "ffArrangeWeek", "ffPlayDaysNow", "ffOffDays", "ffOffDaysNow", "ffLayoutNow", "ffApplyLayout",
-       "dayKey", "getLog", "getSession", "getRest", "restDone", "cardioDone"].map((n) => fn(LOGGER, n)).join("\n")}
+       "dayKey", "getLog", "getSession", "getRest", "restDone", "cardioDone",
+       "getSkippedSessions", "sessionSkipped", "skipSession", "unskipSession", "ffRestInstead", "sessionFinished"].map((n) => fn(LOGGER, n)).join("\n")}
     var __toasts=[], window={ dispatchEvent:function(){} }, Event=function(){};
     function ffToast(m){ __toasts.push(m); } function renderPhase(){} function renderDash(){} function ffAccess(){ return "full"; }
     ${fn(GAME, "gdState")} ${fn(GAME, "gdSave")} ${fn(PLAN, "wsShort")}
     ${decl(DRAG, "FF_WD", "[")} ${fn(DRAG, "ffDayLogged")} ${fn(DRAG, "ffMoveDay")}
+    ${["ffIsTodaySlot", "ffRestableToday", "ffRestToday", "ffRestUndo"].map((n) => fn(REST, n)).join("\n")}
+    ${["toggleRestDone", "toggleCardioDone"].map((n) => fn(LOGGER, n)).join("\n")}
+    ${fn(LOGGER, "ffSaveSchedule")}
     ${fn(GAME, "ffPlayDays")}
     ${fn(MODEL, "ffBmi")}
-    this.api={ ffMoveDay, ffLayoutActive, store:__store, toasts:__toasts, activeDays, ffSessionsPerWeek, ffInSeasonMode, stripDays, ffOnRamp, ffLowImpact, ffHealthCaution,
+    this.api={ ffMoveDay, ffRestableToday, ffRestToday, ffRestUndo, ffRestInstead, ffDayLogged, ffSaveSchedule, sessionSkipped, skipSession,
+      ffLayoutActive, store:__store, toasts:__toasts, activeDays, ffSessionsPerWeek, ffInSeasonMode, stripDays, ffOnRamp, ffLowImpact, ffHealthCaution,
       ffHealthAdvice, ffHealthQs, effTarget, PHASES, state:state };
   `, ctx);
   return ctx.api;
@@ -278,3 +285,73 @@ test("health answers live in the profile (no new key); changing them resets a cl
   assert.match(GAME, /h\.cleared=false; h\.ts=Date\.now\(\);/);
   assert.match(GAME, /data-hcleared/);
 });
+
+// "Rest today" (Nov 2026: "my back hurts — make today a rest day"). 4-day week from
+// Monday: Mon Quads, Tue Push, Wed rest, Thu Speed, Fri rest, Sat Pull, Sun rest.
+const TUE_PUSH = "Day 2 — Upper (Push)";
+const restEngine = (o = {}) => engine({ startWd: 1, dop: 2, ...o, store: { ff_gameday: {}, ff_start: 1, ...(o.store || {}) } });
+
+test("rest today: skips today's workout, which then plays as a rest day; undo brings it back", () => {
+  const E = restEngine();
+  assert.equal(E.ffRestToday("Day 1 — Lower (Quads)"), false, "only today's workout");
+  assert.equal(E.ffRestToday(TUE_PUSH), true);
+  assert.ok(E.sessionSkipped(3, TUE_PUSH));
+  assert.ok(E.ffRestInstead(3, E.stripDays()[1]));
+  assert.match(E.toasts.at(-1), /^Today’s a rest day\. Upper \(Push\) is skipped; undo it on Train\.$/);
+  assert.equal(E.ffRestUndo(TUE_PUSH), true);
+  assert.ok(!E.sessionSkipped(3, TUE_PUSH));
+  assert.ok(E.store.ff_skipped_sessions["3|" + TUE_PUSH] < 0, "undo is a negative stamp (syncs; never a delete)");
+  assert.match(E.toasts.at(-1), /^It’s back on: Upper \(Push\) is today’s workout\.$/);
+  // A finished workout can't be rested; a finished one also never reads as rested.
+  const F = restEngine({ store: { ff_log: { ["3|" + TUE_PUSH]: { ex: [], finishedAt: "x" } } } });
+  assert.equal(F.ffRestToday(TUE_PUSH), false);
+  F.skipSession(3, TUE_PUSH);
+  assert.ok(!F.ffRestInstead(3, F.stripDays()[1]));
+});
+
+test("rest today is today's only: an earlier skip keeps its workout card; dragging a rested workout un-skips it", () => {
+  let E = restEngine({ dop: 3 });                     // Wednesday (rest) is today; Tuesday's Push was skipped
+  E.skipSession(3, TUE_PUSH);
+  assert.ok(!E.ffRestInstead(3, E.stripDays()[1]), "a past skip isn't 'rested' (it can still be logged late)");
+  assert.equal(E.ffRestToday(TUE_PUSH), false, "only today's workout can be rested");
+  E = restEngine();
+  assert.equal(E.ffRestableToday().name, TUE_PUSH);
+  E.ffRestToday(TUE_PUSH);
+  assert.equal(E.ffRestableToday(), null, "already rested");
+  E.ffMoveDay(1, 2);                                  // a deliberate drag: you'll do it Wednesday
+  assert.ok(!E.sessionSkipped(3, TUE_PUSH));
+  assert.equal(E.stripDays()[2].name, TUE_PUSH);
+});
+
+test("a past rested day with recovery logged stays a rest day and stays put (Codex, #123)", () => {
+  const E = restEngine({ dop: 3, store: { ff_rest: { ["3|" + TUE_PUSH]: 5 } } });   // rested Tuesday, logged recovery; today is Wednesday
+  E.skipSession(3, TUE_PUSH);
+  const tue = E.stripDays()[1];
+  assert.ok(E.ffRestInstead(3, tue), "still a rest day, with its ✓");
+  assert.equal(E.ffDayLogged(3, tue), true);
+  assert.equal(E.ffMoveDay(1, 4), "Days you've already logged stay put.");
+  assert.ok(E.sessionSkipped(3, TUE_PUSH), "not un-skipped by a refused drag");
+  E.store.ff_rest = { ["3|" + TUE_PUSH + "|cardio"]: 7 };
+  assert.ok(E.ffRestInstead(3, tue), "cardio counts too");
+});
+
+test("rest today → undo clears the rest-day check-offs made under the workout's name", () => {
+  const E = restEngine(); E.ffRestToday(TUE_PUSH);
+  E.store.ff_rest = { ["3|" + TUE_PUSH]: 5, ["3|" + TUE_PUSH + "|cardio"]: 6 };
+  E.ffRestUndo(TUE_PUSH);
+  assert.ok(E.store.ff_rest["3|" + TUE_PUSH] < 0 && E.store.ff_rest["3|" + TUE_PUSH + "|cardio"] < 0);
+  E.ffRestToday(TUE_PUSH);
+  assert.equal(E.ffDayLogged(3, E.stripDays()[1]), false, "a second rest the same week starts clean");
+});
+
+test("rest today: a rested-instead day with a check-off stays put; a skip freezes this week's arrangement", () => {
+  const E = restEngine(); E.ffRestToday(TUE_PUSH);
+  assert.equal(E.ffDayLogged(3, E.stripDays()[1]), false, "no check-off yet: it can still move");
+  E.store.ff_rest = { ["3|" + TUE_PUSH]: 5 };
+  assert.equal(E.ffDayLogged(3, E.stripDays()[1]), true);
+  assert.equal(E.ffMoveDay(1, 2), "Days you've already logged stay put.");
+  // Changing days off mid-week after a skip queues for next week (the skip is pinned to today).
+  E.ffSaveSchedule(function (g) { g.off = [5]; });
+  assert.equal(E.store.ff_gameday.arrangeWeek, 4);
+});
+

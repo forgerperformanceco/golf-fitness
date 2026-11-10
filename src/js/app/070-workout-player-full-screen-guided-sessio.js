@@ -658,7 +658,9 @@
     }
     var st=lsGet("ff_pl_paused", null);
     var show=false, doneSets=0;
-    if(st && st.day && (!player)){
+    // Rested today mid-session ("Rest today", 043): the bar steps aside, kept for Undo.
+    if(st && st.day && !player && sessionSkipped(st.week||curWeek(), st.day)) st=null;
+    else if(st && st.day && (!player)){
       var sess=getSession(st.week||curWeek(), st.day);
       if(sess && !sess.finishedAt && sess.ex){
         sess.ex.forEach(function(x){ (x.sets||[]).forEach(function(s2){ if(s2.done) doneSets++; }); });
