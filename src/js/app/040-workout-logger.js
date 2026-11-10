@@ -235,9 +235,10 @@
   function ffSaveSchedule(apply){
     // Any check-off this week freezes the layout: rest-day marks (recovery AND
     // cardio) are keyed by the rest slot, so re-arranging would move them to
-    // another calendar day (Codex, #117).
+    // another calendar day (Codex, #117). A skip too: "Rest today" pins the
+    // skipped workout to today's calendar day (043).
     var g=gdState(), wk=planStart()?curWeek():0, busy=wk && stripDays().some(function(x){
-      return x.type==="rest" ? (restDone(wk, dayKey(x)) || cardioDone(wk, dayKey(x))) : !!getSession(wk, x.name); });
+      return x.type==="rest" ? (restDone(wk, dayKey(x)) || cardioDone(wk, dayKey(x))) : (!!getSession(wk, x.name) || sessionSkipped(wk, x.name)); });
     if(busy){ if(!(g.arrangeWeek>wk)){ g.prevDays=ffPlayDaysNow().slice(); g.prevOff=ffOffDaysNow().slice(); g.prevLayout=ffLayoutNow(); } g.arrangeWeek=wk+1; }
     else { delete g.arrangeWeek; delete g.prevDays; delete g.prevOff; delete g.prevLayout; }
     apply(g); gdSave(g);
@@ -285,6 +286,14 @@
     var s=getSkippedSessions(), k=w+"|"+d;
     s[k]=Date.now();
     lsSet("ff_skipped_sessions",s);
+  }
+  function unskipSession(w,d){
+    var s=getSkippedSessions(), k=w+"|"+d;
+    if(s[k] > 0){ s[k]=-Date.now(); lsSet("ff_skipped_sessions",s); }
+  }
+  // A skipped, unfinished workout day plays as a rest day ("Rest today", 043).
+  function ffRestInstead(w,d){
+    return !!(d && d.type!=="rest" && sessionSkipped(w,d.name) && !sessionFinished(getSession(w,d.name)));
   }
   function saveSession(w,d,s){
     if(s) s._ts=Date.now();

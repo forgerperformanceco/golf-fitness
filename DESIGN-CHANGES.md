@@ -1,5 +1,49 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## Rest today: skip today's workout, get the rest-day routine (Nov 10, 2026)
+
+Owner: "I need to skip my workout today because I'm not feeling good, my back hurts… make this an
+off day, a rest day, and give me… our normal off day routine."
+
+- **One tap: "Not feeling it? Make today a rest day."** It sits at the top of today's workout card on
+  Train (lift and speed days), under Home's today card, and in the readiness check-in result (which
+  already said "Sharp pain… skip training" but had no way to). Only for today's own, unfinished workout.
+- **What it does:** `skipSession` (the existing `ff_skipped_sessions` signed-timestamp key, so it
+  roams and the catch-up nudge, next-workout pick and coach already treat it as resolved), and the day
+  then **plays as a rest day** (`ffRestInstead`, 040): the normal 10-minute routine, optional Zone 2,
+  its own recovery/cardio check-offs (keyed by the workout's name in `ff_rest`), hero "Start
+  recovery", header "Rest day", chip "Rest", Home "Today · Rest day". Copy: keep every move pain-free,
+  skip any that pinch; an easy walk only if you feel up to it; "Pain that runs down a leg, or comes
+  with numbness or weakness, is worth getting checked." No diagnosis, no back-specific routine (the
+  owner asked for the normal one).
+- **Ways back:** "Undo, I'll train today" (negative stamp: syncs, never a delete), and **"Do Hinge on
+  Friday instead"** when a later rest day this week can take it (not a day off, not logged, not
+  during a queued change; dodges a round day and heavy legs next to legs or before a round, else the
+  first open one). It runs `ffMoveDay`, and **moving a skipped workout un-skips it**, by button or by
+  drag. A refused move leaves it rested.
+- **Rules it keeps:** a rested day with a check-off stays put (`ffDayLogged`); a skip counts as
+  "this week is busy", so a mid-week days-off change queues for next week instead of sliding the
+  skipped workout onto another day; reminders treat the day as rest (and send no speed-test nudge on
+  it); the week count leaves a skipped workout out ("3 of 3", not "3 of 4" forever). Days skipped
+  earlier via the catch-up's "Skip it" now also read as rested on the week strip/Full week.
+- New module `043-rest-today.js`; `z2Html` split out of the rest card for reuse.
+
+**Harness fix:** the four audits filtered `net::ERR`/`Failed to load resource` as sandbox network
+noise but not a CORS-blocked fetch, so the product-health beacon (allowed origin: yardsmith.golf)
+failed every audit from a local server (main too: 0/18, 0/16, contrast FAIL). The filter now also
+drops `blocked by CORS policy`; with it, main and this branch are back to the documented baseline.
+
+**Verified:** `npm test` 255/255 (new: 5 rest-today surface cases; 4 schedule cases in
+season-schedule-health for skip/undo, move + un-skip, refusals, round-day dodging, stay-put and the
+busy week). Playwright, built app, clock fixed to a Wednesday Hinge day, light + dark: the entry link
+is visible on today's card; tapping it skips (stamp > 0), shows the rest card (6 routine moves, Zone
+2, pain-free + red-flag copy, "Do Hinge on Friday instead"), hero "Start recovery", header "Rest
+day", chip "Rest", no finish bar or readiness; Home leads "Today · Rest day"; recovery done ticks
+the chip and removes the move offer; Undo restores the workout (stamp < 0); rest again → move puts
+Hinge on Friday, today a plain rest day, un-skipped; Home's link and the check-in's link both work
+(the check-in closes, no player opens); zero page errors. Audits: train 18/18, scroll 16/16, type
+1 known (Fuel "Ate it"), contrast clean. Release gate and claims-lint clean.
+
 ## Closed-app reminders actually reach the server (Nov 9, 2026)
 
 Owner turned reminders on and asked "can you check it's working?" — it wasn't. The phone (installed

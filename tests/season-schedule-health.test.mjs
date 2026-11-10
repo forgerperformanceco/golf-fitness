@@ -13,6 +13,7 @@ const ONBOARD = src("090-first-run-onboarding.js");
 const PERSIST = src("020-persistence-remember-everything-per-devi.js");
 const MODEL = src("024-macro-model.js");
 const DRAG = src("042-week-drag-hold-a-day-to-move-it.js");
+const REST = src("043-rest-today.js");
 
 function balanced(source, from, open) {
   let i = source.indexOf(open, from), depth = 0;
@@ -40,7 +41,7 @@ function decl(source, name, open) {
 }
 
 // startWd: weekday the plan's week starts on (0 = Sunday); store = localStorage.
-function engine({ inseason = false, freq = 4, store = {}, startWd = 1, week = 3, health = null, profile = {} } = {}) {
+function engine({ inseason = false, freq = 4, store = {}, startWd = 1, week = 3, health = null, profile = {}, dop = 1 } = {}) {
   const ctx = { __store: { fairwayfuel: profile, ...store } };
   vm.runInNewContext(`
     var state={goal:"leanbulk", inseason:${JSON.stringify(inseason)}, health:${JSON.stringify(health)}};
@@ -48,6 +49,7 @@ function engine({ inseason = false, freq = 4, store = {}, startWd = 1, week = 3,
     function lsGet(k,d){ var v=__store[k]; return v==null?d:v; }
     function lsSet(k,v){ __store[k]=v; }
     function curWeek(){ return ${week}; }
+    function dayOfPlan(){ return ${dop}; }
     function planStart(){ return lsGet("ff_start", null); }
     function weekStartDate(){ var d=new Date(2026,9,4); while(d.getDay()!==${startWd}) d.setDate(d.getDate()+1); return d; }
     ${decl(PLAN, "PHASES", "[")}
@@ -57,14 +59,18 @@ function engine({ inseason = false, freq = 4, store = {}, startWd = 1, week = 3,
        "capSets", "plainSetCount", "adjSets", "trainRetain", "eventInfo", "waveFor", "bumpReps", "plainReps", "waveAdjust",
        "effTarget"].map((n) => fn(PLAN, n)).join("\n")}
     ${["stripDays", "ffBaseWeek", "ffLayoutActive", "ffHeavyLegs", "ffArrangeWeek", "ffPlayDaysNow", "ffOffDays", "ffOffDaysNow", "ffLayoutNow", "ffApplyLayout",
-       "dayKey", "getLog", "getSession", "getRest", "restDone", "cardioDone"].map((n) => fn(LOGGER, n)).join("\n")}
+       "dayKey", "getLog", "getSession", "getRest", "restDone", "cardioDone",
+       "getSkippedSessions", "sessionSkipped", "skipSession", "unskipSession", "ffRestInstead", "sessionFinished"].map((n) => fn(LOGGER, n)).join("\n")}
     var __toasts=[], window={ dispatchEvent:function(){} }, Event=function(){};
     function ffToast(m){ __toasts.push(m); } function renderPhase(){} function renderDash(){} function ffAccess(){ return "full"; }
     ${fn(GAME, "gdState")} ${fn(GAME, "gdSave")} ${fn(PLAN, "wsShort")}
     ${decl(DRAG, "FF_WD", "[")} ${fn(DRAG, "ffDayLogged")} ${fn(DRAG, "ffMoveDay")}
+    ${["ffIsTodaySlot", "ffRestMoveTarget", "ffRestToday", "ffRestUndo", "ffRestMove"].map((n) => fn(REST, n)).join("\n")}
+    ${fn(LOGGER, "ffSaveSchedule")}
     ${fn(GAME, "ffPlayDays")}
     ${fn(MODEL, "ffBmi")}
-    this.api={ ffMoveDay, ffLayoutActive, store:__store, toasts:__toasts, activeDays, ffSessionsPerWeek, ffInSeasonMode, stripDays, ffOnRamp, ffLowImpact, ffHealthCaution,
+    this.api={ ffMoveDay, ffRestMoveTarget, ffRestToday, ffRestUndo, ffRestMove, ffRestInstead, ffDayLogged, ffSaveSchedule, sessionSkipped, skipSession,
+      ffLayoutActive, store:__store, toasts:__toasts, activeDays, ffSessionsPerWeek, ffInSeasonMode, stripDays, ffOnRamp, ffLowImpact, ffHealthCaution,
       ffHealthAdvice, ffHealthQs, effTarget, PHASES, state:state };
   `, ctx);
   return ctx.api;
@@ -278,3 +284,79 @@ test("health answers live in the profile (no new key); changing them resets a cl
   assert.match(GAME, /h\.cleared=false; h\.ts=Date\.now\(\);/);
   assert.match(GAME, /data-hcleared/);
 });
+
+// "Rest today" (Nov 2026: "my back hurts — make today a rest day"). 4-day week from
+// Monday: Mon Quads, Tue Push, Wed rest, Thu Speed, Fri rest, Sat Pull, Sun rest.
+const TUE_PUSH = "Day 2 — Upper (Push)";
+const restEngine = (o = {}) => engine({ startWd: 1, dop: 2, ...o, store: { ff_gameday: {}, ff_start: 1, ...(o.store || {}) } });
+
+test("rest today: skips today's workout, which then plays as a rest day; undo brings it back", () => {
+  const E = restEngine();
+  assert.equal(E.ffRestToday("Day 1 — Lower (Quads)"), false, "only today's workout");
+  assert.equal(E.ffRestToday(TUE_PUSH), true);
+  assert.ok(E.sessionSkipped(3, TUE_PUSH));
+  assert.ok(E.ffRestInstead(3, E.stripDays()[1]));
+  assert.match(E.toasts.at(-1), /^Today’s a rest day\. Upper \(Push\) is skipped; undo it on Train\.$/);
+  assert.equal(E.ffRestUndo(TUE_PUSH), true);
+  assert.ok(!E.sessionSkipped(3, TUE_PUSH));
+  assert.ok(E.store.ff_skipped_sessions["3|" + TUE_PUSH] < 0, "undo is a negative stamp (syncs; never a delete)");
+  assert.match(E.toasts.at(-1), /^It’s back on: Upper \(Push\) is today’s workout\.$/);
+  // A finished workout can't be rested; a finished one also never reads as rested.
+  const F = restEngine({ store: { ff_log: { ["3|" + TUE_PUSH]: { ex: [], finishedAt: "x" } } } });
+  assert.equal(F.ffRestToday(TUE_PUSH), false);
+  F.skipSession(3, TUE_PUSH);
+  assert.ok(!F.ffRestInstead(3, F.stripDays()[1]));
+});
+
+test("rest today → move it: the next open rest day takes it, un-skipped; refusals keep the rest day", () => {
+  let E = restEngine();
+  E.ffRestToday(TUE_PUSH);
+  assert.deepEqual({ ...E.ffRestMoveTarget(E.stripDays()[1]) }, { i: 2, day: "Wednesday" });
+  assert.equal(E.ffRestMove(TUE_PUSH, 2), true);
+  assert.equal(E.stripDays()[2].name, TUE_PUSH);
+  assert.equal(E.stripDays()[1].type, "rest");
+  assert.ok(!E.sessionSkipped(3, TUE_PUSH), "moving it means you'll do it");
+  assert.match(E.toasts.at(-1), /^Moved Push to Wednesday\./);
+  // Dragging a skipped workout un-skips it too.
+  E = restEngine(); E.ffRestToday(TUE_PUSH); E.ffMoveDay(1, 4);
+  assert.ok(!E.sessionSkipped(3, TUE_PUSH));
+  // A day off, a logged rest day, a queued change, or a later week with no room: no offer.
+  E = restEngine({ store: { ff_gameday: { off: [3] } } }); E.ffRestToday(TUE_PUSH);
+  assert.equal(E.ffRestMoveTarget(E.stripDays()[1]).day, "Friday", "Wednesday is off → Friday");
+  E = restEngine({ store: { ff_rest: { "3|rest@2": 5 } } }); E.ffRestToday(TUE_PUSH);
+  assert.equal(E.ffRestMoveTarget(E.stripDays()[1]).day, "Friday", "Wednesday is already logged → Friday");
+  E = restEngine({ store: { ff_gameday: { arrangeWeek: 4, prevDays: [], prevOff: [] } } });
+  assert.equal(E.ffRestMoveTarget(E.stripDays()[1]), null);
+  E = restEngine({ dop: 7 });
+  assert.equal(E.ffRestMoveTarget(E.stripDays()[1]), null, "not today's workout");
+  // A refused move (the session has logged work) leaves it skipped and today a rest day.
+  E = restEngine({ store: { ff_log: { ["3|" + TUE_PUSH]: { ex: [{ sets: [{ done: true }] }] } } } });
+  E.ffRestToday(TUE_PUSH);
+  assert.equal(E.ffRestMove(TUE_PUSH, 2), false);
+  assert.ok(E.sessionSkipped(3, TUE_PUSH));
+  assert.equal(E.toasts.at(-1), "Days you've already logged stay put.");
+});
+
+test("rest today → the move target skips a round day for the next open one", () => {
+  // Plays Wednesday: Push (Tue) skips over Wednesday's round to Friday.
+  let E = restEngine({ store: { ff_gameday: { days: [3] } } });
+  assert.equal(E.stripDays()[2].type, "rest");
+  E.ffRestToday(TUE_PUSH);
+  assert.deepEqual({ ...E.ffRestMoveTarget(E.stripDays()[1]) }, { i: 4, day: "Friday" });
+  // Plays Thursday: Push (Wed) skips Thursday's round to Sunday.
+  E = restEngine({ dop: 3, store: { ff_gameday: { days: [4] } } });
+  const s = E.stripDays(); assert.equal(s[3].type, "rest"); E.ffRestToday(s[2].name);
+  assert.deepEqual({ ...E.ffRestMoveTarget(s[2]) }, { i: 6, day: "Sunday" });
+});
+
+test("rest today: a rested-instead day with a check-off stays put; a skip freezes this week's arrangement", () => {
+  const E = restEngine(); E.ffRestToday(TUE_PUSH);
+  assert.equal(E.ffDayLogged(3, E.stripDays()[1]), false, "no check-off yet: it can still move");
+  E.store.ff_rest = { ["3|" + TUE_PUSH]: 5 };
+  assert.equal(E.ffDayLogged(3, E.stripDays()[1]), true);
+  assert.equal(E.ffMoveDay(1, 2), "Days you've already logged stay put.");
+  // Changing days off mid-week after a skip queues for next week (the skip is pinned to today).
+  E.ffSaveSchedule(function (g) { g.off = [5]; });
+  assert.equal(E.store.ff_gameday.arrangeWeek, 4);
+});
+

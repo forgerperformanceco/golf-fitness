@@ -886,6 +886,14 @@
     var t=stripDays()[dop-1];
     return (t && dayKey(t)===dayKey(d)) ? roundToday() : null;
   }
+  // Optional easy cardio on a rest day. Easy on purpose: hard running and intervals
+  // are what blunt power most when mixed with lifting (NUTRITION ref, concurrent note).
+  function z2Html(key, cdone){
+    return '<div class="z2"><div class="z2-h">🚶 Easy cardio (Zone 2) <small>optional · 20–40 min</small></div>'+
+      '<div class="z2-b">Walk (9 holes counts), an incline treadmill or the bike, easy enough to talk in full sentences. Skip running and hard intervals here: they cut into power the most.</div>'+
+      '<button class="rest-check z2-check'+(cdone?" done":"")+'" type="button" data-cardio="'+escAttr(key)+'">'+
+        (cdone?"✓ Cardio logged — tap to undo":"Mark cardio done")+'</button></div>';
+  }
   // One day's full card (rest / speed / lift) — used by both Today and Full-week views.
   // interactive=true → the featured "today" lift day renders the inline logger.
   function dayCardHtml(d, showPrimerNote, interactive){
@@ -905,13 +913,10 @@
           // Played today: the round IS the cardio. Edit it from here.
           ? '<button class="rest-check round-check done" type="button" data-roundlog="1">⛳ Round logged — cardio covered · tap to edit</button></div>'
           : (isToday ? '<button class="rest-check round-check" type="button" data-roundlog="1">⛳ Played a round today? Log it — it counts as your cardio</button>' : '')+
-        // Optional easy cardio. Easy on purpose: hard running and intervals are what
-        // blunt power most when mixed with lifting (NUTRITION ref, concurrent note).
-        '<div class="z2"><div class="z2-h">🚶 Easy cardio (Zone 2) <small>optional · 20–40 min</small></div>'+
-          '<div class="z2-b">Walk (9 holes counts), an incline treadmill or the bike, easy enough to talk in full sentences. Skip running and hard intervals here: they cut into power the most.</div>'+
-          '<button class="rest-check z2-check'+(cdone?" done":"")+'" type="button" data-cardio="'+escAttr(dayKey(d))+'">'+
-            (cdone?"✓ Cardio logged — tap to undo":"Mark cardio done")+'</button></div></div>');
+          z2Html(dayKey(d), cdone)+'</div>');
     }
+    // Skipped via "Rest today" (043): the day plays as a rest day.
+    if(ffRestInstead(curWeek(), d)) return restInsteadCardHtml(d, interactive);
     if(d.type==="speed"){
       var smode=speedMode(), s=p.speed[smode];
       var srows = speedRows(smode).map(function(e){
@@ -954,6 +959,7 @@
           '<button class="pl-start" data-startplayer="'+escAttr(d.name)+'" type="button"><span class="pls-go">›</span>'+
             '<b>'+(spDone?'✓ Speed session done — replay it':(((spWork||spSession)?ffIcon("play",13)+' Resume':ffIcon("play",13)+' Start')+' speed session'))+'</b>'+
             '<span class="pls-sub">Guided player — warm-up, max-intent drills, full rest</span></button>'+
+          ((!spDone && ffIsTodaySlot(d.name)) ? ffRestTodayBtnHtml(d.name) : '')+
           '<details class="prelift"><summary>🔥 Warm-up &amp; the why — do these first</summary><div class="prelift-body">'+
             toggle+warmupHtml("speed", false, showPrimerNote)+
             '<div class="speed-intro">'+s.intro+'</div>'+
@@ -1026,6 +1032,7 @@
         '<button class="pl-start" data-startplayer="'+escAttr(d.name)+'" type="button"><span class="pls-go">›</span>'+
           '<b>'+(plDone?'✓ Session finished — replay it':((hasWork?ffIcon("play",13)+' Resume':ffIcon("play",13)+' Start')+' workout'))+'</b>'+
           '<span class="pls-sub">Guided player — warm-up, prescribed loads, rest timer, cool-down</span></button>'+
+        ((!plDone && ffIsTodaySlot(d.name)) ? ffRestTodayBtnHtml(d.name) : '')+
         ffPullCapHtml(d)+
         // Warm-up/primer starts COLLAPSED — it's prep, not the workout, and the
         // guided player runs it for you anyway. One tap opens it; the exercise
@@ -1195,17 +1202,17 @@
     var _dop=dayOfPlan(), _todayD=_dop?stripDays()[_dop-1]:null;
     var featName=(focusDay && shown.some(function(d){return dayKey(d)===focusDay;}))
       ? focusDay
-      : ((_todayD && _todayD.type==="rest") ? dayKey(_todayD) : nextWorkout());
+      : ((_todayD && (_todayD.type==="rest" || ffRestInstead(wk,_todayD))) ? dayKey(_todayD) : nextWorkout());
     var featured=null; shown.forEach(function(d){ if(dayKey(d)===featName) featured=d; });
     if(!featured) featured=shown[0];
-    var featKey=dayKey(featured);
-    var heroName=(mode==="today")?((featured.name.split("—")[1]||featured.name).trim()):"Your training week";
+    var featKey=dayKey(featured), featRI=ffRestInstead(wk,featured);
+    var heroName=(mode==="today")?(featRI?"Rest day":(featured.name.split("—")[1]||featured.name).trim()):"Your training week";
 
     // ---- clean hero: the workout, front and centre ----
     html+='<div class="lift-hero"><div class="lh-l">'+
       '<div class="lh-week">WEEK '+wk+' OF 20 · '+WAVES[waveFor(wk)].ic+' '+WAVES[waveFor(wk)].label.toUpperCase()+' WEEK</div>'+
       '<h2 class="lh-name">'+heroName+'</h2>'+
-      '<div class="lh-sub">'+(mode==="today"?('About '+sessionMinutes(featured)+' min <span class="lh-dot">·</span> Day '+dayOfPlan()+' of your week'):'Browsing the full week')+
+      '<div class="lh-sub">'+(mode==="today"?('About '+(featRI?10:sessionMinutes(featured))+' min <span class="lh-dot">·</span> Day '+dayOfPlan()+' of your week'):'Browsing the full week')+
         (wd.total?(' <span class="lh-dot">·</span> '+(wd.done>=wd.total?'<b class="lh-done">week complete ✓</b>':'<b class="lh-done">'+wd.done+' of '+wd.total+' done</b>')):'')+'</div>'+
       '<div class="lh-prog"><span style="width:'+Math.max(5,Math.round(wk/20*100))+'%"></span></div></div></div>';
 
@@ -1216,11 +1223,11 @@
     var featLocked=access==="preview" && featured.type!=="rest" && isFutureDay(featured.name);
 
     if(mode==="today" && !featLocked){
-      if(typeof ffReadinessInlineHtml==="function") html+=ffReadinessInlineHtml(featured);
+      if(typeof ffReadinessInlineHtml==="function" && !ffRestInstead(wk,featured)) html+=ffReadinessInlineHtml(featured);
       if(featured.type==="rest" && ffTodayRound(featured)){
         html+='<button type="button" class="train-today-cta recovery done" data-roundlog="1">'+
           '<span><small>TODAY · GOLF DAY</small><b>Round logged ⛳</b></span><i>›</i></button>';
-      } else if(featured.type==="rest"){
+      } else if(featured.type==="rest" || ffRestInstead(wk,featured)){
         var heroRestDone=restDone(wk,featKey);
         html+='<button type="button" class="train-today-cta recovery'+(heroRestDone?' done':'')+'" data-restday="'+escAttr(featKey)+'">'+
           '<span><small>TODAY’S ACTION · 10 MIN</small><b>'+(heroRestDone?'Recovery done ✓':'Start recovery')+'</b></span><i>›</i></button>';
@@ -1245,13 +1252,14 @@
     if(mode==="today"){
       var todayDate = new Date();
       var strip = stripDays().map(function(d, i){
-        var done = d.type==="rest" ? (restDone(wk, dayKey(d)) || !!ffTodayRound(d)) : sessionFinished(getSession(wk, d.name));
+        var ri = ffRestInstead(wk, d);
+        var done = (d.type==="rest" || ri) ? (restDone(wk, dayKey(d)) || !!ffTodayRound(d)) : sessionFinished(getSession(wk, d.name));
         var cd = chipDate(i), isToday = sameDay(cd, todayDate);
         var dateLbl = isToday ? "Today" : (cd ? fmtChipDate(cd) : ("Day "+(i+1)));
         var lockd = access==="preview" && d.type!=="rest" && isFutureDay(d.name);
         return '<button class="ws-chip'+(dayKey(d)===featKey?" cur":"")+(done?" done":"")+(isToday?" today":"")+(lockd?" locked":"")+'" data-focusday="'+escAttr(dayKey(d))+'">'+
           '<span class="ws-date">'+dateLbl+'</span>'+
-          '<span class="ws-name">'+(done?"✓ ":"")+(lockd?"🔒 ":"")+wsShort(d)+'</span></button>';
+          '<span class="ws-name">'+(done?"✓ ":"")+(lockd?"🔒 ":"")+(ri?"Rest":wsShort(d))+'</span></button>';
       }).join("");
       html+='<div class="weekstrip">'+strip+'</div>';
       // Hold-and-drag (042) — say it's there, and offer the way back.
@@ -1279,7 +1287,7 @@
         // reset control here, not only while manual mode is on.
         var hasSession = !!getSession(curWeek(), featured.name);
         var workNow = !!(ilog && ilog.sess.ex.some(function(x){ return (x.sets||[]).some(function(st){ return st.w||st.r||st.done; }); }));
-        if(workNow || hasSession || lsGet("ff_manual_log", false)){
+        if(!ffRestInstead(curWeek(), featured) && (workNow || hasSession || lsGet("ff_manual_log", false))){
           html+='<div id="finishBar">'+finishBtnHtml()+'</div>';
           // Offer the way back only while nothing's logged — never hide entered work.
           if(!workNow && !hasSession) html+='<button type="button" class="sl-manual off" data-manuallog="0">Hide manual logging — back to the simple list</button>';

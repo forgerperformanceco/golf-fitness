@@ -559,6 +559,17 @@
   .rest-check.round-check.done { border-style:solid; }
   .restday.round-day { color:var(--ink); }
   .day.rest-done .day-head .tag.rest { background:#1f9d52; color:#fff; }
+  /* "Rest today" (043): the entry link on today's workout card, and the rested-instead card's actions. */
+  .ri-skip { display:flex; align-items:center; justify-content:center; gap:6px; width:100%; min-height:44px; margin:0 0 10px;
+    border:1px dashed var(--line); border-radius:12px; background:transparent; color:var(--muted); font:700 13px var(--font); cursor:pointer; }
+  .ri-skip span { color:var(--green-800); font-weight:800; }
+  .ri-skip:active { transform:translateY(1px); }
+  .ri-acts { display:flex; flex-wrap:wrap; gap:8px; margin:0 15px 12px; }
+  .ri-btn { flex:1 1 140px; min-height:44px; padding:10px 12px; border:1px solid #cfe4d6; border-radius:12px;
+    background:#f4f9f5; color:var(--green-800); font:700 13px var(--font); cursor:pointer; }
+  .ri-btn.ghost { background:transparent; border-color:var(--line); color:var(--muted); }
+  .ri-btn:active { transform:translateY(1px); }
+  .ri-note { margin:0 15px 14px; font-size:12px; line-height:1.45; color:var(--muted); }
 
   /* speed day — same clean table as lifts, kept distinct with a warm accent */
   .speedday .day-head { background:#fdf1e3; color:#9a5b1c; }
@@ -2431,6 +2442,7 @@
   html:not([data-theme="light"]) table.ex td{ color:#cddad2; }
   html:not([data-theme="light"]) .rest-check{ border:1px solid #274631; background:#122215; }
   html:not([data-theme="light"]) .rest-check.done{ background:#14251a; border-color:#294a36; }
+  html:not([data-theme="light"]) .ri-btn{ border:1px solid #274631; background:#122215; }
   html:not([data-theme="light"]) .speedday .day-head{ background:#261e14; color:#dfcebc; }
   html:not([data-theme="light"]) .speed-intro{ color:#e0d2bf; background:#211b12; }
   html:not([data-theme="light"]) .speed-toggle{ background:#211b12; }
@@ -2720,6 +2732,7 @@
   html[data-theme="dark"] table.ex td{ color:#cddad2; }
   html[data-theme="dark"] .rest-check{ border:1px solid #274631; background:#122215; }
   html[data-theme="dark"] .rest-check.done{ background:#14251a; border-color:#294a36; }
+  html[data-theme="dark"] .ri-btn{ border:1px solid #274631; background:#122215; }
   html[data-theme="dark"] .speedday .day-head{ background:#261e14; color:#dfcebc; }
   html[data-theme="dark"] .speed-intro{ color:#e0d2bf; background:#211b12; }
   html[data-theme="dark"] .speed-toggle{ background:#211b12; }

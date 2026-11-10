@@ -205,15 +205,26 @@
         nuCta(mid?'Finish workout':'Start workout')+'</button>'+
         '<button type="button" class="nu-skip" data-skipsession="'+escAttr(missed.name)+'" data-skipweek="'+wk+'">Skip it <span>and keep my plan moving</span></button></div>';
     }
+    // "Rest today" (043): today's workout was skipped, so today is a rest day —
+    // and it leads, ahead of a speed test or mobility check (not on a sore day).
+    if(d && ffRestInstead(wk, d)){
+      var riDone=restDone(wk, dayKey(d));
+      return '<button type="button" class="nu-card rest" data-nurest="'+escAttr(dayKey(d))+'">'+
+        (riDone?'<span class="nu-go">✓</span>':'')+
+        '<div class="nu-kick">Today · Rest day</div>'+
+        '<div class="nu-title">'+(riDone?'Rest day done ✓':'🌱 Rest and recover')+'</div>'+
+        '<div class="nu-sub">'+(riDone?'Recovery counts. Back at it when you feel right.':'Workout skipped. Ten easy minutes of stretching on Train (a walk if you feel up to it), then tap here.')+'</div>'+
+        (riDone?'':nuCta("Mark it done"))+'</button>';
+    }
     if(d && d.type!=="rest"){
       var sess=getSession(wk, d.name);
       if(!(sess && sess.finishedAt)){
         var started=sessionInProgress(sess);
-        return '<button type="button" class="nu-card" data-startplayer="'+escAttr(d.name)+'">'+
+        return '<div class="nu-catchup"><button type="button" class="nu-card" data-startplayer="'+escAttr(d.name)+'">'+
           '<div class="nu-kick">Today’s workout · Week '+wk+' · '+WAVES[waveFor(wk)].label+' week</div>'+
           '<div class="nu-title">'+d.name.replace(/^Day \d+ — /,"")+'</div>'+
           '<div class="nu-sub">'+(started?'Pick up where you left off — everything’s saved.':nuMinutes(d)+'The app walks you through every set.')+'</div>'+
-          nuCta(started?'Resume workout':'Start workout')+'</button>'+(started?'':ffPullCapHtml(d)+ffRoundNote(d, wk));
+          nuCta(started?'Resume workout':'Start workout')+'</button>'+ffRestTodayBtnHtml(d.name, "nu-skip")+'</div>'+(started?'':ffPullCapHtml(d)+ffRoundNote(d, wk));
       }
     }
     if(speedTestDue() && lsGet("ff_body",[]).some(function(e){ return e && e.s && e.ss!=="g"; }))   // a retest, not the first test

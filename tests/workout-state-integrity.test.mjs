@@ -44,6 +44,7 @@ test("the journey resumes a partial workout and does not advance or count it", (
     getSession: (week, day) => log[`${week}|${day}`] || null,
     sessionFinished: (s) => !!(s && s.finishedAt),
     sessionInProgress: (s) => !!(s && !s.finishedAt),
+    ffRestInstead: () => false,
   };
   vm.runInNewContext([
     functionSource(player, "nextWorkout"),

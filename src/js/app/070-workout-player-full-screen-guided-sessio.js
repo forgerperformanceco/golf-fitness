@@ -1077,7 +1077,7 @@
   // "week complete", so nailing every workout always reads as a complete week.
   function weekDoneCount(){
     var wk=curWeek(), total=0, done=0;
-    activeDays().forEach(function(d){ if(d.type==="rest") return; total++; if(sessionFinished(getSession(wk,d.name))) done++; });
+    activeDays().forEach(function(d){ if(d.type==="rest" || ffRestInstead(wk,d)) return; total++; if(sessionFinished(getSession(wk,d.name))) done++; });
     return { done:done, total:total };
   }
   // One shared "Log today" block — identical fields, styling and behavior on

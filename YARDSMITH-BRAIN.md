@@ -450,7 +450,9 @@ stores; we're a URL). Shipping the app matters more than more docs.
   days (and, from Nov 8 2026, on the owner's ask, around **days off** the golfer picks — same
   order, leg days apart; DESIGN-CHANGES "Days off") — plus the owner's own order by holding a day
   and dragging it (logged days locked, no workout on a day off, leg spacing flagged not blocked;
-  DESIGN-CHANGES "Hold a day and drag it"), and a setup health check (PAR-Q+-style; any "yes" → a 4-week gentle start until
+  DESIGN-CHANGES "Hold a day and drag it"; and from Nov 10, "Not feeling it? Make today a rest day":
+  a skip that plays as a rest day with the normal routine, undoable, or moved to a later open rest day;
+  DESIGN-CHANGES "Rest today"), and a setup health check (PAR-Q+-style; any "yes" → a 4-week gentle start until
   a doctor's clearance is marked in You).
 - **Keep-your-turn dose (Nov 7, 2026)** — a ~5-min rotation cool-down after every session
   (player recap + a folded card on Train) and a real 10-min rest-day routine behind "Start
