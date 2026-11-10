@@ -19,16 +19,18 @@
   }
   function restInsteadCardHtml(d, interactive){
     var wk=curWeek(), key=dayKey(d), rdone=restDone(wk,key), cdone=cardioDone(wk,key),
-        short=d.name.replace(/^Day \d+ — /,"");
+        short=d.name.replace(/^Day \d+ — /,""), today=ffIsTodaySlot(d.name);
     return '<div class="day rest-instead'+(rdone?" rest-done":"")+'"><div class="day-head">'+d.name+' <span class="tag rest">Rest day</span></div>'+
-      '<div class="restday">🛌 <b>Today’s a rest day.</b> '+ffEsc(short)+' is skipped this week and the plan carries on. '+
-        'Ten easy minutes below: keep every move pain-free and skip any that pinch. An easy walk only if you feel up to it.</div>'+
+      '<div class="restday">'+(today
+        ? '🛌 <b>Today’s a rest day.</b> '+ffEsc(short)+' is skipped this week and the plan carries on. '+
+          'Ten easy minutes below: keep every move pain-free and skip any that pinch. An easy walk only if you feel up to it.'
+        : '🛌 <b>Rested.</b> '+ffEsc(short)+' was skipped that day and the plan carried on.')+'</div>'+
       (interactive ? '<div class="rest-routine">'+recoveryHtml()+'</div>'
         : '<details class="prelift cool"><summary>🌀 Keep your turn — the 10-min routine</summary><div class="prelift-body">'+recoveryHtml()+'</div></details>')+
       '<button class="rest-check'+(rdone?" done":"")+'" type="button" data-restday="'+escAttr(key)+'">'+
         (rdone?"✓ Recovery logged — tap to undo":"Mark recovery done")+'</button>'+
       z2Html(key, cdone)+
-      '<div class="ri-acts"><button type="button" class="ri-btn ghost" data-restundo="'+escAttr(d.name)+'">Undo, I’ll train today</button></div>'+
+      '<div class="ri-acts"><button type="button" class="ri-btn ghost" data-restundo="'+escAttr(d.name)+'">'+(today?'Undo, I’ll train today':'Undo the skip')+'</button></div>'+
       '<div class="ri-note">Pain that runs down a leg, or comes with numbness or weakness, is worth getting checked.</div></div>';
   }
   // Today's slot when it's a workout that can still be rested (not finished, not rested yet).

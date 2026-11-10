@@ -291,12 +291,13 @@
     var s=getSkippedSessions(), k=w+"|"+d;
     if(s[k] > 0){ s[k]=-Date.now(); lsSet("ff_skipped_sessions",s); }
   }
-  // Today's workout, skipped and unfinished, plays as a rest day ("Rest today", 043).
-  // Today only: a day skipped earlier (the catch-up's "Skip it") keeps its workout
-  // card, so it can still be logged late.
+  // A skipped, unfinished workout day that plays as a rest day ("Rest today", 043):
+  // today's, or an earlier one that has its recovery or cardio logged (it stays a
+  // rest day with its ✓, and stays put — Codex, #123). A plain catch-up "Skip it"
+  // keeps its workout card, so it can still be logged late.
   function ffRestInstead(w,d){
-    return !!(d && d.type!=="rest" && w===curWeek() && ffIsTodaySlot(d.name) &&
-      sessionSkipped(w,d.name) && !sessionFinished(getSession(w,d.name)));
+    if(!(d && d.type!=="rest" && sessionSkipped(w,d.name) && !sessionFinished(getSession(w,d.name)))) return false;
+    return (w===curWeek() && ffIsTodaySlot(d.name)) || restDone(w,dayKey(d)) || cardioDone(w,dayKey(d));
   }
   function saveSession(w,d,s){
     if(s) s._ts=Date.now();

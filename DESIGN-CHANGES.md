@@ -11,7 +11,8 @@ off day, a rest day, and give me… our normal off day routine."
   skip training" but had no way to). Only for today's own, unfinished, not-yet-rested workout.
 - **What it does:** `skipSession` (the existing `ff_skipped_sessions` signed-timestamp key: roams,
   and next-workout pick and coach already treat it as resolved), and **today** then plays as a rest
-  day (`ffRestInstead`, 040, today's slot only): the normal 10-minute routine, optional Zone 2, its
+  day (`ffRestInstead`, 040: today's slot, or an earlier day this week rested with recovery/cardio
+  logged — it keeps its "✓ Rest" chip, a "Rested." card and stays put; Codex, #123): the normal 10-minute routine, optional Zone 2, its
   own recovery/cardio check-offs (keyed by the workout's name in `ff_rest`), hero "Start recovery",
   header "Rest day", chip "Rest", Home "Today · Rest day". Copy: keep every move pain-free, skip any
   that pinch; an easy walk only if you feel up to it; "Pain that runs down a leg, or comes with
@@ -30,8 +31,8 @@ off day, a rest day, and give me… our normal off day routine."
 - **Dropped after the pre-PR review:** a "Do Hinge on Friday instead" button. It ran `ffMoveDay`,
   which saves the weekday layout for good ("Your week keeps this order"), so a sick-day tap would
   have reordered every later week. Hold-and-drag stays the deliberate way.
-- Earlier skips (the catch-up's "Skip it") keep their workout card and name, so they can be logged
-  late. Home's "Mark it done" now re-renders Train too (a stale Train tap used to undo it).
+- Earlier skips with nothing logged (the catch-up's "Skip it") keep their workout card and name, so
+  they can be logged late. Home's "Mark it done" now re-renders Train too (a stale Train tap used to undo it).
 - New module `043-rest-today.js`; `z2Html` split out of the rest card for reuse; `.ready-link`
   min-height 44px (the check-in's links were 31px).
 
@@ -40,22 +41,25 @@ catch-up still led Home and the push after resting (high); the entry point hidde
 workout; the move rewriting the week; the move bypassing the check-off guard; the pause bar and
 partial sets after resting mid-session; nudges returning after a move; past skips dressed as today's
 rest; the manual-log row, link height and orphan check-off after Undo. Name-keyed state under a
-4↔5-day switch on the same day is accepted (today-only scope keeps it to one day). Not ours: another
-device's local schedule isn't rebuilt by a cloud merge until it's opened.
+4↔5-day switch on the same day is accepted. A re-review of the fixes confirmed all 9; it and Codex
+then found a rested-and-ticked day losing its stay-put lock the next morning (fixed: it stays a rest
+day). Accepted: deliberately dragging today's rested workout to a later day makes today an ordinary
+rest day, so a due speed test can lead again. Not ours: another device's local schedule isn't
+rebuilt by a cloud merge until it's opened.
 
 **Harness fix:** the four audits filtered `net::ERR`/`Failed to load resource` as sandbox network
 noise but not a CORS-blocked fetch, so the product-health beacon (allowed origin: yardsmith.golf)
 failed every audit from a local server (main too: 0/18, 0/16, contrast FAIL). The filter now also
 drops `blocked by CORS policy`; with it, main and this branch are back to the documented baseline.
 
-**Verified:** `npm test` 258/258 (rest-today surfaces incl. the catch-up rule; schedule cases for
+**Verified:** `npm test` 259/259 (rest-today surfaces incl. the catch-up rule; schedule cases for
 skip/undo, today-only, drag un-skips, undo clears check-offs, stay-put and the busy week; a
 progression case: an abandoned skipped session's 200 lb set no longer beats the last real 300).
 Playwright, built app, clock fixed to a Wednesday Hinge day, light + dark, zero page errors in every
 scenario: rest from Train (card, routine, Zone 2, copy, no move button, hero/header/chip, no finish
 bar/readiness/manual row) → Home leads "Today · Rest day" → done on Home shows done on Train → a past
-catch-up skip keeps its workout card → Undo restores the workout and clears the check-off; rest from
-Home; with missed workouts (catch-up card and Train both offer it; afterwards Home leads with rest,
+catch-up skip keeps its workout card → Undo restores the workout and clears the check-off; the next
+morning a rested-and-ticked day reads "✓ Rest" with a "Rested." card; rest from Home; with missed workouts (catch-up card and Train both offer it; afterwards Home leads with rest,
 no catch-up); mid-session (pause bar hides, returns on Undo); from the check-in (closes, no player).
 Audits: train 18/18, scroll 16/16, type 1 known (Fuel "Ate it"), contrast clean. Release gate and
 claims-lint clean.

@@ -323,6 +323,18 @@ test("rest today is today's only: an earlier skip keeps its workout card; draggi
   assert.equal(E.stripDays()[2].name, TUE_PUSH);
 });
 
+test("a past rested day with recovery logged stays a rest day and stays put (Codex, #123)", () => {
+  const E = restEngine({ dop: 3, store: { ff_rest: { ["3|" + TUE_PUSH]: 5 } } });   // rested Tuesday, logged recovery; today is Wednesday
+  E.skipSession(3, TUE_PUSH);
+  const tue = E.stripDays()[1];
+  assert.ok(E.ffRestInstead(3, tue), "still a rest day, with its ✓");
+  assert.equal(E.ffDayLogged(3, tue), true);
+  assert.equal(E.ffMoveDay(1, 4), "Days you've already logged stay put.");
+  assert.ok(E.sessionSkipped(3, TUE_PUSH), "not un-skipped by a refused drag");
+  E.store.ff_rest = { ["3|" + TUE_PUSH + "|cardio"]: 7 };
+  assert.ok(E.ffRestInstead(3, tue), "cardio counts too");
+});
+
 test("rest today → undo clears the rest-day check-offs made under the workout's name", () => {
   const E = restEngine(); E.ffRestToday(TUE_PUSH);
   E.store.ff_rest = { ["3|" + TUE_PUSH]: 5, ["3|" + TUE_PUSH + "|cardio"]: 6 };
