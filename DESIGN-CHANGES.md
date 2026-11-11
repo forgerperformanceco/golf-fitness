@@ -17,7 +17,7 @@ easy 4 from a grinding 4, so a grinding top set still earned the jump.
 - Science: a coarse reps-in-reserve read (RIR-based autoregulation) without asking for numbers.
 - The inline (type-it-yourself) logger doesn't ask; no answer = the normal rule.
 
-**Verified:** `npm test` 268/268 (new: Grind holds, Easy/Solid/none don't, the next clean session
+**Verified:** `npm test` 269/269 with the ramp-up and maintaining changes (new: Grind holds, Easy/Solid/none don't, the next clean session
 earns it, a Grind breaks a maintain plan's pair; `tests/set-feel.test.mjs`: asked only after every set
 with a weight, never for throws/jumps/bodyweight, pick + meaning + tap-to-clear, the hold copy). Both
 new files fail on the old code. Playwright, built app, light + dark, zero page errors, Deadlift on
