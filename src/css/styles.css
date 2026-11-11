@@ -570,6 +570,8 @@
   .ri-btn.ghost { background:transparent; border-color:var(--line); color:var(--muted); }
   .ri-btn:active { transform:translateY(1px); }
   .ri-note { margin:0 15px 14px; font-size:12px; line-height:1.45; color:var(--muted); }
+  /* Compact Today list: a lift's logged result ("✓ 3 sets · best 230 × 6"). */
+  .sl-tx span.sl-done { color:var(--green-800); font-weight:700; }
   /* Ramp-up sets on the player's first loaded lift (070 plRampHtml). */
   .pl-ramp { margin:10px 0 0; padding:10px 12px; border-radius:12px; border:1px dashed rgba(212,176,106,.45);
     background:rgba(212,176,106,.08); color:#e9dcc0; font-size:13px; line-height:1.45; }

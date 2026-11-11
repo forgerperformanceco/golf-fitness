@@ -84,7 +84,7 @@ test("the readiness check-in offers rest today — only for today's own workout"
 test("Train offers it under the hero for today's own workout, whichever day is featured", () => {
   const card = fn(PLAN, "dayCardHtml"), week = fn(PLAN, "trainWeekHtml");
   assert.doesNotMatch(card, /ffRestTodayBtnHtml/);
-  assert.match(week, /var restable=ffRestableToday\(\);\s+if\(restable\) html\+=ffRestTodayBtnHtml\(restable\.name\);/);
+  assert.match(week, /var restable=ffRestableToday\(\), missedD=missedWorkout\(\);\s+if\(restable && \(dayKey\(featured\)===dayKey\(restable\) \|\| \(missedD && dayKey\(missedD\)===dayKey\(featured\)\)\)\)\s+html\+=ffRestTodayBtnHtml\(restable\.name\);/);
   assert.match(card, /if\(ffRestInstead\(curWeek\(\), d\)\) return restInsteadCardHtml\(d, interactive\);/);
 });
 
