@@ -2323,6 +2323,12 @@
   .mob-opts button{ flex:1; border:1.5px solid #cfdde8; border-radius:11px; background:#fff; padding:10px 6px;
     font-weight:800; font-size:13px; color:#38566b; cursor:pointer; min-height:42px; }
   .mob-opts button.on{ border-color:#16a34a; background:#e9f8ee; color:#0f5a2e; }
+  /* Turn-check retry with help (065): range or control? */
+  .mob-retry{ margin:10px 0 2px; padding:11px 12px; border-radius:11px; background:#fff; border:1px dashed #b9cddb; }
+  .mob-retry-t{ font-weight:800; font-size:13.5px; color:#123f5a; }
+  .mob-retry-t small{ font-weight:600; font-size:12px; color:#3d5a6e; }
+  .mob-retry .mob-d{ margin:4px 0 9px; }
+  .mob-retry-opts button{ min-height:44px; }
   .mob-save{ display:block; width:100%; margin-top:6px; border:0; border-radius:12px; background:#16a34a; color:#fff;
     font-weight:800; font-size:15px; padding:14px; cursor:pointer; min-height:48px; }
   .mob-save:disabled{ opacity:.45; cursor:default; }
@@ -2723,6 +2729,9 @@
   html:not([data-theme="light"]) .mob-d b{ color:#c4d7e3; }
   html:not([data-theme="light"]) .mob-opts button{ border:1.5px solid #273845; background:#1a1a1a; color:#c0d2de; }
   html:not([data-theme="light"]) .mob-opts button.on{ background:#14261a; color:#c4e3d1; }
+  html:not([data-theme="light"]) .mob-retry{ background:#1a1a1a; border:1px dashed #2b3f4d; }
+  html:not([data-theme="light"]) .mob-retry-t{ color:#c4d7e3; }
+  html:not([data-theme="light"]) .mob-retry-t small{ color:#c1d1dc; }
   html:not([data-theme="light"]) .mob-res-num{ color:#c8e5d6; }
   html:not([data-theme="light"]) .mob-res-num span{ color:#c1d8ca; }
   html:not([data-theme="light"]) .mob-flag.ok{ background:#142419; border-color:#26442f; color:#c3e2d2; }
@@ -3034,6 +3043,9 @@
   html[data-theme="dark"] .mob-d b{ color:#c4d7e3; }
   html[data-theme="dark"] .mob-opts button{ border:1.5px solid #273845; background:#1a1a1a; color:#c0d2de; }
   html[data-theme="dark"] .mob-opts button.on{ background:#14261a; color:#c4e3d1; }
+  html[data-theme="dark"] .mob-retry{ background:#1a1a1a; border:1px dashed #2b3f4d; }
+  html[data-theme="dark"] .mob-retry-t{ color:#c4d7e3; }
+  html[data-theme="dark"] .mob-retry-t small{ color:#c1d1dc; }
   html[data-theme="dark"] .mob-res-num{ color:#c8e5d6; }
   html[data-theme="dark"] .mob-res-num span{ color:#c1d8ca; }
   html[data-theme="dark"] .mob-flag.ok{ background:#142419; border-color:#26442f; color:#c3e2d2; }
