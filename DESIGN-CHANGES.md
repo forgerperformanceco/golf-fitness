@@ -1,5 +1,30 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## "How did the last set feel?" — a grind holds the weight (Nov 11, 2026)
+
+Owner said yes to the gap named when he asked about progressive overload: reps alone can't tell an
+easy 4 from a grinding 4, so a grinding top set still earned the jump.
+
+- **The question** (player, 070 `plFeelHtml`): once every set of a loaded lift is ticked (with a
+  weight logged), three chips: **Easy** "3+ reps left" · **Solid** "1–2 left" · **Grind** "nothing
+  left". Optional; tap again to clear. Not for throws, jumps or bodyweight drills. Saved as
+  `ex[].feel` on the session (roams with `ff_log`). A line confirms the pick ("Got it. Next time holds
+  this weight so you can own every rep.").
+- **The rule** (040 `progressReady`): a Grind is not ready, so next session holds the weight and the
+  player says "💪 Last time was a grind at 225 lb. Hold it and own every rep." (`dose.grind`). The next
+  non-grind session with every rep earns the jump. On a maintaining plan a Grind breaks the
+  two-in-a-row (`_prev` carries its feel). Easy / Solid / no answer: unchanged.
+- Science: a coarse reps-in-reserve read (RIR-based autoregulation) without asking for numbers.
+- The inline (type-it-yourself) logger doesn't ask; no answer = the normal rule.
+
+**Verified:** `npm test` 268/268 (new: Grind holds, Easy/Solid/none don't, the next clean session
+earns it, a Grind breaks a maintain plan's pair; `tests/set-feel.test.mjs`: asked only after every set
+with a weight, never for throws/jumps/bodyweight, pick + meaning + tap-to-clear, the hold copy). Both
+new files fail on the old code. Playwright, built app, light + dark, zero page errors, Deadlift on
+the Hinge day: no question until all four sets are ticked → Grind saved on the session → tap again
+clears → Easy saved; with a Grind at 225 last time → "Last time was a grind at 225 lb. Hold it…" and
+the placeholder stays 225 (a clean 225 → 230).
+
 ## Maintaining plans add weight more slowly (Nov 11, 2026)
 
 Owner, after asking whether progressive overload is built in: "maybe we take it a little easier on

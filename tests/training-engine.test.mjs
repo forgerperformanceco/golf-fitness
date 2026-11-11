@@ -841,3 +841,25 @@ test("maintaining = maintain/cut goal or an in-season plan; the stall card stays
   assert.match(HOME, /!ffEasyProgress\(\); \}catch\(_\)\{\}   \/\/ maintaining: holding a weight is the plan, not a stall/);
   assert.match(PLAYER, /dose\.hold \? '🎯 Maintaining: hold <b>'\+topLast\+' lb<\/b>\. Hit every rep again and it goes up next time\.'/);
 });
+
+// Nov 2026: "How did the last set feel?" in the player. Reps can't tell an easy 4 from a
+// grinding 4; a Grind holds the weight one more session. Easy / Solid / unanswered: as before.
+test("a grind holds the weight next time; easy, solid or no answer keep the normal rule", () => {
+  const now = Date.now(), day = "Day 1", x = { name: "Deadlift", target: "4 × 4" };
+  const s = (w, feel, ago) => ({ wave: "accumulate", finishedAt: "x", _ts: now - ago * DAY,
+    ex: [{ ...logged("Deadlift", "4 × 4", w, [4, 4, 4, 4]), ...(feel ? { feel } : {}) }] });
+  const run = (goal, log) => {
+    const E = engine({ goal, store: { ff_start: startFor(4, now), ff_log: log, ff_history: [] }, now, week: 4 });
+    const lx = E.lastSessionFor(day, 4).ex[0];
+    return { lx, d: E.ffDose(lx.sets[0].w, x, lx, 4, {}) };
+  };
+  for (const feel of [undefined, "easy", "solid"]) assert.equal(run("leanbulk", { ["3|" + day]: s(225, feel, 7) }).d.w, 230, `feel ${feel}`);
+  const g = run("leanbulk", { ["3|" + day]: s(225, "grind", 7) });
+  assert.equal(g.lx.feel, "grind", "lastSessionFor carries the feel");
+  assert.equal(g.d.bump, false); assert.equal(g.d.w, null); assert.equal(g.d.grind, true, "the player says why");
+  // The next clean session at that weight (not a grind) earns it.
+  assert.equal(run("leanbulk", { ["2|" + day]: s(225, "grind", 14), ["3|" + day]: s(225, "solid", 7) }).d.w, 230);
+  // Maintaining: two clean sessions, but the first was a grind → hold.
+  assert.equal(run("maintain", { ["2|" + day]: s(225, "grind", 14), ["3|" + day]: s(225, "solid", 7) }).d.bump, false);
+  assert.equal(run("maintain", { ["2|" + day]: s(225, "easy", 14), ["3|" + day]: s(225, "solid", 7) }).d.w, 230);
+});

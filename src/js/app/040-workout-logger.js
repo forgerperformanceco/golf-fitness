@@ -380,10 +380,10 @@
     // _ts: when the reference session was done. _seen: when the lift was last done
     // at ANY dose — a deload or recovery day is training, not time off, so the
     // "how long since" rules (no bump at 14+ days, ease back in at 28+) read it.
-    function lxOf(x, ts, extra){ var o={ name:x.name, orig:x.orig, target:x.target, sets:x.sets||[], _ts:ts, _seen:Math.max(ts||0, seen[x.name]||0) }; if(extra) o[extra]=true; return o; }
+    function lxOf(x, ts, extra){ var o={ name:x.name, orig:x.orig, target:x.target, sets:x.sets||[], feel:x.feel, _ts:ts, _seen:Math.max(ts||0, seen[x.name]||0) }; if(extra) o[extra]=true; return o; }
     return { ex: names.map(function(n){
       var hit=same[n]||any[n];
-      if(hit){ var o=lxOf(hit.x, hit.ts); if(hit.prev) o._prev={ target:hit.prev.x.target, sets:hit.prev.x.sets||[] }; return o; }
+      if(hit){ var o=lxOf(hit.x, hit.ts); if(hit.prev) o._prev={ target:hit.prev.x.target, sets:hit.prev.x.sets||[], feel:hit.prev.x.feel }; return o; }
       if(prior[n]) return lxOf(prior[n].x, prior[n].ts, "_prior");   // an earlier season's full dose
       var lw=low[n]||priorLow[n];
       return lxOf(lw.x, lw.ts, "_reduced");
@@ -429,6 +429,7 @@
   // Ready to add weight = last session hit the top of the rep range on every working set.
   function progressReady(lx, target){
     var top=topReps(target); if(!top||!lx||lx._reduced) return false;   // never progress off a deload/recovery load
+    if(lx.feel==="grind") return false;   // every rep, but nothing left: own it once more first (player's "How did that feel?")
     var working=lx.sets.filter(function(st){ return st.r!==""&&st.r!=null&&!isNaN(parseInt(st.r,10)); });
     if(working.length<2) return false;
     return working.every(function(st){ return parseInt(st.r,10)>=top; });

@@ -299,6 +299,14 @@ event." The ramp is a design choice: the optimal weekly dose is unknown
   the player says "🎯 Maintaining: hold X lb" (`dose.hold`). Rationale: keeping
   strength needs intensity kept, not raised; volume can drop a lot (Bickel 2011;
   Spiering 2021). The Home "has stalled" card is off on these plans too.
+- **Effort check** (Nov 2026): after every set of a loaded lift is ticked, the player
+  asks "How did the last set feel?" — Easy (3+ reps left) / Solid (1–2) / Grind
+  (nothing left), stored as `ex[].feel`. `progressReady` returns false on a Grind, so
+  all reps but nothing in reserve holds the weight one more session ("💪 Last time was
+  a grind… hold it"); a Grind also breaks a maintaining plan's two-in-a-row. Easy /
+  Solid / no answer: the normal rule. A coarse reps-in-reserve read (RIR-based
+  autoregulation, Helms 2016; Zourdos 2016) without asking for numbers. Player only;
+  the inline logger doesn't ask.
 - **Increment**: `incNum(name)` (040) — equipment-aware since the Oct 2026 fix
   round: med ball → **0** (no load bump); lower-body compounds
   (`Squat|Deadlift|Hinge|Lunge|Hip Thrust|Leg Press|Romanian|Swing|Carry`) → **5**;

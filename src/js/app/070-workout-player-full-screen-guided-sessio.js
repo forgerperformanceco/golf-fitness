@@ -152,6 +152,21 @@
     if(last) last.ex.forEach(function(e){ if(e.name===name) lx=e; });
     return lx;
   }
+  // "How did the last set feel?" (Nov 2026): reps alone can't tell an easy 4 from a
+  // grinding 4. Asked once every set of a loaded lift is ticked; optional. Grind holds
+  // the weight next time (040 progressReady); Easy and Solid keep the normal rule.
+  // Not for throws, jumps or bodyweight drills (no load to progress).
+  var PL_FEEL=[["easy","Easy","3+ reps left"],["solid","Solid","1–2 left"],["grind","Grind","nothing left"]];
+  function plFeelHtml(x){
+    if(!x || isBodyweightEx(x.name) || isBallistic(x.name) || !(incNum(x.name)>0)) return "";
+    if(!x.sets.length || !x.sets.every(function(s){ return s.done; }) || !x.sets.some(function(s){ return parseFloat(s.w)>0; })) return "";
+    var f=x.feel, note=f==="grind" ? "Got it. Next time holds this weight so you can own every rep."
+      : f==="easy" ? "Noted: plenty left. That weight's yours." : f==="solid" ? "Right on target." : "";
+    return '<div class="pl-feel"><div class="pl-feel-h">How did the last set feel?</div><div class="pl-feel-row">'+
+      PL_FEEL.map(function(o){
+        return '<button type="button" class="pl-feel-b'+(f===o[0]?' on':'')+'" data-plfeel="'+o[0]+'" aria-pressed="'+(f===o[0])+'"><b>'+o[1]+'</b><span>'+o[2]+'</span></button>';
+      }).join("")+'</div>'+(note?'<div class="pl-feel-note">'+note+'</div>':'')+'</div>';
+  }
   // Shown on the first main lift until its first set is ticked. A known weight too
   // light to ramp (the empty bar, 10 lb dumbbells) gets no line at all; the words-only
   // version is for a lift with no weight yet (Codex, #124).
@@ -250,6 +265,7 @@
             ? (topLast ? '⚡ Last time: <b>'+topLast+' lb</b> — keep every rep fast; add load only while it stays explosive.' : '⚡ <b>Light and fast</b> — pick a load you can move explosively. The set ends the moment a rep slows.')
             : (topLast
               ? (wv==="peak" ? '🏁 Peak week — hold <b>'+topLast+' lb</b>, fewer sets, every rep crisp.'
+                : dose.grind ? '💪 Last time was a grind at <b>'+topLast+' lb</b>. Hold it and own every rep.'
                 : dose.hold ? '🎯 Maintaining: hold <b>'+topLast+' lb</b>. Hit every rep again and it goes up next time.'
                 : 'Last time’s top: <b>'+topLast+' lb</b> — beat the reps, then the load follows.')
               : (lastReps ? 'Last time: <b>'+lastReps+' reps</b> — beat it.' : 'First time — find a weight you can own with 2 reps in reserve.'))));
@@ -276,7 +292,7 @@
         plRampHtml(x, st.xi, presc!=null?presc:(topLast||null))+
         '<div class="pl-cue">⚡ '+cue+'</div>'+
         acts+whyBox+livePr+
-        '<div class="pl-sets">'+setsHtml+'</div>';
+        '<div class="pl-sets">'+setsHtml+'</div>'+plFeelHtml(x);
     }
     // recap
     var done=0, vol=0, prs=[], firsts=[];
@@ -461,6 +477,13 @@
       if(psw){ var sxi=+psw.getAttribute("data-plswap"), sx=player.sess.ex[sxi];
         if(sx){ swapFromPlayer=true; openSwap(sxi, sx.orig||sx.name, sx.name); }
         return; }
+      var fl=e.target.closest("[data-plfeel]");
+      if(fl){
+        var stf=player.stations[player.st]; if(stf.type!=="lift") return;
+        var xf=player.sess.ex[stf.xi], v=fl.getAttribute("data-plfeel");
+        if(xf.feel===v) delete xf.feel; else xf.feel=v;   // tap again to clear
+        plSave(); ffTick(8); plRender(); return;
+      }
       var ck=e.target.closest("[data-plcheck]");
       if(ck){
         var st2=player.stations[player.st]; if(st2.type!=="lift") return;

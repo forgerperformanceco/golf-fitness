@@ -97,7 +97,8 @@
     if(back && ref>0){ var bk=ffReduceLoad(ref,0.9); if(bk!=null && (w==null || bk<w)) w=bk; }   // ease back in
     var rl=ffReadinessLoad(ref,band);
     if(rl!=null) w=(w!=null&&w<rl)?w:rl;   // a recovery dose never lifts above a deload load
-    return {w:w,bump:bump,band:band,shift:shift,back:back&&w!=null,hold:hold&&w==null};
+    var grind=!!(lx && !lx._reduced && lx.feel==="grind");   // last time was a grind: the jump waits
+    return {w:w,bump:bump,band:band,shift:shift,back:back&&w!=null,hold:hold&&w==null,grind:grind&&w==null};
   }
   // Every rep hit at this weight (or heavier) the session before too.
   function ffHeldTwice(lx){
