@@ -138,14 +138,24 @@
       if(e.target===m || e.target.closest("#mobX")){ closeMobility(); return; }
       var ob=e.target.closest("[data-mobt]");
       if(ob){ var mk=ob.getAttribute("data-mobt"), mv=+ob.getAttribute("data-mobv");
-        mobState.vals[mk]=mv; if(mv>=2) delete mobState.retry[mk]; renderMobility(); return; }
+        mobState.vals[mk]=mv; if(mv>=2) delete mobState.retry[mk]; renderMobility();
+        mobRefocus('[data-mobt="'+mk+'"][data-mobv="'+mv+'"]'); return; }
+      // A retry answer: tap the chosen one again to clear it (back to "skipped").
       var rb=e.target.closest("[data-mobr]");
-      if(rb){ mobState.retry[rb.getAttribute("data-mobr")]=rb.getAttribute("data-mobra"); renderMobility(); return; }
+      if(rb){ var rk=rb.getAttribute("data-mobr"), ra=rb.getAttribute("data-mobra");
+        if(mobState.retry[rk]===ra) delete mobState.retry[rk]; else mobState.retry[rk]=ra;
+        renderMobility(); mobRefocus('[data-mobr="'+rk+'"][data-mobra="'+ra+'"]'); return; }
       if(e.target.closest("[data-mobclear]")){ mobState.cleared=true; renderMobility(); return; }
       if(e.target.closest("[data-mobstop]")){ mobState.stopped=true; renderMobility(); return; }
       if(e.target.closest("[data-mobsave]")){ saveMobility(); return; }
       if(e.target.closest("[data-mobdone]")){ closeMobility(); return; }
     });
+  }
+  // Every tap re-renders the modal body; put keyboard / screen-reader focus back on
+  // the button that was tapped (same key + value), so the place isn't lost.
+  function mobRefocus(sel){
+    var b=$("mobBody"), el=b && b.querySelector(sel);
+    if(el) try{ el.focus({ preventScroll:true }); }catch(_){ try{ el.focus(); }catch(__){} }
   }
   function openMobility(){
     mobEnsureModal();
@@ -172,14 +182,14 @@
   // When the retry says the range is there (control) — and, for the coil, when even
   // sitting down it's a fight (range) — the fix is different from the plain one.
   var MOB_CTL = {
-    trunk:"the turn is there with help, so the job is owning it: seated turn-and-holds added to your warm-ups instead of more stretching",
-    hiprot:"the range is there lying down, so the job is control: 90/90 lift-offs added to lower-day warm-ups and cool-downs",
-    coil:"it moves on its own sitting down, so it’s posture control: golf-posture turns added to every warm-up",
-    leadarm:"it gets there with your other hand, so the job is control: an active cross-body hold added to upper-day warm-ups instead of more stretching",
-    lats:"it gets there lying down, so it’s core control more than tight lats: dead bugs with the arms overhead added to upper-day warm-ups instead of the hang and stretch"
+    trunk:"it gets there with help, so we’ll treat it as control: seated turn-and-holds added to your warm-ups instead of more stretching",
+    hiprot:"it gets there lying down, so we’ll treat it as control: 90/90 lift-offs added to lower-day warm-ups, and to every cool-down and rest day",
+    coil:"it moves on its own sitting down, so we’ll treat it as posture control: golf-posture turns added to every warm-up",
+    leadarm:"it gets there with your other hand, so we’ll treat it as control: an active cross-body hold added to upper-day warm-ups instead of an extra stretch",
+    lats:"it gets there lying down, so we’ll treat it as core control: dead bugs with the arms overhead added to upper-day warm-ups instead of an extra hang and stretch"
   };
   var MOB_RNG = {
-    coil:"even sitting down it’s a fight, so the range is the job: open-book T-spine and golf-posture turns added to every warm-up"
+    coil:"even sitting down it’s a fight, so we’ll treat it as range: open-book T-spine and golf-posture turns in every warm-up"
   };
   function mobFixText(key, retry){
     if(retry==="control" && MOB_CTL[key]) return MOB_CTL[key];
@@ -219,12 +229,12 @@
       return;
     }
     var done=MOB_TESTS.every(function(t){ return mobState.vals[t.key]!=null; });
-    body.innerHTML='<div class="st-note" style="margin:0 0 12px;">~4 minutes, no gear: five moves your golf turn depends on. Score honestly — a 🔴 just routes the right stretches into your sessions, and it becomes the 5th pillar of your Octane. '+
+    body.innerHTML='<div class="st-note" style="margin:0 0 12px;">~4 minutes, no gear: five moves your golf turn depends on. Score honestly — a 🔴 just routes the right drills into your sessions, and it becomes the 5th pillar of your Octane. '+
         '<b>Same conditions every time:</b> do it cold, before you train, around the same time of day, and never right after a round — a warm-up or 18 holes shifts the scores.</div>'+
       MOB_TESTS.map(function(t){
         return '<div class="mob-test"><div class="mob-t">'+t.ic+' '+t.t+'</div><div class="mob-d">'+t.d+'</div>'+
           '<div class="mob-opts">'+[0,1,2].map(function(v){
-            return '<button type="button" class="'+(mobState.vals[t.key]===v?'on':'')+'" data-mobt="'+t.key+'" data-mobv="'+v+'">'+t.lbl[v]+'</button>';
+            return '<button type="button" class="'+(mobState.vals[t.key]===v?'on':'')+'" aria-pressed="'+(mobState.vals[t.key]===v)+'" data-mobt="'+t.key+'" data-mobv="'+v+'">'+t.lbl[v]+'</button>';
           }).join("")+'</div>'+
           (mobState.vals[t.key]!=null && mobState.vals[t.key]<2 ? mobRetryHtml(t) : '')+
           '<button type="button" class="mob-hurt" data-mobstop="1">Sharp pain on this one? Stop here</button></div>';
@@ -235,7 +245,7 @@
   function mobRetryHtml(t){
     var a=mobState.retry[t.key];
     return '<div class="mob-retry"><div class="mob-retry-t">Quick retry with help <small>— optional, 20 seconds: is it range or control?</small></div>'+
-      '<div class="mob-d">'+t.retry.d+'</div>'+
+      '<div class="mob-d">'+t.retry.d+' <b>Gently — skip it if the move pinched.</b></div>'+
       '<div class="mob-opts mob-retry-opts" role="group" aria-label="'+escAttr(t.t)+' retry">'+
         '<button type="button" class="'+(a==="control"?'on':'')+'" aria-pressed="'+(a==="control")+'" data-mobr="'+t.key+'" data-mobra="control">'+t.retry.yes+'</button>'+
         '<button type="button" class="'+(a==="mobility"?'on':'')+'" aria-pressed="'+(a==="mobility")+'" data-mobr="'+t.key+'" data-mobra="mobility">'+t.retry.no+'</button></div></div>';

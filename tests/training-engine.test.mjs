@@ -1101,3 +1101,26 @@ test("retry routing: control → own-the-range drills in the warm-up instead of 
   const all = [push, lower, pull, "speed"].flatMap((n) => [...C.wu(n), ...C.cd(n)]).concat(C.rest()).map((m) => m[0]);
   assert.deepEqual([...new Set(all)].filter((n) => !C.cue(n)), [], "moves without a how-to cue");
 });
+
+test("retry review: every retry says skip it if the move pinched; the copy routes, it doesn't diagnose", () => {
+  const box = fn(MOB, "mobRetryHtml");
+  assert.match(box, /skip it if the move pinched/i, "one line in every retry box, not just the trunk's");
+  const ctl = MOB.match(/var MOB_CTL = \{[\s\S]*?\n  \};/)[0], rng = MOB.match(/var MOB_RNG = \{[\s\S]*?\n  \};/)[0];
+  for (const line of (ctl + rng).split("\n").filter((l) => /^\s+\w+:"/.test(l))) {
+    assert.match(line, /we’ll treat it as/, `hedged: ${line.trim().slice(0, 60)}`);
+    assert.doesNotMatch(line, /more than tight|so it’s posture control|the range is there/, line.trim().slice(0, 60));
+  }
+  assert.match(ctl, /hiprot:"[^"]*every cool-down and rest day/, "says where the lift-offs really go (every cool-down + rest day)");
+  assert.match(ctl, /lats:"[^"]*instead of an extra hang and stretch/, "the pull day's own hang and stretch stay");
+  assert.doesNotMatch(fn(MOB, "renderMobility"), /routes the right stretches/, "a 🔴 routes drills now, not only stretches");
+  const KB = readFileSync(new URL("../supabase/functions/_shared/knowledge.ts", import.meta.url), "utf8");
+  assert.match(KB, /retry with help/i, "the coach knows about the retry");
+  assert.match(KB, /active cross-body hold/i);
+});
+
+test("retry review: tapping the chosen answer again clears it; every score and answer button reports its state", () => {
+  const h = fn(MOB, "mobEnsureModal");
+  assert.match(h, /if\(mobState\.retry\[rk\]===ra\) delete mobState\.retry\[rk\]; else mobState\.retry\[rk\]=ra;/);
+  assert.match(fn(MOB, "renderMobility"), /aria-pressed="'\+\(mobState\.vals\[t\.key\]===v\)\+'"/, "score buttons say which is chosen");
+  assert.match(h, /mobRefocus\(/, "focus returns to the tapped button after the re-render");
+});

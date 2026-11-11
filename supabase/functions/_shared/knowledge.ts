@@ -215,6 +215,12 @@ speed/power work in, so the deficit costs fat, not mph. Never frame a cut as "ju
   posture), lead arm across the chest, and an overhead reach against a wall (lats). Older screens
   were trunk / 90/90 hip switch / overhead squat. A tight lead arm or lats often shows as a bent lead
   arm or "chicken wing" through the finish; the fixes are the cross-body and lat stretches it adds.
+- Turn check retry with help (Nov 2026): a move scored short offers an optional retry with help
+  (a bench back, lying face down, sitting down, the other hand, lying on the back), skipped if it
+  pinched. "Gets there with help" is treated as control: an own-the-range drill replaces the warm-up
+  stretch (seated turn & hold, 90/90 lift-offs, an active cross-body hold, dead bugs with the arms
+  overhead). "Still short" keeps the stretches. It routes drills; it is not a diagnosis, and the
+  score is always the move on its own.
 - Rotation through range (Nov 2026): both Pull + Rotate days include the Half-Kneeling Cable Rotation,
   2 × 8 / side, light and slow — hips square, the chest turns from the upper back, pause at the end.
   The pull-day cool-down and the rest-day routine include a wall biceps & chest stretch (palm on a wall

@@ -14,9 +14,12 @@ stretches. When the range is already there with help, more stretching isn't the 
   - **lead arm:** the other hand eases it across;
   - **lats:** on your back, low back flat.
   - The answers are "Gets there with help" (control) or "Still short" (range).
-  - Skipping it keeps the old routing.
+  - Skipping it keeps the old routing. Tapping the chosen answer again clears it, back to skipped.
   - Scoring a move ✅ removes its box and answer.
-  - The retry copy says "gently, never a pinch", and the per-move pain stop stays below it.
+  - Every retry box says "Gently — skip it if the move pinched", and the per-move pain stop stays
+    below it.
+  - Every score and answer button has `aria-pressed`, and focus returns to the tapped button after
+    each re-render (`mobRefocus`).
 - **The score never changes:** it's always the move on its own.
   - Answers save with the screen as `retry {key: "control"|"mobility"}`, for short, answered moves
     only. A screen without answers keeps the old shape.
@@ -30,23 +33,41 @@ stretches. When the range is already there with help, more stretching isn't the 
     - lats: Dead bug, arms overhead, upper days. The pull day keeps its own base hang.
   - **Range** keeps the stretches. For the coil it also adds the open-book.
   - Each new drill has a how-to cue.
-  - The result screen names which kind of fix each move got.
+  - The result screen names which kind of fix each move got, hedged as "we'll treat it as control /
+    range" rather than stated as a cause. It says where the drills really go: lift-offs in every
+    cool-down and rest day, and an *extra* hang and stretch (the pull day keeps its own).
+  - The screen intro now says a 🔴 routes "the right drills", and the coach's knowledge base
+    describes the retry.
 - **Honesty:** this is a routing heuristic, the active-vs-assisted gap, not a validated diagnosis.
   TPI's own test→fault map found 3 links in about 168 pairings (Gulgin 2014). It only picks
   low-stakes drills and makes no swing-fault claims. The turn guard and the Octane pillar are
   unchanged.
+- **Pre-PR independent review:** no crash, data or sync issues. All 7 findings were fixed with
+  failing tests first:
+  - only the trunk retry warned about a pinch;
+  - the result copy read as a diagnosis;
+  - two result lines didn't match the routing;
+  - the intro and the coach still promised stretches only;
+  - focus was lost on every tap;
+  - score buttons had no pressed state;
+  - an answer couldn't be cleared.
+  - Accepted as is: on lower days the hip lift-offs appear in both the warm-up and the cool-down
+    (thread-the-needle already did that).
 - **Verified:**
-  - 3 new tests in `tests/training-engine.test.mjs`, all failing without the change, cover:
-    - every move's retry, in its own words;
+  - 5 new tests in `tests/training-engine.test.mjs`, all failing without the change, cover:
+    - every move's retry, in its own words, with the pinch line;
     - saving answers only for short moves, with the score unaffected;
     - latest-screen-only control and range;
     - control and range routing in warm-ups, cool-downs and rest days, with no duplicates;
     - a cue for every routed drill.
-  - Suite 303/303.
+    - hedged result copy, the toggle, `aria-pressed` and refocus.
+  - Suite 305/305.
   - A Playwright e2e on the built app passes in light and dark, with zero page errors and 44px
     retry buttons. It covers:
-    - a retry under each short move only;
-    - ✅ clearing an answer;
+    - a retry under each short move only, each with the pinch line;
+    - ✅ clearing an answer, and Enter on the chosen answer clearing it;
+    - focus staying on the tapped answer and score button. These checks fail on the pre-review
+      build;
     - the saved retry and score;
     - the result naming the control fixes;
     - the Train warm-up (in its fold) routing the control drills with their how-to, not
