@@ -574,6 +574,16 @@
   .pl-ramp { margin:10px 0 0; padding:10px 12px; border-radius:12px; border:1px dashed rgba(212,176,106,.45);
     background:rgba(212,176,106,.08); color:#e9dcc0; font-size:13px; line-height:1.45; }
   .pl-ramp b { color:#f3e6c4; }
+  /* "How did the last set feel?" (070 plFeelHtml): player-only, always dark. */
+  .pl-feel { margin:12px 0 4px; }
+  .pl-feel-h { font-size:13px; font-weight:700; color:#cfe9d8; margin-bottom:8px; }
+  .pl-feel-row { display:flex; gap:8px; }
+  .pl-feel-b { flex:1 1 0; min-height:52px; padding:8px 6px; border-radius:12px; border:1px solid rgba(255,255,255,.14);
+    background:rgba(255,255,255,.05); color:#e8f3ec; font:700 14px var(--font); cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:2px; }
+  .pl-feel-b span { font-size:11px; font-weight:600; color:#a9c7b5; }
+  .pl-feel-b.on { background:#1f6b43; border-color:#2f9a62; color:#fff; }
+  .pl-feel-b.on span { color:#d6f5e3; }
+  .pl-feel-note { margin-top:8px; font-size:12px; color:#bfe0cc; }
 
   /* speed day — same clean table as lifts, kept distinct with a warm accent */
   .speedday .day-head { background:#fdf1e3; color:#9a5b1c; }

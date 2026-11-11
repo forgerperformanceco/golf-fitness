@@ -78,8 +78,10 @@
     if(lx&&lx._reduced) return {w:null,bump:false,band:band};   // only a deload/recovery log to go on
     var wave=waveFor(week), lw=parseFloat(lastW), inc=incNum(x.name);
     var days=ffDaysSince(lx), back=days>=28;
-    var bump=band!=="recharge" && wave!=="peak" && days<14 && !isBallistic(x.name) &&
+    var earned=band!=="recharge" && wave!=="peak" && days<14 && !isBallistic(x.name) &&
       progressReady(lx,(lx&&lx.target)||x.target);
+    // Maintaining (ffEasyProgress): the jump waits for a second clean session at this weight.
+    var hold=earned && ffEasyProgress() && !ffHeldTwice(lx), bump=earned && !hold;
     var base=repShiftLoad(lw,x,lx), ref=(base!=null)?base:lw, shift=null, w;
     if(wave==="deload") w=prescribeW(ref,x.name,false,"deload");   // ~60% of the load for today's reps
     else if(base!=null && base!==lw){
@@ -95,7 +97,18 @@
     if(back && ref>0){ var bk=ffReduceLoad(ref,0.9); if(bk!=null && (w==null || bk<w)) w=bk; }   // ease back in
     var rl=ffReadinessLoad(ref,band);
     if(rl!=null) w=(w!=null&&w<rl)?w:rl;   // a recovery dose never lifts above a deload load
-    return {w:w,bump:bump,band:band,shift:shift,back:back&&w!=null};
+    var grind=!!(lx && !lx._reduced && lx.feel==="grind");   // last time was a grind: the jump waits
+    return {w:w,bump:bump,band:band,shift:shift,back:back&&w!=null,hold:hold&&w==null,grind:grind&&w==null};
+  }
+  // Every working set at this weight (or heavier), every rep, last time AND the time
+  // before. A top set alone isn't holding a weight: 225/200/200/200 doesn't count (Codex, #125).
+  function ffHeldTwice(lx){
+    var p=lx&&lx._prev; if(!p) return false;
+    function top(s){ return (s.sets||[]).reduce(function(m,st){ var v=parseFloat(st&&st.w); return v>m?v:m; }, 0); }
+    var w=top(lx);
+    function all(s){ return (s.sets||[]).filter(function(st){ return st && st.r!=="" && st.r!=null; })
+      .every(function(st){ return parseFloat(st.w)>=w; }); }
+    return all(lx) && all(p) && progressReady(p, p.target||lx.target);
   }
   // Days since the lift was last done at any dose (lastSessionFor stamps _seen;
   // _ts — the full-dose reference — for older callers). 0 = unknown.

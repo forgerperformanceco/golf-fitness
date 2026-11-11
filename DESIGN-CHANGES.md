@@ -1,5 +1,58 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## "How did the last set feel?" — a grind holds the weight (Nov 11, 2026)
+
+Owner said yes to the gap named when he asked about progressive overload: reps alone can't tell an
+easy 4 from a grinding 4, so a grinding top set still earned the jump.
+
+- **The question** (player, 070 `plFeelHtml`): once every set of a loaded lift is ticked (with a
+  weight logged), three chips: **Easy** "3+ reps left" · **Solid** "1–2 left" · **Grind** "nothing
+  left". Optional; tap again to clear. Not for throws, jumps or bodyweight drills. Saved as
+  `ex[].feel` on the session (roams with `ff_log`) and in permanent history (`ff_history`, so a Grind
+  still holds after a plan restart). A line confirms the pick ("Got it. Next time holds this weight so
+  you can own every rep."). The rating belongs to the sets it was given for: adding, removing or
+  un-ticking a set, or swapping the lift, clears it (Codex, #125).
+- **The rule** (040 `progressReady`): a Grind is not ready, so next session holds the weight and the
+  player says "💪 Last time was a grind at 225 lb. Hold it and own every rep." (`dose.grind`). The next
+  non-grind session with every rep earns the jump. On a maintaining plan a Grind breaks the
+  two-in-a-row (`_prev` carries its feel). Easy / Solid / no answer: unchanged.
+- Science: a coarse reps-in-reserve read (RIR-based autoregulation) without asking for numbers.
+- The inline (type-it-yourself) logger doesn't ask; no answer = the normal rule.
+
+**Verified:** `npm test` 272/272 with the ramp-up and maintaining changes (new: Grind holds, Easy/Solid/none don't, the next clean session
+earns it, a Grind breaks a maintain plan's pair; `tests/set-feel.test.mjs`: asked only after every set
+with a weight, never for throws/jumps/bodyweight, pick + meaning + tap-to-clear, the hold copy). Both
+new files fail on the old code. Playwright, built app, light + dark, zero page errors, Deadlift on
+the Hinge day: no question until all four sets are ticked → Grind saved on the session → tap again
+clears → Easy saved; with a Grind at 225 last time → "Last time was a grind at 225 lb. Hold it…" and
+the placeholder stays 225 (a clean 225 → 230).
+
+## Maintaining plans add weight more slowly (Nov 11, 2026)
+
+Owner, after asking whether progressive overload is built in: "maybe we take it a little easier on
+maintaining plans." It is built in (double progression, the wave, rep-change load matching,
+readiness/deload/return guards, stall and PR cards), and it ran the same on every plan: one session
+with every rep at the target meant more weight next time, on a maintain or cut goal too.
+
+- **Maintaining = a maintain/cut goal, or an in-season plan** (`ffEasyProgress`, 035, next to
+  `trainRetain`). There the jump needs every rep, on every working set, at that weight **two
+  sessions in a row** (a top set alone isn't holding it: 225/200/200/200 doesn't count; Codex, #125)
+  (`ffHeldTwice` in 077, fed by `lastSessionFor`'s new `_prev`, the previous full-dose session of the
+  lift). After one clean session the player says "🎯 Maintaining: hold 225 lb. Hit every rep again and
+  it goes up next time." Building plans are unchanged. One `ffDose` gate, so the player, the inline
+  logger and the Train card all agree.
+- **No "has stalled" card on maintaining plans**: holding a weight is the plan there.
+- Science: strength is kept by keeping intensity; volume can drop substantially (Bickel 2011,
+  Spiering 2021). Slower load increases fit a cut (recovery is limited) and in-season (rounds come
+  first) as well as maintain.
+
+**Verified:** `npm test` 264/264 (new: maintain + cut hold after one clean session, add after two,
+hold after a miss the session before, hold with only one session on record, building unchanged; which
+plans count as maintaining; the stall gate and player copy). Both new tests fail on the old code.
+Playwright, built app, light + dark, zero page errors, Deadlift on the Hinge day: Build, 225 hit once
+→ "You earned more weight — today: 230 lb" (placeholder 230); Maintain, once → "Maintaining: hold 225
+lb…" (placeholder 225); Maintain, twice → 230.
+
 ## Ramp-up sets move to the first main lift, with real numbers (Nov 11, 2026)
 
 Owner, with a screenshot of the player's Station 1: "Can't have warmup reps here cause we haven't

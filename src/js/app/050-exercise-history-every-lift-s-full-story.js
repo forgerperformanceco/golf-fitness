@@ -247,8 +247,10 @@
     var entry={ id:id, ts:now, doneTs:(prev && (prev.doneTs||prev.ts)) || now, date:date, day:day, week:week, sets:setCount, volume:Math.round(vol),
       wave:sess.wave||undefined, rb:rb,
       note:(sess.note||"").slice(0,240),
-      ex:(sess.ex||[]).map(function(x){ return { name:x.name, target:x.target,
-        sets:(x.sets||[]).filter(function(s){ return s.w||s.r||s.done; }).map(function(s){ return {w:s.w,r:s.r}; }) }; }) };
+      ex:(sess.ex||[]).map(function(x){ var o={ name:x.name, target:x.target,
+        sets:(x.sets||[]).filter(function(s){ return s.w||s.r||s.done; }).map(function(s){ return {w:s.w,r:s.r}; }) };
+        if(x.feel) o.feel=x.feel;   // a Grind still holds the weight after a plan restart (Codex, #125)
+        return o; }) };
     if(idx>=0) hist[idx]=entry; else hist.push(entry);
     lsSet("ff_history", hist);
   }
@@ -301,11 +303,13 @@
       // sets reset (different lift, different loads), and it sticks in the plan.
       var px=player.sess.ex[swapCtx.xi]; px.name=chosen; px.orig=swapCtx.orig;
       px.sets=px.sets.map(function(){ return {w:"",r:"",done:false}; });
+      plFeelReset(px);
       if(player.whyOpen) player.whyOpen[swapCtx.xi]=false;
       plSave(); plRender();
     } else if(ilog && ilog.sess.ex[swapCtx.xi]){
       var ex=ilog.sess.ex[swapCtx.xi]; ex.name=chosen; ex.orig=swapCtx.orig;
       ex.sets=ex.sets.map(function(){ return {w:"",r:"",done:false}; });
+      plFeelReset(ex);
       saveILog(); renderILog();
     } else { renderPhase(); }
     closeSwap();

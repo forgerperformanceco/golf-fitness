@@ -681,6 +681,10 @@
   // in maintenance / a deficit, while heavy strength, power, rotation and ALL speed work
   // stay at full intensity — that's what protects muscle and clubhead speed.
   function trainRetain(){ return state.goal==="maintain" || state.goal==="cut"; }
+  // Maintaining (maintain/cut goal, or an in-season plan): load goes up more slowly —
+  // every rep at a weight two sessions in a row, not one (077 ffDose). Keeping
+  // strength needs the weight kept on the bar, not added to it (owner, Nov 2026).
+  function ffEasyProgress(){ return trainRetain() || ffInSeason(); }
   function adjSets(sr, name){
     var p=purposeFor(name);
     if(trainRetain()){

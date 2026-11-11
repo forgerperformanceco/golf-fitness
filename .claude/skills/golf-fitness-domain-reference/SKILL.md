@@ -292,6 +292,21 @@ event." The ramp is a design choice: the optimal weekly dose is unknown
   last session, all with reps ≥ `topReps(target)`, and never fires off a
   `_reduced` (deload/recovery) session. Load- vs rep-progression build muscle
   about equally (Plotkin 2022), so the single-target model is fine.
+- **Maintaining plans progress more slowly** (Nov 2026): on a maintain/cut goal or
+  an in-season plan (`ffEasyProgress`, 035), `ffDose` (077) adds load only after
+  every rep at that weight **two sessions in a row** (`ffHeldTwice`, reading the
+  previous full-dose session `lastSessionFor` now attaches as `_prev`); after one,
+  the player says "🎯 Maintaining: hold X lb" (`dose.hold`). Rationale: keeping
+  strength needs intensity kept, not raised; volume can drop a lot (Bickel 2011;
+  Spiering 2021). The Home "has stalled" card is off on these plans too.
+- **Effort check** (Nov 2026): after every set of a loaded lift is ticked, the player
+  asks "How did the last set feel?" — Easy (3+ reps left) / Solid (1–2) / Grind
+  (nothing left), stored as `ex[].feel`. `progressReady` returns false on a Grind, so
+  all reps but nothing in reserve holds the weight one more session ("💪 Last time was
+  a grind… hold it"); a Grind also breaks a maintaining plan's two-in-a-row. Easy /
+  Solid / no answer: the normal rule. A coarse reps-in-reserve read (RIR-based
+  autoregulation, Helms 2016; Zourdos 2016) without asking for numbers. Player only;
+  the inline logger doesn't ask.
 - **Increment**: `incNum(name)` (040) — equipment-aware since the Oct 2026 fix
   round: med ball → **0** (no load bump); lower-body compounds
   (`Squat|Deadlift|Hinge|Lunge|Hip Thrust|Leg Press|Romanian|Swing|Carry`) → **5**;

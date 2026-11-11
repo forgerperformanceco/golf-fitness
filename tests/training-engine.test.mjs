@@ -46,7 +46,7 @@ function decl(source, name, open) {
 }
 
 const PLAN_FNS = ["effortNote", "ffOnRamp", "ffHealth", "ffHealthCaution", "heavyAfter", "warmupBase", "primerFor", "purposeFor", "isBallistic",
-  "isBigLift", "isBodyweightEx", "trainRetain", "adjSets", "eventInfo", "waveFor", "bumpReps", "trimSets", "plainReps",
+  "isBigLift", "isBodyweightEx", "trainRetain", "ffEasyProgress", "adjSets", "eventInfo", "waveFor", "bumpReps", "trimSets", "plainReps",
   "waveAdjust", "capSets", "plainSetCount", "ffInSeason", "ffInSeasonMode", "ffInSeasonPlan", "ffLowImpact", "speedRows", "effTarget", "overspeedDose", "speedDrillTarget", "prescribeW", "ffReduceLoad", "repShiftLoad",
   "normName", "have", "equipNeedsFor", "equipOk", "speedMode", "resolveEx", "resolveDay", "activeDays", "ffSessionsPerWeek", "dayTargets", "sessionMinutes",
   "cdHold", "cooldownBase", "cdAddFixes", "cooldownList", "recoveryList", "holdSecs", "listMinutes"];
@@ -59,7 +59,7 @@ function engine({ goal = "leanbulk", equip = null, store = {}, week = 2, now = D
     decl(LOGGER, "EXERCISE_DB", "{"),
     ...PLAN_FNS.map((n) => fn(PLAN, n)), ...LOGGER_FNS.map((n) => fn(LOGGER, n)),
     fn(INLINE, "isBarbell"),
-    ...["ffSessBand", "ffReadinessLoad", "ffDose", "ffDaysSince", "ffBackFor", "ffReadinessRetarget", "ffReadinessAdaptSession"].map((n) => fn(READY, n)),
+    ...["ffSessBand", "ffReadinessLoad", "ffDose", "ffHeldTwice", "ffDaysSince", "ffBackFor", "ffReadinessRetarget", "ffReadinessAdaptSession"].map((n) => fn(READY, n)),
     fn(STATS, "bigLiftStats"), fn(PLAYER, "e1RM"), fn(PLAYER, "sessionsByWeek"), fn(PLAYER, "strengthGain"),
     fn(PLAYER, "plLifetimeBests"), fn(HOME, "ffInsights"),
   ].join("\n");
@@ -802,4 +802,78 @@ test("rested mid-session (Nov 2026): a skipped, unfinished session's sets don't 
   assert.equal(E.lastSessionFor("Day 1", 4).ex[0].sets[0].w, "200", "control: an unfinished session still counts (older rule)");
   E = engine({ store: { ff_start: startFor(4, now), ff_log: log, ff_skipped_sessions: { "3|Day 1": now - 7 * DAY } }, now, week: 4 });
   assert.equal(E.lastSessionFor("Day 1", 4).ex[0].sets[0].w, "300", "rested instead: last real session wins");
+});
+
+// Nov 2026, owner: "maybe we take it a little easier on maintaining plans." Keeping strength
+// needs the load kept, not added: on a maintain/cut goal (or an in-season plan) the jump waits
+// for every rep at that weight TWO sessions in a row. Building plans keep the one-session rule.
+test("maintaining plans: the load goes up after two clean sessions at a weight, not one", () => {
+  const now = Date.now(), day = "Day 1", x = { name: "Deadlift", target: "4 × 4" };
+  const s = (w, reps, ago) => ({ wave: "accumulate", finishedAt: "x", _ts: now - ago * DAY, ex: [logged("Deadlift", "4 × 4", w, reps)] });
+  const run = (goal, log) => {
+    const E = engine({ goal, store: { ff_start: startFor(4, now), ff_log: log, ff_history: [] }, now, week: 4 });
+    const lx = E.lastSessionFor(day, 4).ex[0];
+    return E.ffDose(lx.sets[0].w, x, lx, 4, {});
+  };
+  const once = { ["2|" + day]: s(220, [4, 4, 4, 4], 14), ["3|" + day]: s(225, [4, 4, 4, 4], 7) };   // just moved up to 225
+  const twice = { ["2|" + day]: s(225, [4, 4, 4, 4], 14), ["3|" + day]: s(225, [4, 4, 4, 4], 7) };
+  const missed = { ["2|" + day]: s(225, [4, 4, 3, 3], 14), ["3|" + day]: s(225, [4, 4, 4, 4], 7) };
+  // Building: one clean session earns it (unchanged).
+  assert.equal(run("leanbulk", once).w, 230);
+  // Maintaining: hold after one, add after two; a miss the time before means hold.
+  for (const goal of ["maintain", "cut"]) {
+    const h = run(goal, once);
+    assert.equal(h.bump, false, goal); assert.equal(h.w, null, goal); assert.equal(h.hold, true, `${goal}: says why it holds`);
+    assert.equal(run(goal, twice).w, 230, `${goal}: two clean sessions → +5`);
+    assert.equal(run(goal, missed).bump, false, `${goal}: missed reps last-but-one → hold`);
+  }
+  // Only one session on record: maintaining holds (nothing to confirm it with).
+  assert.equal(run("maintain", { ["3|" + day]: s(225, [4, 4, 4, 4], 7) }).bump, false);
+});
+
+test("maintaining = maintain/cut goal or an in-season plan; the stall card stays quiet there", () => {
+  const ctx = { state: { goal: "leanbulk", inseason: false } };
+  vm.runInNewContext(["trainRetain", "ffInSeasonMode", "ffInSeason", "ffEasyProgress"].map((n) => fn(PLAN, n)).join("\n"), ctx);
+  assert.equal(ctx.ffEasyProgress(), false);
+  for (const st of [{ goal: "maintain" }, { goal: "cut" }, { goal: "leanbulk", inseason: "lite" }, { goal: "bulk", inseason: 2 }]) {
+    ctx.state = st; assert.equal(ctx.ffEasyProgress(), true, JSON.stringify(st));
+  }
+  assert.match(HOME, /!ffEasyProgress\(\); \}catch\(_\)\{\}   \/\/ maintaining: holding a weight is the plan, not a stall/);
+  assert.match(PLAYER, /dose\.hold \? '🎯 Maintaining: hold <b>'\+topLast\+' lb<\/b>\. Hit every rep again and it goes up next time\.'/);
+});
+
+// Nov 2026: "How did the last set feel?" in the player. Reps can't tell an easy 4 from a
+// grinding 4; a Grind holds the weight one more session. Easy / Solid / unanswered: as before.
+test("a grind holds the weight next time; easy, solid or no answer keep the normal rule", () => {
+  const now = Date.now(), day = "Day 1", x = { name: "Deadlift", target: "4 × 4" };
+  const s = (w, feel, ago) => ({ wave: "accumulate", finishedAt: "x", _ts: now - ago * DAY,
+    ex: [{ ...logged("Deadlift", "4 × 4", w, [4, 4, 4, 4]), ...(feel ? { feel } : {}) }] });
+  const run = (goal, log) => {
+    const E = engine({ goal, store: { ff_start: startFor(4, now), ff_log: log, ff_history: [] }, now, week: 4 });
+    const lx = E.lastSessionFor(day, 4).ex[0];
+    return { lx, d: E.ffDose(lx.sets[0].w, x, lx, 4, {}) };
+  };
+  for (const feel of [undefined, "easy", "solid"]) assert.equal(run("leanbulk", { ["3|" + day]: s(225, feel, 7) }).d.w, 230, `feel ${feel}`);
+  const g = run("leanbulk", { ["3|" + day]: s(225, "grind", 7) });
+  assert.equal(g.lx.feel, "grind", "lastSessionFor carries the feel");
+  assert.equal(g.d.bump, false); assert.equal(g.d.w, null); assert.equal(g.d.grind, true, "the player says why");
+  // The next clean session at that weight (not a grind) earns it.
+  assert.equal(run("leanbulk", { ["2|" + day]: s(225, "grind", 14), ["3|" + day]: s(225, "solid", 7) }).d.w, 230);
+  // Maintaining: two clean sessions, but the first was a grind → hold.
+  assert.equal(run("maintain", { ["2|" + day]: s(225, "grind", 14), ["3|" + day]: s(225, "solid", 7) }).d.bump, false);
+  assert.equal(run("maintain", { ["2|" + day]: s(225, "easy", 14), ["3|" + day]: s(225, "solid", 7) }).d.w, 230);
+});
+
+test("maintaining: 'held twice' means every working set at that weight, both times (Codex, #125)", () => {
+  const now = Date.now(), day = "Day 1", x = { name: "Deadlift", target: "4 × 4" };
+  const s = (ws, ago) => ({ wave: "accumulate", finishedAt: "x", _ts: now - ago * DAY,
+    ex: [{ name: "Deadlift", target: "4 × 4", sets: ws.map((w) => ({ w: String(w), r: "4", done: true })) }] });
+  const run = (log) => {
+    const E = engine({ goal: "maintain", store: { ff_start: startFor(4, now), ff_log: log, ff_history: [] }, now, week: 4 });
+    const lx = E.lastSessionFor(day, 4).ex[0];
+    return E.ffDose("225", x, lx, 4, {});
+  };
+  assert.equal(run({ ["2|" + day]: s([225, 200, 200, 200], 14), ["3|" + day]: s([225, 225, 225, 225], 7) }).bump, false, "one top set at 225 the time before isn't holding 225");
+  assert.equal(run({ ["2|" + day]: s([225, 225, 225, 225], 14), ["3|" + day]: s([225, 200, 200, 200], 7) }).bump, false, "nor this time");
+  assert.equal(run({ ["2|" + day]: s([225, 225, 225, 225], 14), ["3|" + day]: s([225, 225, 225, 225], 7) }).w, 230);
 });

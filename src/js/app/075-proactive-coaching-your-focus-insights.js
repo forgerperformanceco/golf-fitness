@@ -109,7 +109,8 @@
     // peak week, and never on a recovery-dose day.
     var stallOk=false;
     try{ var rToday=(typeof ffReadinessToday==="function")?ffReadinessToday():null;
-      stallOk=!!planStart() && waveFor(curWeek())==="accumulate" && !(rToday && rToday.band==="recharge" && !rToday.original); }catch(_){}
+      stallOk=!!planStart() && waveFor(curWeek())==="accumulate" && !(rToday && rToday.band==="recharge" && !rToday.original) &&
+        !ffEasyProgress(); }catch(_){}   // maintaining: holding a weight is the plan, not a stall
     bigLiftStats().slice(0,4).forEach(function(L){
       if(L.n>=2 && L.last===L.best && L.last>L.first)
         out.push({prio:58, sig:"spr:"+L.name+":"+Math.round(L.last), ic:"🏋️", title:"Strength PR — "+ffEsc(L.name),
