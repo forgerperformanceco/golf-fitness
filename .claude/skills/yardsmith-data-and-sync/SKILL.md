@@ -69,7 +69,8 @@ that's fine because it only reads (`fairwayfuel`, `ff_targets`, `ff_score`,
 
 ## 2. The complete localStorage catalog
 
-Master key is literally `"fairwayfuel"`; everything else is `ff_*`. The synced
+Master key is literally `"fairwayfuel"`; everything else is `ff_*`. (Profile fields include
+`protein: "plan"|"1lb"` since Nov 2026, a setting like `meals`; an unknown value reads as "plan".) The synced
 set is `KEYS` in `cloud-sync.js:20` — **26 keys**. Any key not in `KEYS` never
 leaves the device. Any synced key without a `MERGE` entry (cloud-sync.js:431)
 is a *setting*: on conflict the **cloud value wins wholesale**.

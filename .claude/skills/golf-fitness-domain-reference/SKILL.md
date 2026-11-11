@@ -373,7 +373,7 @@ base   = max(TDEE × (1 + goal.pct), floorKcal)                   // 1200 women 
 adj    = clamp(ff_kcal_adj, max(−600, min(0, floorKcal − base)), +600)   // ffAdjRange
 target = max(base + adj, floorKcal)                               // metabolism check-in nudge
 referenceLb = min(weightLb, 30 × heightM² × 2.20462)             // BMI-30 cap
-proteinG = round5( referenceLb × goal.proteinPerLb )
+proteinG = round5( referenceLb × ffProteinPerLb(goal, state.protein) )   // "1lb" → max(goal g/lb, 1); Nov 2026
 fatG     = round5( clamp(referenceLb × goal.fatPerLb, 45, 100) )
 fatG     = max(fatG, ceil(target × 0.20 / 45) × 5)                // Oct 2026: fat ≥20% kcal (FAT_MIN_PCT), rounded up to 5 g; may pass 100 g
 carbG    = round5( max(0, (target − proteinG×4 − fatG×9) / 4) )
@@ -395,6 +395,12 @@ protein 4, carb 4, fat 9. `round5` = nearest multiple of 5. Results are stashed 
 | Bulk (`bulk`) — **retired Nov 2026**, legacy users only | **+20%** | 0.90 | 0.35 | +0.5–0.75%/wk | 5 |
 | In-Season Maintain (`maintain`) | ±0% | 0.85 | 0.35 | hold | 4 |
 | Lean Out / Cut (`cut`) | **−20%** | **1.00** | 0.30 | −1 to −0.5%/wk | 3 |
+
+**The 1 g/lb choice (Nov 2026, Fuel → Protein; profile field `protein: "plan"|"1lb"`):**
+it raises protein to at least 1 g per lb of reference weight. The calories come out of carbs,
+so the target and fat don't move. It's hidden on Lean Out, which is already 1 g/lb. It's offered
+because 1 g/lb is a common, safe habit (no harm on kidneys, liver or lipids in healthy trained
+people at >3 g/kg; Antonio 2016). It's not a muscle lever above the plan's values.
 
 0.85–1.0 g/lb of reference weight is ~1.9–2.2 g/kg — at or above Morton 2018's
 ~1.6 g/kg plateau, up to its ~2.2 upper bound. On a cut, 2.2 g/kg of body weight is

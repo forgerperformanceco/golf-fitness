@@ -1,5 +1,45 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## Fuel: a "1 g per lb" protein option (Nov 11, 2026)
+
+The owner said: "I tend to eat more protein than this. I've always at least done 1g per 1lb …
+add the 1g per lb option." The plan's value (0.85 g/lb on In-Season Maintain) is already past where
+muscle gains level off (Morton 2018), but 1 g/lb is a safe, common habit. The app should follow it
+without the calories quietly creeping up.
+
+- **Where it lives:** Fuel's targets card has a **Protein** row under "Meals per day". It's a
+  two-button segment: the plan's value (e.g. "0.85 g/lb") or "1 g/lb".
+  - With the plan chosen, the line under it reads "The plan's … is already past where muscle gains
+    level off".
+  - With 1 g/lb chosen, it reads "The extra comes out of carbs — calories stay the same".
+  - The breakdown table notes "your choice".
+  - The row is hidden on Lean Out, which is already 1.0 g/lb.
+- **The math (024 `ffProteinPerLb`):**
+  - "1lb" = max(goal g/lb, 1) × reference weight (the BMI-30 cap still applies). It never lowers a
+    goal that's already higher.
+  - `ffMacroTargets` fills carbs last, so the extra protein's calories come out of carbs. The
+    calorie target and fat are unchanged.
+  - The check-in's carb preview reuses `macroIn`, so it sees the same protein.
+- **Data:** `protein: "plan"|"1lb"` in the `fairwayfuel` profile, a setting like `meals`. It
+  already roams, so no new key and no sync change. An unknown value reads as "plan".
+- **Verified:**
+  - `tests/protein-option.test.mjs` (3 tests, all failing without the change) covers:
+    - the choice per goal;
+    - protein up with carbs paying for it, kcal and fat unchanged;
+    - BMI-30 reference;
+    - the `macroIn` carry-through;
+    - the Fuel wiring and the profile save and restore.
+  - Suite 308/308.
+  - A Playwright e2e at 390px passes in light and dark, with zero page errors. It covers:
+    - Build: the 0.9 g/lb default, then 1 g/lb taking 165 → 185 g with kcal 3080 and fat 70
+      unchanged and carbs 445 → 425;
+    - the protein card;
+    - the profile surviving a reload through the app's own restore;
+    - no row on Lean Out;
+    - Maintain: "0.85 g/lb" on one line, 44px buttons, no horizontal overflow.
+  - Audits match baseline: train 18/18, scroll 16/16, contrast clean, type 1 known.
+  - The release gate, claims-lint and data contract are clean.
+
 ## Turn check: range or control? A retry with help for a short move (Nov 11, 2026)
 
 TPI piece #3. In-person screens retest a failed move with help to tell a range limit from a control

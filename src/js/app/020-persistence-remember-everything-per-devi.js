@@ -3,7 +3,7 @@
     if (typeof planState === "undefined") return;     // not ready during first init render
     try {
       lsSet("fairwayfuel", {
-        sex:state.sex, goal:state.goal, workout:state.workout, meals:state.meals,
+        sex:state.sex, goal:state.goal, workout:state.workout, meals:state.meals, protein:(state.protein==="1lb"?"1lb":"plan"),
         age:$("age").value, weight:$("weight").value,
         heightFt:$("heightFt").value, heightIn:$("heightIn").value,
         activity:$("activity").value,
@@ -40,6 +40,7 @@
       });
     }
     if(typeof data.meals!=="undefined") state.meals=data.meals;
+    if(data.protein==="1lb" || data.protein==="plan") state.protein=data.protein;
     if(data.freq) planState.freq=data.freq;
     if(data.equip && typeof data.equip==="object"){
       Object.keys(data.equip).forEach(function(k){ planState.equip[k]=!!data.equip[k]; });
