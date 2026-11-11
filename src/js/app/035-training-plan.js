@@ -976,7 +976,7 @@
         return '<div class="day-focus speedday">'+
           speedTestCardHtml()+
           '<button class="pl-start" data-startplayer="'+escAttr(d.name)+'" type="button"><span class="pls-go">›</span>'+
-            '<b>'+(spDone?'✓ Speed session done — replay it':(((spWork||spSession)?ffIcon("play",13)+' Resume':ffIcon("play",13)+' Start')+' speed session'))+'</b>'+
+            '<b>'+(spDone?'✓ Speed session done — review or edit':(((spWork||spSession)?ffIcon("play",13)+' Resume':ffIcon("play",13)+' Start')+' speed session'))+'</b>'+
             '<span class="pls-sub">Guided player — warm-up, max-intent drills, full rest</span></button>'+
           '<details class="prelift"><summary>🔥 Warm-up &amp; the why — do these first</summary><div class="prelift-body">'+
             toggle+warmupHtml("speed", false, showPrimerNote)+
@@ -1053,7 +1053,7 @@
       }
       return '<div class="day-focus">'+
         '<button class="pl-start" data-startplayer="'+escAttr(d.name)+'" type="button"><span class="pls-go">›</span>'+
-          '<b>'+(plDone?'✓ Session finished — replay it':((hasWork?ffIcon("play",13)+' Resume':ffIcon("play",13)+' Start')+' workout'))+'</b>'+
+          '<b>'+(plDone?'✓ Session finished — review or edit':((hasWork?ffIcon("play",13)+' Resume':ffIcon("play",13)+' Start')+' workout'))+'</b>'+
           '<span class="pls-sub">Guided player — warm-up, prescribed loads, rest timer, cool-down</span></button>'+
         ffPullCapHtml(d)+
         // Warm-up/primer starts COLLAPSED — it's prep, not the workout, and the
@@ -1256,7 +1256,7 @@
       } else if(!isFutureDay(featured.name)){
         var heroSession=getSession(wk,featured.name), heroFinished=!!(heroSession&&heroSession.finishedAt);
         html+='<button type="button" class="train-today-cta" data-startplayer="'+escAttr(featured.name)+'">'+
-          '<span><small>TODAY’S WORKOUT · ~'+sessionMinutes(featured)+' MIN</small><b>'+(heroFinished?'Replay finished session':(heroSession?'Resume workout':'Start workout'))+'</b></span><i>›</i></button>';
+          '<span><small>TODAY’S WORKOUT · ~'+sessionMinutes(featured)+' MIN</small><b>'+(heroFinished?'Review or edit this workout':(heroSession?'Resume workout':'Start workout'))+'</b></span><i>›</i></button>';
       }
       // "Rest today" (043): while looking at today, or at the missed workout Train leads with —
       // not while browsing another day (a finished Tuesday doesn't need "make today a rest day").
