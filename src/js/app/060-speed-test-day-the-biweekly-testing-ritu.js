@@ -296,8 +296,8 @@
        - jump and reach: inches from a standing reach mark to the jump touch;
        - seated chest throw (optional, needs a med ball): feet, with the ball
          weight, and only same-ball throws are ever compared.
-     Saved to ff_power [{ts, date, week, jump, chest, ball}] (cap 40, synced as a
-     unionSeries by ts). No outside norms: your own first check is the yardstick. */
+     Saved to ff_power [{ts, date, week, jump, chest, ball}] (cap 40 that keeps the
+     first of each measure — pwCap; synced as a unionSeries by ts with the same cap). No outside norms: your own first check is the yardstick. */
   var POWER_DUE_AT=21;              // days: every other speed test (~monthly), never the very next one
   var JUMP_MIN=2, JUMP_MAX=48;      // inches
   var CHEST_MIN=3, CHEST_MAX=60;    // feet
@@ -426,6 +426,25 @@
       '<div class="st-note">Same wall, same ball, same floor every time — the trend against your own first check is the number that matters.</div>'+
       '<button type="button" class="pwr-skip" data-pwskip="1">Skip it today</button>';
   }
+  // Cap the history without moving a baseline (Codex, #129): the first jump and
+  // the first throw with each ball weight always stay — they're what "since your
+  // first" means — and the rest are the newest. Oldest first in and out. MUST
+  // keep exactly the same entries as powerCap in cloud-sync.js (unit-tested).
+  function pwCap(list, cap){
+    if(list.length<=cap) return list;
+    var pin={}, jump=false, balls={}, out=[], room;
+    list.forEach(function(e, i){
+      if(!e) return;
+      if(typeof e.jump==="number" && !jump){ jump=true; pin[i]=true; }
+      if(typeof e.chest==="number" && e.ball!=null && !balls[e.ball]){ balls[e.ball]=true; pin[i]=true; }
+    });
+    room=cap-Object.keys(pin).length;
+    for(var i=list.length-1; i>=0; i--){
+      if(pin[i]) out.push(list[i]);
+      else if(room>0){ room--; out.push(list[i]); }
+    }
+    return out.reverse();
+  }
   function savePowerCheck(){
     var p=stState && stState.power; if(!p || p.saved) return;
     var chk=pwCheck(p); if(chk.err || !chk.ready){ pwSync(false); return; }
@@ -434,7 +453,7 @@
     var j=pwNum(p.jump), c=pwNum(p.chest), prior=powerChecks();
     var e={ ts:Date.now(), date:todayStr(), week:curWeek(), jump:j, chest:c, ball:c!=null ? p.ball : null };
     var pw=prior.concat([e]);
-    if(pw.length>40) pw=pw.slice(-40);
+    if(pw.length>40) pw=pwCap(pw, 40);
     lsSet("ff_power", pw);
     p.saved={ jump:j, chest:c, ball:e.ball,
       cj:j!=null ? pwCompare(prior,"jump",j) : null, cc:c!=null ? pwCompare(prior,"chest",c,e.ball) : null };

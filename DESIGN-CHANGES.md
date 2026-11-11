@@ -41,8 +41,12 @@ speed and mobility but no power number.
   - Welcome-back counts a power check as activity.
 - **Data:**
   - New roaming key `ff_power` `[{ts, date, week, jump, chest, ball}]`.
-  - It's in `KEYS`, with a MERGE `unionSeries` by `ts` (cap 40, the same cap as the module).
-  - The cloud-sync pin went v121 → v122 in both templates.
+  - It's in `KEYS`, with a MERGE `unionSeries` by `ts`, capped at 40 in both the merge and the
+    module.
+  - The cap never moves a baseline (Codex, #129). The first jump and the first throw with each ball
+    weight always stay; the rest are the newest. This is the same rule in `pwCap` (060) and
+    `powerCap` (cloud-sync), unit-tested to keep identical entries on 200 random lists.
+  - The cloud-sync pin went v121 → v123 in both templates.
   - Not an Octane input: first see whether it moves with 7-iron speed user by user.
   - The data-contract script now also allowlists `ff_notif_today`, which was already device-local
     (since the evening reminder) but was missing from the list.
@@ -57,7 +61,7 @@ speed and mobility but no power number.
   - Reviewer note, not a bug: a device still on cloud-sync v121 drops `ff_power` from the cloud copy
     until a v122 device pushes again. Every new roaming key has this transition.
 - **Verified:**
-  - `tests/power-check.test.mjs` (17 tests; all fail with the change stashed) covers:
+  - `tests/power-check.test.mjs` (20 tests; all fail against main) covers:
     - due timing (14 days not due, 21 and 28 due, out-of-order lists);
     - the form rules and the ball default;
     - same-ball comparisons and the noise-line words;
@@ -66,7 +70,8 @@ speed and mobility but no power number.
     - the swing protocol left untouched and no outside names in the copy;
     - a two-device `ff_power` union through the real MERGE entry.
     - the review fixes listed above.
-  - Suite 291/291.
+    - the baseline-keeping cap on both the app and sync sides (Codex, #129).
+  - Suite 294/294. The sync proof passes 24/24.
   - A Playwright e2e on the built app passes in light and dark, with zero page errors. It covers:
     - the offer on a first speed test;
     - the form, error and focus behaviour, with every control ≥44px. That includes no error flash

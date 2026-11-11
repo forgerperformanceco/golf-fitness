@@ -478,6 +478,25 @@
     if (cap && out.length > cap) out = out.slice(out.length - cap);
     return out;
   }
+  // ff_power's cap keeps the baselines (Codex, #129): the first jump and the first
+  // throw with each ball weight always stay — "since your first" compares with
+  // them — and the rest are the newest. MUST keep exactly the same entries as
+  // pwCap in 060 (unit-tested on random lists). Input oldest first.
+  function powerCap(list, cap) {
+    if (list.length <= cap) return list;
+    var pin = {}, jump = false, balls = {}, out = [], room;
+    list.forEach(function (e, i) {
+      if (!e) return;
+      if (typeof e.jump === "number" && !jump) { jump = true; pin[i] = true; }
+      if (typeof e.chest === "number" && e.ball != null && !balls[e.ball]) { balls[e.ball] = true; pin[i] = true; }
+    });
+    room = cap - Object.keys(pin).length;
+    for (var i = list.length - 1; i >= 0; i--) {
+      if (pin[i]) out.push(list[i]);
+      else if (room > 0) { room--; out.push(list[i]); }
+    }
+    return out.reverse();
+  }
   // Fuel check-offs: { "YYYY-MM-DD": {m:{}, rating, n, ts} } — per-day record,
   // the newer day-record wins (meal detail vs day rating are exclusive modes, so
   // field-merging two same-day records could resurrect deliberately cleared
@@ -523,7 +542,7 @@
     ff_skipped_sessions: unionDeleted,                                                     // explicit schedule resolutions
     ff_rounds:    function (l, c) { return unionSeries(l, c, function (e) { return e.id || e.ts; }, 60); },
     ff_speedtest: function (l, c) { return unionSeries(l, c, function (e) { return e.ts; }, 60); },
-    ff_power:     function (l, c) { return unionSeries(l, c, function (e) { return e.ts; }, 40); },  // the monthly jump + throw (060)
+    ff_power:     function (l, c) { return powerCap(unionSeries(l, c, function (e) { return e.ts; }), 40); },  // the monthly jump + throw (060)
     ff_mobility:  function (l, c) { return unionSeries(l, c, function (e) { return e.ts; }, 40); },
     ff_readiness: function (l, c) { return unionSeries(l, c, function (e) { return e.date; }, 60); },
     ff_fuel:      unionFuel,

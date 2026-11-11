@@ -23,7 +23,7 @@ function fn(source, name) {
 }
 const vars = ST.slice(ST.indexOf("var POWER_DUE_AT"), ST.indexOf("function chestMdc(")) + "\n" + (ST.match(/var PW_FAR=\d+;/) || [""])[0];
 const FNS = ["stDayStart", "chestMdc", "powerChecks", "lastPower", "daysSincePower", "powerDue", "pwNum", "jumpOk", "chestOk",
-  "pwFmt", "pwFresh", "pwCheck", "pwCompare", "pwDeltaText", "pwKey", "pwMsg", "pwSync", "pwBigJump", "powerCheckHtml", "savePowerCheck", "powerSummaryHtml"];
+  "pwFmt", "pwFresh", "pwCheck", "pwCompare", "pwDeltaText", "pwKey", "pwMsg", "pwSync", "pwBigJump", "pwCap", "powerCheckHtml", "savePowerCheck", "powerSummaryHtml"];
 const DAY = 864e5;
 function sandbox(store = {}) {
   const ctx = {
@@ -149,14 +149,15 @@ test("sync: ff_power roams — two devices' checks union by ts, capped at 40", (
   const line = CS.split("\n").find((l) => /^\s*ff_power:/.test(l));
   assert.ok(line, "a MERGE entry");
   const ctx = {};
-  vm.runInNewContext(fn(CS, "unionSeries") + "\nvar m=" + line.trim().replace(/^ff_power:\s*/, "").replace(/,\s*\/\/.*$/, "").replace(/,$/, "") + ";", ctx);
+  vm.runInNewContext(fn(CS, "unionSeries") + "\n" + fn(CS, "powerCap") + "\nvar m=" + line.trim().replace(/^ff_power:\s*/, "").replace(/,\s*\/\/.*$/, "").replace(/,$/, "") + ";", ctx);
   const phone = [{ ts: 100, jump: 17 }, { ts: 300, jump: 18 }], laptop = [{ ts: 200, jump: 17.5, chest: 20, ball: 8 }];
   assert.deepEqual([...ctx.m(phone, laptop).map((e) => e.ts)], [100, 200, 300], "neither device's check is lost");
   assert.deepEqual([...ctx.m(laptop, phone).map((e) => e.ts)], [100, 200, 300]);
   const many = Array.from({ length: 45 }, (_, i) => ({ ts: i + 1, jump: 18 }));
   const out = ctx.m(many, []);
   assert.equal(out.length, 40);
-  assert.equal(out[0].ts, 6, "the oldest fall off");
+  assert.equal(out[0].ts, 1, "the first check is kept — it's the baseline (Codex, #129)");
+  assert.equal(out[1].ts, 7, "then the newest 39");
 });
 
 // ---- Pre-PR review fixes ----
@@ -225,4 +226,47 @@ test("review: a hand-edited entry with a throw but no ball never prints 'undefin
   const h = sandbox({ ff_power: [{ ts: ago(5), jump: null, chest: 20 }] }).powerSummaryHtml();
   assert.doesNotMatch(h, /undefined/);
   assert.match(h, /Chest throw <b>20 ft<\/b>/);
+});
+
+// ---- Codex #129: the cap must never move the baseline ----
+const DEVICE = () => { const c = {}; vm.runInNewContext(fn(CS, "unionSeries") + "\n" + fn(CS, "powerCap") + "\nvar m=" +
+  CS.split("\n").find((l) => /^\s*ff_power:/.test(l)).trim().replace(/^ff_power:\s*/, "").replace(/,\s*\/\/.*$/, "").replace(/,$/, "") + ";", c); return c; };
+
+test("Codex #129: past 40 checks the first jump and the first throw with each ball stay — 'since your first' keeps its meaning", () => {
+  const { pwCap } = sandbox();
+  const list = [{ ts: 1, jump: null, chest: 20, ball: 8 }, { ts: 2, jump: 16, chest: null, ball: null }]
+    .concat(Array.from({ length: 50 }, (_, i) => ({ ts: 10 + i, jump: 18, chest: i === 2 ? 24 : 21, ball: i === 2 ? 6 : 8 })));
+  const out = pwCap(list, 40);
+  assert.equal(out.length, 40);
+  assert.deepEqual([...out.slice(0, 3).map((e) => e.ts)], [1, 2, 12], "first 8 lb throw, first jump, first 6 lb throw — all older than the newest window");
+  assert.deepEqual([...out.slice(3).map((e) => e.ts)], Array.from({ length: 37 }, (_, i) => 23 + i), "then the newest 37");
+  assert.equal(pwCap(list.slice(0, 40), 40).length, 40, "at or under the cap: untouched");
+  assert.equal(pwCap(list.slice(0, 40), 40)[39].ts, list[39].ts);
+});
+
+test("Codex #129: saving the 41st check keeps the true first as the baseline", () => {
+  const old = [{ ts: ago(1300), jump: 15, chest: null, ball: null }].concat(Array.from({ length: 39 }, (_, i) => ({ ts: ago(1200 - i * 30), jump: 18 })));
+  const s = sandbox({ ff_power: old });
+  s.stState = { power: { jump: "19", chest: "", ball: null, saved: null } };
+  vm.runInContext("stState=this.stState;", s);
+  s.savePowerCheck();
+  assert.equal(s.store.ff_power.length, 40);
+  assert.equal(s.store.ff_power[0].jump, 15, "the first check survives the cap");
+  const again = sandbox({ ff_power: s.store.ff_power });
+  assert.equal(again.pwCompare(again.powerChecks(), "jump", 20).first, 15, "'since your first' still means the first");
+});
+
+test("Codex #129: the app's cap and the sync merge's cap keep exactly the same entries", () => {
+  const { pwCap } = sandbox(), dev = DEVICE();
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (let n = 0; n < 200; n++) {
+    const len = 30 + Math.floor(rnd() * 40), list = [];
+    for (let i = 0; i < len; i++) {
+      const hasJ = rnd() < 0.8, hasC = rnd() < 0.6;
+      list.push({ ts: i + 1, jump: hasJ ? 15 + Math.round(rnd() * 10) : null, chest: hasC ? 18 + Math.round(rnd() * 8) : null,
+        ball: hasC ? [4, 6, 8, 10][Math.floor(rnd() * 4)] : null });
+    }
+    const a = pwCap(list, 40).map((e) => e.ts).join(","), b = [...dev.m(list.slice(0, len >> 1), list.slice(len >> 1))].map((e) => e.ts).join(",");
+    assert.equal(b, a, `case ${n}`);
+  }
 });
