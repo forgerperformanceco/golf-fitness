@@ -863,3 +863,17 @@ test("a grind holds the weight next time; easy, solid or no answer keep the norm
   assert.equal(run("maintain", { ["2|" + day]: s(225, "grind", 14), ["3|" + day]: s(225, "solid", 7) }).d.bump, false);
   assert.equal(run("maintain", { ["2|" + day]: s(225, "easy", 14), ["3|" + day]: s(225, "solid", 7) }).d.w, 230);
 });
+
+test("maintaining: 'held twice' means every working set at that weight, both times (Codex, #125)", () => {
+  const now = Date.now(), day = "Day 1", x = { name: "Deadlift", target: "4 × 4" };
+  const s = (ws, ago) => ({ wave: "accumulate", finishedAt: "x", _ts: now - ago * DAY,
+    ex: [{ name: "Deadlift", target: "4 × 4", sets: ws.map((w) => ({ w: String(w), r: "4", done: true })) }] });
+  const run = (log) => {
+    const E = engine({ goal: "maintain", store: { ff_start: startFor(4, now), ff_log: log, ff_history: [] }, now, week: 4 });
+    const lx = E.lastSessionFor(day, 4).ex[0];
+    return E.ffDose("225", x, lx, 4, {});
+  };
+  assert.equal(run({ ["2|" + day]: s([225, 200, 200, 200], 14), ["3|" + day]: s([225, 225, 225, 225], 7) }).bump, false, "one top set at 225 the time before isn't holding 225");
+  assert.equal(run({ ["2|" + day]: s([225, 225, 225, 225], 14), ["3|" + day]: s([225, 200, 200, 200], 7) }).bump, false, "nor this time");
+  assert.equal(run({ ["2|" + day]: s([225, 225, 225, 225], 14), ["3|" + day]: s([225, 225, 225, 225], 7) }).w, 230);
+});

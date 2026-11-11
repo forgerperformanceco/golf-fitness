@@ -43,3 +43,31 @@ test("the pick shows, and says what it means", () => {
   assert.match(PLAYER, /if\(xf\.feel===v\) delete xf\.feel; else xf\.feel=v;/, "tap again to clear");
   assert.match(PLAYER, /dose\.grind \? '💪 Last time was a grind at <b>'\+topLast\+' lb<\/b>\. Hold it and own every rep\.'/);
 });
+
+// Codex, #125: the rating is about the sets it was given for.
+test("a rating clears when the work changes: a set added, removed or un-ticked, or the lift swapped", () => {
+  const HIST = src("050-exercise-history-every-lift-s-full-story.js");
+  const between = (a, b) => PLAYER.slice(PLAYER.indexOf(a), PLAYER.indexOf(b, PLAYER.indexOf(a)));
+  assert.match(between('if(e.target.closest("[data-plsetadd]"))', "plRender(); return;"), /plFeelReset\(/, "add set");
+  assert.match(between('if(e.target.closest("[data-plsetrem]"))', 'ffToast("Last set'), /plFeelReset\(xR\)/, "remove set");
+  assert.match(between("xL.sets.splice(si0,1)", "ffToast"), /plFeelReset\(xL\)/, "hold-to-remove a set");
+  assert.match(PLAYER, /s3\.done=!s3\.done;\s+if\(!s3\.done\) plFeelReset\(x2\);/, "un-ticking a set");
+  const swap = fn(HIST, "applySwapChoice");
+  assert.match(swap, /px\.sets=px\.sets\.map[^\n]*\n\s*plFeelReset\(px\);/, "swap in the player");
+  assert.match(swap, /ex\.sets=ex\.sets\.map[^\n]*\n\s*plFeelReset\(ex\);/, "swap in the inline logger");
+  const c = {}; vm.runInNewContext(fn(PLAYER, "plFeelReset"), c);
+  const x = { feel: "grind" }; c.plFeelReset(x); assert.equal("feel" in x, false);
+});
+
+test("the rating survives a plan restart: permanent history keeps it", () => {
+  const HIST = src("050-exercise-history-every-lift-s-full-story.js");
+  const store = { ff_history: [] }, ctx = {
+    lsGet: (k, d) => store[k] ?? d, lsSet: (k, v) => { store[k] = v; }, todayStr: () => "Nov 11, 2026",
+  };
+  vm.runInNewContext(fn(HIST, "pushHistory"), ctx);
+  ctx.pushHistory(2, "Day 4", { date: "Nov 11, 2026", ex: [{ name: "Deadlift", target: "4 × 4", feel: "grind", sets: [{ w: "225", r: "4", done: true }] },
+    { name: "Hip Thrust", target: "4 × 8", sets: [{ w: "185", r: "8", done: true }] }] });
+  const ex = store.ff_history[0].ex;
+  assert.equal(ex[0].feel, "grind");
+  assert.equal("feel" in ex[1], false, "no answer, no field");
+});

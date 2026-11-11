@@ -100,11 +100,15 @@
     var grind=!!(lx && !lx._reduced && lx.feel==="grind");   // last time was a grind: the jump waits
     return {w:w,bump:bump,band:band,shift:shift,back:back&&w!=null,hold:hold&&w==null,grind:grind&&w==null};
   }
-  // Every rep hit at this weight (or heavier) the session before too.
+  // Every working set at this weight (or heavier), every rep, last time AND the time
+  // before. A top set alone isn't holding a weight: 225/200/200/200 doesn't count (Codex, #125).
   function ffHeldTwice(lx){
     var p=lx&&lx._prev; if(!p) return false;
     function top(s){ return (s.sets||[]).reduce(function(m,st){ var v=parseFloat(st&&st.w); return v>m?v:m; }, 0); }
-    return top(p)>=top(lx) && progressReady(p, p.target||lx.target);
+    var w=top(lx);
+    function all(s){ return (s.sets||[]).filter(function(st){ return st && st.r!=="" && st.r!=null; })
+      .every(function(st){ return parseFloat(st.w)>=w; }); }
+    return all(lx) && all(p) && progressReady(p, p.target||lx.target);
   }
   // Days since the lift was last done at any dose (lastSessionFor stamps _seen;
   // _ts — the full-dose reference — for older callers). 0 = unknown.

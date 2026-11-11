@@ -157,6 +157,8 @@
   // the weight next time (040 progressReady); Easy and Solid keep the normal rule.
   // Not for throws, jumps or bodyweight drills (no load to progress).
   var PL_FEEL=[["easy","Easy","3+ reps left"],["solid","Solid","1–2 left"],["grind","Grind","nothing left"]];
+  // The rating belongs to the sets it was given for: changing them clears it (Codex, #125).
+  function plFeelReset(x){ if(x && x.feel) delete x.feel; }
   function plFeelHtml(x){
     if(!x || isBodyweightEx(x.name) || isBallistic(x.name) || !(incNum(x.name)>0)) return "";
     if(!x.sets.length || !x.sets.every(function(s){ return s.done; }) || !x.sets.some(function(s){ return parseFloat(s.w)>0; })) return "";
@@ -456,13 +458,13 @@
       if(e.target.closest("[data-pladdlift]")){ addFromPlayer=true; openAddLift(); return; }
       if(e.target.closest("[data-plsetadd]")){
         var stA=player.stations[player.st]; if(stA.type!=="lift") return;
-        player.sess.ex[stA.xi].sets.push({w:"",r:"",done:false});
+        player.sess.ex[stA.xi].sets.push({w:"",r:"",done:false}); plFeelReset(player.sess.ex[stA.xi]);
         plSave(); plRender(); return;
       }
       if(e.target.closest("[data-plsetrem]")){
         var stR=player.stations[player.st]; if(stR.type!=="lift") return;
         var xR=player.sess.ex[stR.xi];
-        if(xR.sets.length>1){ xR.sets.pop(); plSave(); plRender(); ffTick(10); }
+        if(xR.sets.length>1){ xR.sets.pop(); plFeelReset(xR); plSave(); plRender(); ffTick(10); }
         else ffToast("Last set — swap or remove the lift instead");
         return;
       }
@@ -489,6 +491,7 @@
         var st2=player.stations[player.st]; if(st2.type!=="lift") return;
         var x2=player.sess.ex[st2.xi], si2=+ck.getAttribute("data-plcheck"), s3=x2.sets[si2]; if(!s3) return;
         s3.done=!s3.done;
+        if(!s3.done) plFeelReset(x2);
         if(s3.done){
           // Empty fields inherit the nearest earlier set — one tap repeats the work.
           if(!s3.w){ for(var cw2=si2-1;cw2>=0;cw2--){ if(x2.sets[cw2]&&x2.sets[cw2].w){ s3.w=x2.sets[cw2].w; break; } } }
@@ -535,7 +538,7 @@
         if(setRow){
           var xi0=st0.xi, si0=+setRow.getAttribute("data-plsetrow");
           var xL=player.sess.ex[xi0];
-          if(xL.sets.length>1){ xL.sets.splice(si0,1); plSave(); plRender(); ffToast("Set "+(si0+1)+" removed"); }
+          if(xL.sets.length>1){ xL.sets.splice(si0,1); plFeelReset(xL); plSave(); plRender(); ffToast("Set "+(si0+1)+" removed"); }
           else ffToast("Last set — swap or remove the lift instead");
         } else {
           openReorder();
