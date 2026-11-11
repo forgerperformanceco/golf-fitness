@@ -466,7 +466,11 @@ stores; we're a URL). Shipping the app matters more than more docs.
   mobility move shows a one-line how-to.
 - **Turn guard (Nov 8, 2026)** — on Build, a mobility screen that drops vs the one before halves
   the surplus and target rate (`ffGoal`), trims a set from chest/shoulder/arm isolation and adds one
-  to rotation lifts until a screen holds steady.
+  to rotation lifts until a screen holds steady. **Nov 11:** it needs a clear drop (≥2 levels across
+  shared moves) or a confirmed one (a move below its pre-drop level two screens running or more); one self-rated move a
+  level lower is noise (TPI research: single screen items are the least reliable layer) and gets a
+  "nothing changes yet" note instead. The screen also stops for pain (red-flag check first, a stop on
+  every move, see-a-clinician message, nothing saved).
 - **Turn check v2 (Nov 8, 2026)** — the mobility screen became five golf moves: trunk rotation, hip
   rotation, coil, lead arm across the chest, overhead reach (lats). v1 screens stay readable.
 

@@ -2302,6 +2302,11 @@
   .mob-res-num{ font-size:46px; font-weight:800; color:#0d3320; }
   .mob-res-num span{ font-size:18px; color:#4d7a5f; font-weight:700; }
   .mob-flag.ok{ background:#eef7f1; border-color:#d5e8db; color:#254d38; }
+  /* Pain stops the screen (065): a stop link on every move, and the stopped message. */
+  .mob-hurt{ display:block; width:100%; min-height:44px; margin:8px 0 0; border:0; background:transparent;
+    color:#9a3b2e; font:700 12px var(--font); text-decoration:underline; text-underline-offset:3px; cursor:pointer; }
+  .mob-stop{ margin:10px 0 0; padding:12px 13px; border-radius:11px; background:#fdf0ec; border:1px solid #f0cfc4;
+    color:#5c2a1e; font-size:13px; line-height:1.5; }
   .mob-flag{ margin:10px 0 0; padding:10px 12px; border-radius:11px; background:#fff7e8; border:1px solid #f0dcb2;
     color:#6b4a10; font-size:13px; line-height:1.5; text-align:left; }
   .wu-row.from-screen .wu-move::after{ content:" · from your mobility screen"; font-size:12px; color:#b8860b; font-weight:700; }
@@ -2674,6 +2679,8 @@
   html:not([data-theme="light"]) .mob-res-num{ color:#c8e5d6; }
   html:not([data-theme="light"]) .mob-res-num span{ color:#c1d8ca; }
   html:not([data-theme="light"]) .mob-flag.ok{ background:#142419; border-color:#26442f; color:#c3e2d2; }
+  html:not([data-theme="light"]) .mob-hurt{ color:#debfbb; }
+  html:not([data-theme="light"]) .mob-stop{ background:#231713; border:1px solid #462f27; color:#e2c9c2; }
   html:not([data-theme="light"]) .mob-flag{ background:#241e13; border:1px solid #4a3f29; color:#e2d6c2; }
   html:not([data-theme="light"]) .wu-row.from-screen .wu-move::after{ color:#ded4bb; }
   html:not([data-theme="light"]) .wu-row.from-profile .wu-move::after{ color:#bfdbc9; }
@@ -2964,6 +2971,8 @@
   html[data-theme="dark"] .mob-res-num{ color:#c8e5d6; }
   html[data-theme="dark"] .mob-res-num span{ color:#c1d8ca; }
   html[data-theme="dark"] .mob-flag.ok{ background:#142419; border-color:#26442f; color:#c3e2d2; }
+  html[data-theme="dark"] .mob-hurt{ color:#debfbb; }
+  html[data-theme="dark"] .mob-stop{ background:#231713; border:1px solid #462f27; color:#e2c9c2; }
   html[data-theme="dark"] .mob-flag{ background:#241e13; border:1px solid #4a3f29; color:#e2d6c2; }
   html[data-theme="dark"] .wu-row.from-screen .wu-move::after{ color:#ded4bb; }
   html[data-theme="dark"] .wu-row.from-profile .wu-move::after{ color:#bfdbc9; }
