@@ -547,11 +547,14 @@ hack. Implementation (065-mobility-screen…js):
   squat → deep-squat hold). Holds sit AFTER lifting, never in the warm-up (≥60 s/muscle
   ≈ −4.6%, Behm 2016); the weekly dose follows Thomas 2018 (≥~5 min/muscle/week over
   ≥5 days). Checklist only — no stored key, no Octane input.
-- **Turn guard** (Nov 2026, 065 `ffTurnGuard`): on Build / legacy Bulk, a screen scoring lower on
-  any shared test than the screen before it. While on: `ffGoal()` (025) halves `pct` and `weekly`
+- **Turn guard** (Nov 2026, 065 `ffTurnGuard`): on Build / legacy Bulk, a **clear** drop (the
+  moves both screens share fall ≥2 levels in total vs the screen before: one move ✅→🔴 or two
+  moves down one) or a **confirmed** one (a move lower than the screen before last, on both of the
+  last two screens). One move a level lower on its own is inside self-rating noise and only gets a
+  "nothing changes yet" note (`mobWatch`). While on: `ffGoal()` (025) halves `pct` and `weekly`
   for every reader (calc, power-to-weight, check-in); `adjSets` trims a set off chest/shoulder/arm
-  💪 isolation (by `exGroupFor`, floor 2) and adds one to rotation-through-range 🌀 lifts. Off on the
-  next screen that doesn't drop.
+  💪 isolation (by `exGroupFor`, floor 2) and adds one to rotation-through-range 🌀 lifts. Off once
+  the moves are back to where they were. The screen stops for pain before any score is saved.
 - **Rotation through range + arm extension** (Nov 2026): both Pull + Rotate days carry the
   Half-Kneeling Cable Rotation, 2 × 8 / side slow with an end-range pause (🌀; bands / bodyweight
   subs in `EX`), because the chop turns from the hips, the Pallof resists turning and the throws

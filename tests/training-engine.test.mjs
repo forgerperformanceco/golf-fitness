@@ -510,17 +510,44 @@ function guardCtx(goal, screens) {
   `, ctx);
   return ctx.tg;
 }
-test("the turn guard fires on Build only when a turn check comes back worse", () => {
+// Nov 2026: one self-rated move a level lower is inside the noise (single screen items are the
+// least reliable layer; a warm-up or a round shifts scores). The guard needs a CLEAR drop (≥2
+// levels across shared moves) or a CONFIRMED one (a move lower than it was, two screens running).
+test("the turn guard fires on Build on a clear or confirmed drop, not one shaky move", () => {
   const s = (trunk, hip, squat, ts) => ({ ts, tests: { trunk, hip, squat } });
-  const drop = guardCtx("leanbulk", [s(2, 2, 1, 1), s(2, 1, 1, 2)]);
-  assert.deepEqual([...drop.dropped], ["hip"]); assert.equal(drop.label, "hips"); assert.equal(drop.ts, 2);
+  const keys = (g) => (g ? [...g.dropped] : null);
+  // Two screens.
+  assert.equal(guardCtx("leanbulk", [s(2, 2, 1, 1), s(2, 1, 1, 2)]), null, "one move down one level: not yet");
+  let g = guardCtx("leanbulk", [s(2, 2, 2, 1), s(2, 0, 2, 2)]);
+  assert.deepEqual(keys(g), ["hip"]); assert.equal(g.why, "clear"); assert.equal(g.label, "hips"); assert.equal(g.ts, 2);
+  g = guardCtx("leanbulk", [s(2, 2, 2, 1), s(1, 1, 2, 2)]);
+  assert.deepEqual(keys(g), ["trunk", "hip"], "two moves down one each = clear");
+  assert.equal(guardCtx("leanbulk", [s(2, 1, 1, 1), s(1, 2, 1, 2)]), null, "one down, one up: one level of fall, not clear");
+  assert.deepEqual(keys(guardCtx("leanbulk", [s(2, 1, 2, 1), s(2, 2, 0, 2)])), ["squat"], "one up doesn't cancel a two-level fall");
   assert.equal(guardCtx("leanbulk", [s(2, 1, 1, 1), s(2, 1, 2, 2)]), null, "no drop, no guard");
   assert.equal(guardCtx("leanbulk", [s(2, 2, 2, 1)]), null, "one screen can't drop");
-  assert.ok(guardCtx("bulk", [s(2, 2, 2, 1), s(1, 2, 2, 2)]), "legacy Bulk is guarded too");
-  for (const g of ["cut", "maintain"]) assert.equal(guardCtx(g, [s(2, 2, 2, 1), s(0, 0, 0, 2)]), null, `${g} never guards`);
-  // A later screen with different moves compares only what both share.
-  const mixed = guardCtx("leanbulk", [s(2, 2, 2, 1), { ts: 2, tests: { trunk: 1, coil: 0 } }]);
-  assert.deepEqual([...mixed.dropped], ["trunk"]);
+  // Three screens: confirmation, holding, lifting.
+  assert.deepEqual(keys(guardCtx("leanbulk", [s(2, 2, 2, 1), s(2, 1, 2, 2), s(2, 1, 2, 3)])), ["hip"], "still a level lower: confirmed");
+  assert.equal(guardCtx("leanbulk", [s(2, 2, 2, 1), s(2, 1, 2, 2), s(2, 1, 2, 3)]).why, "confirmed");
+  assert.equal(guardCtx("leanbulk", [s(2, 2, 2, 1), s(2, 1, 2, 2), s(2, 2, 2, 3)]), null, "back to where it was: off");
+  assert.deepEqual(keys(guardCtx("leanbulk", [s(2, 2, 2, 1), s(2, 0, 2, 2), s(2, 0, 2, 3)])), ["hip"], "a clear drop that holds stays guarded");
+  assert.deepEqual(keys(guardCtx("leanbulk", [s(2, 2, 2, 1), s(2, 0, 2, 2), s(2, 1, 2, 3)])), ["hip"], "partly back, still below: guarded");
+  assert.equal(guardCtx("leanbulk", [s(2, 2, 2, 1), s(2, 2, 2, 2), s(2, 1, 2, 3)]), null, "a new one-level dip: waits");
+  // Goals and mixed screens, as before.
+  assert.ok(guardCtx("bulk", [s(2, 2, 2, 1), s(0, 2, 2, 2)]), "legacy Bulk is guarded too");
+  for (const goal of ["cut", "maintain"]) assert.equal(guardCtx(goal, [s(2, 2, 2, 1), s(0, 0, 0, 2)]), null, `${goal} never guards`);
+  const mixed = guardCtx("leanbulk", [s(2, 2, 2, 1), { ts: 2, tests: { trunk: 0, coil: 0 } }]);
+  assert.deepEqual(keys(mixed), ["trunk"], "only shared moves count");
+});
+
+test("the result screen names a single one-level dip (what the next check decides)", () => {
+  const ctx = {}; vm.runInNewContext(fn(MOB, "mobWatch"), ctx);
+  const e = (trunk, hip, squat) => ({ tests: { trunk, hip, squat } });
+  assert.equal(ctx.mobWatch(e(2, 2, 2), e(2, 1, 2)), "hip");
+  assert.equal(ctx.mobWatch(e(2, 2, 2), e(2, 0, 2)), null, "a clear drop isn't a 'watch'");
+  assert.equal(ctx.mobWatch(e(2, 2, 2), e(1, 1, 2)), null);
+  assert.equal(ctx.mobWatch(null, e(2, 1, 2)), null, "first screen");
+  assert.equal(ctx.mobWatch(e(2, 2, 2), e(2, 2, 2)), null);
 });
 
 test("guarded Build trades upper-body isolation sets for rotation; heavy, power, legs and upper back untouched", () => {

@@ -1,5 +1,40 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## The turn check ignores one shaky move, and stops for pain (Nov 11, 2026)
+
+From the TPI research report: single self-rated screen items are the least reliable layer of any
+movement screen (even trained raters agree least on individual items; a warm-up or 18 holes shifts
+scores by ~10%), so the Build turn guard (halves the surplus, trims arm isolation, adds rotation)
+was firing on noise. And the screen had no pain stop, the biggest gap between an app screen and an
+in-person assessment. Owner: "build both fixes."
+
+- **The guard needs a clear or a confirmed drop** (065 `ffTurnGuard`):
+  - **Clear:** the moves both screens share fall ≥2 levels in total vs the screen before (one move
+    ✅→🔴, or two moves down one). One move up doesn't cancel another's two-level fall.
+  - **Confirmed:** a move lower than it was on the screen before last, on both of the last two
+    screens. A clear drop that holds stays guarded; partly back but still below stays guarded; back
+    to where it was lifts it.
+  - **One move a level lower on its own:** no guard; the result screen says "…came back a level
+    lower. One move on one day can be noise, so nothing changes yet. If it's still lower on your
+    next check, your plan adjusts to protect your turn." (`mobWatch`).
+  - Same shape returned (`dropped`, `ts`, `label`, plus `why`), so every reader is unchanged.
+- **Same conditions every time:** the intro now says do it cold, before you train, around the same
+  time of day, and never right after a round.
+- **Pain stops the screen:** a "Before you start" check (sharp pain, pain that runs down an arm or
+  leg, numbness or tingling, pain that wakes you at night) and a "Sharp pain on this one? Stop
+  here" link on every move. Either ends with "Get that looked at before you test it… See a doctor
+  or physical therapist, and run the turn check again once you've been cleared", and **nothing is
+  saved**, so the plan, the Octane and the guard don't move. No diagnosis, no back-specific claims.
+
+**Verified:** `npm test` 274/274 (the guard test is now 16 enumerated cases across two and three
+screens, goals and mixed screens; plus the watch note; both fail on the old rule). Playwright,
+built app, light + dark, zero page errors: the pain check comes first with no tests showing; "Yes"
+and a mid-screen stop both end on the clinician message and save nothing; "No" shows the
+same-conditions note and a pain stop on all five moves; one move a level lower saves with the
+"nothing changes yet" note and no guard on Train; the same move still lower next check turns on
+"Turn guard on" (hip rotation). Audits: train 18/18, scroll 16/16, type 1 known, contrast clean.
+Release gate and claims-lint clean.
+
 ## Train stays simple outside a workout (Nov 11, 2026)
 
 Owner, with a screenshot of Train on a finished Push day (the full Previous / LBS / REPS set tables
