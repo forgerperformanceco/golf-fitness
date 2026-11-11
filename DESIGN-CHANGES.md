@@ -19,7 +19,8 @@ need to see and edit the full workout when I am working out."
   "↺ Clear / reset this workout" link (every logged day keeps a reset: the audit-train invariant,
   failure-archaeology §4).
 - **"Not feeling it? Make today a rest day" only while looking at today** or at the missed workout
-  Train leads with, not while browsing another day.
+  Train leads with on its own, not while browsing another day (a missed day you tapped included;
+  Codex, #127).
 
 **Verified:** `npm test` 273/273. Playwright, built app, light + dark, typing pref off and on, zero
 page errors: a finished Push day (tapped on the strip) → "Review or edit this workout", no set tables,

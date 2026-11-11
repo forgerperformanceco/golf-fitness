@@ -1258,10 +1258,10 @@
         html+='<button type="button" class="train-today-cta" data-startplayer="'+escAttr(featured.name)+'">'+
           '<span><small>TODAY’S WORKOUT · ~'+sessionMinutes(featured)+' MIN</small><b>'+(heroFinished?'Review or edit this workout':(heroSession?'Resume workout':'Start workout'))+'</b></span><i>›</i></button>';
       }
-      // "Rest today" (043): while looking at today, or at the missed workout Train leads with —
-      // not while browsing another day (a finished Tuesday doesn't need "make today a rest day").
+      // "Rest today" (043): while looking at today, or at the missed workout Train leads with on
+      // its own (no day tapped) — not while browsing another day, the missed one included (Codex, #127).
       var restable=ffRestableToday(), missedD=missedWorkout();
-      if(restable && (dayKey(featured)===dayKey(restable) || (missedD && dayKey(missedD)===dayKey(featured))))
+      if(restable && (dayKey(featured)===dayKey(restable) || (!focusDay && missedD && dayKey(missedD)===dayKey(featured))))
         html+=ffRestTodayBtnHtml(restable.name);
     }
 
