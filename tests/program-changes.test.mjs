@@ -94,14 +94,21 @@ function weekly(E, split) {
   return { sets: out, freq: Object.fromEntries(Object.entries(days).map(([k, v]) => [k, v.size])) };
 }
 
-test("upper body is trained twice a week in both splits (row/press swap)", () => {
+// Nov 2026, owner: a row on Push day "feels weird" — "Push all pull". This reverses the Oct 2
+// "chest and back twice a week" swap: the single-arm row went back to the pull day, the single-arm
+// press to the push day, and the lat pulldown left (pull-ups already cover it; keeps the pull
+// session under the per-session cap). Chest and back are once a week each, still ~10 sets.
+test("push day is all push, pull day is all pull, in both splits", () => {
   const E = engine({ store: { ff_start: START, ff_history: vet } });
   for (const split of ["days4", "days5"]) {
-    const { freq } = weekly(E, split);
-    for (const mu of ["chest", "back"]) assert.equal(freq[mu], 2, `${split} ${mu} on 2 days`);
     const push = E.PHASES[0][split].find((d) => /Push/.test(d.name)).ex.map((r) => r[0]);
     const pull = E.PHASES[0][split].find((d) => /Pull/.test(d.name)).ex.map((r) => r[0]);
-    assert.ok(push.includes("Single-Arm DB Row") && pull.includes("Single-Arm DB Bench Press"));
+    assert.ok(!push.some((n) => (MAP[n] || {}).back === 1), `${split}: no back lift on push day (${push})`);
+    assert.ok(!pull.some((n) => (MAP[n] || {}).chest === 1), `${split}: no chest press on pull day (${pull})`);
+    assert.ok(push.includes("Single-Arm DB Bench Press") && pull.includes("Single-Arm DB Row"), `${split}: the one-arm lifts are on their own days`);
+    assert.ok(!pull.includes("Lat Pulldown"), `${split}: no lat pulldown next to the pull-ups`);
+    const { sets } = weekly(E, split);
+    for (const mu of ["chest", "back"]) assert.ok(sets[mu] >= 10, `${split} ${mu} ${sets[mu]} sets/week`);
   }
 });
 

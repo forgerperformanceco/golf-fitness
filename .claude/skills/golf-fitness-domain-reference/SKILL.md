@@ -668,8 +668,9 @@ edit either.
   2 shy. Each lift shows target RIR + rest.
 - **Hard set** — a working set taken close to failure (~0–3 RIR). Hypertrophy
   keeps rising with weekly sets, with diminishing returns (Pelland 2025); a
-  provisional per-SESSION ceiling sits ~11 sets/muscle (preprint). Since Oct 2026
-  chest and back are trained twice a week in both splits (row/press swap);
+  provisional per-SESSION ceiling sits ~11 sets/muscle (preprint). Chest and back
+  are once a week at ~10 sets each since Nov 11, 2026: Push day all push, Pull day
+  all pull (the owner reversed the Oct 2026 twice-a-week row/press swap);
   hamstrings ~9.5 / 13, side delts 6, calves 4 / 7 (4-day / 5-day); no muscle
   passes ~12 sets in one session (NUTRITION §9a has the table).
 - **Hypertrophy** — muscle growth; the 💪 accessory work (8–15 reps typical).

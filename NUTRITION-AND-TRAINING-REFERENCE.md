@@ -528,8 +528,8 @@ fractional sets (synergists count half), from the shipped `PHASES` (tests:
 | Quads | 10 | 13 | 1 / 2 |
 | Glutes | 10 | ~15.5 | 1 / 2 |
 | Hamstrings | ~9.5 (leg curl 4 × 12) | 13 (leg curl on both lower days) | 1 / 2 |
-| Chest | 10 | 10 | **2 / 2** |
-| Back (lats + upper back) | 13 | 15 | **2 / 2** |
+| Chest | 10 | 10 | 1 / 1 (was 2 / 2 until Nov 2026) |
+| Back (lats + upper back) | 10 | 10 | 1 / 1 (was 2 / 2, 13 / 15 sets) |
 | Triceps · biceps | 10 · ~9.5 | same | 1 direct + pressing/pulling |
 | Side delts | 6 (lateral raise 4 × 15) | 6 | 1 |
 | Rear delts | ~6 | ~6 | 1 + rows |
@@ -542,6 +542,14 @@ fractional sets (synergists count half), from the shipped `PHASES` (tests:
   and Standing Calf Raise to Day 4. 4-day: leg curl and calf raise 4 × 12, Pallof press moved
   to the pull day (Day 1 25 sets, not 26). Lateral raise 4 × 15 everywhere. No muscle passes
   ~12 fractional sets in one session. No day names changed (ff_log is keyed by day name).
+- **Reversed Nov 11, 2026 (owner: a row on Push day "feels weird"):** Push day is all push,
+  Pull day all pull. The single-arm row went back to the pull day, the single-arm press to the
+  push day, and the Lat Pulldown left the pull day (pull-ups cover the pattern, and with no bar
+  the pull-up already swaps to a pulldown). Chest and back are once a week at ~10 sets each,
+  inside the effective range; at equal volume frequency barely changes growth (Schoenfeld 2019;
+  Pelland 2025). The cost is the lost back volume (13–15 → 10) and the frequency's small
+  strength edge, accepted for a plan whose days read as what they are. Don't re-propose
+  cross-day lifts without the owner.
 - **Still once a week:** triceps/biceps/delts direct work, and the whole lower body on the 4-day
   plan (one heavy day + the speed-day jumps/swings). At equal volume frequency barely changes
   growth (Schoenfeld 2019; Pelland 2025) but helps strength (Pelland 2025) — the 4-day lower
