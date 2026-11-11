@@ -66,6 +66,7 @@ const FAMILY = {
   hinge:       [/^Hamstrings · glutes · lower back/, /^The downswing is a violent hip/],
   swing:       [/^Glutes · hamstrings · core/, /^The downswing is a violent hip/],
   thrust:      [/^Glutes · hamstrings · core/, /^The downswing is a violent hip/],
+  slbridge:    [/^Glutes · hamstrings · hip and pelvis control/, /^One leg holds the pelvis level/],   // Nov 2026: hips level, not the hip snap
   lunge:       [/^Quads · glutes · balance/, /^At impact nearly all/],
   reardelt:    [/^Rear delts/, /^Your rear shoulders/],
   raise:       [/^Side delts/, /^Strong, healthy delts/],
@@ -162,7 +163,9 @@ test("split squats use the lunge entry; the leg press keeps the pelvis on the pa
   for (const n of ["Back Squat", "Front Squat", "Goblet Squat", "Tempo Bodyweight Squat (3-1-1, +1.5 reps)"]) is(n, "squat");
   // No "#1 driver" ranking for vertical force anywhere in the copy.
   for (const n of ["Leg Press", "Back Squat", "Goblet Squat"]) assert.doesNotMatch(liftWhy(n).why, /#1|push the ground hardest/, n);
-  is("Single-leg Glute Bridge", "thrust");
+  is("Single-leg Glute Bridge", "slbridge");
+  is("Single-Leg Hip Thrust", "slbridge");
+  is("Hip Thrust", "thrust"); is("Glute Bridge", "thrust");
   is("Single-leg RDL", "hinge");
 });
 

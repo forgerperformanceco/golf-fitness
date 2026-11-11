@@ -1,5 +1,55 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## Single-leg glute bridge on the hinge day (Nov 11, 2026)
+
+TPI piece #2. The owner had asked whether there were "lifting and exercise pieces we could steal".
+The hinge day now holds the pelvis on one leg.
+
+- **The plan:**
+  - Right after the hip thrust comes **Single-leg Glute Bridge, 2 × 10 / leg (pause at the top ·
+    hips level)**. That's 5-day Day 4 (Hinge + Power) and 4-day Day 1 (Quads & Hinge).
+  - One hip-thrust set moved to it: 5-day 4 → 3 × 8, 4-day 3 → 2 × 8. Glutes come out +1 set a
+    week.
+  - In-season days are untouched.
+  - It's 💪, so the on-ramp, retain and wave trims apply as usual (it already sits at the 2-set
+    floor).
+- **The case:** one leg holds the pelvis level while the hip drives, which is the lead side's job
+  through the weight shift. It also shows a side-to-side difference a two-leg hip thrust hides. The
+  copy is durability and control, never speed or injury prevention. The evidence is cross-sectional
+  (Tsai 2010) plus an RCT that raised hip strength but not performance (Hamada 2025), written up in
+  NUTRITION §9a.
+- **How-to:** it has its own cue and golf "why" (045 `exerciseForm` / `liftWhy`): hips level, pause
+  2 s, lower slowly. Single-Leg Hip Thrust shares them; the two-leg hip thrust keeps its own.
+- **No lift twice on a day:**
+  - **Bodyweight only:** the hip thrust's new last sub is a two-leg Glute Bridge (3 × 15, pause),
+    so it doesn't become a second single-leg bridge.
+  - **A user's own swap onto a lift the day already programs** (e.g. Hip Thrust → Single-leg Glute
+    Bridge), in `resolveDay`:
+    - Their pick stays.
+    - The plan's own row moves to its next free sub: Single-Leg Hip Thrust with a bench, else
+      Single-leg RDL, else Glute Bridge.
+    - The moved row is tagged `why:"dup"`, and its Full-week badge reads "subbed for … (already on
+      this day)" instead of blaming the gear.
+    - With no user swap in the pair, nothing moves.
+- **Verified:**
+  - New tests in `tests/training-engine.test.mjs` (4) and `tests/exercise-cues.test.mjs` (a new
+    `slbridge` cue family) all fail against main. They cover:
+    - the plan rows in both splits, with in-season untouched;
+    - bodyweight presets with no duplicate names;
+    - a user swap with full gym, bench and bodyweight-only;
+    - the badge;
+    - the cues coming ahead of the hip-thrust entry, with no speed or prevention words.
+  - Suite 298/298. The 4-day Day 1 session estimate stays in its 75–95 min band.
+  - A Playwright e2e passes in light and dark, with zero page errors; every new assertion fails on
+    main's build. On a pinned hinge day (Wed Nov 11) it checks:
+    - the bridge listed right after the hip thrust, with its note. The hip thrust shows 2 × 8 in
+      week 2, because the on-ramp takes a set off;
+    - a swap giving the bridge once, Single-Leg Hip Thrust, and the "already on this day" badge;
+    - true bodyweight-only gear giving Single-leg RDL, Glute Bridge and the single-leg bridge, with
+      no duplicates.
+  - Audits match baseline: train 18/18, scroll 16/16, contrast clean, type 1 known (Fuel "Ate it").
+  - The release gate and claims-lint are clean.
+
 ## Power check: a jump and a throw, about monthly, on Speed Test Day (Nov 11, 2026)
 
 The first piece taken from the TPI research (owner: "I'm hoping there were some lifting and exercise
