@@ -526,7 +526,7 @@ fractional sets (synergists count half), from the shipped `PHASES` (tests:
 | Muscle | 4-day | 5-day | Sessions / week (4 / 5) |
 |---|---|---|---|
 | Quads | 10 | 13 | 1 / 2 |
-| Glutes | 10 | ~15.5 | 1 / 2 |
+| Glutes | 11 (10 until Nov 11, 2026) | ~16.5 (~15.5 until Nov 11) | 1 / 2 |
 | Hamstrings | ~9.5 (leg curl 4 × 12) | 13 (leg curl on both lower days) | 1 / 2 |
 | Chest | 10 | 10 | 1 / 1 (was 2 / 2 until Nov 2026) |
 | Back (lats + upper back) | 10 | 10 | 1 / 1 (was 2 / 2, 13 / 15 sets) |
@@ -550,6 +550,20 @@ fractional sets (synergists count half), from the shipped `PHASES` (tests:
   Pelland 2025). The cost is the lost back volume (13–15 → 10) and the frequency's small
   strength edge, accepted for a plan whose days read as what they are. Don't re-propose
   cross-day lifts without the owner.
+- **Single-leg glute bridge on the hinge day (Nov 11, 2026, TPI piece #2):**
+  - Placed right after the hip thrust, at 2 × 10 / leg with a pause at the top and the hips
+    level.
+  - One hip-thrust set moved to it: 5-day 4 → 3 × 8, 4-day 3 → 2 × 8. Glutes come out +1 set a
+    week.
+  - **The case is durability and pelvic control, not speed.** One leg has to hold the pelvis
+    level while the hip drives, which is the lead side's job through the weight shift. It also
+    shows a side-to-side difference that a two-leg hip thrust hides.
+  - **The evidence is associations only, so no prevention claim.** Golfers with low-back pain
+    showed weaker hip adduction and trunk extension in a cross-sectional study (Tsai 2010,
+    JOSPT). A hip and trunk program raised lead-hip strength but not performance in an RCT
+    (Hamada 2025).
+  - In-season days are unchanged.
+  - With no gear, the hip thrust becomes a two-leg bridge, so no lift appears twice.
 - **Still once a week:** triceps/biceps/delts direct work, and the whole lower body on the 4-day
   plan (one heavy day + the speed-day jumps/swings). At equal volume frequency barely changes
   growth (Schoenfeld 2019; Pelland 2025) but helps strength (Pelland 2025) — the 4-day lower

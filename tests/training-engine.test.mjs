@@ -934,3 +934,89 @@ test("every gear setup keeps a vertical pull on the pull day (and in-season)", (
     }
   }
 });
+
+// ------------------------------------------- single-leg glute bridge (Nov 2026, TPI piece #2)
+// One leg holding the pelvis level while the hip drives: the hinge day gets a single-leg glute
+// bridge right after the hip thrust (one hip-thrust set moves to it). Durability / pelvic control,
+// not a speed lever. In-season days are untouched.
+const SLB = "Single-leg Glute Bridge", SLB_SR = "2 × 10 / leg (pause at the top · hips level)";
+test("the hinge day gets a single-leg glute bridge after the hip thrust (both splits); in-season untouched", () => {
+  const E = engine();
+  const hinge5 = E.PHASES[0].days5.find((d) => /Hinge/.test(d.name)), hinge4 = E.PHASES[0].days4.find((d) => /Hinge/.test(d.name));
+  for (const [d, ht] of [[hinge5, "3 × 8"], [hinge4, "2 × 8"]]) {
+    const names = d.ex.map((r) => r[0]), i = names.indexOf("Hip Thrust");
+    assert.ok(i >= 0, d.name);
+    assert.equal(d.ex[i][1], ht, `${d.name}: one hip-thrust set moves to the bridge`);
+    assert.deepEqual([...d.ex[i + 1]], [SLB, SLB_SR], `${d.name}: the bridge right after the hip thrust`);
+  }
+  for (const k of ["days2", "days3"]) assert.ok(!E.PHASES[0][k].some((d) => (d.ex || []).some((r) => r[0] === SLB)), `${k}: in-season unchanged`);
+});
+
+test("bodyweight only: the hinge day never lists a lift twice — the hip thrust becomes a two-leg bridge", () => {
+  for (const equip of [["bodyweight"], ["bodyweight", "bands"]]) {
+    const E = engine({ equip });
+    for (const split of ["days4", "days5"]) {
+      const d = E.PHASES[0][split].find((x) => /Hinge/.test(x.name)), r = E.resolveDay(d.ex), names = r.map((x) => x.name);
+      assert.equal(new Set(names).size, names.length, `${equip} ${split}: ${names.join(", ")}`);
+      assert.equal(names[d.ex.findIndex((x) => x[0] === "Hip Thrust")], "Glute Bridge");
+      assert.equal(names[d.ex.findIndex((x) => x[0] === SLB)], SLB, "the bridge itself needs nothing");
+    }
+  }
+});
+
+test("review: a user's swap onto a lift the day already has never demotes the plan's lift (the bridge itself never moves)", () => {
+  // Swaps come from the picker (EXERCISE_DB), so the real duplicates are heavy lifts — e.g. Incline DB
+  // Press → Barbell Bench Press on the push day. The plan's own heavy row must stay what it is.
+  const cases = [
+    [null, "days5", /Push/, { "Incline DB Press": "Barbell Bench Press" }, "Barbell Bench Press"],
+    [["barbell", "bench"], "days5", /Push/, { "Incline DB Press": "Barbell Bench Press" }, "Barbell Bench Press"],
+    [["barbell"], "days4", /Hinge/, { "Hip Thrust": "Romanian Deadlift" }, "Romanian Deadlift"],
+    [null, "days5", /Quads\)/, { "Leg Extension": "Leg Press" }, "Leg Press"],
+  ];
+  for (const [equip, split, day, swaps, keep] of cases) {
+    const E = engine({ equip: equip && ["bodyweight", ...equip], store: { ff_swaps: swaps } });
+    const d = E.PHASES[0][split].find((x) => day.test(x.name)), r = E.resolveDay(d.ex);
+    const i = d.ex.findIndex((x) => x[0] === keep);
+    assert.equal(r[i].name, keep, `${JSON.stringify(swaps)} (${equip || "full gym"}): the plan's ${keep} stays`);
+    assert.equal(r[i].status, "ok");
+    assert.ok(r.every((x) => !x.why), "no row is re-labelled");
+  }
+  // The plan's own bridge needs nothing, so it never moves — whatever the gear or swaps.
+  for (const equip of [null, ["bodyweight"], ["bodyweight", "dumbbells"]]) for (const swaps of [{}, { "Seated Leg Curl": "Hip Thrust" }, { "Hip Thrust": "Romanian Deadlift" }]) {
+    const E = engine({ equip, store: { ff_swaps: swaps } });
+    for (const split of ["days4", "days5"]) {
+      const d = E.PHASES[0][split].find((x) => /Hinge/.test(x.name));
+      assert.equal(E.resolveDay(d.ex)[d.ex.findIndex((x) => x[0] === SLB)].name, SLB, `${split} ${equip} ${JSON.stringify(swaps)}`);
+    }
+  }
+  assert.doesNotMatch(fn(PLAN, "dayCardHtml"), /already on this day/);
+});
+
+test("review: no bench → the hip-thrust slot is a 2-set two-leg bridge, so the day gains one set, not two", () => {
+  for (const equip of [["bodyweight"], ["bodyweight", "dumbbells"]]) {
+    const E = engine({ equip });
+    const d = E.PHASES[0].days5.find((x) => /Hinge/.test(x.name)), r = E.resolveDay(d.ex);
+    const ht = r[d.ex.findIndex((x) => x[0] === "Hip Thrust")];
+    assert.deepEqual([ht.name, ht.sr], ["Glute Bridge", "2 × 15 (pause at the top)"], String(equip));
+  }
+});
+
+test("review: the single-leg hip work is never taken to failure, even on a bulk (balance-heavy, like lunges)", () => {
+  const E = engine({ goal: "leanbulk" });
+  for (const n of [SLB, "Single-Leg Hip Thrust", "Single-leg RDL"]) {
+    const note = E.effortNote("2 × 10 / leg", n, { wave: "build" });
+    assert.doesNotMatch(note, /failure/, n);
+  }
+  assert.match(E.effortNote("3 × 12", "Seated Leg Curl", { wave: "build" }), /failure/, "control: other 💪 accessories still go to failure on a bulk");
+});
+
+test("the bridge has its own how-to and golf why (hips level), ahead of the two-leg hip thrust cues", () => {
+  const form = fn(INLINE, "exerciseForm"), why = fn(INLINE, "liftWhy");
+  assert.ok(form.indexOf("Single.?Leg (Glute Bridge|Hip Thrust)") > 0 && form.indexOf("Single.?Leg (Glute Bridge|Hip Thrust)") < form.indexOf("Hip Thrust|Glute Bridge"));
+  assert.ok(why.indexOf("Single.?Leg (Glute Bridge|Hip Thrust)") > 0 && why.indexOf("Single.?Leg (Glute Bridge|Hip Thrust)") < why.indexOf("Hip Thrust|Glute Bridge"));
+  const ctx = {}; vm.runInNewContext(form + "\n" + why, ctx);
+  assert.match(ctx.exerciseForm(SLB).cues.join(" "), /Hips stay level/);
+  assert.match(ctx.liftWhy(SLB).why, /pelvis level/);
+  assert.doesNotMatch(ctx.liftWhy(SLB).why + ctx.liftWhy(SLB).cue, /speed|yards|mph|prevent/i, "durability framing — never a speed or injury-prevention claim");
+  assert.match(ctx.exerciseForm("Hip Thrust").cues.join(" "), /Drive through the heels/, "the hip thrust keeps its cues");
+});

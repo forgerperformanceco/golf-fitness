@@ -45,7 +45,7 @@
         { name:"Rest / Play 18", tag:"rest", type:"rest" },
         { name:"Day 3 \u2014 Speed & Power", tag:"speed", type:"speed" },
         { name:"Day 4 \u2014 Lower (Hinge + Power)", tag:"Lift", ex:[
-          ["Seated Leg Curl","3 \u00d7 12"],["Deadlift","4 \u00d7 4 (heavy \u00b7 fast up)"],["Hip Thrust","4 \u00d7 8"],
+          ["Seated Leg Curl","3 \u00d7 12"],["Deadlift","4 \u00d7 4 (heavy \u00b7 fast up)"],["Hip Thrust","3 \u00d7 8"],["Single-leg Glute Bridge","2 \u00d7 10 / leg (pause at the top \u00b7 hips level)"],
           ["Bulgarian Split Squat","3 \u00d7 8 / leg"],["Standing Calf Raise","3 \u00d7 12"],["Pallof Press","3 \u00d7 12 / side"],["Farmer Carry","3 \u00d7 40 yd"]
         ]},
         { name:"Day 5 \u2014 Upper (Pull + Rotate)", tag:"Lift", ex:[
@@ -56,7 +56,7 @@
       ],
       days4: [
         { name:"Day 1 \u2014 Lower (Quads & Hinge)", tag:"Lift", ex:[
-          ["Romanian Deadlift","4 \u00d7 6 (heavy \u00b7 fast up)"],["Leg Press","4 \u00d7 6"],["Hip Thrust","3 \u00d7 8"],["Walking Lunge","3 \u00d7 10 / leg"],
+          ["Romanian Deadlift","4 \u00d7 6 (heavy \u00b7 fast up)"],["Leg Press","4 \u00d7 6"],["Hip Thrust","2 \u00d7 8"],["Single-leg Glute Bridge","2 \u00d7 10 / leg (pause at the top \u00b7 hips level)"],["Walking Lunge","3 \u00d7 10 / leg"],
           ["Leg Extension","3 \u00d7 12"],["Seated Leg Curl","4 \u00d7 12"],["Standing Calf Raise","4 \u00d7 12"]
         ]},
         { name:"Day 2 \u2014 Upper (Push)", tag:"Lift", ex:[
@@ -185,7 +185,7 @@
     "Half-Kneeling Cable Rotation":{needs:["cable"],subs:[{needs:["bands"],name:"Half-Kneeling Band Rotation"},{needs:["bodyweight"],name:"Half-Kneeling Thoracic Rotation",sr:"2 \u00d7 10 / side (hands behind head, slow)"}]},
     "Cable Wood-chop":{needs:["cable"],subs:[{needs:["bands"],name:"Band Wood-chop"},{needs:["medball"],name:"Med-Ball Rotational Throw"},{needs:["bodyweight"],name:"Speed Russian Twist"}]},
     "Deadlift":{needs:["barbell"],subs:[{needs:["dumbbells"],name:"DB Romanian Deadlift"},{needs:["kettlebell"],name:"Kettlebell Deadlift"},{needs:["bodyweight"],name:"Single-leg RDL",sr:"3 \u00d7 10 / leg"}]},
-    "Hip Thrust":{needs:["barbell","bench"],subs:[{needs:["dumbbells","bench"],name:"DB Hip Thrust"},{needs:["bodyweight"],name:"Single-leg Glute Bridge",sr:"3 \u00d7 12 / leg"}]},
+    "Hip Thrust":{needs:["barbell","bench"],subs:[{needs:["dumbbells","bench"],name:"DB Hip Thrust"},{needs:["bodyweight"],name:"Single-leg Glute Bridge",sr:"3 \u00d7 12 / leg"},{needs:["bodyweight"],name:"Glute Bridge",sr:"2 \u00d7 15 (pause at the top)"}]},
     "Leg Extension":{needs:["legext"],subs:[{needs:["bodyweight"],name:"Sissy Squat",sr:"3 \u00d7 8 (hold a support, part range OK)"}]},
     "Leg Curl":{needs:["legcurl"],subs:[{needs:["bands"],name:"Band Leg Curl"},{needs:["bodyweight"],name:"Nordic / Slider Leg Curl",sr:"2 \u00d7 5 (slow lowering only, sliders OK)"}]},
     "Seated Leg Curl":{needs:["legcurl"],subs:[{needs:["bands"],name:"Band Leg Curl"},{needs:["bodyweight"],name:"Nordic / Slider Leg Curl",sr:"2 \u00d7 5 (slow lowering only, sliders OK)"}]},
@@ -392,14 +392,15 @@
     // Never to failure: a lift with no weight found yet, the first session back,
     // a beginner's first 2 weeks (beginners grow from sets short of failure), an
     // accessory that comes before a big lift today, peak weeks (shed fatigue),
-    // and balance-heavy lunges / split squats / Nordics / sissy squats.
+    // and balance-heavy lunges / split squats / Nordics / sissy squats / single-leg
+    // hip work (bridge, hip thrust, RDL — pelvic control, Nov 2026).
     var bulk=(typeof state!=="undefined" && (state.goal==="bulk" || state.goal==="leanbulk"));
     if(bulk && name && typeof purposeFor==="function" && purposeFor(name)==="💪"){
       if(ctx.first) return "RIR 2 · find your working weight · rest ~90s";
       if(ctx.easeIn) return "RIR 2 · easing back in · rest ~90s";
       if(ctx.onRamp) return "RIR 2 · first 2 weeks: no all-out sets · rest ~90s";
       if(ctx.beforeHeavy) return "RIR 2 · save it for the big lift · rest ~90s";
-      if(ctx.wave!=="peak" && !/Lunge|Split Squat|Step-?up|Nordic|Sissy/i.test(name))
+      if(ctx.wave!=="peak" && !/Lunge|Split Squat|Step-?up|Nordic|Sissy|Single-?leg (Glute Bridge|Hip Thrust|RDL)/i.test(name))
         return "RIR 0–1 · last set to failure · rest ~90s";
     }
     if(reps>=13) return "RIR 1 · rest ~90s";   // >60–90 s beats shorter for growth (Singer 2024)

@@ -152,6 +152,14 @@ balanced 4-day, plus a Speed & Power day with `field`/`gym` variants chosen by
 barbell is owned). The week itself never changes; a **target-transform
 pipeline** reshapes it per week and per goal.
 
+**The hinge day (Nov 2026):** Hip Thrust is followed by a single-leg glute bridge, 2 × 10 / leg
+with a pause at the top and the hips level. That's 5-day Day 4 and 4-day Day 1; hip thrust is 3 × 8 and 2 × 8.
+It's durability and pelvic control, never a speed claim (NUTRITION §9a), and like lunges it's never taken
+to failure on a bulk (`effortNote`). With no bench, the hip thrust's fallback is a two-leg Glute Bridge
+(2 × 15), because gear subs never reuse a lift the day already has (`resolveDay`). A user's own swaps are
+never re-resolved: an earlier version moved the plan's heavy lift when a swap duplicated it, and the
+pre-PR review caught it.
+
 ### 3.1 The pipeline: `effTarget(sr, name, week)`
 
 ```

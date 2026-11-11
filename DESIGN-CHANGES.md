@@ -1,5 +1,64 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## Single-leg glute bridge on the hinge day (Nov 11, 2026)
+
+TPI piece #2. The owner had asked whether there were "lifting and exercise pieces we could steal".
+The hinge day now holds the pelvis on one leg.
+
+- **The plan:**
+  - Right after the hip thrust comes **Single-leg Glute Bridge, 2 × 10 / leg (pause at the top ·
+    hips level)**. That's 5-day Day 4 (Hinge + Power) and 4-day Day 1 (Quads & Hinge).
+  - One hip-thrust set moved to it: 5-day 4 → 3 × 8, 4-day 3 → 2 × 8. Glutes come out +1 set a
+    week.
+  - In-season days are untouched.
+  - It's 💪, so the on-ramp, retain and wave trims apply as usual (it already sits at the 2-set
+    floor).
+- **The case:** one leg holds the pelvis level while the hip drives, which is the lead side's job
+  through the weight shift. It also shows a side-to-side difference a two-leg hip thrust hides. The
+  copy is durability and control, never speed or injury prevention. The evidence is cross-sectional
+  (Tsai 2010) plus an RCT that raised hip strength but not performance (Hamada 2025), written up in
+  NUTRITION §9a.
+- **How-to:** it has its own cue and golf "why" (045 `exerciseForm` / `liftWhy`): hips level, pause
+  2 s, lower slowly. Single-Leg Hip Thrust shares them; the two-leg hip thrust keeps its own.
+- **Never to failure:** like lunges and split squats, single-leg hip work isn't taken to failure on a
+  bulk (`effortNote`). That covers the bridge, the single-leg hip thrust and the single-leg RDL.
+- **No lift twice on a day:** with no bench, the hip thrust's new last sub is a two-leg Glute Bridge
+  (2 × 15, pause), so it doesn't become a second single-leg bridge. The day gains one set, not two.
+- **Pre-PR independent review:**
+  - The first version also re-resolved a day whenever a user's own swap duplicated a planned lift,
+    moving the plan's row to its next sub. That fired on ordinary picker swaps and demoted heavy
+    lifts:
+    - Incline DB Press → Barbell Bench Press turned the heavy bench into a DB press;
+    - Leg Extension → Leg Press turned the leg press into a goblet squat.
+    In each case the lift lost its history, and the case it was written for can't happen through
+    the app. It was removed, and a test now pins that those swaps leave the plan's lifts alone.
+  - The same review moved the bridge out of "to failure" and cut the no-bench fallback from 3 to 2
+    sets.
+  - Accepted as is: a user who already swapped Hip Thrust → Single-Leg Hip Thrust now also gets the
+    floor bridge. That's two single-leg glute lifts, by their own choice.
+- **Verified:**
+  - New tests in `tests/training-engine.test.mjs` (6) and `tests/exercise-cues.test.mjs` (a new
+    `slbridge` cue family) cover:
+    - the plan rows in both splits, with in-season untouched;
+    - bodyweight presets with no duplicate names;
+    - user swaps that duplicate a planned lift leaving it alone (bench, RDL, leg press), and the
+      bridge never moving;
+    - the 2-set no-bench fallback;
+    - no failure for single-leg hip work;
+    - the cues coming ahead of the hip-thrust entry, with no speed or prevention words.
+  - The review tests fail on the first version; the rest fail against main.
+  - Suite 300/300. The 4-day Day 1 session estimate stays in its 75–95 min band.
+  - A Playwright e2e passes in light and dark, with zero page errors; every new assertion fails on
+    main's build. On a pinned hinge day (Wed Nov 11) it checks:
+    - the bridge listed right after the hip thrust, with its note. The hip thrust shows 2 × 8 in
+      week 2, because the on-ramp takes a set off;
+    - a picker swap that duplicates the Deadlift leaving the plan's rows alone, with nothing
+      relabelled;
+    - true bodyweight-only gear giving Single-leg RDL, Glute Bridge and the single-leg bridge, with
+      no duplicates.
+  - Audits match baseline: train 18/18, scroll 16/16, contrast clean, type 1 known (Fuel "Ate it").
+  - The release gate and claims-lint are clean.
+
 ## Power check: a jump and a throw, about monthly, on Speed Test Day (Nov 11, 2026)
 
 The first piece taken from the TPI research (owner: "I'm hoping there were some lifting and exercise
