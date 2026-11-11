@@ -1,5 +1,93 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## Power check: a jump and a throw, about monthly, on Speed Test Day (Nov 11, 2026)
+
+The first piece taken from the TPI research (owner: "I'm hoping there were some lifting and exercise
+pieces we could steal"). Both meta-analyses put power at the top of what tracks clubhead speed (jump
+impulse zr≈0.82, upper-body explosive strength zr≈0.67; Brennan 2024), with flexibility and balance at
+zero, and TPI's own campus session adds a jump and med-ball throws to its screen. Yardsmith tracked
+speed and mobility but no power number.
+
+- **When:** every other speed test (`POWER_DUE_AT=21` days; never done = due). The speed test's
+  result shows a "Power check — due / set your baseline" card above Done. It comes **after** the three
+  swings, so the swing protocol is unchanged. Tapping Done skips it.
+- **The form** (same `#stModal`, header becomes "Power check"):
+  - A pain stop comes first: "Stop if anything hurts — skip it today; the speed test already counts".
+    Opened on its own, it reads "skip it today and try another day".
+  - **Jump and reach**, best of 3, in inches, with "Land soft and quiet". A low-impact profile
+    (`ffLowImpact`: 60+, BMI 30+ or a flagged health question) also gets "Go easy: a small dip, a quiet
+    landing — one good jump is plenty".
+  - An optional **seated chest throw**, best of 3, in feet, with ball-weight chips (4–14 lb). The last
+    ball used is preselected. A throw without a ball weight can't save.
+  - Range checks catch typos (2–48 in, 3–60 ft). A number under the floor while typing ("1" on the
+    way to 18) only blocks Save; the error appears when the field is left.
+  - A number more than 25% from your last one (the last same-ball throw, for the throw) asks once,
+    like the speed test's 15% check. Tapping Save again saves it.
+  - Typing never re-renders, so the keyboard stays up. Ball chips update in place, so keyboard and
+    screen-reader focus stays on the chip.
+  - Past the free week, locked users see their own Pro sheet ("Power checks are part of Pro", reason
+    `powercheck`).
+- **The result:** each number against your own checks. A throw is only ever compared with the same
+  ball.
+  - Changes inside the noise line read "About the same as last check (±1 in is normal wobble)". That
+    line is ±1 in for the jump and ±5% (never under 1 ft) for the throw; both are assumptions pending
+    repeat data.
+  - From the second prior check on, it also shows the change since your first check.
+  - No outside norms; TPI's published power norms are deliberately not used.
+- **Elsewhere:**
+  - The Stats speed card gets a one-line Power summary, with a 44px "check due" link when due. The
+    result only points to that card when it exists (once there's a counted speed number).
+  - The Log sheet gets a "Power check" row that opens the form directly.
+  - Welcome-back counts a power check as activity.
+- **Data:**
+  - New roaming key `ff_power` `[{ts, date, week, jump, chest, ball}]`.
+  - It's in `KEYS`, with a MERGE `unionSeries` by `ts`, capped at 40 in both the merge and the
+    module.
+  - The cap never moves a baseline (Codex, #129). The first jump and the first throw with each ball
+    weight always stay; the rest are the newest. This is the same rule in `pwCap` (060) and
+    `powerCap` (cloud-sync), unit-tested to keep identical entries on 200 random lists.
+  - The cloud-sync pin went v121 → v123 in both templates.
+  - Not an Octane input: first see whether it moves with 7-iron speed user by user.
+  - The data-contract script now also allowlists `ff_notif_today`, which was already device-local
+    (since the evening reminder) but was missing from the list.
+- **Pre-PR independent review:** 6 findings, all fixed with a failing test first:
+  - the ball chip dropped focus;
+  - the pain line was wrong when the check was opened on its own;
+  - locked users saw the speed-test paywall copy;
+  - the result promised a Stats line that could be absent;
+  - an in-range typo became a permanent baseline;
+  - the range error flashed while typing, and the Stats link was 32px.
+  - It also hardened "undefined lb" for a hand-edited entry.
+  - Reviewer note, not a bug: a device still on cloud-sync v121 drops `ff_power` from the cloud copy
+    until a v122 device pushes again. Every new roaming key has this transition.
+- **Verified:**
+  - `tests/power-check.test.mjs` (20 tests; all fail against main) covers:
+    - due timing (14 days not due, 21 and 28 due, out-of-order lists);
+    - the form rules and the ball default;
+    - same-ball comparisons and the noise-line words;
+    - the save shape and cap;
+    - the Stats line and the Log-sheet wiring;
+    - the swing protocol left untouched and no outside names in the copy;
+    - a two-device `ff_power` union through the real MERGE entry.
+    - the review fixes listed above.
+    - the baseline-keeping cap on both the app and sync sides (Codex, #129).
+  - Suite 294/294. The sync proof passes 24/24.
+  - A Playwright e2e on the built app passes in light and dark, with zero page errors. It covers:
+    - the offer on a first speed test;
+    - the form, error and focus behaviour, with every control ≥44px. That includes no error flash
+      while typing "1", the error on leaving the field, and keyboard focus kept on a ball chip; these
+      checks fail on the pre-review build;
+    - the baseline result and the saved entry;
+    - the Stats line;
+    - the Log-sheet entry with the ball remembered: +1.5 in reads as a gain, +1 ft on 23 ft reads as
+      "about the same";
+    - no offer on the next speed test;
+    - Skip saving nothing;
+    - +44% asking once, then saving;
+    - a 44px "check due" link on Stats that opens the form.
+  - Audits match baseline: train 18/18, scroll 16/16, contrast clean, type 1 known (Fuel "Ate it").
+  - Data contract, release gate and claims-lint are clean.
+
 ## The turn check ignores one shaky move, and stops for pain (Nov 11, 2026)
 
 From the TPI research report: single self-rated screen items are the least reliable layer of any

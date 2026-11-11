@@ -473,6 +473,14 @@ stores; we're a URL). Shipping the app matters more than more docs.
   every move, see-a-clinician message, nothing saved).
 - **Turn check v2 (Nov 8, 2026)** — the mobility screen became five golf moves: trunk rotation, hip
   rotation, coil, lead arm across the chest, overhead reach (lats). v1 screens stay readable.
+- **Power check (Nov 11, 2026)** — the first TPI-derived piece (owner: "steal the lifting and exercise
+  pieces"). Power, not flexibility, is what tracks clubhead speed in both meta-analyses, so about
+  monthly (every other speed test) the speed test's result offers a jump-and-reach and an optional
+  seated med-ball chest throw, after the swings so the swing protocol stays identical. Own words,
+  own baseline: TPI's power norms, names and "golf fitness handicap" framing are deliberately not
+  used. Synced as `ff_power`; not an Octane input (yet) — first see whether it moves with 7-iron
+  speed user by user. Next TPI pieces, one PR each: a single-leg glute bridge on the Hinge day,
+  then a mobility-vs-control retry for a red turn-check move.
 
 **Rejected (deliberately):**
 - **A "Bulk" (+20%) goal** — retired Nov 8, 2026. Golfers build, they don't bulk: in trained

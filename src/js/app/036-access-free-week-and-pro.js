@@ -366,6 +366,7 @@
       workout:["Your free week is done","Week "+wk+" is ready. From here the app sets every weight from what you actually lifted."],
       coach:["The coach is part of Pro","Ask anything about your plan, your meals or your numbers — answers built on your own logs."],
       speedtest:["Speed tests are part of Pro","Test every two weeks and watch the plan turn into clubhead speed."],
+      powercheck:["Power checks are part of Pro","A jump and a throw about once a month — the gym numbers most tied to clubhead speed."],
       preview:["See the whole plan","Your free week opens one workout a day. Pro opens everything — and keeps it going for all 20 weeks."]
     }[reason] || ["Yardsmith Pro","The whole 20-week plan, run for you."];
     function opt(k){

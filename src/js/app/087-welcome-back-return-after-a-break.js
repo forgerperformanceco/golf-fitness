@@ -32,7 +32,7 @@
     each("ff_rest", see);
     each("ff_skipped_sessions", see);
     each("ff_fuel", function(d){ if(d) see(d.ts||0); });
-    ["ff_rounds","ff_speedtest","ff_mobility","ff_readiness","ff_weekly_reviews"].forEach(function(k){
+    ["ff_rounds","ff_speedtest","ff_power","ff_mobility","ff_readiness","ff_weekly_reviews"].forEach(function(k){
       each(k, function(e){ if(e) see(e.ts||e.date||0); });
     });
     return last||null;

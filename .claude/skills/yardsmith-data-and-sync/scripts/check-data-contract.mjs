@@ -42,6 +42,7 @@ const DEVICE_LOCAL = {
   ff_pl_paused:     "transient — paused player session on THIS device (070)",
   ff_notif:         "device notification toggle (080)",
   ff_notif_lastday: "transient — web-notification once-per-day dedupe (080)",
+  ff_notif_today:   "device-local — today’s evening-reminder record on this device (080 ffNotifReschedule)",
   ff_push_on:       "device push-subscription state (080)",
   ff_push_sig:      "transient — push schedule payload-hash dedupe (080)",
   ff_milestones:    "device-local milestone toasts (070)",
@@ -84,6 +85,7 @@ const CAPS = [
   ["ff_rounds", 60, "src/js/app/082-round-debrief.js", /rounds\.length>60/],
   ["ff_speedtest", 60, "src/js/app/060-speed-test-day-the-biweekly-testing-ritu.js", /t\.length>60/],
   ["ff_mobility", 40, "src/js/app/065-mobility-screen-the-3-move-durability-ch.js", /t\.length>40/],
+  ["ff_power", 40, "src/js/app/060-speed-test-day-the-biweekly-testing-ritu.js", /pw\.length>40/],
 ];
 for (const [key, cap, file, moduleRe] of CAPS) {
   const line = mergeMatch[1].split("\n").find((l) => l.includes(key + ":"));
