@@ -440,7 +440,9 @@ stores; we're a URL). Shipping the app matters more than more docs.
   20% fat floor, noise-aware speed signals, honest copy everywhere. The owner
   decisions it raised were **all decided and shipped Oct 2, 2026** (next bullet).
 - **Program update, Oct 2026** (DESIGN-CHANGES; NUTRITION §9a): chest and back twice a
-  week in both splits (single-arm row ↔ single-arm press swap), more hamstring/side-delt/
+  week in both splits (single-arm row ↔ single-arm press swap — **reversed Nov 11, 2026**: the
+  owner found a row on Push day weird, so Push is all push and Pull all pull again, Lat Pulldown
+  dropped; chest/back ~10 sets once a week; don't re-propose cross-day lifts without him), more hamstring/side-delt/
   calf work, new-lifter volume on-ramp (history-based, no onboarding question), In-season
   toggle (2 hard sets per lift, same weights), play days + a day-before-a-round leg-day
   note, one-time pull-up check, lighter landings for BMI 30+/age 60+, trap-bar default for

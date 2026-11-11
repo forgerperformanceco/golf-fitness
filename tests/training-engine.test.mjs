@@ -877,3 +877,24 @@ test("maintaining: 'held twice' means every working set at that weight, both tim
   assert.equal(run({ ["2|" + day]: s([225, 225, 225, 225], 14), ["3|" + day]: s([225, 200, 200, 200], 7) }).bump, false, "nor this time");
   assert.equal(run({ ["2|" + day]: s([225, 225, 225, 225], 14), ["3|" + day]: s([225, 225, 225, 225], 7) }).w, 230);
 });
+
+// Codex, #126: with Lat Pulldown gone from the pull day, the pull-up's own no-bar swap must
+// stay a VERTICAL pull — or a bodyweight / dumbbells-only day is rows on rows.
+test("every gear setup keeps a vertical pull on the pull day (and in-season)", () => {
+  const VERT = /Pull-?up|Chin-?up|Pulldown|Lat Pull/i;
+  const gear = { full: null, home: ["bodyweight", "dumbbells", "bench", "pullupbar", "kettlebell", "bands", "box"],
+    minimal: ["bodyweight", "bands"], bodyweight: ["bodyweight"], dumbbellsOnly: ["bodyweight", "dumbbells", "bench"] };
+  for (const [label, equip] of Object.entries(gear)) {
+    const E = engine({ equip });
+    for (const split of ["days4", "days5"]) {
+      const pull = E.PHASES[0][split].find((d) => /Pull/.test(d.name));
+      const names = E.resolveDay(pull.ex).map((r) => r.name);
+      assert.ok(names.some((n) => VERT.test(n)), `${label} ${split}: ${names.join(", ")}`);
+    }
+    // In-season full-body days with a pull-up keep it vertical too.
+    for (const n of ["Weighted Pull-up", "Pull-up"]) {
+      const r = E.resolveDay([[n, "3 × 6"]])[0];
+      assert.ok(VERT.test(r.name), `${label}: ${n} → ${r.name}`);
+    }
+  }
+});

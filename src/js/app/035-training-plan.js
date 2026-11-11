@@ -40,7 +40,7 @@
         ]},
         { name:"Day 2 \u2014 Upper (Push)", tag:"Lift", ex:[
           ["Barbell Bench Press","4 \u00d7 5 (heavy \u00b7 fast up)"],["Incline DB Press","3 \u00d7 10"],["Standing Overhead Press","4 \u00d7 6"],
-          ["Single-Arm DB Row","3 \u00d7 8 / side"],["Lateral Raise","4 \u00d7 15"],["Cable Overhead Triceps Extension","3 \u00d7 12"],["Cable Wood-chop","3 \u00d7 10 / side"]
+          ["Single-Arm DB Bench Press","3 \u00d7 8 / side"],["Lateral Raise","4 \u00d7 15"],["Cable Overhead Triceps Extension","3 \u00d7 12"],["Cable Wood-chop","3 \u00d7 10 / side"]
         ]},
         { name:"Rest / Play 18", tag:"rest", type:"rest" },
         { name:"Day 3 \u2014 Speed & Power", tag:"speed", type:"speed" },
@@ -49,7 +49,7 @@
           ["Bulgarian Split Squat","3 \u00d7 8 / leg"],["Standing Calf Raise","3 \u00d7 12"],["Pallof Press","3 \u00d7 12 / side"],["Farmer Carry","3 \u00d7 40 yd"]
         ]},
         { name:"Day 5 \u2014 Upper (Pull + Rotate)", tag:"Lift", ex:[
-          ["Weighted Pull-up","4 \u00d7 6 (fast up)"],["Chest-Supported Row","3 \u00d7 8"],["Lat Pulldown","3 \u00d7 12"],["Single-Arm DB Bench Press","3 \u00d7 8 / side"],
+          ["Weighted Pull-up","4 \u00d7 6 (fast up)"],["Chest-Supported Row","3 \u00d7 8"],["Single-Arm DB Row","3 \u00d7 8 / side"],
           ["Face Pull","3 \u00d7 15"],["Half-Kneeling Cable Rotation","2 \u00d7 8 / side (slow \u00b7 pause at the end)"],["DB Curl","3 \u00d7 12"],["Wrist Curl + Reverse","2 \u00d7 15"]
         ]},
         { name:"Rest / Play 18", tag:"rest", type:"rest" }
@@ -61,13 +61,13 @@
         ]},
         { name:"Day 2 \u2014 Upper (Push)", tag:"Lift", ex:[
           ["Barbell Bench Press","4 \u00d7 5 (heavy \u00b7 fast up)"],["Incline DB Press","3 \u00d7 10"],["Standing Overhead Press","4 \u00d7 6"],
-          ["Single-Arm DB Row","3 \u00d7 8 / side"],["Lateral Raise","4 \u00d7 15"],["Cable Overhead Triceps Extension","3 \u00d7 12"],["Cable Wood-chop","3 \u00d7 10 / side"]
+          ["Single-Arm DB Bench Press","3 \u00d7 8 / side"],["Lateral Raise","4 \u00d7 15"],["Cable Overhead Triceps Extension","3 \u00d7 12"],["Cable Wood-chop","3 \u00d7 10 / side"]
         ]},
         { name:"Rest / Play 18", tag:"rest", type:"rest" },
         { name:"Day 3 \u2014 Speed & Power", tag:"speed", type:"speed" },
         { name:"Rest / Play 18", tag:"rest", type:"rest" },
         { name:"Day 4 \u2014 Upper (Pull + Rotate)", tag:"Lift", ex:[
-          ["Weighted Pull-up","4 \u00d7 6 (fast up)"],["Chest-Supported Row","3 \u00d7 8"],["Lat Pulldown","3 \u00d7 12"],["Single-Arm DB Bench Press","3 \u00d7 8 / side"],
+          ["Weighted Pull-up","4 \u00d7 6 (fast up)"],["Chest-Supported Row","3 \u00d7 8"],["Single-Arm DB Row","3 \u00d7 8 / side"],
           ["Face Pull","3 \u00d7 15"],["Half-Kneeling Cable Rotation","2 \u00d7 8 / side (slow \u00b7 pause at the end)"],["DB Curl","3 \u00d7 12"],["Pallof Press","3 \u00d7 12 / side"],["Wrist Curl + Reverse","2 \u00d7 15"]
         ]},
         { name:"Rest / Play 18", tag:"rest", type:"rest" }
@@ -192,8 +192,11 @@
     "Lying Leg Curl":{needs:["legcurl"],subs:[{needs:["bands"],name:"Band Leg Curl"},{needs:["bodyweight"],name:"Nordic / Slider Leg Curl",sr:"2 \u00d7 5 (slow lowering only, sliders OK)"}]},
     "Pallof Press":{needs:["cable"],subs:[{needs:["bands"],name:"Band Pallof Press"},{needs:["bodyweight"],name:"Side Plank",sr:"3 \u00d7 30 s / side"}]},
     "Farmer Carry":{needs:["dumbbells"],subs:[{needs:["kettlebell"],name:"Kettlebell Carry"},{needs:["bodyweight"],name:"Loaded Carry (backpack / any heavy object)"}]},
-    "Weighted Pull-up":{needs:["pullupbar"],subs:[{needs:["latpulldown"],name:"Lat Pulldown"},{needs:["bands"],name:"Band Lat Pulldown"},{needs:["dumbbells"],name:"DB Row"},{needs:["bodyweight"],name:"Inverted Row (under a sturdy table)"}]},
-    "Pull-up":{needs:["pullupbar"],subs:[{needs:["latpulldown"],name:"Lat Pulldown"},{needs:["bands"],name:"Band Lat Pulldown"},{needs:["dumbbells"],name:"DB Row"},{needs:["bodyweight"],name:"Inverted Row"}]},
+    // No bar: the swap stays a VERTICAL pull (the pull day's only one since Lat Pulldown left it,
+    // Nov 2026 — Codex, #126): pulldown, band pulldown, then the bodyweight floor lat pull, and only
+    // then a row.
+    "Weighted Pull-up":{needs:["pullupbar"],subs:[{needs:["latpulldown"],name:"Lat Pulldown"},{needs:["bands"],name:"Band Lat Pulldown"},{needs:["bodyweight"],name:"Sliding Floor Lat Pull"},{needs:["dumbbells"],name:"DB Row"},{needs:["bodyweight"],name:"Inverted Row (under a sturdy table)"}]},
+    "Pull-up":{needs:["pullupbar"],subs:[{needs:["latpulldown"],name:"Lat Pulldown"},{needs:["bands"],name:"Band Lat Pulldown"},{needs:["bodyweight"],name:"Sliding Floor Lat Pull"},{needs:["dumbbells"],name:"DB Row"},{needs:["bodyweight"],name:"Inverted Row"}]},
     "Chest-Supported Row":{needs:["dumbbells"],subs:[{needs:["bands"],name:"Band Row"},{needs:["bodyweight"],name:"Inverted Row"},{needs:["bodyweight"],name:"Doorframe Row"}]},
     "Single-Arm DB Row":{needs:["dumbbells"],subs:[{needs:["kettlebell"],name:"Single-Arm Kettlebell Row"},{needs:["bands"],name:"Single-Arm Band Row"},{needs:["bodyweight"],name:"Inverted Row"},{needs:["bodyweight"],name:"Single-Arm Doorframe Row"}]},
     "Wrist Curl + Reverse":{needs:["dumbbells"],subs:[{needs:["barbell"],name:"Barbell Wrist Curl + Reverse"},{needs:["bands"],name:"Band Wrist Curl"},{needs:["bodyweight"],name:"Towel / Plate Pinch Hold",sr:"3 \u00d7 30 s"}]},
