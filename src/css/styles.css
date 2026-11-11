@@ -222,6 +222,8 @@
   .meals-per-day small{ display:block; margin-top:2px; color:var(--muted); font-size:12px; }
   .meals-per-day .seg{ width:auto; flex:0 0 auto; }
   .meals-per-day .seg button{ min-width:44px; min-height:44px; }
+  .prot-pref > span:first-child{ min-width:0; }
+  .prot-pref .seg button{ white-space:nowrap; padding-left:12px; padding-right:12px; }   /* "0.85 g/lb" on one line */
   /* Today's meals card extras: first-day hint, streak, and the whole-day rating. */
   .ft-hint{ margin:10px 2px 0; color:#b9d9c5; font-size:13px; }
   .ft-streak{ display:inline-flex; align-items:center; gap:4px; margin-right:9px; color:#ffcf87; }

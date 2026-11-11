@@ -1,5 +1,5 @@
   /* ===================== MACRO CALCULATOR ===================== */
-  var state = { sex: "male", goal: "leanbulk", workout: "morning", meals: null, prep:[], equipPreset:"full" };
+  var state = { sex: "male", goal: "leanbulk", workout: "morning", meals: null, prep:[], equipPreset:"full", protein:"plan" };
   var lastMealPlan = null;   // last computed { meal, timing } — shared with the unified Meals card
   // The last calc's calorie base: the check-in (070) sizes its suggestion to the
   // room left above the floor, and Apply (085) clamps to the same range.
@@ -147,6 +147,8 @@
   $("results").addEventListener("click", function(e){
     var b=e.target.closest("[data-meals]");
     if(b){ state.meals=parseInt(b.getAttribute("data-meals"),10); calc(); return; }
+    var b2=e.target.closest("[data-protein]");
+    if(b2){ state.protein=b2.getAttribute("data-protein")==="1lb" ? "1lb" : "plan"; calc(); return; }
     var row=e.target.closest(".sched-row.tappable");
     if(row){ row.classList.toggle("open"); }
   });
@@ -155,7 +157,7 @@
     // rest of the saved profile stay; the check-in calorie tuning resets with it.
     var d=lsGet("fairwayfuel", null);
     if(d && typeof d==="object"){
-      ["sex","goal","workout","meals","age","weight","heightFt","heightIn","activity"].forEach(function(k){ delete d[k]; });
+      ["sex","goal","workout","meals","protein","age","weight","heightFt","heightIn","activity"].forEach(function(k){ delete d[k]; });
       lsSet("fairwayfuel", d);
     }
     lsSet("ff_kcal_adj", 0);
@@ -163,12 +165,13 @@
   });
 
   // ---- Shareable plan link: encode the calculator settings into the URL ----
-  var SHARE_KEYS = { s:"sex", g:"goal", w:"workout", m:"meals", a:"age",
+  var SHARE_KEYS = { s:"sex", g:"goal", w:"workout", m:"meals", pr:"protein", a:"age",
     wt:"weight", hf:"heightFt", hi:"heightIn", ac:"activity" };
   function buildShareURL(){
     var p=new URLSearchParams();
     p.set("s",state.sex); p.set("g",state.goal); p.set("w",state.workout);
     if(state.meals) p.set("m",state.meals);
+    if(state.protein==="1lb") p.set("pr","1lb");   // the default (the plan) adds nothing
     ["a:age","wt:weight","hf:heightFt","hi:heightIn","ac:activity"].forEach(function(pair){
       var k=pair.split(":")[0], id=pair.split(":")[1], v=$(id)?$(id).value:"";
       if(v!=="") p.set(k,v);
@@ -190,6 +193,7 @@
     if(!ffHas(WORKOUT_SLOTS,state.workout)){ state.workout="morning"; changed=true; }
     if(state.meals!=null){ var m=parseInt(state.meals,10);
       if(!(m>=3 && m<=6)){ state.meals=null; changed=true; } else state.meals=m; }
+    if(state.protein!=="1lb" && state.protein!=="plan"){ state.protein="plan"; changed=true; }
     if($("activity") && !ffActivityOk($("activity").value)){ $("activity").value="1.55"; changed=true; }
     if(changed) ffSyncSegs();
   }
@@ -235,6 +239,7 @@
     if(ffHas(GOALS,g)) state.goal=(g==="bulk") ? "leanbulk" : g;
     if(ffHas(WORKOUT_SLOTS,w)) state.workout=w;
     if(m>=3 && m<=6) state.meals=m;
+    if(q.get("pr")==="1lb") state.protein="1lb";
     ffSyncSegs();
     return true;
   }
@@ -265,7 +270,7 @@
     // from the real weight trend) is clamped to the range that can still move the
     // target — a stored value the floor would absorb counts only as far as it bites.
     var day=ffDayTargets({ sex:state.sex, age:age, weightLb:weightLb, heightCm:heightCm, activity:activity,
-      goal:g, kcalAdj:lsGet("ff_kcal_adj", 0), fatMinPct:FAT_MIN_PCT });
+      goal:g, kcalAdj:lsGet("ff_kcal_adj", 0), fatMinPct:FAT_MIN_PCT, protein:state.protein });
     var bmr=day.bmr, tdee=day.tdee, macro=day.macro, effAdj=day.effAdj, floorKcal=day.floorKcal;
     var target=macro.target;
     ffCalcBase={ tdee:tdee, baseTarget:day.baseTarget, floorKcal:floorKcal, effAdj:effAdj, lo:day.lo, hi:day.hi,
@@ -324,7 +329,7 @@
     render({ bmr:bmr,tdee:tdee,target:target,activity:activity,
       proteinG:proteinG,fatG:fatG,carbG:carbG,
       proteinKcal:proteinKcal,fatKcal:fatKcal,carbKcal:carbKcal,
-      goal:g,pct:g.pct, timing:timing, meal:meal, weekly:weekly,
+      goal:g,pct:g.pct, timing:timing, meal:meal, weekly:weekly, proteinPerLb:day.macroIn.proteinPerLb,
       effAdj:effAdj, floored:macro.floored, floorKcal:floorKcal, bmi:ffBmi(weightLb, heightCm) });
     // Stash the computed targets (the coach, the example day and Today all read
     // them) BEFORE the renders below, so nothing draws last calculation's fat/kcal.
@@ -1314,6 +1319,16 @@
       html+='<div class="meals-per-day"><span><b>Meals per day</b><small>'+(mN===mRec?'recommended for your plan':'we recommend '+mRec)+'</small></span>'+
         '<span class="seg">'+[3,4,5,6].map(function(n){ return '<button type="button" data-meals="'+n+'"'+(n===mN?' class="active"':'')+'>'+n+'</button>'; }).join("")+'</span></div>';
     }
+    // Protein: the plan's g/lb or 1 g per lb (owner, Nov 2026). Hidden when the goal is
+    // already at 1 g/lb or more (Lean Out) — there'd be nothing to choose.
+    if(r.goal.proteinPerLb<1){
+      var p1=state.protein==="1lb", planTxt=r.goal.proteinPerLb.toFixed(2).replace(/0$/,'')+' g/lb';
+      html+='<div class="meals-per-day prot-pref"><span><b>Protein</b><small>'+
+          (p1 ? 'The extra comes out of carbs — calories stay the same.' : 'The plan’s '+planTxt+' is already past where muscle gains level off.')+'</small></span>'+
+        '<span class="seg">'+
+          '<button type="button" data-protein="plan" aria-pressed="'+(!p1)+'"'+(!p1?' class="active"':'')+'>'+planTxt+'</button>'+
+          '<button type="button" data-protein="1lb" aria-pressed="'+p1+'"'+(p1?' class="active"':'')+'>1 g/lb</button></span></div>';
+    }
     html+='<details class="fold"><summary>How this is calculated — and how fast the scale should move</summary><div class="fold-body breakdown">'+
       targetBand(r.weekly,r.goal)+
       '<div class="golf-note"><b>⛳ '+r.goal.label+':</b> '+r.goal.note+'</div>'+
@@ -1324,7 +1339,7 @@
       (adjNow!==0 ? tr("Tuned to your weight trend",(adjNow>0?"+":"")+adjNow+" kcal → "+round5(maint)+" kcal") : "")+
       tr("Goal adjustment",deltaTxt)+
       tr("Daily target",round5(r.target)+" kcal"+(r.floored?" (our minimum — we never set it lower)":""))+
-      tr("Protein",r.goal.proteinPerLb.toFixed(2).replace(/0$/,'')+" g/lb reference weight ("+r.proteinG+" g)")+
+      tr("Protein",r.proteinPerLb.toFixed(2).replace(/0$/,'')+" g/lb reference weight ("+r.proteinG+" g)"+(r.proteinPerLb>r.goal.proteinPerLb?" — your choice; the extra comes out of carbs":""))+
       tr("Fat",r.goal.fatPerLb.toFixed(2).replace(/0$/,'')+" g/lb reference weight, at least "+Math.round(FAT_MIN_PCT*100)+"% of calories ("+r.fatG+" g)")+
       tr("Carbs","the rest ("+r.carbG+" g)")+
       '</table></div></details>';

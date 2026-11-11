@@ -169,6 +169,14 @@ overshooting the "optimal" number costs nothing but a little money.
 | Bulk | **0.9 g/lb** |
 | Cut / Lean Out | **1.0 g/lb** |
 
+**Your choice: 1 g per lb (Nov 2026).** Fuel → Protein lets anyone eat 1 g per lb of reference
+weight instead of the plan's value. The plan's 0.85–0.9 g/lb is already past Morton 2018's ~1.6
+g/kg plateau, and 1 g/lb sits at its ~2.2 g/kg upper bound. Higher intakes are safe in healthy
+lifters (Antonio 2016: >3 g/kg for months, no adverse kidney, liver or lipid changes). The day's
+calories don't change: the extra protein comes out of carbs. For example, at 159 lb on In-Season
+Maintain, 135 → 160 g of protein costs 25 g of carbs. Lean Out is already at 1.0, so there's no
+choice there.
+
 The reference weight is capped at the body weight corresponding to BMI 30 when needed,
 because total weight becomes a poor proxy for lean mass at extremes. A cut uses the high
 end of the general evidence-based range because muscle retention matters more in a deficit.

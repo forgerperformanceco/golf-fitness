@@ -64,11 +64,20 @@
       proteinKcal:proteinG*4, fatKcal:fatG*9, carbKcal:carbG*4 };
   }
 
+  // The protein choice on Fuel (Nov 2026): "plan" = the goal's g/lb; "1lb" = at
+  // least 1 g per lb of reference weight (a common, safe habit; the plan's values
+  // are already past where muscle gains level off — Morton 2018 ~1.6 g/kg, CI to
+  // ~2.2 g/kg ≈ 1 g/lb). Never lowers a goal that's already higher. Carbs pay for it
+  // (ffMacroTargets fills carbs last), so calories and fat don't move.
+  function ffProteinPerLb(goal, pref){
+    var g=Number(goal && goal.proteinPerLb)||0.9;
+    return pref==="1lb" ? Math.max(g, 1) : g;
+  }
   // One pure call for the calculator (025 calc) and the tests: Mifflin–St Jeor
   // BMR → TDEE → the goal target, lifted to the safety floor (1200 women / 1500
   // men), then tuned by the check-in adjustment — clamped to the range that can
   // still move the target — and split into macros. o = { sex, age, weightLb,
-  // heightCm, activity, goal (a GOALS entry), kcalAdj, fatMinPct }.
+  // heightCm, activity, goal (a GOALS entry), kcalAdj, fatMinPct, protein ("plan"|"1lb") }.
   function ffDayTargets(o){
     var weightLb=Math.max(0,Number(o.weightLb)||0), heightCm=Math.max(0,Number(o.heightCm)||0);
     var bmr=10*(weightLb/2.20462)+6.25*heightCm-5*(Number(o.age)||0)+(o.sex==="male"?5:-161);
@@ -80,7 +89,7 @@
     // Whole kcal: the base has decimals, and a raw clamp showed "Tuned −81.0737… kcal".
     var adjR=ffAdjRange(baseTarget, floorKcal), effAdj=Math.round(ffClamp(Number(o.kcalAdj)||0, adjR.lo, adjR.hi));
     var macroIn={ weightLb:weightLb, heightCm:heightCm, targetKcal:baseTarget, kcalAdj:effAdj,
-      proteinPerLb:o.goal.proteinPerLb, fatPerLb:o.goal.fatPerLb, fatMinPct:o.fatMinPct, floorKcal:floorKcal };
+      proteinPerLb:ffProteinPerLb(o.goal, o.protein), fatPerLb:o.goal.fatPerLb, fatMinPct:o.fatMinPct, floorKcal:floorKcal };
     return { bmr:bmr, tdee:tdee, floorKcal:floorKcal, baseTarget:baseTarget, lo:adjR.lo, hi:adjR.hi,
       effAdj:effAdj, macroIn:macroIn, macro:ffMacroTargets(macroIn) };
   }
