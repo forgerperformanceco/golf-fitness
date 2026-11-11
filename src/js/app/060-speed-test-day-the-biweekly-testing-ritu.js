@@ -157,21 +157,31 @@
       if(e.target.closest("[data-stshare]")){ shareSpeedTest(); return; }
       if(e.target.closest("[data-stdone]")){ closeSpeedTest(); return; }
       // Power check (below): offered on the result, run in the same modal.
-      if(e.target.closest("[data-pwgo]")){ stState.power=pwFresh(); renderSpeedTest(); return; }
+      if(e.target.closest("[data-pwgo]") && stState){ stState.power=pwFresh(); renderSpeedTest(); return; }
+      // A ball chip updates in place (no re-render): keyboard and screen-reader
+      // focus stay on the chip, and the pressed state is announced.
       var pb=e.target.closest("[data-pwball]");
-      if(pb && stState.power){ stState.power.ball=+pb.getAttribute("data-pwball"); renderSpeedTest(); return; }
+      if(pb && stState && stState.power){
+        stState.power.ball=+pb.getAttribute("data-pwball");
+        Array.prototype.forEach.call(m.querySelectorAll("[data-pwball]"), function(b){
+          b.classList.toggle("on", b===pb); b.setAttribute("aria-pressed", String(b===pb)); });
+        pwSync(false); return; }
       if(e.target.closest("[data-pwsave]")){ savePowerCheck(); return; }
       if(e.target.closest("[data-pwskip],[data-pwdone]")){ closeSpeedTest(); return; }
     });
     m.addEventListener("input", function(e){
       var t=e.target;
       if(stState && stState.power && (t.id==="pwJump" || t.id==="pwChest")){
-        stState.power[t.id==="pwJump"?"jump":"chest"]=t.value; pwSync(); return; }
+        stState.power[t.id==="pwJump"?"jump":"chest"]=t.value; pwSync(true); return; }
       if(!t.classList.contains("st-swing")) return;
       stState.swings[+t.getAttribute("data-sts")]=t.value;
       var best=stBest(), bb=$("stBestBox"), sv=$("stSaveBtn");
       if(bb) bb.innerHTML=stBestHtml();
       if(sv) sv.disabled=!best;
+    });
+    // Leaving a power field runs the full check ("1" is an error once you're done typing).
+    m.addEventListener("change", function(e){
+      if(stState && stState.power && (e.target.id==="pwJump" || e.target.id==="pwChest")) pwSync(false);
     });
   }
   function openSpeedTest(){
@@ -318,20 +328,46 @@
     powerChecks().forEach(function(e){ if(e.ball) lastBall=e.ball; });
     return { jump:"", chest:"", ball:lastBall, saved:null };
   }
-  // What's wrong with the form right now → {msg} or null, plus whether it can save.
-  function pwCheck(p){
-    var j=pwNum(p.jump), c=pwNum(p.chest);
-    if(j!=null && !jumpOk(j)) return { err:"The jump should be "+JUMP_MIN+"–"+JUMP_MAX+" inches — check for a typo." };
-    if(c!=null && !chestOk(c)) return { err:"The throw should be "+CHEST_MIN+"–"+CHEST_MAX+" feet — check for a typo." };
+  // What's wrong with the form right now → {err, ready}. `live` = mid-typing: a
+  // number under the floor may be unfinished ("1" on the way to 18), so it
+  // blocks the save without an error until the field is left or Save is tapped.
+  function pwCheck(p, live){
+    var j=pwNum(p.jump), c=pwNum(p.chest), hold=false;
+    function unfinished(n, min){ return live && typeof n==="number" && n>=0 && n<min; }
+    if(j!=null && !jumpOk(j)){ if(unfinished(j, JUMP_MIN)) hold=true;
+      else return { err:"The jump should be "+JUMP_MIN+"–"+JUMP_MAX+" inches — check for a typo." }; }
+    if(c!=null && !chestOk(c)){ if(unfinished(c, CHEST_MIN)) hold=true;
+      else return { err:"The throw should be "+CHEST_MIN+"–"+CHEST_MAX+" feet — check for a typo." }; }
     if(c!=null && !p.ball) return { err:"Pick the ball’s weight — only throws with the same ball are compared." };
-    return { err:null, ready:j!=null || c!=null };
+    return { err:null, ready:!hold && (j!=null || c!=null) };
   }
+  // A number far from the last one (>25%; a real month moves a few percent) is
+  // usually a typo (28 for 18) and would sit in the history for years — ask once.
+  // The throw is checked against the last throw with the same ball only.
+  var PW_FAR=25;
+  function pwBigJump(p){
+    var prior=powerChecks(), r=null;
+    function far(key, val, ball, label, unit){
+      if(r || !(val>0)) return;
+      var cmp=pwCompare(prior, key, val, ball); if(!cmp || !(cmp.last>0)) return;
+      var pct=Math.round((val-cmp.last)/cmp.last*100);
+      if(Math.abs(pct)>PW_FAR) r={ msg:"That’s "+Math.abs(pct)+"% "+(pct>0?"above":"below")+" your last "+label+" ("+pwFmt(cmp.last)+" "+unit+"). "+
+        "Measured the same way? Tap Save again if it’s right." };
+    }
+    far("jump", pwNum(p.jump), null, "jump", "in");
+    far("chest", pwNum(p.chest), p.ball, p.ball+" lb throw", "ft");
+    return r;
+  }
+  function pwKey(p){ return [p.jump, p.chest, p.ball].join("|"); }
+  // The one message line: a range/ball error, else the "far from last" question
+  // while the numbers it was asked about are still the ones entered.
+  function pwMsg(p, r){ return r.err || (p.warn && p.okBig===pwKey(p) ? p.warn : ""); }
   // Keep the button and the error line current while typing (no re-render, so
   // the keyboard stays up).
-  function pwSync(){
+  function pwSync(live){
     var p=stState && stState.power; if(!p) return;
-    var r=pwCheck(p), er=$("pwErr"), sv=$("pwSaveBtn");
-    if(er){ er.hidden=!r.err; er.textContent=r.err||""; }
+    var r=pwCheck(p, live), msg=pwMsg(p, r), er=$("pwErr"), sv=$("pwSaveBtn");
+    if(er){ er.hidden=!msg; er.textContent=msg; }
     if(sv) sv.disabled=!!r.err || !r.ready;
   }
   // One measure against its own history (entries saved BEFORE this one):
@@ -368,14 +404,16 @@
           '<div class="pwr-res-d">'+pwDeltaText(r.cj,"in")+'</div></div>' : '')+
         (r.chest!=null ? '<div class="pwr-res"><div class="pwr-res-n">'+pwFmt(r.chest)+'<span>ft</span></div><div class="pwr-res-l">Seated chest throw · '+r.ball+' lb ball</div>'+
           '<div class="pwr-res-d">'+pwDeltaText(r.cc,"ft")+'</div></div>' : '')+
-        '<div class="st-gain">Power moves slower than one check can show — watch it across a few. It’s on your Stats speed card.</div>'+
+        '<div class="st-gain">Power moves slower than one check can show — watch it across a few.'+
+          (ffSpeedRows().length ? ' It’s on your Stats speed card.' : '')+'</div>'+
         '<button type="button" class="st-save" data-pwdone="1">Done — next power check in about a month</button></div>';
     }
-    var chk=pwCheck(p);
-    return '<div class="pwr-safe">Stop if anything hurts — skip it today; the speed test already counts.</div>'+
+    var chk=pwCheck(p), msg=pwMsg(p, chk);
+    return '<div class="pwr-safe">Stop if anything hurts — '+(stState.saved ? 'skip it today; the speed test already counts.' : 'skip it today and try another day.')+'</div>'+
       '<div class="st-sec">1 · Jump and reach <small>— best of 3, in inches</small></div>'+
       '<div class="pwr-how">Stand side-on to a wall, feet flat, and reach as high as you can — mark it (chalk, a wet fingertip or a piece of tape). '+
-        'Then dip, jump straight up and touch the wall as high as you can. Measure from the mark to your highest touch.</div>'+
+        'Then dip, jump straight up and touch the wall as high as you can. Land soft and quiet. Measure from the mark to your highest touch.'+
+        (ffLowImpact() ? ' <b>Go easy:</b> a small dip, a quiet landing — one good jump is plenty.' : '')+'</div>'+
       '<input class="pwr-in" id="pwJump" type="number" inputmode="decimal" step="0.5" placeholder="Best jump (in)" aria-label="Best jump in inches" value="'+escAttr(p.jump||"")+'" />'+
       '<div class="st-sec">2 · Seated chest throw <small>— optional, needs a med ball</small></div>'+
       '<div class="pwr-how">Sit on the floor with your back against a wall, legs out. Hold the ball at your chest and push it straight out as far as you can — your back stays on the wall. '+
@@ -383,14 +421,16 @@
       '<div class="pwr-balls" role="group" aria-label="Ball weight"><span>Ball</span>'+PW_BALLS.map(function(b){
         return '<button type="button" class="'+(p.ball===b?'on':'')+'" data-pwball="'+b+'" aria-pressed="'+(p.ball===b)+'">'+b+' lb</button>'; }).join("")+'</div>'+
       '<input class="pwr-in" id="pwChest" type="number" inputmode="decimal" step="0.5" placeholder="Best throw (ft)" aria-label="Best throw in feet" value="'+escAttr(p.chest||"")+'" />'+
-      '<div class="ff-inerr" id="pwErr" role="alert"'+(chk.err?'':' hidden')+'>'+(chk.err||'')+'</div>'+
+      '<div class="ff-inerr" id="pwErr" role="alert"'+(msg?'':' hidden')+'>'+msg+'</div>'+
       '<button type="button" class="st-save" id="pwSaveBtn" data-pwsave="1"'+(chk.err||!chk.ready?' disabled':'')+'>✓ Save power check</button>'+
       '<div class="st-note">Same wall, same ball, same floor every time — the trend against your own first check is the number that matters.</div>'+
       '<button type="button" class="pwr-skip" data-pwskip="1">Skip it today</button>';
   }
   function savePowerCheck(){
     var p=stState && stState.power; if(!p || p.saved) return;
-    var chk=pwCheck(p); if(chk.err || !chk.ready){ pwSync(); return; }
+    var chk=pwCheck(p); if(chk.err || !chk.ready){ pwSync(false); return; }
+    var big=pwBigJump(p);
+    if(big && p.okBig!==pwKey(p)){ p.okBig=pwKey(p); p.warn=big.msg; pwSync(false); return; }
     var j=pwNum(p.jump), c=pwNum(p.chest), prior=powerChecks();
     var e={ ts:Date.now(), date:todayStr(), week:curWeek(), jump:j, chest:c, ball:c!=null ? p.ball : null };
     var pw=prior.concat([e]);
@@ -402,7 +442,7 @@
   }
   // Straight into the power check (the quick sheet, Stats): no swings first.
   function openPowerCheck(){
-    if(!ffCanUse("speedtest")) return;
+    if(!ffCanUse("powercheck")) return;
     stEnsureModal();
     stState={ swings:["","",""], saved:null, power:pwFresh() };
     renderSpeedTest();
@@ -416,7 +456,8 @@
     if(lj){ var cj=pwCompare(t.filter(function(e){ return e.ts<lj.ts; }),"jump",lj.jump);
       bits.push('Jump <b>'+pwFmt(lj.jump)+' in</b>'+(cj && cj.n>=1 && Math.abs(cj.dFirst)>=cj.mdc ? ' <small>('+(cj.dFirst>0?'+':'')+pwFmt(cj.dFirst)+' since first)</small>' : '')); }
     if(lc){ var cc=pwCompare(t.filter(function(e){ return e.ts<lc.ts; }),"chest",lc.chest,lc.ball);
-      bits.push('Chest throw <b>'+pwFmt(lc.chest)+' ft</b> <small>'+lc.ball+' lb'+(cc && Math.abs(cc.dFirst)>=cc.mdc ? ', '+(cc.dFirst>0?'+':'')+pwFmt(cc.dFirst)+' since first' : '')+'</small>'); }
+      var cNote=[lc.ball ? lc.ball+' lb' : '', cc && Math.abs(cc.dFirst)>=cc.mdc ? (cc.dFirst>0?'+':'')+pwFmt(cc.dFirst)+' since first' : ''].filter(Boolean).join(', ');
+      bits.push('Chest throw <b>'+pwFmt(lc.chest)+' ft</b>'+(cNote ? ' <small>'+cNote+'</small>' : '')); }
     return '<div class="pwr-sum">'+ffIcon("bolt",13)+'<span><b class="pwr-sum-t">Power</b> '+bits.join(' · ')+
       (powerDue() ? ' — <button type="button" class="stest-link" data-powercheck="1">check due</button>' : '')+'</span></div>';
   }

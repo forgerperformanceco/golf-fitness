@@ -2312,7 +2312,7 @@
     font-size:13px; color:#254d38; line-height:1.5; }
   .pwr-sum svg{ flex:none; margin-top:3px; color:#16a34a; }
   .pwr-sum small{ font-size:12px; color:#4d7a5f; }
-  .pwr-sum .stest-link{ font-size:13px; }
+  .pwr-sum .stest-link{ font-size:13px; display:inline-flex; align-items:center; min-height:44px; margin:-12px -6px; padding:0 6px; vertical-align:middle; }
 
   /* ===== Mobility screen — 3-move self-test ===== */
   .mob-test{ margin:0 0 14px; padding:13px 14px; border-radius:13px; background:#f7fafc; border:1px solid #dde7ee; }

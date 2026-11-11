@@ -21,9 +21,9 @@ function fn(source, name) {
   }
   throw new Error(`Could not extract ${name}`);
 }
-const vars = ST.slice(ST.indexOf("var POWER_DUE_AT"), ST.indexOf("function chestMdc("));
+const vars = ST.slice(ST.indexOf("var POWER_DUE_AT"), ST.indexOf("function chestMdc(")) + "\n" + (ST.match(/var PW_FAR=\d+;/) || [""])[0];
 const FNS = ["stDayStart", "chestMdc", "powerChecks", "lastPower", "daysSincePower", "powerDue", "pwNum", "jumpOk", "chestOk",
-  "pwFmt", "pwFresh", "pwCheck", "pwCompare", "pwDeltaText", "pwSync", "savePowerCheck", "powerSummaryHtml"];
+  "pwFmt", "pwFresh", "pwCheck", "pwCompare", "pwDeltaText", "pwKey", "pwMsg", "pwSync", "pwBigJump", "powerCheckHtml", "savePowerCheck", "powerSummaryHtml"];
 const DAY = 864e5;
 function sandbox(store = {}) {
   const ctx = {
@@ -32,6 +32,7 @@ function sandbox(store = {}) {
     lsSet: (k, v) => { store[k] = JSON.parse(JSON.stringify(v)); },
     todayStr: () => "Nov 11", curWeek: () => 6, $: () => null, ffIcon: () => "", escAttr: (s) => String(s),
     renderSpeedTest() { ctx.rendered++; },
+    ffLowImpact: () => !!store.__low, have: (k) => !!(store.__equip || {})[k], ffSpeedRows: () => store.__speedRows || [],
   };
   vm.runInNewContext(vars + "\n" + FNS.map((n) => fn(ST, n)).join("\n") + "\nvar stState=null;", ctx);
   return ctx;
@@ -139,7 +140,7 @@ test("the speed test offers it after the swings — only when due — and the sw
   assert.match(r, /if\(stState\.power\)\{ body\.innerHTML=powerCheckHtml\(\); return; \}/);
   assert.match(r, /\["Leg swings","×10\/side"\],\["90\/90 hip switches","×6\/side"\],\["Open-book T-spine","×8\/side"\],\["Build-up swings","10 · ramp 50→90%"\]/,
     "the warm-up and three swings are as before");
-  assert.match(fn(ST, "powerCheckHtml"), /Stop if anything hurts — skip it today/, "a pain stop up front");
+  assert.match(fn(ST, "powerCheckHtml"), /'<div class="pwr-safe">Stop if anything hurts — '\+/, "a pain stop up front (wording per mode: see the review test)");
   assert.doesNotMatch(ST.slice(ST.indexOf("function powerOfferHtml("), ST.indexOf("function savePowerCheck(")), /TPI|Titleist|handicap|PGA/i, "own words, no outside names or norms");
 });
 
@@ -156,4 +157,72 @@ test("sync: ff_power roams — two devices' checks union by ts, capped at 40", (
   const out = ctx.m(many, []);
   assert.equal(out.length, 40);
   assert.equal(out[0].ts, 6, "the oldest fall off");
+});
+
+// ---- Pre-PR review fixes ----
+const form = (s, power, saved = null) => {
+  s.stState = { saved, power: { jump: "", chest: "", ball: null, saved: null, ...power } };
+  vm.runInContext("stState=this.stState;", s);
+  return s.powerCheckHtml();
+};
+
+test("review: the pain line is true either way — opened on its own there's no speed test that 'already counts'", () => {
+  const s = sandbox();
+  assert.match(form(s, {}, { best: 81 }), /skip it today; the speed test already counts/, "after a speed test");
+  const alone = form(sandbox(), {});
+  assert.match(alone, /Stop if anything hurts/);
+  assert.doesNotMatch(alone, /speed test already counts/, "from the Log sheet or Stats");
+});
+
+test("review: jumps land soft; a low-impact profile gets the gentler line", () => {
+  assert.match(form(sandbox(), {}), /Land soft and quiet/);
+  assert.doesNotMatch(form(sandbox(), {}), /small dip/);
+  assert.match(form(sandbox({ __low: true }), {}), /small dip, a quiet landing/, "60+, BMI 30+ or a flagged health question (ffLowImpact)");
+});
+
+test("review: the result only points at the Stats speed card when that card exists", () => {
+  const done = (store) => { const s = sandbox(store); return form(s, { saved: { jump: 18, chest: null, ball: null, cj: null, cc: null } }); };
+  assert.match(done({ __speedRows: [{ s: 80 }] }), /on your Stats speed card/);
+  assert.doesNotMatch(done({}), /Stats speed card/, "no counted speed number yet → no promise");
+});
+
+test("review: a big jump from the last check asks once before it becomes history (a typo like 28 for 18)", () => {
+  const s = sandbox({ ff_power: [{ ts: ago(30), jump: 18, chest: 20, ball: 8 }] });
+  s.stState = { power: { jump: "28", chest: "", ball: 8, saved: null } };
+  vm.runInContext("stState=this.stState;", s);
+  s.savePowerCheck();
+  assert.equal(s.store.ff_power.length, 1, "first tap: not saved");
+  assert.match(vm.runInContext("stState.power.warn", s), /56% above your last jump \(18 in\)/);
+  s.savePowerCheck();
+  assert.equal(s.store.ff_power.length, 2, "second tap with the same numbers: saved");
+  // A changed number asks again; within 25% never asks; the throw is checked against the same ball only.
+  const t = sandbox({ ff_power: [{ ts: ago(30), jump: 18, chest: 20, ball: 8 }] });
+  assert.equal(t.pwBigJump({ jump: "21", chest: "", ball: 8 }), null, "+17% is a real month");
+  assert.match(t.pwBigJump({ jump: "", chest: "30", ball: 8 }).msg, /50% above your last 8 lb throw \(20 ft\)/);
+  assert.equal(t.pwBigJump({ jump: "", chest: "30", ball: 6 }), null, "a new ball has no last throw to compare");
+  assert.equal(sandbox().pwBigJump({ jump: "28", chest: "", ball: null }), null, "first ever: nothing to compare");
+});
+
+test("review: no range error flashes while a number is still being typed (\"1\" on the way to 18)", () => {
+  const { pwCheck } = sandbox();
+  const live = pwCheck({ jump: "1", chest: "" }, true);
+  assert.equal(live.err, null, "typing: no error yet");
+  assert.equal(live.ready, false, "…and it can't save");
+  assert.match(pwCheck({ jump: "1", chest: "" }).err, /2–48 inches/, "on leaving the field / saving: the error");
+  assert.match(pwCheck({ jump: "180", chest: "" }, true).err, /2–48 inches/, "too high can't become valid by typing more — say so now");
+  assert.equal(pwCheck({ jump: "", chest: "2", ball: 8 }, true).err, null, "a throw on its way to 25 ft");
+  assert.match(pwCheck({ jump: "", chest: "2", ball: null }, true).err, /ball’s weight/, "the ball prompt is guidance, shown as soon as a throw is typed");
+  assert.match(fn(ST, "stEnsureModal"), /addEventListener\("change"/, "the full check runs when the field is left");
+});
+
+test("review: the paywall names the power check (and analytics can tell it apart)", () => {
+  assert.match(fn(ST, "openPowerCheck"), /ffCanUse\("powercheck"\)/);
+  const PRO = readFileSync(new URL("../src/js/app/036-access-free-week-and-pro.js", import.meta.url), "utf8");
+  assert.match(fn(PRO, "ffPaywallHtml"), /powercheck:\["Power checks are part of Pro"/);
+});
+
+test("review: a hand-edited entry with a throw but no ball never prints 'undefined lb'", () => {
+  const h = sandbox({ ff_power: [{ ts: ago(5), jump: null, chest: 20 }] }).powerSummaryHtml();
+  assert.doesNotMatch(h, /undefined/);
+  assert.match(h, /Chest throw <b>20 ft<\/b>/);
 });

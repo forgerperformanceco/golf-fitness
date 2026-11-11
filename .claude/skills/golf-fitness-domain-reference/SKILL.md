@@ -523,7 +523,8 @@ same-ball throws are compared). Due when never done or ≥21 days since the last
 (`POWER_DUE_AT`: every other speed test, never the very next). Change lines are
 **assumptions pending users' own repeat data**: jump ±1 in (`JUMP_MDC`), throw
 ±5%, never under 1 ft (`chestMdc`) — inside them the copy says "about the
-same". Scoring is vs the user's own first check only; **no outside norms**
+same". A number >25% from the last one (`PW_FAR`; same ball for the throw)
+asks once before saving. Scoring is vs the user's own first check only; **no outside norms**
 (TPI's published power norms are deliberately not used). Not an Octane input.
 Saved to `ff_power`; also on the Stats speed card and the Log sheet.
 
