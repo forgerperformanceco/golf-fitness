@@ -16,8 +16,14 @@ day?" … "Feels weird in a push day tbh" … "Yes all. Push all pull." This rev
   keeps its numbers on its new day. Logged sessions keep their own lift lists. In-season full-body
   days are unchanged (a row fits a full-body day).
 - No day names changed (`ff_log` is keyed by day name).
+- **Every gear setup keeps a vertical pull** (Codex, #126): with no bar, the pull-up's swap order
+  is now pulldown → band pulldown → **Sliding Floor Lat Pull** → DB Row → inverted row. Before, a
+  bodyweight or dumbbells-only pull day became rows on rows once the Lat Pulldown left (Bodyweight
+  was "Inverted Row, Doorframe Row, Single-Arm Doorframe Row"). Same order for the in-season Pull-up.
 
-**Verified:** `npm test` 272/272; Playwright Full-week view (light + dark, zero page errors) shows the one-arm press on Push and the one-arm row on Pull with no pulldown; audits train 18/18, scroll 16/16, type 1 known, contrast clean. The Oct test "upper body is trained twice a week" is replaced by
+**Verified:** `npm test` 273/273 (incl. a vertical pull on the pull day for the full, home, minimal,
+bodyweight and dumbbells-only setups, both splits, plus in-season; it failed before the swap fix);
+Playwright Full-week view (light + dark, zero page errors) shows the one-arm press on Push and the one-arm row on Pull with no pulldown; audits train 18/18, scroll 16/16, type 1 known, contrast clean. The Oct test "upper body is trained twice a week" is replaced by
 "push day is all push, pull day is all pull, in both splits" (no back lift on push day, no chest
 press on pull day, the one-arm lifts on their own days, no pulldown next to the pull-ups, chest and
 back ≥ 10 sets/week), which fails on the old program. The per-session cap test still passes.

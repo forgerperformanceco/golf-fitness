@@ -192,8 +192,11 @@
     "Lying Leg Curl":{needs:["legcurl"],subs:[{needs:["bands"],name:"Band Leg Curl"},{needs:["bodyweight"],name:"Nordic / Slider Leg Curl",sr:"2 \u00d7 5 (slow lowering only, sliders OK)"}]},
     "Pallof Press":{needs:["cable"],subs:[{needs:["bands"],name:"Band Pallof Press"},{needs:["bodyweight"],name:"Side Plank",sr:"3 \u00d7 30 s / side"}]},
     "Farmer Carry":{needs:["dumbbells"],subs:[{needs:["kettlebell"],name:"Kettlebell Carry"},{needs:["bodyweight"],name:"Loaded Carry (backpack / any heavy object)"}]},
-    "Weighted Pull-up":{needs:["pullupbar"],subs:[{needs:["latpulldown"],name:"Lat Pulldown"},{needs:["bands"],name:"Band Lat Pulldown"},{needs:["dumbbells"],name:"DB Row"},{needs:["bodyweight"],name:"Inverted Row (under a sturdy table)"}]},
-    "Pull-up":{needs:["pullupbar"],subs:[{needs:["latpulldown"],name:"Lat Pulldown"},{needs:["bands"],name:"Band Lat Pulldown"},{needs:["dumbbells"],name:"DB Row"},{needs:["bodyweight"],name:"Inverted Row"}]},
+    // No bar: the swap stays a VERTICAL pull (the pull day's only one since Lat Pulldown left it,
+    // Nov 2026 — Codex, #126): pulldown, band pulldown, then the bodyweight floor lat pull, and only
+    // then a row.
+    "Weighted Pull-up":{needs:["pullupbar"],subs:[{needs:["latpulldown"],name:"Lat Pulldown"},{needs:["bands"],name:"Band Lat Pulldown"},{needs:["bodyweight"],name:"Sliding Floor Lat Pull"},{needs:["dumbbells"],name:"DB Row"},{needs:["bodyweight"],name:"Inverted Row (under a sturdy table)"}]},
+    "Pull-up":{needs:["pullupbar"],subs:[{needs:["latpulldown"],name:"Lat Pulldown"},{needs:["bands"],name:"Band Lat Pulldown"},{needs:["bodyweight"],name:"Sliding Floor Lat Pull"},{needs:["dumbbells"],name:"DB Row"},{needs:["bodyweight"],name:"Inverted Row"}]},
     "Chest-Supported Row":{needs:["dumbbells"],subs:[{needs:["bands"],name:"Band Row"},{needs:["bodyweight"],name:"Inverted Row"},{needs:["bodyweight"],name:"Doorframe Row"}]},
     "Single-Arm DB Row":{needs:["dumbbells"],subs:[{needs:["kettlebell"],name:"Single-Arm Kettlebell Row"},{needs:["bands"],name:"Single-Arm Band Row"},{needs:["bodyweight"],name:"Inverted Row"},{needs:["bodyweight"],name:"Single-Arm Doorframe Row"}]},
     "Wrist Curl + Reverse":{needs:["dumbbells"],subs:[{needs:["barbell"],name:"Barbell Wrist Curl + Reverse"},{needs:["bands"],name:"Band Wrist Curl"},{needs:["bodyweight"],name:"Towel / Plate Pinch Hold",sr:"3 \u00d7 30 s"}]},
