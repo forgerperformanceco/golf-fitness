@@ -15,11 +15,12 @@ started yet." The opening warm-up ended with "Light ramp-up sets — about half 
   115 lb, then 5 × 175 lb. Then your working sets." `ffRampSets` = ~50% × 10 and ~75% × 5 of today's
   weight (the prescription, else last time's top), nearest 5 lb, never under the empty bar ("the empty
   bar"); no numbers yet → "a light set of 10, then a heavier set of 5, building toward your first
-  working weight." Hidden once set 1 is ticked.
+  working weight." Hidden once set 1 is ticked. A known weight too light to ramp (the empty bar, 10 lb
+  dumbbells) gets no ramp line at all (Codex, #124).
 
-**Verified:** `npm test` 262/262 (new `tests/ramp-up-sets.test.mjs`: no ramp in any lift-day warm-up,
+**Verified:** `npm test` 263/263 (new `tests/ramp-up-sets.test.mjs`: no ramp in any lift-day warm-up,
 the speed day keeps its jumps; the 50/75% maths incl. the empty-bar floor and too-light cases; the
-first-main-lift pick). Playwright, built app, light + dark, zero page errors: Push from Home's
+first-main-lift pick; no line for a known too-light weight, which failed before the fix). Playwright, built app, light + dark, zero page errors: Push from Home's
 catch-up → Station 1 has no ramp → Bench (lift 1) shows the ramp → gone after set 1 → lift 2 none;
 Hinge with a 225 lb Deadlift last time → the ramp is on the Deadlift (lift 2) with "10 × 115 lb, then
 5 × 175 lb". Audits: train 18/18, scroll 16/16, type 1 known, contrast clean. Release gate and

@@ -152,10 +152,13 @@
     if(last) last.ex.forEach(function(e){ if(e.name===name) lx=e; });
     return lx;
   }
-  // Shown on the first loaded lift until its first set is ticked.
+  // Shown on the first main lift until its first set is ticked. A known weight too
+  // light to ramp (the empty bar, 10 lb dumbbells) gets no line at all; the words-only
+  // version is for a lift with no weight yet (Codex, #124).
   function plRampHtml(x, xi, work){
     if(xi!==ffRampIndex(player.sess.ex) || x.sets.some(function(s){ return s.done; })) return "";
     var rs=ffRampSets(x.name, work), unit=function(w){ return (isBarbell(x.name) && w===45) ? "the empty bar" : w+" lb"; };
+    if(!rs && parseFloat(work)>0) return "";
     return '<div class="pl-ramp">🔥 <b>Ramp up first</b> (not logged): '+(rs
       ? '10 × <b>'+unit(rs[0].w)+'</b>, then 5 × <b>'+unit(rs[1].w)+'</b>. Then your working sets.'
       : 'a light set of 10, then a heavier set of 5, building toward your first working weight.')+'</div>';

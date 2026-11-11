@@ -52,3 +52,13 @@ test("the ramp goes on the first main lift: past the opening accessory, throws a
   assert.match(fn(PLAYER, "plRampHtml"), /xi!==ffRampIndex\(player\.sess\.ex\) \|\| x\.sets\.some\(function\(s\)\{ return s\.done; \}\)/,
     "only that lift, and only until its first set is ticked");
 });
+
+test("a known weight too light to ramp gets no ramp line; only an unknown weight gets the words-only one (Codex, #124)", () => {
+  const c = { player: { sess: { ex: [{ name: "Barbell Bench Press", sets: [{ done: false }] }] } } };
+  vm.runInNewContext(["isBarbell", "isBodyweightEx", "purposeFor", "ffRampSets", "ffRampIndex", "plRampHtml"]
+    .map((n) => fn(n === "isBarbell" ? INLINE : ([`ffRampSets`, `ffRampIndex`, `plRampHtml`].includes(n) ? PLAYER : PLAN), n)).join("\n"), c);
+  const x = c.player.sess.ex[0];
+  assert.equal(c.plRampHtml(x, 0, 45), "", "the empty bar: nothing lighter to ramp with");
+  assert.match(c.plRampHtml(x, 0, null), /a light set of 10, then a heavier set of 5/, "no weight yet: words");
+  assert.match(c.plRampHtml(x, 0, 135), /10 × <b>70 lb<\/b>, then 5 × <b>100 lb<\/b>/);
+});
