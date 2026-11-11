@@ -1,5 +1,36 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## Train stays simple outside a workout (Nov 11, 2026)
+
+Owner, with a screenshot of Train on a finished Push day (the full Previous / LBS / REPS set tables
+with ticks, the warm-up fold, a progress bar): "I kinda want all this hidden or simplified. I only
+need to see and edit the full workout when I am working out."
+
+- **The set tables only while logging by typing** (035 `dayCardHtml`): `manual` is now the
+  "Log by typing" pref AND an unfinished workout. It used to be `hasWork || pref`, so any day with
+  logged sets (every workout finished in the player) rendered the full editable tables on Train.
+- **A finished or started day shows a compact list of what you did** (`slDoneText`): "✓ 3 sets ·
+  best 230 × 6" under each lift, tap for its history; "To change a set, open the workout above"
+  (the hero opens the player, where editing lives). The finished-day hero now reads **"Review or
+  edit this workout"**, not "Replay finished session" (owner: "we can reopen the workout to edit it
+  afterward"); it opens on the recap with every saved set, Back reaches any lift.
+- **No "do these first" warm-up fold on a finished day**; the cool-down fold stays.
+- **No finish / "saved to history" block on Today** unless typing an unfinished workout — just the
+  "↺ Clear / reset this workout" link (every logged day keeps a reset: the audit-train invariant,
+  failure-archaeology §4).
+- **"Not feeling it? Make today a rest day" only while looking at today** or at the missed workout
+  Train leads with on its own, not while browsing another day (a missed day you tapped included;
+  Codex, #127).
+
+**Verified:** `npm test` 273/273. Playwright, built app, light + dark, typing pref off and on, zero
+page errors: a finished Push day (tapped on the strip) → "Review or edit this workout", no set tables,
+"✓ 3 sets · best 230 × 6" / "best 60 × 10", no warm-up fold, only the reset link, no rest-today link;
+today's unfinished Hinge → compact list (pref off) or the typing tables (pref on), rest-today link
+back. Edit afterward: the finished Push day's "Review or edit this workout" → the player opens with
+the saved sets → Back to Bench → set 3 changed 230 × 5 → 230 × 6 is saved, still finished. The
+rest-today e2e (all scenarios, with its plan start pinned per harness gotcha #13) still green. Audits: train 18/18 (every logged day exposes a reset), scroll 16/16, type 1 known, contrast
+clean. Release gate and claims-lint clean.
+
 ## Push day is all push, Pull day all pull (Nov 11, 2026)
 
 Owner, in the player on Push day at Single-Arm Cable Row: "Isn't this a back exercise — on push

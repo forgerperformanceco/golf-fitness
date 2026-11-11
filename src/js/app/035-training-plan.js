@@ -901,6 +901,18 @@
       '<button class="rest-check z2-check'+(cdone?" done":"")+'" type="button" data-cardio="'+escAttr(key)+'">'+
         (cdone?"✓ Cardio logged — tap to undo":"Mark cardio done")+'</button></div>';
   }
+  // A lift's logged work in one line for the compact list: "✓ 3 sets · best 230 × 6".
+  function slDoneText(x){
+    var sets=((x&&x.sets)||[]).filter(function(s){ return s && (s.done || s.w || s.r); });
+    if(!sets.length) return "";
+    var best=null;
+    sets.forEach(function(s){ var w=parseFloat(s.w)||0, r=parseInt(s.r,10)||0;
+      if(!best || w>best.w || (w===best.w && r>best.r)) best={w:w,r:r}; });
+    var n="✓ "+sets.length+" set"+(sets.length===1?"":"s");
+    if(best.w>0) return n+" · best "+best.w+" × "+(best.r||"–");
+    if(best.r>0) return n+" · best "+best.r+" reps";
+    return n;
+  }
   // One day's full card (rest / speed / lift) — used by both Today and Full-week views.
   // interactive=true → the featured "today" lift day renders the inline logger.
   function dayCardHtml(d, showPrimerNote, interactive){
@@ -964,7 +976,7 @@
         return '<div class="day-focus speedday">'+
           speedTestCardHtml()+
           '<button class="pl-start" data-startplayer="'+escAttr(d.name)+'" type="button"><span class="pls-go">›</span>'+
-            '<b>'+(spDone?'✓ Speed session done — replay it':(((spWork||spSession)?ffIcon("play",13)+' Resume':ffIcon("play",13)+' Start')+' speed session'))+'</b>'+
+            '<b>'+(spDone?'✓ Speed session done — review or edit':(((spWork||spSession)?ffIcon("play",13)+' Resume':ffIcon("play",13)+' Start')+' speed session'))+'</b>'+
             '<span class="pls-sub">Guided player — warm-up, max-intent drills, full rest</span></button>'+
           '<details class="prelift"><summary>🔥 Warm-up &amp; the why — do these first</summary><div class="prelift-body">'+
             toggle+warmupHtml("speed", false, showPrimerNote)+
@@ -1018,32 +1030,37 @@
       var hasWork = ilog.sess.ex.some(function(x){ return (x.sets||[]).some(function(st){ return st.w||st.r||st.done; }); });
       var plDone = sessionFinished(getSession(curWeek(), d.name));
       // The guided player is the way to train; the inline spreadsheet is the
-      // fallback. By default Today shows the session as a compact lift list
-      // (Hevy-style) — the full set tables render only once the user opts into
-      // manual logging (device pref) or already has typed work here.
-      var manual = hasWork || lsGet("ff_manual_log", false);
+      // fallback. Today shows the session as a compact lift list (Hevy-style): the plan,
+      // or once there's work, what you did. The full set tables render only while
+      // logging by typing (device pref) and the workout isn't finished — the full,
+      // editable workout lives in the player (owner, Nov 2026: "I only need to see and
+      // edit the full workout when I am working out").
+      var manual = lsGet("ff_manual_log", false) && !plDone;
       var body;
       if(manual){
         body='<div class="ilogwrap" id="ilogBox">'+ilogBodyHtml()+'</div>';
       } else {
         body='<div class="sess-list">'+ilog.sess.ex.map(function(x){
+            var res=slDoneText(x);
             return '<button type="button" class="sl-row" data-exhist="'+escAttr(x.name)+'">'+
               '<span class="sl-ic">'+ffPurposeIc(x.name)+'</span>'+
-              '<span class="sl-tx"><b>'+ffEsc(x.name)+'</b><span>'+ffEsc(x.target)+'</span></span>'+
+              '<span class="sl-tx"><b>'+ffEsc(x.name)+'</b><span'+(res?' class="sl-done"':'')+'>'+ffEsc(res||x.target)+'</span></span>'+
               '<span class="sl-go">›</span></button>';
           }).join("")+
-          '<div class="sl-note">Tap a lift for its history. Swaps, cues &amp; logging live in the <b>player</b>.</div></div>';
+          '<div class="sl-note">'+(hasWork
+            ? 'Tap a lift for its history. To change a set, open the workout above.'
+            : 'Tap a lift for its history. Swaps, cues &amp; logging live in the <b>player</b>.')+'</div></div>';
       }
       return '<div class="day-focus">'+
         '<button class="pl-start" data-startplayer="'+escAttr(d.name)+'" type="button"><span class="pls-go">›</span>'+
-          '<b>'+(plDone?'✓ Session finished — replay it':((hasWork?ffIcon("play",13)+' Resume':ffIcon("play",13)+' Start')+' workout'))+'</b>'+
+          '<b>'+(plDone?'✓ Session finished — review or edit':((hasWork?ffIcon("play",13)+' Resume':ffIcon("play",13)+' Start')+' workout'))+'</b>'+
           '<span class="pls-sub">Guided player — warm-up, prescribed loads, rest timer, cool-down</span></button>'+
         ffPullCapHtml(d)+
         // Warm-up/primer starts COLLAPSED — it's prep, not the workout, and the
         // guided player runs it for you anyway. One tap opens it; the exercise
         // list stays the visible focus. (Was open-by-default; user wanted the
         // whole Today card tighter.)
-        '<details class="prelift"><summary>🔥 Warm-up &amp; power primer — do these first</summary><div class="prelift-body">'+warmPrimer+'</div></details>'+
+        (plDone ? '' : '<details class="prelift"><summary>🔥 Warm-up &amp; power primer — do these first</summary><div class="prelift-body">'+warmPrimer+'</div></details>')+
         body+cooldownFoldHtml(d.name)+'</div>';
     }
     // Full-week (non-interactive) day: fold the warm-up too — otherwise every
@@ -1239,10 +1256,13 @@
       } else if(!isFutureDay(featured.name)){
         var heroSession=getSession(wk,featured.name), heroFinished=!!(heroSession&&heroSession.finishedAt);
         html+='<button type="button" class="train-today-cta" data-startplayer="'+escAttr(featured.name)+'">'+
-          '<span><small>TODAY’S WORKOUT · ~'+sessionMinutes(featured)+' MIN</small><b>'+(heroFinished?'Replay finished session':(heroSession?'Resume workout':'Start workout'))+'</b></span><i>›</i></button>';
+          '<span><small>TODAY’S WORKOUT · ~'+sessionMinutes(featured)+' MIN</small><b>'+(heroFinished?'Review or edit this workout':(heroSession?'Resume workout':'Start workout'))+'</b></span><i>›</i></button>';
       }
-      var restable=ffRestableToday();
-      if(restable) html+=ffRestTodayBtnHtml(restable.name);   // "Rest today" (043)
+      // "Rest today" (043): while looking at today, or at the missed workout Train leads with on
+      // its own (no day tapped) — not while browsing another day, the missed one included (Codex, #127).
+      var restable=ffRestableToday(), missedD=missedWorkout();
+      if(restable && (dayKey(featured)===dayKey(restable) || (!focusDay && missedD && dayKey(missedD)===dayKey(featured))))
+        html+=ffRestTodayBtnHtml(restable.name);
     }
 
     if(access==="full")
@@ -1294,10 +1314,15 @@
         // reset control here, not only while manual mode is on.
         var hasSession = !!getSession(curWeek(), featured.name);
         var workNow = !!(ilog && ilog.sess.ex.some(function(x){ return (x.sets||[]).some(function(st){ return st.w||st.r||st.done; }); }));
-        if(!ffRestInstead(curWeek(), featured) && (workNow || hasSession || lsGet("ff_manual_log", false))){
+        var typing = lsGet("ff_manual_log", false) && !sessionFinished(getSession(curWeek(), featured.name));
+        if(ffRestInstead(curWeek(), featured)){}
+        else if(typing){
           html+='<div id="finishBar">'+finishBtnHtml()+'</div>';
           // Offer the way back only while nothing's logged — never hide entered work.
           if(!workNow && !hasSession) html+='<button type="button" class="sl-manual off" data-manuallog="0">Hide manual logging — back to the simple list</button>';
+        } else if(hasSession){
+          // Not typing: no finish/saved block on Today, just the reset (every logged day keeps one).
+          html+='<div id="finishBar"><button class="clear-workout" data-clearworkout="1">↺ Clear / reset this workout</button></div>';
         }
       }
     } else {
