@@ -88,6 +88,7 @@ is a *setting*: on conflict the **cloud value wins wholesale**.
 | `ff_body` | `[{date(locale, display-only), iso("YYYY-MM-DD", THE identity), ts, w?, s?, d?}]` — weight lb / 7-iron mph / driver-carry yds, one row per ISO day; single writer `logBodyEntry` (070:759-773) | `unionBody` — keyed by `iso` (locale-date parsed as fallback), field-level `Object.assign` with local fields winning, chronological sort, `iso` backfilled | no cap |
 | `ff_speedtest` | `[{ts, date, week, swings[3], best}]` (060:113-116) | `unionSeries` key=`ts`, newer ts wins, oldest-first | cap **60** (both sides — §6 rule) |
 | `ff_mobility` | `[{ts, date, score 0-100, tests:{trunk,hip,squat} each 0-2}]` (065:85-91) | `unionSeries` key=`ts` | cap **40** |
+| `ff_power` | `[{ts, date, week, jump (in) \| null, chest (ft) \| null, ball (lb) \| null}]` (060 `savePowerCheck`, Nov 2026) | `unionSeries` key=`ts` | cap **40** (both sides) |
 | `ff_rounds` | `[{id:"r"+Date.now(), ts, date, score?, drive?, driving?, energy?}]` one per day, upsert by date (082:63-75) | `unionSeries` key=`id \|\| ts` | cap **60** |
 | `ff_fuel` | `{"YYYY-MM-DD": {m:{idx:"a"\|"c"}, rating("on"\|"close"\|"off"\|null), n, ts}}` (030:17-31) | `unionFuel` — **whole day-record**, newer `ts` wins; never field-merged (meal detail vs day rating are exclusive modes — field-merge could resurrect deliberately cleared meals) | **95 days** (fuelPrune 030:12 AND unionFuel cloud-sync.js:423) |
 | `ff_swaps` | `{origName: newName}` (040:186-188) | setting | |
@@ -243,6 +244,7 @@ in its MERGE union (a union of two capped devices can exceed the cap):
 |---|---|---|---|
 | `ff_speedtest` | 60 | 060:115 | cloud-sync.js:437 |
 | `ff_mobility` | 40 | 065:90 | :438 |
+| `ff_power` | 40 | 060 `savePowerCheck` (`pw.length>40`) | MERGE `ff_power` |
 | `ff_rounds` | 60 | 082:74 | :436 |
 | `ff_fuel` | 95 days | 030:12-16 | :422-424 |
 | `ff_insights_seen` | 40 | 075:8 | (setting — no union) |

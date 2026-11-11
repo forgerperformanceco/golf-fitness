@@ -512,6 +512,21 @@ Protocol as implemented (060-speed-test…js):
   glossary (009-glossary.js:21), the share card (060:123-131, `gain×2`), and
   Stats copy (070:862). A rule-of-thumb for copy, not a measured claim.
 
+**Power check (Nov 2026, 060 `powerDue`/`savePowerCheck`).** Power is the gym
+measure most tied to clubhead speed (jump impulse zr≈0.82 and upper-body
+explosive strength zr≈0.67 lead Brennan 2024; med-ball throws r≈0.55–0.63 in
+Ehlert 2021; flexibility ≈0). So about monthly the speed test's result offers
+two at-home tests **after** the swings (the swing protocol is unchanged):
+jump-and-reach (inches from a standing reach mark to the jump touch) and an
+optional seated med-ball chest throw (feet, with the ball weight; only
+same-ball throws are compared). Due when never done or ≥21 days since the last
+(`POWER_DUE_AT`: every other speed test, never the very next). Change lines are
+**assumptions pending users' own repeat data**: jump ±1 in (`JUMP_MDC`), throw
+±5%, never under 1 ft (`chestMdc`) — inside them the copy says "about the
+same". Scoring is vs the user's own first check only; **no outside norms**
+(TPI's published power norms are deliberately not used). Not an Octane input.
+Saved to `ff_power`; also on the Stats speed card and the Log sheet.
+
 ## 7. Mobility = durability, never speed
 
 The two claims must never be conflated (CLUBHEAD §11.6; NUTRITION §9.2):

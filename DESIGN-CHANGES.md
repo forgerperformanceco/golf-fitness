@@ -1,5 +1,63 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## Power check: a jump and a throw, about monthly, on Speed Test Day (Nov 11, 2026)
+
+The first piece taken from the TPI research (owner: "I'm hoping there were some lifting and exercise
+pieces we could steal"). Both meta-analyses put power at the top of what tracks clubhead speed (jump
+impulse zr≈0.82, upper-body explosive strength zr≈0.67; Brennan 2024), with flexibility and balance at
+zero, and TPI's own campus session adds a jump and med-ball throws to its screen. Yardsmith tracked
+speed and mobility but no power number.
+
+- **When:** every other speed test (`POWER_DUE_AT=21` days; never done = due). The speed test's
+  result shows a "Power check — due / set your baseline" card above Done. It comes **after** the three
+  swings, so the swing protocol is unchanged. Tapping Done skips it.
+- **The form** (same `#stModal`, header becomes "Power check"):
+  - A pain stop comes first ("Stop if anything hurts — skip it today; the speed test already counts").
+  - **Jump and reach**, best of 3, in inches.
+  - An optional **seated chest throw**, best of 3, in feet, with ball-weight chips (4–14 lb). The last
+    ball used is preselected. A throw without a ball weight can't save.
+  - Range checks catch typos (2–48 in, 3–60 ft).
+  - Typing never re-renders, so the keyboard stays up.
+- **The result:** each number against your own checks. A throw is only ever compared with the same
+  ball.
+  - Changes inside the noise line read "About the same as last check (±1 in is normal wobble)". That
+    line is ±1 in for the jump and ±5% (never under 1 ft) for the throw; both are assumptions pending
+    repeat data.
+  - From the second prior check on, it also shows the change since your first check.
+  - No outside norms; TPI's published power norms are deliberately not used.
+- **Elsewhere:**
+  - The Stats speed card gets a one-line Power summary, with a "check due" link when due.
+  - The Log sheet gets a "Power check" row that opens the form directly.
+  - Welcome-back counts a power check as activity.
+- **Data:**
+  - New roaming key `ff_power` `[{ts, date, week, jump, chest, ball}]`.
+  - It's in `KEYS`, with a MERGE `unionSeries` by `ts` (cap 40, the same cap as the module).
+  - The cloud-sync pin went v121 → v122 in both templates.
+  - Not an Octane input: first see whether it moves with 7-iron speed user by user.
+  - The data-contract script now also allowlists `ff_notif_today`, which was already device-local
+    (since the evening reminder) but was missing from the list.
+- **Verified:**
+  - `tests/power-check.test.mjs` (10 tests; all 10 fail with the change stashed) covers:
+    - due timing (14 days not due, 21 and 28 due, out-of-order lists);
+    - the form rules and the ball default;
+    - same-ball comparisons and the noise-line words;
+    - the save shape and cap;
+    - the Stats line and the Log-sheet wiring;
+    - the swing protocol left untouched and no outside names in the copy;
+    - a two-device `ff_power` union through the real MERGE entry.
+  - Suite 284/284.
+  - A Playwright e2e on the built app passes in light and dark, with zero page errors. It covers:
+    - the offer on a first speed test;
+    - the form, error and focus behaviour, with every control ≥44px;
+    - the baseline result and the saved entry;
+    - the Stats line;
+    - the Log-sheet entry with the ball remembered: +1.5 in reads as a gain, +1 ft on 23 ft reads as
+      "about the same";
+    - no offer on the next speed test;
+    - Skip saving nothing.
+  - Audits match baseline: train 18/18, scroll 16/16, contrast clean, type 1 known (Fuel "Ate it").
+  - Data contract, release gate and claims-lint are clean.
+
 ## The turn check ignores one shaky move, and stops for pain (Nov 11, 2026)
 
 From the TPI research report: single self-rated screen items are the least reliable layer of any

@@ -156,9 +156,18 @@
       if(e.target.closest("[data-stsave]")){ saveSpeedTest(); return; }
       if(e.target.closest("[data-stshare]")){ shareSpeedTest(); return; }
       if(e.target.closest("[data-stdone]")){ closeSpeedTest(); return; }
+      // Power check (below): offered on the result, run in the same modal.
+      if(e.target.closest("[data-pwgo]")){ stState.power=pwFresh(); renderSpeedTest(); return; }
+      var pb=e.target.closest("[data-pwball]");
+      if(pb && stState.power){ stState.power.ball=+pb.getAttribute("data-pwball"); renderSpeedTest(); return; }
+      if(e.target.closest("[data-pwsave]")){ savePowerCheck(); return; }
+      if(e.target.closest("[data-pwskip],[data-pwdone]")){ closeSpeedTest(); return; }
     });
     m.addEventListener("input", function(e){
-      var t=e.target; if(!t.classList.contains("st-swing")) return;
+      var t=e.target;
+      if(stState && stState.power && (t.id==="pwJump" || t.id==="pwChest")){
+        stState.power[t.id==="pwJump"?"jump":"chest"]=t.value; pwSync(); return; }
+      if(!t.classList.contains("st-swing")) return;
       stState.swings[+t.getAttribute("data-sts")]=t.value;
       var best=stBest(), bb=$("stBestBox"), sv=$("stSaveBtn");
       if(bb) bb.innerHTML=stBestHtml();
@@ -199,6 +208,8 @@
   }
   function renderSpeedTest(){
     var body=$("stBody"); if(!body || !stState) return;
+    var ttl=$("stTitle"); if(ttl) ttl.innerHTML=stState.power ? (ffIcon("bolt",16)+' Power check') : (ffIcon("target",16)+' Speed Test');
+    if(stState.power){ body.innerHTML=powerCheckHtml(); return; }
     if(stState.saved){
       // Gains and the PR badge only past the noise line (ffSpeedSignal): a
       // 0.3 mph "record" on a no-change day is the test wobbling, not progress.
@@ -215,6 +226,7 @@
             : (r.prevBest!=null && !r.pr ? ('All-time best: <b>'+r.prevBest+' mph</b> — that’s the number to hunt next test.') : 'Logged to your trend, Octane and the board.'))+
         '</div>'+
         '<button class="st-share" data-stshare="1">'+ffIcon("share",14)+' Share it</button>'+
+        (powerDue() ? powerOfferHtml() : '')+
         '<button class="st-save" data-stdone="1">Done — next test in 2 weeks</button>'+
         '</div>';
       return;
@@ -264,8 +276,153 @@
               "3 max-intent swings — best one counts" ]
     }, txt);
   }
+  /* ----- Power check — a jump and a throw, every other speed test (Nov 2026) -----
+     Power is the gym number most tied to clubhead speed: jump impulse and
+     upper-body explosive strength lead both meta-analyses, while flexibility
+     and balance show no link (Brennan 2024; Ehlert 2021 — reports/Golf TPI
+     assessments.md). So about once a month the speed test offers two at-home
+     tests AFTER the three swings (the swing protocol stays the same), in our
+     own words:
+       - jump and reach: inches from a standing reach mark to the jump touch;
+       - seated chest throw (optional, needs a med ball): feet, with the ball
+         weight, and only same-ball throws are ever compared.
+     Saved to ff_power [{ts, date, week, jump, chest, ball}] (cap 40, synced as a
+     unionSeries by ts). No outside norms: your own first check is the yardstick. */
+  var POWER_DUE_AT=21;              // days: every other speed test (~monthly), never the very next one
+  var JUMP_MIN=2, JUMP_MAX=48;      // inches
+  var CHEST_MIN=3, CHEST_MAX=60;    // feet
+  var PW_BALLS=[4,6,8,10,12,14];    // lb
+  // The smallest change worth calling real. Assumptions until users' own repeat
+  // data says otherwise: a hand-marked best-of-3 jump wobbles about an inch; a
+  // seated throw about 5%, never under a foot.
+  var JUMP_MDC=1;
+  function chestMdc(ft){ return Math.max(1, Math.round(ft*0.5)/10); }
+  function powerChecks(){
+    var t=lsGet("ff_power",[]);
+    return (Array.isArray(t)?t:[]).filter(function(e){ return e && typeof e==="object"; })
+      .slice().sort(function(a,b){ return (a.ts||0)-(b.ts||0); });
+  }
+  function lastPower(){ var t=powerChecks(); return t.length?t[t.length-1]:null; }
+  function daysSincePower(){
+    var lp=lastPower(), d=lp && lp.ts ? stDayStart(lp.ts) : null; if(d==null) return null;
+    var today=new Date(); today.setHours(0,0,0,0);
+    return Math.max(0, Math.round((today.getTime()-d)/864e5));
+  }
+  function powerDue(){ var d=daysSincePower(); return d==null || d>=POWER_DUE_AT; }
+  function pwNum(v){ var s=String(v==null?"":v).trim(); return s==="" ? null : parseFloat(s); }
+  function jumpOk(n){ return typeof n==="number" && !isNaN(n) && n>=JUMP_MIN && n<=JUMP_MAX; }
+  function chestOk(n){ return typeof n==="number" && !isNaN(n) && n>=CHEST_MIN && n<=CHEST_MAX; }
+  function pwFmt(n){ return String(Math.round(n*10)/10); }
+  function pwFresh(){
+    var lastBall=null;
+    powerChecks().forEach(function(e){ if(e.ball) lastBall=e.ball; });
+    return { jump:"", chest:"", ball:lastBall, saved:null };
+  }
+  // What's wrong with the form right now → {msg} or null, plus whether it can save.
+  function pwCheck(p){
+    var j=pwNum(p.jump), c=pwNum(p.chest);
+    if(j!=null && !jumpOk(j)) return { err:"The jump should be "+JUMP_MIN+"–"+JUMP_MAX+" inches — check for a typo." };
+    if(c!=null && !chestOk(c)) return { err:"The throw should be "+CHEST_MIN+"–"+CHEST_MAX+" feet — check for a typo." };
+    if(c!=null && !p.ball) return { err:"Pick the ball’s weight — only throws with the same ball are compared." };
+    return { err:null, ready:j!=null || c!=null };
+  }
+  // Keep the button and the error line current while typing (no re-render, so
+  // the keyboard stays up).
+  function pwSync(){
+    var p=stState && stState.power; if(!p) return;
+    var r=pwCheck(p), er=$("pwErr"), sv=$("pwSaveBtn");
+    if(er){ er.hidden=!r.err; er.textContent=r.err||""; }
+    if(sv) sv.disabled=!!r.err || !r.ready;
+  }
+  // One measure against its own history (entries saved BEFORE this one):
+  // → null on the first, else {n, last, dLast, first, dFirst, mdc}.
+  function pwCompare(prior, key, val, ball){
+    var xs=prior.filter(function(e){ return typeof e[key]==="number" && (key!=="chest" || e.ball===ball); });
+    if(!xs.length) return null;
+    var last=xs[xs.length-1][key], first=xs[0][key];
+    return { n:xs.length, last:last, dLast:Math.round((val-last)*10)/10, first:first,
+      dFirst:Math.round((val-first)*10)/10, mdc:key==="jump" ? JUMP_MDC : chestMdc(val) };
+  }
+  // The words for one comparison. Changes inside the noise line read as "the
+  // same" — a half-inch "gain" is the tape measure, not the training.
+  function pwDeltaText(c, unit){
+    if(!c) return 'Your first one — the baseline every check is measured against.';
+    function d(x){ return (x>0?'▲ <b>+':'▼ <b>')+pwFmt(Math.abs(x))+' '+unit+'</b>'; }
+    var vsLast=Math.abs(c.dLast)>=c.mdc ? d(c.dLast)+' since last check' : 'About the same as last check (±'+pwFmt(c.mdc)+' '+unit+' is normal wobble)';
+    var vsFirst=c.n<2 ? '' : (Math.abs(c.dFirst)>=c.mdc ? ' · '+d(c.dFirst)+' since your first' : ' · level with your first');
+    return vsLast+vsFirst+'.';
+  }
+  function powerOfferHtml(){
+    var lp=lastPower();
+    return '<div class="pwr-offer"><div class="pwr-offer-t">'+ffIcon("bolt",15)+' Power check — '+(lp?'due':'set your baseline')+'</div>'+
+      '<div class="pwr-offer-b">Two minutes while you’re warm: your best <b>jump</b> and, if you have a med ball, a <b>seated chest throw</b>. '+
+      'Power is the gym test most closely tied to clubhead speed — about once a month.</div>'+
+      '<button type="button" class="st-share" data-pwgo="1">Add the power check</button></div>';
+  }
+  function powerCheckHtml(){
+    var p=stState.power;
+    if(p.saved){
+      var r=p.saved;
+      return '<div class="st-result"><div class="st-res-kick">Power check</div>'+
+        (r.jump!=null ? '<div class="pwr-res"><div class="pwr-res-n">'+pwFmt(r.jump)+'<span>in</span></div><div class="pwr-res-l">Jump and reach</div>'+
+          '<div class="pwr-res-d">'+pwDeltaText(r.cj,"in")+'</div></div>' : '')+
+        (r.chest!=null ? '<div class="pwr-res"><div class="pwr-res-n">'+pwFmt(r.chest)+'<span>ft</span></div><div class="pwr-res-l">Seated chest throw · '+r.ball+' lb ball</div>'+
+          '<div class="pwr-res-d">'+pwDeltaText(r.cc,"ft")+'</div></div>' : '')+
+        '<div class="st-gain">Power moves slower than one check can show — watch it across a few. It’s on your Stats speed card.</div>'+
+        '<button type="button" class="st-save" data-pwdone="1">Done — next power check in about a month</button></div>';
+    }
+    var chk=pwCheck(p);
+    return '<div class="pwr-safe">Stop if anything hurts — skip it today; the speed test already counts.</div>'+
+      '<div class="st-sec">1 · Jump and reach <small>— best of 3, in inches</small></div>'+
+      '<div class="pwr-how">Stand side-on to a wall, feet flat, and reach as high as you can — mark it (chalk, a wet fingertip or a piece of tape). '+
+        'Then dip, jump straight up and touch the wall as high as you can. Measure from the mark to your highest touch.</div>'+
+      '<input class="pwr-in" id="pwJump" type="number" inputmode="decimal" step="0.5" placeholder="Best jump (in)" aria-label="Best jump in inches" value="'+escAttr(p.jump||"")+'" />'+
+      '<div class="st-sec">2 · Seated chest throw <small>— optional, needs a med ball</small></div>'+
+      '<div class="pwr-how">Sit on the floor with your back against a wall, legs out. Hold the ball at your chest and push it straight out as far as you can — your back stays on the wall. '+
+        'Measure from the wall to where it first lands. Best of 3.</div>'+
+      '<div class="pwr-balls" role="group" aria-label="Ball weight"><span>Ball</span>'+PW_BALLS.map(function(b){
+        return '<button type="button" class="'+(p.ball===b?'on':'')+'" data-pwball="'+b+'" aria-pressed="'+(p.ball===b)+'">'+b+' lb</button>'; }).join("")+'</div>'+
+      '<input class="pwr-in" id="pwChest" type="number" inputmode="decimal" step="0.5" placeholder="Best throw (ft)" aria-label="Best throw in feet" value="'+escAttr(p.chest||"")+'" />'+
+      '<div class="ff-inerr" id="pwErr" role="alert"'+(chk.err?'':' hidden')+'>'+(chk.err||'')+'</div>'+
+      '<button type="button" class="st-save" id="pwSaveBtn" data-pwsave="1"'+(chk.err||!chk.ready?' disabled':'')+'>✓ Save power check</button>'+
+      '<div class="st-note">Same wall, same ball, same floor every time — the trend against your own first check is the number that matters.</div>'+
+      '<button type="button" class="pwr-skip" data-pwskip="1">Skip it today</button>';
+  }
+  function savePowerCheck(){
+    var p=stState && stState.power; if(!p || p.saved) return;
+    var chk=pwCheck(p); if(chk.err || !chk.ready){ pwSync(); return; }
+    var j=pwNum(p.jump), c=pwNum(p.chest), prior=powerChecks();
+    var e={ ts:Date.now(), date:todayStr(), week:curWeek(), jump:j, chest:c, ball:c!=null ? p.ball : null };
+    var pw=prior.concat([e]);
+    if(pw.length>40) pw=pw.slice(-40);
+    lsSet("ff_power", pw);
+    p.saved={ jump:j, chest:c, ball:e.ball,
+      cj:j!=null ? pwCompare(prior,"jump",j) : null, cc:c!=null ? pwCompare(prior,"chest",c,e.ball) : null };
+    renderSpeedTest();
+  }
+  // Straight into the power check (the quick sheet, Stats): no swings first.
+  function openPowerCheck(){
+    if(!ffCanUse("speedtest")) return;
+    stEnsureModal();
+    stState={ swings:["","",""], saved:null, power:pwFresh() };
+    renderSpeedTest();
+    $("stModal").hidden=false; document.body.style.overflow="hidden";
+  }
+  // One line for the Stats speed card: the latest of each, against the first.
+  function powerSummaryHtml(){
+    var t=powerChecks(); if(!t.length) return '';
+    function latest(key){ for(var i=t.length-1;i>=0;i--) if(typeof t[i][key]==="number") return t[i]; return null; }
+    var lj=latest("jump"), lc=latest("chest"), bits=[];
+    if(lj){ var cj=pwCompare(t.filter(function(e){ return e.ts<lj.ts; }),"jump",lj.jump);
+      bits.push('Jump <b>'+pwFmt(lj.jump)+' in</b>'+(cj && cj.n>=1 && Math.abs(cj.dFirst)>=cj.mdc ? ' <small>('+(cj.dFirst>0?'+':'')+pwFmt(cj.dFirst)+' since first)</small>' : '')); }
+    if(lc){ var cc=pwCompare(t.filter(function(e){ return e.ts<lc.ts; }),"chest",lc.chest,lc.ball);
+      bits.push('Chest throw <b>'+pwFmt(lc.chest)+' ft</b> <small>'+lc.ball+' lb'+(cc && Math.abs(cc.dFirst)>=cc.mdc ? ', '+(cc.dFirst>0?'+':'')+pwFmt(cc.dFirst)+' since first' : '')+'</small>'); }
+    return '<div class="pwr-sum">'+ffIcon("bolt",13)+'<span><b class="pwr-sum-t">Power</b> '+bits.join(' · ')+
+      (powerDue() ? ' — <button type="button" class="stest-link" data-powercheck="1">check due</button>' : '')+'</span></div>';
+  }
   // One listener for every "run the test" button (Train card, dashboard focus, Stats).
   document.addEventListener("click", function(e){
     if(e.target.closest("[data-speedtest]")){ openSpeedTest(); return; }
+    if(e.target.closest("[data-powercheck]")){ openPowerCheck(); return; }
     if(e.target.closest("[data-mobscreen]")) openMobility();
   });

@@ -469,6 +469,7 @@
           : (spF.length>=2 ? '<div class="pc-payoff muted">Test days wobble about ±'+(spSig.thr||SPEED_MDC)+' mph — the trend over several tests is what counts. Every real <b>+1 mph</b> is about <b>+2 yards</b> of carry.</div>' : ""))+
         '<div class="pc-foot"><span>'+ffTerm('speedtest','the test & benchmarks')+'</span>'+
           (spF.length>=2?'<span>baseline <b>'+spBase+'</b> · best <b>'+spBest+'</b> mph</span>':'')+'</div>'+
+        powerSummaryHtml()+   // the monthly jump + throw (060), the leading indicator of speed
         (speedTestDue()?'<div class="pc-test"><button class="stest-go sm" data-speedtest="1">🎯 Speed test due — run it now</button></div>':""));
 
       // ---- On the course: the gym-to-course proof ----
@@ -975,6 +976,7 @@
         '<button type="button" class="qsheet-act" data-roundlog="1">⛳<span>Log a round<span class="qa-sub">score, longest drive, how the body held up</span></span><span class="qa-go">›</span></button>'+
         '<button type="button" class="qsheet-act" data-goview="gameday">🏌️<span>Playing today?<span class="qa-sub">warm-up and snack plan built around your tee time</span></span><span class="qa-go">›</span></button>'+
         '<button type="button" class="qsheet-act" data-speedtest="1">'+ffIcon("target",18)+'<span>Speed test<span class="qa-sub">3 max swings — best one counts</span></span><span class="qa-go">›</span></button>'+
+        '<button type="button" class="qsheet-act" data-powercheck="1">'+ffIcon("bolt",18)+'<span>Power check<span class="qa-sub">a jump and a med-ball throw · ~2 minutes</span></span><span class="qa-go">›</span></button>'+
         '<button type="button" class="qsheet-act" data-mobscreen="1">'+ffIcon("compass",18)+'<span>Mobility screen<span class="qa-sub">5 moves · ~4 minutes</span></span><span class="qa-go">›</span></button>'+
         '</div></div>';
       sheet.hidden=false; document.body.style.overflow="hidden";
@@ -1024,7 +1026,7 @@
       // out of the way. (This element listener fires FIRST; the meal check-off then
       // runs in 030's document handler, which re-renders the dash itself.)
       if(e.target.closest("[data-fuelmeal]")){ closeSheet(); ffToast("Meal checked off ✓"); return; }
-      if(e.target.closest("[data-startplayer],[data-speedtest],[data-mobscreen],[data-roundlog],[data-goview]")) closeSheet();
+      if(e.target.closest("[data-startplayer],[data-speedtest],[data-powercheck],[data-mobscreen],[data-roundlog],[data-goview]")) closeSheet();
     });
   })();
 
