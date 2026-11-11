@@ -28,7 +28,7 @@ localStorage the app already writes.
 | `curWeek()` | weeks elapsed (for "expected sessions") |
 | `planState.freq` (4/5) | expected sessions per week |
 | `state.goal` + `GOALS[goal].weekly` (025) | the goal's weekly bodyweight band, for power-to-weight |
-| `ff_mobility` (`[{ts,date,v,tests,score}]`; v2 tests `{trunk,hiprot,coil,leadarm,lats}`, v1 `{trunk,hip,squat}`) | mobility pillar (5-move turn check since Nov 2026, each test 0/1/2) |
+| `ff_mobility` (`[{ts,date,v,tests,score,retry?}]`; v2 tests `{trunk,hiprot,coil,leadarm,lats}`, v1 `{trunk,hip,squat}`; optional `retry {key:"control"\|"mobility"}` routes drills, never the score) | mobility pillar (5-move turn check since Nov 2026, each test 0/1/2) |
 | `ff_fuel` via `fuelScoreFor(iso)` (030) | fuel pillar (meal check-off adherence) |
 
 ## Pillars & weights (0–100, rescaled to the pillars that have data)

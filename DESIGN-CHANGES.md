@@ -1,5 +1,57 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## Turn check: range or control? A retry with help for a short move (Nov 11, 2026)
+
+TPI piece #3. In-person screens retest a failed move with help to tell a range limit from a control
+limit, and the turn check now does the same, in our own words. Before this, every short move got
+stretches. When the range is already there with help, more stretching isn't the job.
+
+- **The retry:** any move scored 🔴 or 🟡 shows an optional "Quick retry with help — 20 seconds: is
+  it range or control?" box right under it. Each move has its own assisted version:
+  - **trunk:** use the bench or a chair back to ease round;
+  - **hip rotation:** face down, let the feet fall out;
+  - **coil:** sitting down;
+  - **lead arm:** the other hand eases it across;
+  - **lats:** on your back, low back flat.
+  - The answers are "Gets there with help" (control) or "Still short" (range).
+  - Skipping it keeps the old routing.
+  - Scoring a move ✅ removes its box and answer.
+  - The retry copy says "gently, never a pinch", and the per-move pain stop stays below it.
+- **The score never changes:** it's always the move on its own.
+  - Answers save with the screen as `retry {key: "control"|"mobility"}`, for short, answered moves
+    only. A screen without answers keeps the old shape.
+  - The entry isn't edited after saving, so sync is unaffected.
+- **Routing (035), from the latest screen:**
+  - **Control** swaps the warm-up stretch for an own-the-range drill, and adds no cool-down or
+    rest-day stretch of its own:
+    - trunk: Seated turn & hold, hips still;
+    - hip rotation: 90/90 lift-offs;
+    - lead arm: Active cross-body hold, upper days;
+    - lats: Dead bug, arms overhead, upper days. The pull day keeps its own base hang.
+  - **Range** keeps the stretches. For the coil it also adds the open-book.
+  - Each new drill has a how-to cue.
+  - The result screen names which kind of fix each move got.
+- **Honesty:** this is a routing heuristic, the active-vs-assisted gap, not a validated diagnosis.
+  TPI's own test→fault map found 3 links in about 168 pairings (Gulgin 2014). It only picks
+  low-stakes drills and makes no swing-fault claims. The turn guard and the Octane pillar are
+  unchanged.
+- **Verified:**
+  - 3 new tests in `tests/training-engine.test.mjs`, all failing without the change, cover:
+    - every move's retry, in its own words;
+    - saving answers only for short moves, with the score unaffected;
+    - latest-screen-only control and range;
+    - control and range routing in warm-ups, cool-downs and rest days, with no duplicates;
+    - a cue for every routed drill.
+  - Suite 303/303.
+  - A Playwright e2e on the built app passes in light and dark, with zero page errors and 44px
+    retry buttons. It covers:
+    - a retry under each short move only;
+    - ✅ clearing an answer;
+    - the saved retry and score;
+    - the result naming the control fixes;
+    - the Train warm-up (in its fold) routing the control drills with their how-to, not
+      thread-the-needle or the hang.
+
 ## Single-leg glute bridge on the hinge day (Nov 11, 2026)
 
 TPI piece #2. The owner had asked whether there were "lifting and exercise pieces we could steal".

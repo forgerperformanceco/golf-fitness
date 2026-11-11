@@ -557,6 +557,26 @@ hack. Implementation (065-mobility-screen…js):
   90/90 hip switch / overhead deep squat; v1 entries stay readable (`mobLimits` reads any keys).
 - **Score = round(sum / (2 × moves) × 100)** → 0–100 (`mobEntry`); entries `{ts, date, v:2,
   tests{trunk,hiprot,coil,leadarm,lats}, score}` capped at 40.
+- **Range or control? (Nov 2026, TPI piece #3, `MOB_TESTS[].retry`, `mobControl` / `mobRange`).**
+  A move scored <2 gets an optional 20-second retry with help:
+  - trunk: pull round on a bench back;
+  - hip rotation: face down, letting gravity turn the hips in;
+  - coil: sitting down;
+  - lead arm: the other hand eases it across;
+  - lats: lying on your back.
+
+  "Gets there with help" = **control**: own-the-range drills replace the stretch in the
+  warm-up, and that move adds no cool-down stretch. The drills:
+  - trunk: seated turn & hold;
+  - hip rotation: 90/90 lift-offs;
+  - lead arm: active cross-body hold;
+  - lats: dead bug with the arms overhead.
+
+  "Still short" = **range**: the stretches, as before. For the coil, range also adds the open-book.
+  It's a routing heuristic (the active-vs-assisted gap), not a validated diagnosis. TPI's own
+  test→fault map is weakly supported (Gulgin 2014). The **score is always the move on its own**.
+  Stored as `entry.retry {key:"control"|"mobility"}` for short, answered moves only; the
+  latest screen decides.
 - Cadence: re-screen due every **28 days** (`mobDue`, 21); the Octane pillar
   shows "Re-screen due" past **35 days** (070:683).
 - **Warm-up routing** (`mobLimits` 23-27 → `warmupList` 035:312-324): any test

@@ -14,26 +14,49 @@
   var MOB_TESTS = [
     { key:"trunk", ic:"🌀", t:"Seated trunk rotation",
       d:"Sit tall on a bench, arms crossed on your chest, feet planted. Turn your shoulders as far as you can each way <b>without the hips moving</b>.",
-      lbl:["🔴 Tight / pinches","🟡 Close, or one side tighter","✅ ~45°+ both ways, smooth"] },
+      lbl:["🔴 Tight / pinches","🟡 Close, or one side tighter","✅ ~45°+ both ways, smooth"],
+      retry:{ d:"Same seat, but hold the bench or a chair back with one hand and use it to ease yourself further round each way, hips still. Gently, never a pinch. Does it reach about 45° with that help?",
+        yes:"Gets there with help", no:"Still short" } },
     { key:"hiprot", ic:"🦵", t:"Seated hip rotation",
       d:"Sit on the edge of a bench, knees bent 90° and hip-width. Keep one knee still and swing that foot <b>outward</b> like a pendulum — that turns the hip inward. Both sides; the hip stays down on the bench.",
-      lbl:["🔴 Under ~20°, or it pinches","🟡 Gets there, or one side is clearly tighter","✅ ~35°+ both sides, and even"] },
+      lbl:["🔴 Under ~20°, or it pinches","🟡 Gets there, or one side is clearly tighter","✅ ~35°+ both sides, and even"],
+      retry:{ d:"Lie face down, knees bent to 90° and together. Let both feet fall out to the sides under their own weight — the hips turn in with gravity doing the work. Do they get to about 35° each side?",
+        yes:"Gets there lying down", no:"Still short" } },
     { key:"coil", ic:"⛳", t:"Coil: shoulders vs hips",
       d:"Golf posture, arms crossed on your chest. Turn your shoulders back while the <b>belt buckle keeps pointing at the ball</b>, then turn the belt buckle while the shoulders stay still.",
-      lbl:["🔴 Hips and shoulders move together","🟡 One way is a fight","✅ Each moves on its own, no sway"] },
+      lbl:["🔴 Hips and shoulders move together","🟡 One way is a fight","✅ Each moves on its own, no sway"],
+      retry:{ d:"Sit on the edge of a bench or chair, feet planted, arms crossed — sitting takes balance and posture out of it. Turn the shoulders while the belt buckle stays put, then the other way round. Does it move on its own sitting down?",
+        yes:"Works sitting down", no:"Still a fight" } },
     { key:"leadarm", ic:"💪", t:"Lead arm across the chest",
       d:"Stand tall, lead arm straight out in front at shoulder height. Bring it across your chest as far as it goes <b>without the chest turning or the shoulder hiking</b>.",
-      lbl:["🔴 Stops short, or pinches in front","🟡 Close, but it's tight","✅ Elbow reaches the middle of your chest"] },
+      lbl:["🔴 Stops short, or pinches in front","🟡 Close, but it's tight","✅ Elbow reaches the middle of your chest"],
+      retry:{ d:"Same position, but put the other hand on the elbow and ease the arm across — gently, chest still facing forward. Does the elbow reach the middle of your chest with that help?",
+        yes:"Gets there with help", no:"Still short" } },
     { key:"lats", ic:"🙌", t:"Overhead reach (lats)",
       d:"Back against a wall, feet a small step out, knees soft, <b>low back flat on the wall</b>. Raise both straight arms overhead toward the wall.",
-      lbl:["🔴 Arms stop well short, or the back arches","🟡 Close, but the low back wants to arch","✅ Thumbs touch the wall, back stays flat"] }
+      lbl:["🔴 Arms stop well short, or the back arches","🟡 Close, but the low back wants to arch","✅ Thumbs touch the wall, back stays flat"],
+      retry:{ d:"Lie on your back, knees bent, low back flat on the floor. Raise both straight arms overhead toward the floor behind you. Do your thumbs reach the floor with the back staying flat?",
+        yes:"Gets there lying down", no:"Still short" } }
   ];
+  /* Range or control? (Nov 2026, from the TPI research: a move that fails on its own is
+     retried with help — gravity, the other hand, or sitting down.) If help gets it there,
+     the range exists and the job is owning it: control drills, not more stretching. If it
+     still falls short, the range itself is the job (the stretches, as before). A routing
+     heuristic in our own words — the active-vs-assisted gap — not a validated diagnosis:
+     it only picks which low-stakes drills go in the warm-up. The score is always the move
+     on its own. Saved as entry.retry {key: "control"|"mobility"}, short moves only. */
   // A screen entry from the answers (pure, unit-tested): every v2 key, the 0-100
   // score over however many moves were scored, and a version marker.
-  function mobEntry(vals, ts, date){
-    var tests={}, sum=0;
-    MOB_TESTS.forEach(function(t){ var v=(vals&&vals[t.key])|0; tests[t.key]=v; sum+=v; });
-    return { ts:ts, date:date, v:2, tests:tests, score:Math.round(sum/(MOB_TESTS.length*2)*100) };
+  function mobEntry(vals, ts, date, retry){
+    var tests={}, sum=0, rt={}, any=false;
+    MOB_TESTS.forEach(function(t){
+      var v=(vals&&vals[t.key])|0; tests[t.key]=v; sum+=v;
+      var a=retry && retry[t.key];
+      if(v<2 && (a==="control" || a==="mobility")){ rt[t.key]=a; any=true; }
+    });
+    var e={ ts:ts, date:date, v:2, tests:tests, score:Math.round(sum/(MOB_TESTS.length*2)*100) };
+    if(any) e.retry=rt;
+    return e;
   }
   function mobTests(){ var t=lsGet("ff_mobility",[]); return Array.isArray(t)?t:[]; }
   function lastMob(){ var t=mobTests(); return t.length?t[t.length-1]:null; }
@@ -95,6 +118,15 @@
     var out={}; Object.keys(lm.tests).forEach(function(k){ if((lm.tests[k]|0)<2) out[k]=true; });
     return out;
   }
+  // The latest screen's retry answers, for moves that are still short on it.
+  function mobRetry(kind){
+    var lm=lastMob(), out={}; if(!lm || !lm.tests || !lm.retry) return out;
+    Object.keys(lm.retry).forEach(function(k){
+      if(lm.retry[k]===kind && Object.prototype.hasOwnProperty.call(lm.tests,k) && (lm.tests[k]|0)<2) out[k]=true; });
+    return out;
+  }
+  function mobControl(){ return mobRetry("control"); }
+  function mobRange(){ return mobRetry("mobility"); }
   var mobState=null;
   function mobEnsureModal(){
     if($("mobModal")) return;
@@ -105,7 +137,10 @@
     m.addEventListener("click", function(e){
       if(e.target===m || e.target.closest("#mobX")){ closeMobility(); return; }
       var ob=e.target.closest("[data-mobt]");
-      if(ob){ mobState.vals[ob.getAttribute("data-mobt")]=+ob.getAttribute("data-mobv"); renderMobility(); return; }
+      if(ob){ var mk=ob.getAttribute("data-mobt"), mv=+ob.getAttribute("data-mobv");
+        mobState.vals[mk]=mv; if(mv>=2) delete mobState.retry[mk]; renderMobility(); return; }
+      var rb=e.target.closest("[data-mobr]");
+      if(rb){ mobState.retry[rb.getAttribute("data-mobr")]=rb.getAttribute("data-mobra"); renderMobility(); return; }
       if(e.target.closest("[data-mobclear]")){ mobState.cleared=true; renderMobility(); return; }
       if(e.target.closest("[data-mobstop]")){ mobState.stopped=true; renderMobility(); return; }
       if(e.target.closest("[data-mobsave]")){ saveMobility(); return; }
@@ -114,7 +149,7 @@
   }
   function openMobility(){
     mobEnsureModal();
-    mobState={ vals:{}, saved:null, cleared:false, stopped:false };
+    mobState={ vals:{}, retry:{}, saved:null, cleared:false, stopped:false };
     renderMobility();
     $("mobModal").hidden=false; document.body.style.overflow="hidden";
   }
@@ -134,6 +169,23 @@
     leadarm:"shoulder circles added to upper-day warm-ups, and a cross-body stretch to every cool-down",
     lats:"a dead hang added to upper-day warm-ups, and a lat stretch to every cool-down"
   };
+  // When the retry says the range is there (control) — and, for the coil, when even
+  // sitting down it's a fight (range) — the fix is different from the plain one.
+  var MOB_CTL = {
+    trunk:"the turn is there with help, so the job is owning it: seated turn-and-holds added to your warm-ups instead of more stretching",
+    hiprot:"the range is there lying down, so the job is control: 90/90 lift-offs added to lower-day warm-ups and cool-downs",
+    coil:"it moves on its own sitting down, so it’s posture control: golf-posture turns added to every warm-up",
+    leadarm:"it gets there with your other hand, so the job is control: an active cross-body hold added to upper-day warm-ups instead of more stretching",
+    lats:"it gets there lying down, so it’s core control more than tight lats: dead bugs with the arms overhead added to upper-day warm-ups instead of the hang and stretch"
+  };
+  var MOB_RNG = {
+    coil:"even sitting down it’s a fight, so the range is the job: open-book T-spine and golf-posture turns added to every warm-up"
+  };
+  function mobFixText(key, retry){
+    if(retry==="control" && MOB_CTL[key]) return MOB_CTL[key];
+    if(retry==="mobility" && MOB_RNG[key]) return MOB_RNG[key];
+    return MOB_FIX[key];
+  }
   function renderMobility(){
     var body=$("mobBody"); if(!body || !mobState) return;
     // Pain stops the screen (Nov 2026): a red-flag check first, and a stop on every move.
@@ -160,7 +212,7 @@
         '<div class="mob-res-num">'+r.score+'<span>/100</span></div>'+
         (mobState.watch ? '<div class="mob-flag">'+mobState.watch+'</div>' : '')+
         (flags.length
-          ? flags.map(function(t){ return '<div class="mob-flag"><b>'+t.ic+' '+t.t+':</b> '+MOB_FIX[t.key]+'.</div>'; }).join("")+
+          ? flags.map(function(t){ return '<div class="mob-flag"><b>'+t.ic+' '+t.t+':</b> '+mobFixText(t.key, r.retry && r.retry[t.key])+'.</div>'; }).join("")+
             '<div class="mob-flag ok">Hit those every session and re-check in 4 weeks — the muscle you add should never cost you your turn.</div>'
           : '<div class="mob-flag ok">✅ Moving well everywhere. Keep the warm-ups honest and re-screen in 4 weeks — mass should never cost you turn.</div>')+
         '<button class="mob-save" data-mobdone="1">Done</button></div>';
@@ -174,13 +226,23 @@
           '<div class="mob-opts">'+[0,1,2].map(function(v){
             return '<button type="button" class="'+(mobState.vals[t.key]===v?'on':'')+'" data-mobt="'+t.key+'" data-mobv="'+v+'">'+t.lbl[v]+'</button>';
           }).join("")+'</div>'+
+          (mobState.vals[t.key]!=null && mobState.vals[t.key]<2 ? mobRetryHtml(t) : '')+
           '<button type="button" class="mob-hurt" data-mobstop="1">Sharp pain on this one? Stop here</button></div>';
       }).join("")+
       '<button class="mob-save" data-mobsave="1"'+(done?'':' disabled')+'>✓ Save my screen</button>';
   }
+  // Optional: skipping it keeps the plain (stretch) routing.
+  function mobRetryHtml(t){
+    var a=mobState.retry[t.key];
+    return '<div class="mob-retry"><div class="mob-retry-t">Quick retry with help <small>— optional, 20 seconds: is it range or control?</small></div>'+
+      '<div class="mob-d">'+t.retry.d+'</div>'+
+      '<div class="mob-opts mob-retry-opts" role="group" aria-label="'+escAttr(t.t)+' retry">'+
+        '<button type="button" class="'+(a==="control"?'on':'')+'" aria-pressed="'+(a==="control")+'" data-mobr="'+t.key+'" data-mobra="control">'+t.retry.yes+'</button>'+
+        '<button type="button" class="'+(a==="mobility"?'on':'')+'" aria-pressed="'+(a==="mobility")+'" data-mobr="'+t.key+'" data-mobra="mobility">'+t.retry.no+'</button></div></div>';
+  }
   function saveMobility(){
     if(!mobState) return;
-    var entry=mobEntry(mobState.vals, Date.now(), todayStr());
+    var entry=mobEntry(mobState.vals, Date.now(), todayStr(), mobState.retry);
     var t=mobTests(), prev=t.length?t[t.length-1]:null;
     var wk=mobWatch(prev, entry), wt=wk && MOB_TESTS.filter(function(x){ return x.key===wk; })[0];
     t.push(entry); if(t.length>40) t=t.slice(-40);

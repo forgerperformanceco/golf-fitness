@@ -1020,3 +1020,84 @@ test("the bridge has its own how-to and golf why (hips level), ahead of the two-
   assert.doesNotMatch(ctx.liftWhy(SLB).why + ctx.liftWhy(SLB).cue, /speed|yards|mph|prevent/i, "durability framing — never a speed or injury-prevention claim");
   assert.match(ctx.exerciseForm("Hip Thrust").cues.join(" "), /Drive through the heels/, "the hip thrust keeps its cues");
 });
+
+// ------------------------------- 13f range or control? the assisted retry (Nov 2026, TPI piece #3)
+// A move that comes back short gets an optional 20-second retry with help. If help gets it there,
+// the range is there and the job is control: control drills, not more stretching. If not, the range
+// is the job (the stretches, as before). The score always comes from the move on its own.
+function mobCtx(entries) {
+  const ctx = { __entries: entries || [] };
+  vm.runInNewContext(`
+    function lsGet(k,d){ return k==="ff_mobility" ? __entries : d; }
+    ${MOB.match(/var MOB_TESTS = \[[\s\S]*?\n  \];/)[0]}
+    ${["mobEntry", "mobTests", "lastMob", "mobLimits", "mobRetry", "mobControl", "mobRange"].map((n) => fn(MOB, n)).join("\n")}
+    this.entry = mobEntry; this.ctl = mobControl; this.rng = mobRange; this.tests = MOB_TESTS;
+  `, ctx);
+  return ctx;
+}
+test("retry: every move has its own assisted version in our words; the answer is saved only for short moves", () => {
+  const c = mobCtx();
+  for (const t of c.tests) {
+    assert.ok(t.retry && t.retry.d.length > 60 && t.retry.yes && t.retry.no, `${t.key} has a retry`);
+    assert.doesNotMatch(t.retry.d, /TPI|Titleist/i);
+  }
+  const e = c.entry({ trunk: 0, hiprot: 1, coil: 2, leadarm: 1, lats: 2 }, 5, "d", { trunk: "control", hiprot: "mobility", coil: "control", lats: "control" });
+  assert.deepEqual({ ...e.retry }, { trunk: "control", hiprot: "mobility" }, "✅ moves drop their answer; unanswered short moves have none");
+  assert.equal(e.score, 60, "the score comes from the move on its own (0+1+2+1+2 of 10), never the retry");
+  assert.equal("retry" in c.entry({ trunk: 0 }, 1, "d"), false, "no answers → the entry keeps its old shape");
+  assert.equal("retry" in c.entry({ trunk: 0 }, 1, "d", { trunk: "maybe" }), false, "only control / mobility are kept");
+});
+
+test("retry: control and range read from the latest screen only, and only for moves still short", () => {
+  const old = { ts: 1, tests: { trunk: 0, hiprot: 0, coil: 0, leadarm: 0, lats: 0 }, retry: { trunk: "control", lats: "control" } };
+  const cur = { ts: 2, tests: { trunk: 1, hiprot: 0, coil: 1, leadarm: 2, lats: 0 }, retry: { hiprot: "control", coil: "mobility", leadarm: "control" } };
+  const c = mobCtx([old, cur]);
+  assert.deepEqual(Object.keys(c.ctl()).sort(), ["hiprot"], "leadarm is ✅ now; trunk/lats answers were last time's");
+  assert.deepEqual(Object.keys(c.rng()), ["coil"]);
+  assert.deepEqual({ ...mobCtx([]).ctl() }, {});
+  assert.deepEqual({ ...mobCtx([{ ts: 1, tests: { trunk: 0, hip: 1, squat: 0 } }]).ctl() }, {}, "a v1 screen has no retries");
+});
+
+function routeCtx(ctl, rng) {
+  const ctx = {};
+  vm.runInNewContext(`
+    var state={ prep:[] };
+    function mobLimits(){ return { trunk:true, coil:true, leadarm:true, lats:true, hiprot:true }; }
+    function mobControl(){ return ${JSON.stringify(ctl)}; } function mobRange(){ return ${JSON.stringify(rng)}; }
+    ${["moveCue", "warmupBase", "warmupList", "cdHold", "cooldownBase", "cdAddFixes", "cooldownList", "recoveryList"].map((n) => fn(PLAN, n)).join("\n")}
+    this.wu = warmupList; this.cd = cooldownList; this.rest = recoveryList; this.cue = moveCue;
+  `, ctx);
+  return ctx;
+}
+test("retry routing: control → own-the-range drills in the warm-up instead of the stretch; range → the stretches", () => {
+  const names = (l) => [...l.map((m) => m[0])];
+  const push = "Day 2 — Upper (Push)", lower = "Day 1 — Lower (Quads)", pull = "Day 4 — Upper (Pull + Rotate)";
+  const C = routeCtx({ trunk: true, hiprot: true, leadarm: true, lats: true }, { coil: true });
+  assert.ok(names(C.wu(push)).includes("Seated turn & hold, hips still"), "trunk control");
+  assert.ok(!C.wu(push).some((m) => m[2] === "screen" && /Thread/.test(m[0])), "trunk control: no stretch alternate added");
+  assert.ok(names(C.wu(lower)).includes("90/90 lift-offs") && !names(C.wu(lower)).includes("Adductor rock-back"), "hip rotation control → lift-offs");
+  assert.ok(names(C.wu(push)).includes("Active cross-body hold") && names(C.wu(pull)).includes("Active cross-body hold"), "lead arm control, upper days");
+  assert.ok(!names(C.wu(lower)).includes("Active cross-body hold"), "…not lower days");
+  assert.ok(names(C.wu(pull)).includes("Dead bug, arms overhead") && names(C.wu(push)).includes("Dead bug, arms overhead"), "lats control → dead bugs on upper days");
+  assert.ok(!names(C.wu(push)).some((n) => /Dead hang/.test(n)) && !C.wu(pull).some((m) => m[2] === "screen" && /Dead hang/.test(m[0])),
+    "…and no screen hang (the pull day keeps its own base hang)");
+  assert.ok(names(C.wu(lower)).includes("Open-book T-spine"), "coil range → open-book joins the golf-posture turns");
+  assert.ok(names(C.wu(lower)).includes("Golf-posture turns, hips still"));
+  // Cool-down and rest day: control moves add no stretch of their own.
+  for (const l of [C.cd(push), C.cd(pull), C.rest()]) {
+    const n = names(l);
+    assert.ok(!n.includes("Thread-the-needle"), "trunk control: no thread-the-needle added");
+    assert.ok(!n.includes("Bench lat stretch, turn each way") || l.find((m) => m[0] === "Bench lat stretch, turn each way")[2] !== "screen", "lats control: no screen lat stretch");
+    assert.ok(l.every((m) => !(m[2] === "screen" && /Cross-body shoulder stretch/.test(m[0]))), "lead arm control: no screen cross-body stretch");
+    assert.equal(new Set(n).size, n.length, "no duplicate move");
+  }
+  // Range answers (or no answer) keep today's routing exactly.
+  for (const R of [routeCtx({}, {}), routeCtx({}, { trunk: true, hiprot: true, leadarm: true, lats: true })]) {
+    assert.ok(names(R.wu(push)).some((n) => /Dead hang/.test(n)) && names(R.cd(push)).includes("Bench lat stretch, turn each way"));
+    assert.ok(names(R.wu(lower)).includes("90/90 hip switches") || names(R.wu(lower)).includes("Adductor rock-back"));
+    assert.ok(!names(R.wu(push)).includes("Seated turn & hold, hips still"));
+  }
+  // Every routed control drill has its how-to.
+  const all = [push, lower, pull, "speed"].flatMap((n) => [...C.wu(n), ...C.cd(n)]).concat(C.rest()).map((m) => m[0]);
+  assert.deepEqual([...new Set(all)].filter((n) => !C.cue(n)), [], "moves without a how-to cue");
+});

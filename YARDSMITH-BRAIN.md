@@ -485,6 +485,11 @@ stores; we're a URL). Shipping the app matters more than more docs.
   the hip thrust, with one hip-thrust set moved to it. It's framed as pelvic control and
   durability, never speed or injury prevention. The evidence is cross-sectional hip-strength
   differences in golfers with back pain. Like lunges, it's never taken to failure.
+- **Turn check: range or control? (Nov 11, 2026)** — TPI piece #3. A short move gets an optional
+  retry with help. If help gets it there, the range exists and the fix is a control drill instead of
+  more stretching; if not, the stretches stay. It's a routing heuristic in our own words, the
+  generic active-vs-assisted gap. It isn't a diagnosis, and no swing-fault predictions are made. The
+  score stays the move on its own. Piece #4 (left/right strength) is still only proposed.
 - **Rejected (Nov 11, 2026): re-resolving a day when a user's swap duplicates a planned lift.**
   Picker swaps duplicate heavy lifts (Incline DB Press → Barbell Bench Press), so moving the
   plan's row demoted the day's main lift and cost it its history. A user's swap duplicate stays

@@ -465,7 +465,8 @@
   // to the relevant warm-ups (marked so the user knows why it's there). If the day's
   // list already has the primary fix, the alternate goes in instead — never a dupe.
   function warmupList(name){
-    var list=warmupBase(name), lim=(typeof mobLimits==="function")?mobLimits():{};
+    var list=warmupBase(name), lim=(typeof mobLimits==="function")?mobLimits():{},
+        ctl=(typeof mobControl==="function")?mobControl():{}, rng=(typeof mobRange==="function")?mobRange():{};
     // Full-body days (the in-season 2/3-day plans) train both halves, so they get
     // the upper AND lower fixes — "Full Body A (Squat + Press)" names no upper word.
     var lower=(name==="speed") || /Lower|Squat|Hinge|Quads|Full Body/.test(name);
@@ -476,11 +477,19 @@
       var pick = has ? alt : primary;
       if(pick && !list.some(function(m){ return m[0]===pick[0]; })) list.push([pick[0], pick[1], source||"screen"]);
     }
-    if(lim.trunk) addFix(["Open-book T-spine","×8/side"], ["Thread-the-needle","×6/side"], /open.?book/i);
-    if((lim.hip || lim.hiprot) && lower) addFix(["90/90 hip switches","×8/side"], ["Adductor rock-back","×8/side"], /90\/90/);
+    // The turn check's retry (065): "control" = the range is there with help, so the
+    // fix is an own-the-range drill instead of the stretch; "mobility" on the coil adds
+    // the open-book too (even sitting down it's a fight, so the range is the job).
+    if(lim.trunk) ctl.trunk ? addFix(["Seated turn & hold, hips still","×5/side"], null, /turn & hold/i)
+      : addFix(["Open-book T-spine","×8/side"], ["Thread-the-needle","×6/side"], /open.?book/i);
+    if(lim.hiprot && ctl.hiprot && lower) addFix(["90/90 lift-offs","×5/side"], null, /lift-off/i);
+    else if((lim.hip || lim.hiprot) && lower) addFix(["90/90 hip switches","×8/side"], ["Adductor rock-back","×8/side"], /90\/90/);
     if(lim.coil) addFix(["Golf-posture turns, hips still","×8/side"], null, /golf-posture/i);
-    if(lim.leadarm && upper) addFix(["Shoulder CARs","×5/side"], ["Band pull-aparts","×20"], /shoulder cars/i);
-    if(lim.lats && upper) addFix(["Dead hang","20–30s"], null, /dead hang/i);
+    if(lim.coil && rng.coil) addFix(["Open-book T-spine","×8/side"], null, /open.?book/i);
+    if(lim.leadarm && upper) ctl.leadarm ? addFix(["Active cross-body hold","5 × 3s/side"], null, /active cross-body/i)
+      : addFix(["Shoulder CARs","×5/side"], ["Band pull-aparts","×20"], /shoulder cars/i);
+    if(lim.lats && upper) ctl.lats ? addFix(["Dead bug, arms overhead","×6/side"], null, /dead bug/i)
+      : addFix(["Dead hang","20–30s"], null, /dead hang/i);
     if(lim.squat && lower){ addFix(["Deep squat hold (hold a support)","3 × 20s"], null, /deep squat/i); addFix(["Ankle rockers","×10/side"], null, /ankle/i); }
     // Setup can add conservative preparation—not diagnose or replace the
     // mobility screen. The screen remains the higher-confidence adjustment.
@@ -515,12 +524,14 @@
   // The mobility screen's flags add their fix after the session too (marked
   // "screen" like the warm-up's). Never a duplicate of a move already listed.
   function cdAddFixes(list, lower){
-    var lim=(typeof mobLimits==="function")?mobLimits():{};
+    var lim=(typeof mobLimits==="function")?mobLimits():{}, ctl=(typeof mobControl==="function")?mobControl():{};
     function add(m, alreadyRe){ if(!list.some(function(x){ return alreadyRe.test(x[0]); })) list.push([m[0], m[1], "screen"]); }
-    if(lim.trunk) add(["Thread-the-needle","×6/side"], /thread/i);
+    // A move the retry called control gets no extra stretch here (the range is already
+    // there); the hips' lift-offs are a control drill, so they stay.
+    if(lim.trunk && !ctl.trunk) add(["Thread-the-needle","×6/side"], /thread/i);
     if(lim.hip || lim.hiprot) add(["90/90 lift-offs","×5/side"], /lift-off/i);
-    if(lim.leadarm) add(cdHold("xbody"), /cross-body/i);
-    if(lim.lats) add(["Bench lat stretch, turn each way","2 × 30s"], /lat stretch/i);
+    if(lim.leadarm && !ctl.leadarm) add(cdHold("xbody"), /cross-body/i);
+    if(lim.lats && !ctl.lats) add(["Bench lat stretch, turn each way","2 × 30s"], /lat stretch/i);
     if(lim.squat && lower) add(["Deep squat hold (hold a support)","3 × 20s"], /deep squat/i);
     return list;
   }
@@ -608,6 +619,9 @@
       "Wall biceps & chest stretch": "Palm flat on a wall behind you at shoulder height, arm straight, thumb down. Turn away until the front of the arm stretches.",
       "Half-kneeling hip flexor stretch": "One knee down. Squeeze that glute, ribs down, shift forward. Don't arch your back.",
       "Golf-posture turns, hips still": "Address posture, club across your shoulders. Turn back and through, belt buckle on the ball.",
+      "Seated turn & hold, hips still": "Sit tall, arms crossed. Turn as far as you can on your own and hold 3 seconds, hips still — then try for a little more.",
+      "Active cross-body hold": "Bring the lead arm across your chest as far as it goes on its own — no help from the other hand — and hold 3 seconds. Chest stays square.",
+      "Dead bug, arms overhead": "On your back, knees up at 90°, low back pressed flat. Lower one arm overhead and the opposite leg out slowly; the back never lifts.",
       "Trunk rotations": "Arms crossed, feet planted. Turn your shoulders each way while the hips stay quiet.",
       "Band or club rotations": "Address posture, club across your shoulders. Turn back and through, smooth.",
       "Full-speed swings": "A few real swings with the club you'll hit first, building to full speed."
