@@ -570,6 +570,10 @@
   .ri-btn.ghost { background:transparent; border-color:var(--line); color:var(--muted); }
   .ri-btn:active { transform:translateY(1px); }
   .ri-note { margin:0 15px 14px; font-size:12px; line-height:1.45; color:var(--muted); }
+  /* Ramp-up sets on the player's first loaded lift (070 plRampHtml). */
+  .pl-ramp { margin:10px 0 0; padding:10px 12px; border-radius:12px; border:1px dashed rgba(212,176,106,.45);
+    background:rgba(212,176,106,.08); color:#e9dcc0; font-size:13px; line-height:1.45; }
+  .pl-ramp b { color:#f3e6c4; }
 
   /* speed day — same clean table as lifts, kept distinct with a warm accent */
   .speedday .day-head { background:#fdf1e3; color:#9a5b1c; }

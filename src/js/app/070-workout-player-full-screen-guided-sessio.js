@@ -126,6 +126,24 @@
     if(st.type==="lift"){ var x=player.sess.ex[st.xi]; return x && x.sets.length>0 && x.sets.every(function(s){ return s.done; }); }
     return false;
   }
+  // Ramp-up sets before the session's first loaded lift: ~50% × 10, then ~75% × 5
+  // of today's working weight, to the nearest 5 lb, never under the empty bar on a
+  // barbell; null when the weight is too light to ramp. Not logged. They used to be
+  // a "Light ramp-up sets" line in the opening warm-up, where there's no weight yet.
+  function ffRampSets(name, work){
+    var w=parseFloat(work); if(!(w>0)) return null;
+    var bar=isBarbell(name)?45:0;
+    function r(p){ return Math.max(bar, 5, Math.round(w*p/5)*5); }
+    var a=r(0.5), b=r(0.75);
+    return (b<w && a<b) ? [{r:10, w:a}, {r:5, w:b}] : null;
+  }
+  // Where to ramp: today's first main (🏋️) loaded lift — the Deadlift, not the Seated
+  // Leg Curl that opens the Hinge day. Pull-ups don't ramp (no load to halve). -1: none.
+  function ffRampIndex(ex){
+    for(var i=0;i<(ex||[]).length;i++){ var n=ex[i]&&ex[i].name;
+      if(n && purposeFor(n)==="🏋️" && !isBodyweightEx(n) && !/Pull-?up|Chin-?up/i.test(n)) return i; }
+    return -1;
+  }
   // The ± weight step: the lift's progression step, or 2 lb for a med ball
   // (no auto bump there, but balls do come in 2 lb steps).
   function plStepW(name){ return incNum(name)||2; }
@@ -133,6 +151,14 @@
     var last=lastSessionFor(player.dayName, player.week), lx=null;
     if(last) last.ex.forEach(function(e){ if(e.name===name) lx=e; });
     return lx;
+  }
+  // Shown on the first loaded lift until its first set is ticked.
+  function plRampHtml(x, xi, work){
+    if(xi!==ffRampIndex(player.sess.ex) || x.sets.some(function(s){ return s.done; })) return "";
+    var rs=ffRampSets(x.name, work), unit=function(w){ return (isBarbell(x.name) && w===45) ? "the empty bar" : w+" lb"; };
+    return '<div class="pl-ramp">🔥 <b>Ramp up first</b> (not logged): '+(rs
+      ? '10 × <b>'+unit(rs[0].w)+'</b>, then 5 × <b>'+unit(rs[1].w)+'</b>. Then your working sets.'
+      : 'a light set of 10, then a heavier set of 5, building toward your first working weight.')+'</div>';
   }
   function plStationHtml(){
     var st=player.stations[player.st], day=player.day;
@@ -242,6 +268,7 @@
         '<span class="pl-target">'+ffEsc(x.target)+'</span>'+
         '<span class="pl-target dim">'+(ballistic?"max intent · full rest":effortNote(x.target, x.name, effCtx))+'</span>'+
         '<div class="pl-presc">'+prescLine+'</div>'+
+        plRampHtml(x, st.xi, presc!=null?presc:(topLast||null))+
         '<div class="pl-cue">⚡ '+cue+'</div>'+
         acts+whyBox+livePr+
         '<div class="pl-sets">'+setsHtml+'</div>';

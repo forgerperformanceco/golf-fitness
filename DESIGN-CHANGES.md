@@ -1,5 +1,30 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## Ramp-up sets move to the first main lift, with real numbers (Nov 11, 2026)
+
+Owner, with a screenshot of the player's Station 1: "Can't have warmup reps here cause we haven't
+started yet." The opening warm-up ended with "Light ramp-up sets — about half your working weight for
+10, then three-quarters for 5" before any lift or weight was on screen.
+
+- **Gone from the opening warm-up** (`warmupBase`, 035) on the Push/Upper, Lower and Full Body days
+  (and the fallback's "Ramp to working weight"); the Train card's warm-up fold follows. The speed day
+  keeps its "Ramp-up jumps and throws" (easy reps of the day's own drills, no load to know).
+- **On the first main lift instead** (player, 070): `ffRampIndex` picks today's first 🏋️ loaded lift
+  (Bench on Push; the Deadlift on Hinge, not the Seated Leg Curl that opens it; never a pull-up, so
+  the Pull day has none, as before). Under the prescription: "🔥 Ramp up first (not logged): 10 ×
+  115 lb, then 5 × 175 lb. Then your working sets." `ffRampSets` = ~50% × 10 and ~75% × 5 of today's
+  weight (the prescription, else last time's top), nearest 5 lb, never under the empty bar ("the empty
+  bar"); no numbers yet → "a light set of 10, then a heavier set of 5, building toward your first
+  working weight." Hidden once set 1 is ticked.
+
+**Verified:** `npm test` 262/262 (new `tests/ramp-up-sets.test.mjs`: no ramp in any lift-day warm-up,
+the speed day keeps its jumps; the 50/75% maths incl. the empty-bar floor and too-light cases; the
+first-main-lift pick). Playwright, built app, light + dark, zero page errors: Push from Home's
+catch-up → Station 1 has no ramp → Bench (lift 1) shows the ramp → gone after set 1 → lift 2 none;
+Hinge with a 225 lb Deadlift last time → the ramp is on the Deadlift (lift 2) with "10 × 115 lb, then
+5 × 175 lb". Audits: train 18/18, scroll 16/16, type 1 known, contrast clean. Release gate and
+claims-lint clean. Harness gotcha #13 added (a fixed clock doesn't fix the seeded plan start).
+
 ## Rest today: skip today's workout, get the rest-day routine (Nov 10, 2026)
 
 Owner: "I need to skip my workout today because I'm not feeling good, my back hurts… make this an
