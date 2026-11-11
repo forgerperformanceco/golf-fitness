@@ -70,3 +70,39 @@ test("Fuel: the choice sits under Meals per day, saves with the profile, and roa
   assert.match(fn(PERSIST, "restore"), /if\(data\.protein==="1lb" \|\| data\.protein==="plan"\) state\.protein=data\.protein;/);
   assert.match(CALC, /The extra comes out of carbs/);
 });
+
+// ---- Codex #132: reset and share links know about the choice ----
+function shareCtx({ protein = "plan", search = "", saved = null } = {}) {
+  const fields = { age: "34", weight: "186", heightFt: "5", heightIn: "11", activity: "1.55" };
+  const ctx = {
+    URLSearchParams, state: { sex: "male", goal: "maintain", workout: "morning", meals: 4, protein },
+    location: { origin: "https://x", pathname: "/", search, hash: "" }, history: { state: null, replaceState() {} },
+    $: (id) => (id in fields ? { value: fields[id], options: [{ value: "1.55" }] } : null),
+    lsGet: () => saved, setTimeout() {}, ffToast() {}, ffSyncSegs() {},
+    GOALS: { maintain: {}, leanbulk: {}, cut: {}, bulk: {} }, WORKOUT_SLOTS: { morning: {} },
+  };
+  const vars = [CALC.match(/var SHARE_KEYS = \{[\s\S]*?\};/)[0], CALC.match(/var SHARE_RANGE = \{[^}]*\};/)[0]].join("\n");
+  vm.runInNewContext(vars + "\n" + ["ffHas", "ffActivityOk", "buildShareURL", "applyShareParams", "ffSanitizeState"].map((n) => fn(CALC, n)).join("\n"), ctx);
+  return ctx;
+}
+test("Codex #132: the plan link carries 1 g/lb, and a new visitor opening it gets it", () => {
+  const url = shareCtx({ protein: "1lb" }).buildShareURL();
+  assert.match(url, /[?&]pr=1lb(&|$)/);
+  assert.doesNotMatch(shareCtx({ protein: "plan" }).buildShareURL(), /pr=/, "the default adds nothing");
+  const fresh = shareCtx({ search: "?" + url.split("?")[1] });
+  fresh.state.protein = "plan";
+  assert.equal(fresh.applyShareParams(), true);
+  assert.equal(fresh.state.protein, "1lb", "the visitor sees the same protein and carbs");
+  const odd = shareCtx({ search: "?g=maintain&pr=lots" }); odd.state.protein = "plan"; odd.applyShareParams();
+  assert.equal(odd.state.protein, "plan", "an unknown value is ignored");
+  const mine = shareCtx({ search: "?g=cut&pr=1lb", saved: { goal: "leanbulk" } }); mine.state.protein = "plan";
+  assert.equal(mine.applyShareParams(), false); assert.equal(mine.state.protein, "plan", "never overwrites a saved profile");
+  const bad = shareCtx({ protein: "weird" }); bad.ffSanitizeState();
+  assert.equal(bad.state.protein, "plan", "sanitize: anything else reads as the plan");
+});
+
+test("Codex #132: resetting the calculator clears the protein choice with the rest", () => {
+  const reset = CALC.slice(CALC.indexOf('$("resetBtn").addEventListener'), CALC.indexOf("// ---- Shareable plan link"));
+  const list = JSON.parse(reset.match(/\[("[a-zA-Z]+",?)+\]/)[0]);
+  assert.ok(list.includes("protein") && list.includes("meals"), JSON.stringify(list));
+});

@@ -157,7 +157,7 @@
     // rest of the saved profile stay; the check-in calorie tuning resets with it.
     var d=lsGet("fairwayfuel", null);
     if(d && typeof d==="object"){
-      ["sex","goal","workout","meals","age","weight","heightFt","heightIn","activity"].forEach(function(k){ delete d[k]; });
+      ["sex","goal","workout","meals","protein","age","weight","heightFt","heightIn","activity"].forEach(function(k){ delete d[k]; });
       lsSet("fairwayfuel", d);
     }
     lsSet("ff_kcal_adj", 0);
@@ -165,12 +165,13 @@
   });
 
   // ---- Shareable plan link: encode the calculator settings into the URL ----
-  var SHARE_KEYS = { s:"sex", g:"goal", w:"workout", m:"meals", a:"age",
+  var SHARE_KEYS = { s:"sex", g:"goal", w:"workout", m:"meals", pr:"protein", a:"age",
     wt:"weight", hf:"heightFt", hi:"heightIn", ac:"activity" };
   function buildShareURL(){
     var p=new URLSearchParams();
     p.set("s",state.sex); p.set("g",state.goal); p.set("w",state.workout);
     if(state.meals) p.set("m",state.meals);
+    if(state.protein==="1lb") p.set("pr","1lb");   // the default (the plan) adds nothing
     ["a:age","wt:weight","hf:heightFt","hi:heightIn","ac:activity"].forEach(function(pair){
       var k=pair.split(":")[0], id=pair.split(":")[1], v=$(id)?$(id).value:"";
       if(v!=="") p.set(k,v);
@@ -192,6 +193,7 @@
     if(!ffHas(WORKOUT_SLOTS,state.workout)){ state.workout="morning"; changed=true; }
     if(state.meals!=null){ var m=parseInt(state.meals,10);
       if(!(m>=3 && m<=6)){ state.meals=null; changed=true; } else state.meals=m; }
+    if(state.protein!=="1lb" && state.protein!=="plan"){ state.protein="plan"; changed=true; }
     if($("activity") && !ffActivityOk($("activity").value)){ $("activity").value="1.55"; changed=true; }
     if(changed) ffSyncSegs();
   }
@@ -237,6 +239,7 @@
     if(ffHas(GOALS,g)) state.goal=(g==="bulk") ? "leanbulk" : g;
     if(ffHas(WORKOUT_SLOTS,w)) state.workout=w;
     if(m>=3 && m<=6) state.meals=m;
+    if(q.get("pr")==="1lb") state.protein="1lb";
     ffSyncSegs();
     return true;
   }

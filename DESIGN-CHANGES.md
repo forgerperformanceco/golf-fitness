@@ -21,15 +21,22 @@ without the calories quietly creeping up.
     calorie target and fat are unchanged.
   - The check-in's carb preview reuses `macroIn`, so it sees the same protein.
 - **Data:** `protein: "plan"|"1lb"` in the `fairwayfuel` profile, a setting like `meals`. It
-  already roams, so no new key and no sync change. An unknown value reads as "plan".
+  already roams, so no new key and no sync change. An unknown value reads as "plan"
+  (`ffSanitizeState`).
+- **Codex (#132):**
+  - The calculator reset now clears the choice with the rest of the calculator fields.
+  - "Copy my plan link" carries it as `pr=1lb`, so a new visitor gets the same protein and carbs.
+    The default adds nothing, an unknown value is ignored, and a saved profile is never
+    overwritten.
 - **Verified:**
-  - `tests/protein-option.test.mjs` (3 tests, all failing without the change) covers:
+  - `tests/protein-option.test.mjs` (5 tests, all failing without the change) covers:
     - the choice per goal;
     - protein up with carbs paying for it, kcal and fat unchanged;
     - BMI-30 reference;
     - the `macroIn` carry-through;
-    - the Fuel wiring and the profile save and restore.
-  - Suite 308/308.
+    - the Fuel wiring and the profile save and restore;
+    - the share link round trip and the reset list (Codex).
+  - Suite 310/310.
   - A Playwright e2e at 390px passes in light and dark, with zero page errors. It covers:
     - Build: the 0.9 g/lb default, then 1 g/lb taking 165 → 185 g with kcal 3080 and fat 70
       unchanged and carbs 445 → 425;
