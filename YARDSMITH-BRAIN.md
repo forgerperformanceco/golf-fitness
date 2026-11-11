@@ -484,8 +484,11 @@ stores; we're a URL). Shipping the app matters more than more docs.
 - **Single-leg glute bridge (Nov 11, 2026)** — TPI piece #2. The hinge day gets 2 × 10 / leg after
   the hip thrust, with one hip-thrust set moved to it. It's framed as pelvic control and
   durability, never speed or injury prevention. The evidence is cross-sectional hip-strength
-  differences in golfers with back pain. A user's swap onto a lift the day already has keeps
-  their pick, and the plan's row moves to its next option.
+  differences in golfers with back pain. Like lunges, it's never taken to failure.
+- **Rejected (Nov 11, 2026): re-resolving a day when a user's swap duplicates a planned lift.**
+  Picker swaps duplicate heavy lifts (Incline DB Press → Barbell Bench Press), so moving the
+  plan's row demoted the day's main lift and cost it its history. A user's swap duplicate stays
+  as it was.
 
 **Rejected (deliberately):**
 - **A "Bulk" (+20%) goal** — retired Nov 8, 2026. Golfers build, they don't bulk: in trained

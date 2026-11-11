@@ -964,24 +964,50 @@ test("bodyweight only: the hinge day never lists a lift twice — the hip thrust
   }
 });
 
-test("a user's own swap onto a lift the day already has: their pick stays, the plan's row moves on and says why", () => {
-  // Full gym → the bench version; bodyweight → the Deadlift's own sub already holds the single-leg RDL,
-  // so the next free option, a two-leg bridge.
-  for (const [equip, want] of [[null, "Single-Leg Hip Thrust"], [["bodyweight", "bench"], "Single-Leg Hip Thrust"], [["bodyweight"], "Glute Bridge"]]) {
-    const E = engine({ equip, store: { ff_swaps: { "Hip Thrust": SLB } } });
-    const d = E.PHASES[0].days5.find((x) => /Hinge/.test(x.name)), r = E.resolveDay(d.ex);
-    const ht = d.ex.findIndex((x) => x[0] === "Hip Thrust"), sl = d.ex.findIndex((x) => x[0] === SLB);
-    assert.equal(r[ht].name, SLB, "the user's choice");
-    assert.equal(r[sl].name, want, `${equip || "full gym"}: the plan row's next option`);
-    assert.equal(r[sl].status, "swap");
-    assert.equal(r[sl].why, "dup");
-    assert.equal(new Set(r.map((x) => x.name)).size, r.length);
+test("review: a user's swap onto a lift the day already has never demotes the plan's lift (the bridge itself never moves)", () => {
+  // Swaps come from the picker (EXERCISE_DB), so the real duplicates are heavy lifts — e.g. Incline DB
+  // Press → Barbell Bench Press on the push day. The plan's own heavy row must stay what it is.
+  const cases = [
+    [null, "days5", /Push/, { "Incline DB Press": "Barbell Bench Press" }, "Barbell Bench Press"],
+    [["barbell", "bench"], "days5", /Push/, { "Incline DB Press": "Barbell Bench Press" }, "Barbell Bench Press"],
+    [["barbell"], "days4", /Hinge/, { "Hip Thrust": "Romanian Deadlift" }, "Romanian Deadlift"],
+    [null, "days5", /Quads\)/, { "Leg Extension": "Leg Press" }, "Leg Press"],
+  ];
+  for (const [equip, split, day, swaps, keep] of cases) {
+    const E = engine({ equip: equip && ["bodyweight", ...equip], store: { ff_swaps: swaps } });
+    const d = E.PHASES[0][split].find((x) => day.test(x.name)), r = E.resolveDay(d.ex);
+    const i = d.ex.findIndex((x) => x[0] === keep);
+    assert.equal(r[i].name, keep, `${JSON.stringify(swaps)} (${equip || "full gym"}): the plan's ${keep} stays`);
+    assert.equal(r[i].status, "ok");
+    assert.ok(r.every((x) => !x.why), "no row is re-labelled");
   }
-  // No swaps → nothing moves (the rule only ever reacts to a user's duplicate).
-  const plain = engine().resolveDay(engine().PHASES[0].days5.find((x) => /Hinge/.test(x.name)).ex);
-  assert.ok(plain.every((x) => x.status === "ok" && !x.why));
-  // The card says why: the day already has it, not "your gear".
-  assert.match(fn(PLAN, "dayCardHtml"), /r\.why==="dup" \? 'already on this day' : 'your gear'/);
+  // The plan's own bridge needs nothing, so it never moves — whatever the gear or swaps.
+  for (const equip of [null, ["bodyweight"], ["bodyweight", "dumbbells"]]) for (const swaps of [{}, { "Seated Leg Curl": "Hip Thrust" }, { "Hip Thrust": "Romanian Deadlift" }]) {
+    const E = engine({ equip, store: { ff_swaps: swaps } });
+    for (const split of ["days4", "days5"]) {
+      const d = E.PHASES[0][split].find((x) => /Hinge/.test(x.name));
+      assert.equal(E.resolveDay(d.ex)[d.ex.findIndex((x) => x[0] === SLB)].name, SLB, `${split} ${equip} ${JSON.stringify(swaps)}`);
+    }
+  }
+  assert.doesNotMatch(fn(PLAN, "dayCardHtml"), /already on this day/);
+});
+
+test("review: no bench → the hip-thrust slot is a 2-set two-leg bridge, so the day gains one set, not two", () => {
+  for (const equip of [["bodyweight"], ["bodyweight", "dumbbells"]]) {
+    const E = engine({ equip });
+    const d = E.PHASES[0].days5.find((x) => /Hinge/.test(x.name)), r = E.resolveDay(d.ex);
+    const ht = r[d.ex.findIndex((x) => x[0] === "Hip Thrust")];
+    assert.deepEqual([ht.name, ht.sr], ["Glute Bridge", "2 × 15 (pause at the top)"], String(equip));
+  }
+});
+
+test("review: the single-leg hip work is never taken to failure, even on a bulk (balance-heavy, like lunges)", () => {
+  const E = engine({ goal: "leanbulk" });
+  for (const n of [SLB, "Single-Leg Hip Thrust", "Single-leg RDL"]) {
+    const note = E.effortNote("2 × 10 / leg", n, { wave: "build" });
+    assert.doesNotMatch(note, /failure/, n);
+  }
+  assert.match(E.effortNote("3 × 12", "Seated Leg Curl", { wave: "build" }), /failure/, "control: other 💪 accessories still go to failure on a bulk");
 });
 
 test("the bridge has its own how-to and golf why (hips level), ahead of the two-leg hip thrust cues", () => {

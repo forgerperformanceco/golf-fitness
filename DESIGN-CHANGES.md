@@ -20,31 +20,40 @@ The hinge day now holds the pelvis on one leg.
   NUTRITION §9a.
 - **How-to:** it has its own cue and golf "why" (045 `exerciseForm` / `liftWhy`): hips level, pause
   2 s, lower slowly. Single-Leg Hip Thrust shares them; the two-leg hip thrust keeps its own.
-- **No lift twice on a day:**
-  - **Bodyweight only:** the hip thrust's new last sub is a two-leg Glute Bridge (3 × 15, pause),
-    so it doesn't become a second single-leg bridge.
-  - **A user's own swap onto a lift the day already programs** (e.g. Hip Thrust → Single-leg Glute
-    Bridge), in `resolveDay`:
-    - Their pick stays.
-    - The plan's own row moves to its next free sub: Single-Leg Hip Thrust with a bench, else
-      Single-leg RDL, else Glute Bridge.
-    - The moved row is tagged `why:"dup"`, and its Full-week badge reads "subbed for … (already on
-      this day)" instead of blaming the gear.
-    - With no user swap in the pair, nothing moves.
+- **Never to failure:** like lunges and split squats, single-leg hip work isn't taken to failure on a
+  bulk (`effortNote`). That covers the bridge, the single-leg hip thrust and the single-leg RDL.
+- **No lift twice on a day:** with no bench, the hip thrust's new last sub is a two-leg Glute Bridge
+  (2 × 15, pause), so it doesn't become a second single-leg bridge. The day gains one set, not two.
+- **Pre-PR independent review:**
+  - The first version also re-resolved a day whenever a user's own swap duplicated a planned lift,
+    moving the plan's row to its next sub. That fired on ordinary picker swaps and demoted heavy
+    lifts:
+    - Incline DB Press → Barbell Bench Press turned the heavy bench into a DB press;
+    - Leg Extension → Leg Press turned the leg press into a goblet squat.
+    In each case the lift lost its history, and the case it was written for can't happen through
+    the app. It was removed, and a test now pins that those swaps leave the plan's lifts alone.
+  - The same review moved the bridge out of "to failure" and cut the no-bench fallback from 3 to 2
+    sets.
+  - Accepted as is: a user who already swapped Hip Thrust → Single-Leg Hip Thrust now also gets the
+    floor bridge. That's two single-leg glute lifts, by their own choice.
 - **Verified:**
-  - New tests in `tests/training-engine.test.mjs` (4) and `tests/exercise-cues.test.mjs` (a new
-    `slbridge` cue family) all fail against main. They cover:
+  - New tests in `tests/training-engine.test.mjs` (6) and `tests/exercise-cues.test.mjs` (a new
+    `slbridge` cue family) cover:
     - the plan rows in both splits, with in-season untouched;
     - bodyweight presets with no duplicate names;
-    - a user swap with full gym, bench and bodyweight-only;
-    - the badge;
+    - user swaps that duplicate a planned lift leaving it alone (bench, RDL, leg press), and the
+      bridge never moving;
+    - the 2-set no-bench fallback;
+    - no failure for single-leg hip work;
     - the cues coming ahead of the hip-thrust entry, with no speed or prevention words.
-  - Suite 298/298. The 4-day Day 1 session estimate stays in its 75–95 min band.
+  - The review tests fail on the first version; the rest fail against main.
+  - Suite 300/300. The 4-day Day 1 session estimate stays in its 75–95 min band.
   - A Playwright e2e passes in light and dark, with zero page errors; every new assertion fails on
     main's build. On a pinned hinge day (Wed Nov 11) it checks:
     - the bridge listed right after the hip thrust, with its note. The hip thrust shows 2 × 8 in
       week 2, because the on-ramp takes a set off;
-    - a swap giving the bridge once, Single-Leg Hip Thrust, and the "already on this day" badge;
+    - a picker swap that duplicates the Deadlift leaving the plan's rows alone, with nothing
+      relabelled;
     - true bodyweight-only gear giving Single-leg RDL, Glute Bridge and the single-leg bridge, with
       no duplicates.
   - Audits match baseline: train 18/18, scroll 16/16, contrast clean, type 1 known (Fuel "Ate it").

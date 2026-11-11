@@ -185,10 +185,7 @@
     "Half-Kneeling Cable Rotation":{needs:["cable"],subs:[{needs:["bands"],name:"Half-Kneeling Band Rotation"},{needs:["bodyweight"],name:"Half-Kneeling Thoracic Rotation",sr:"2 \u00d7 10 / side (hands behind head, slow)"}]},
     "Cable Wood-chop":{needs:["cable"],subs:[{needs:["bands"],name:"Band Wood-chop"},{needs:["medball"],name:"Med-Ball Rotational Throw"},{needs:["bodyweight"],name:"Speed Russian Twist"}]},
     "Deadlift":{needs:["barbell"],subs:[{needs:["dumbbells"],name:"DB Romanian Deadlift"},{needs:["kettlebell"],name:"Kettlebell Deadlift"},{needs:["bodyweight"],name:"Single-leg RDL",sr:"3 \u00d7 10 / leg"}]},
-    "Hip Thrust":{needs:["barbell","bench"],subs:[{needs:["dumbbells","bench"],name:"DB Hip Thrust"},{needs:["bodyweight"],name:"Single-leg Glute Bridge",sr:"3 \u00d7 12 / leg"},{needs:["bodyweight"],name:"Glute Bridge",sr:"3 \u00d7 15 (pause at the top)"}]},
-    // The hinge day's own single-leg bridge (Nov 2026): needs nothing. Its subs only
-    // matter when a user's swap already put the bridge on the day (resolveDay).
-    "Single-leg Glute Bridge":{needs:["bodyweight"],subs:[{needs:["bench"],name:"Single-Leg Hip Thrust"},{needs:["bodyweight"],name:"Single-leg RDL"},{needs:["bodyweight"],name:"Glute Bridge",sr:"2 \u00d7 15 (pause at the top)"}]},
+    "Hip Thrust":{needs:["barbell","bench"],subs:[{needs:["dumbbells","bench"],name:"DB Hip Thrust"},{needs:["bodyweight"],name:"Single-leg Glute Bridge",sr:"3 \u00d7 12 / leg"},{needs:["bodyweight"],name:"Glute Bridge",sr:"2 \u00d7 15 (pause at the top)"}]},
     "Leg Extension":{needs:["legext"],subs:[{needs:["bodyweight"],name:"Sissy Squat",sr:"3 \u00d7 8 (hold a support, part range OK)"}]},
     "Leg Curl":{needs:["legcurl"],subs:[{needs:["bands"],name:"Band Leg Curl"},{needs:["bodyweight"],name:"Nordic / Slider Leg Curl",sr:"2 \u00d7 5 (slow lowering only, sliders OK)"}]},
     "Seated Leg Curl":{needs:["legcurl"],subs:[{needs:["bands"],name:"Band Leg Curl"},{needs:["bodyweight"],name:"Nordic / Slider Leg Curl",sr:"2 \u00d7 5 (slow lowering only, sliders OK)"}]},
@@ -298,29 +295,12 @@
     var res=bases.map(function(b, i){ return resolveEx(b, rows[i][1]); });
     var used={};
     res.forEach(function(r){ if(r.status==="ok") used[normName(r.name).toLowerCase()]=true; });
-    var out=res.map(function(r, i){
+    return res.map(function(r, i){
       if(r.status!=="swap") return r;
       var alt=resolveEx(bases[i], rows[i][1], used);
       used[normName(alt.name).toLowerCase()]=true;
       return alt;
     });
-    // A user's own swap onto a lift the day already programs (e.g. Hip Thrust →
-    // Single-leg Glute Bridge on the hinge day): their pick stays and the plan's
-    // own row moves to its next option nobody on the day uses (why:"dup", so the
-    // card doesn't blame the gear). Without a user swap in the pair, nothing moves.
-    function k(n){ return normName(n).toLowerCase(); }
-    var taken={}, swapped={};
-    out.forEach(function(r, i){ if(r.status==="skip") return; taken[k(r.name)]=true; if(bases[i]!==rows[i][0]) swapped[k(r.name)]=true; });
-    out.forEach(function(r, i){
-      if(r.status==="skip" || bases[i]!==rows[i][0] || !swapped[k(r.name)]) return;
-      var e=EX[normName(rows[i][0])]; if(!e) return;
-      for(var j=0;j<e.subs.length;j++){
-        var sb=e.subs[j];
-        if(sb.needs.every(have) && !taken[k(sb.name)]){
-          taken[k(sb.name)]=true; out[i]={ name:sb.name, sr:sb.sr||rows[i][1], status:"swap", why:"dup" }; return; }
-      }
-    });
-    return out;
   }
 
   var planState = { phase: 0, freq: 4, equip: {}, machOpen: false, settingsOpen: false };
@@ -412,14 +392,15 @@
     // Never to failure: a lift with no weight found yet, the first session back,
     // a beginner's first 2 weeks (beginners grow from sets short of failure), an
     // accessory that comes before a big lift today, peak weeks (shed fatigue),
-    // and balance-heavy lunges / split squats / Nordics / sissy squats.
+    // and balance-heavy lunges / split squats / Nordics / sissy squats / single-leg
+    // hip work (bridge, hip thrust, RDL — pelvic control, Nov 2026).
     var bulk=(typeof state!=="undefined" && (state.goal==="bulk" || state.goal==="leanbulk"));
     if(bulk && name && typeof purposeFor==="function" && purposeFor(name)==="💪"){
       if(ctx.first) return "RIR 2 · find your working weight · rest ~90s";
       if(ctx.easeIn) return "RIR 2 · easing back in · rest ~90s";
       if(ctx.onRamp) return "RIR 2 · first 2 weeks: no all-out sets · rest ~90s";
       if(ctx.beforeHeavy) return "RIR 2 · save it for the big lift · rest ~90s";
-      if(ctx.wave!=="peak" && !/Lunge|Split Squat|Step-?up|Nordic|Sissy/i.test(name))
+      if(ctx.wave!=="peak" && !/Lunge|Split Squat|Step-?up|Nordic|Sissy|Single-?leg (Glute Bridge|Hip Thrust|RDL)/i.test(name))
         return "RIR 0–1 · last set to failure · rest ~90s";
     }
     if(reps>=13) return "RIR 1 · rest ~90s";   // >60–90 s beats shorter for growth (Singer 2024)
@@ -1038,7 +1019,7 @@
       var us = base===row[0] ? '' : (!getSwaps()[row[0]] && ffProfileDefault(row[0])
         ? ' <span class="swap-badge">⇄ back-friendly default</span>' : ' <span class="swap-badge">⇄ your swap</span>');
       if(r.status==="ok"){ var c=exNameCell(pe, base, us); return '<tr>'+c.cell+'<td class="sets">'+effTarget(row[1],base,curWeek())+eff+'</td></tr>'+c.row; }
-      if(r.status==="swap"){ var cs=exNameCell(pe, r.name, ' <span class="swap-badge">⇄ subbed for '+escAttr(base)+' ('+(r.why==="dup" ? 'already on this day' : 'your gear')+')</span>'); return '<tr class="swap">'+cs.cell+'<td class="sets">'+effTarget(r.sr,r.name,curWeek())+eff+'</td></tr>'+cs.row; }
+      if(r.status==="swap"){ var cs=exNameCell(pe, r.name, ' <span class="swap-badge">⇄ subbed for '+escAttr(base)+' (your gear)</span>'); return '<tr class="swap">'+cs.cell+'<td class="sets">'+effTarget(r.sr,r.name,curWeek())+eff+'</td></tr>'+cs.row; }
       return '<tr class="skip"><td class="exname"><span class="nm">'+pe+ffEsc(base)+'</span><span class="need">needs '+r.need.map(eqLabel).join(" + ")+'</span></td><td class="sets">'+row[1]+'</td></tr>';
     }).join("");
     var warmPrimer = warmupHtml(d.name, true, showPrimerNote);
