@@ -549,8 +549,9 @@ hack. Implementation (065-mobility-screen…js):
   ≥5 days). Checklist only — no stored key, no Octane input.
 - **Turn guard** (Nov 2026, 065 `ffTurnGuard`): on Build / legacy Bulk, a **clear** drop (the
   moves both screens share fall ≥2 levels in total vs the screen before: one move ✅→🔴 or two
-  moves down one) or a **confirmed** one (a move lower than the screen before last, on both of the
-  last two screens). One move a level lower on its own is inside self-rating noise and only gets a
+  moves down one) or a **confirmed** one (`mobDown`: a move below the level it was at before it
+  dropped, on the last two screens or more — judged against that pre-drop level for as long as it
+  stays down). One move a level lower on its own is inside self-rating noise and only gets a
   "nothing changes yet" note (`mobWatch`). While on: `ffGoal()` (025) halves `pct` and `weekly`
   for every reader (calc, power-to-weight, check-in); `adjSets` trims a set off chest/shoulder/arm
   💪 isolation (by `exGroupFor`, floor 2) and adds one to rotation-through-range 🌀 lifts. Off once

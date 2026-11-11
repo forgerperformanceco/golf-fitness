@@ -505,6 +505,7 @@ function guardCtx(goal, screens) {
     var state={ goal:${JSON.stringify(goal)} };
     function lsGet(k,d){ return k==="ff_mobility" ? __screens : d; }
     ${fn(MOB, "mobTests")}
+    ${fn(MOB, "mobDown")}
     ${fn(MOB, "ffTurnGuard")}
     this.tg = ffTurnGuard();
   `, ctx);
@@ -529,10 +530,18 @@ test("the turn guard fires on Build on a clear or confirmed drop, not one shaky 
   // Three screens: confirmation, holding, lifting.
   assert.deepEqual(keys(guardCtx("leanbulk", [s(2, 2, 2, 1), s(2, 1, 2, 2), s(2, 1, 2, 3)])), ["hip"], "still a level lower: confirmed");
   assert.equal(guardCtx("leanbulk", [s(2, 2, 2, 1), s(2, 1, 2, 2), s(2, 1, 2, 3)]).why, "confirmed");
+  assert.match(fn(MOB, "saveMobility"), /mobState\.watch=\(wt && building && !ffTurnGuard\(\)\)/, "no 'nothing changes yet' when the guard just switched on, or off Build");
   assert.equal(guardCtx("leanbulk", [s(2, 2, 2, 1), s(2, 1, 2, 2), s(2, 2, 2, 3)]), null, "back to where it was: off");
   assert.deepEqual(keys(guardCtx("leanbulk", [s(2, 2, 2, 1), s(2, 0, 2, 2), s(2, 0, 2, 3)])), ["hip"], "a clear drop that holds stays guarded");
   assert.deepEqual(keys(guardCtx("leanbulk", [s(2, 2, 2, 1), s(2, 0, 2, 2), s(2, 1, 2, 3)])), ["hip"], "partly back, still below: guarded");
   assert.equal(guardCtx("leanbulk", [s(2, 2, 2, 1), s(2, 2, 2, 2), s(2, 1, 2, 3)]), null, "a new one-level dip: waits");
+  // Codex #128: the guard holds against the level the move was at before it dropped, however many
+  // screens it stays down — not a rolling three-screen window.
+  assert.deepEqual(keys(guardCtx("leanbulk", [s(2, 2, 2, 1), s(2, 1, 2, 2), s(2, 1, 2, 3), s(2, 1, 2, 4)])), ["hip"], "still down on the 4th screen: guarded");
+  assert.deepEqual(keys(guardCtx("leanbulk", [s(2, 2, 2, 1), s(2, 1, 2, 2), s(2, 1, 2, 3), s(2, 1, 2, 4), s(2, 1, 2, 5)])), ["hip"], "…and the 5th");
+  assert.equal(guardCtx("leanbulk", [s(2, 2, 2, 1), s(2, 1, 2, 2), s(2, 1, 2, 3), s(2, 2, 2, 4)]), null, "back up: off");
+  assert.equal(guardCtx("leanbulk", [s(2, 2, 2, 1), s(2, 1, 2, 2), s(2, 2, 2, 3), s(2, 1, 2, 4)]), null, "dip, back, dip: each dip is new");
+  assert.deepEqual(keys(guardCtx("leanbulk", [s(2, 2, 2, 1), s(2, 1, 2, 2), s(2, 0, 2, 3)])), ["hip"], "sliding 2 → 1 → 0: confirmed");
   // Goals and mixed screens, as before.
   assert.ok(guardCtx("bulk", [s(2, 2, 2, 1), s(0, 2, 2, 2)]), "legacy Bulk is guarded too");
   for (const goal of ["cut", "maintain"]) assert.equal(guardCtx(goal, [s(2, 2, 2, 1), s(0, 0, 0, 2)]), null, `${goal} never guards`);

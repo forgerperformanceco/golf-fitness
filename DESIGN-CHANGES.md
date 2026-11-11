@@ -11,10 +11,13 @@ in-person assessment. Owner: "build both fixes."
 - **The guard needs a clear or a confirmed drop** (065 `ffTurnGuard`):
   - **Clear:** the moves both screens share fall ≥2 levels in total vs the screen before (one move
     ✅→🔴, or two moves down one). One move up doesn't cancel another's two-level fall.
-  - **Confirmed:** a move lower than it was on the screen before last, on both of the last two
-    screens. A clear drop that holds stays guarded; partly back but still below stays guarded; back
-    to where it was lifts it.
-  - **One move a level lower on its own:** no guard; the result screen says "…came back a level
+  - **Confirmed:** a move below the level it was at before it dropped, on the last two screens or
+    more (`mobDown`: an earlier screen higher than every screen since, with ≥2 screens since). It
+    holds however many screens the move stays down, not a rolling three-screen window (Codex, #128):
+    a clear drop that holds stays guarded; partly back but still below stays guarded; back to where
+    it was lifts it; dip, back, dip starts over.
+  - **One move a level lower on its own:** no guard; on Build, when this screen didn't just switch
+    the guard on (a 2 → 1 → 0 slide does — Codex, #128), the result screen says "…came back a level
     lower. One move on one day can be noise, so nothing changes yet. If it's still lower on your
     next check, your plan adjusts to protect your turn." (`mobWatch`).
   - Same shape returned (`dropped`, `ts`, `label`, plus `why`), so every reader is unchanged.
@@ -32,7 +35,9 @@ built app, light + dark, zero page errors: the pain check comes first with no te
 and a mid-screen stop both end on the clinician message and save nothing; "No" shows the
 same-conditions note and a pain stop on all five moves; one move a level lower saves with the
 "nothing changes yet" note and no guard on Train; the same move still lower next check turns on
-"Turn guard on" (hip rotation). Audits: train 18/18, scroll 16/16, type 1 known, contrast clean.
+"Turn guard on" (hip rotation); a 4th screen still down stays guarded; back to ✅ lifts it; a fresh
+one-level dip shows the note with no guard; sliding on to 🔴 turns the guard on with no "nothing
+changes yet". Audits: train 18/18, scroll 16/16, type 1 known, contrast clean.
 Release gate and claims-lint clean.
 
 ## Train stays simple outside a workout (Nov 11, 2026)

@@ -42,15 +42,28 @@
   // lower is inside the noise (single items are the shakiest part of any movement
   // screen, and a warm-up or a round shifts scores), so the guard needs either a
   // CLEAR drop — two levels or more across the moves both screens share (one move
-  // from ✅ to 🔴, or two moves down one) — or a CONFIRMED one: a move lower than it
-  // was, two screens running. It holds while that's true and lifts when the turn
-  // comes back. Compares only moves the screens share, so a screen with different
+  // from ✅ to 🔴, or two moves down one) — or a CONFIRMED one: a move below the level
+  // it was at before it dropped, on the last two screens or more. It holds however
+  // many screens the move stays down (judged against that pre-drop level, not a
+  // rolling window — Codex, #128) and lifts when the move gets back there. Compares only moves the screens share, so a screen with different
   // moves still works. Called from calc() before this module's vars exist — hence
   // the literal names.
+  // A move is "down" when some earlier screen had it higher than every screen since,
+  // and at least two screens have come since (one low screen is a dip, not a trend).
+  function mobDown(t, k){
+    var vals=t.filter(function(e){ return e && e.tests && Object.prototype.hasOwnProperty.call(e.tests,k); })
+      .map(function(e){ return e.tests[k]|0; });
+    var hiAfter=-1;
+    for(var i=vals.length-1;i>=0;i--){
+      if(vals[i]>hiAfter && vals.length-1-i>=2 && hiAfter>=0) return true;
+      if(vals[i]>hiAfter) hiAfter=vals[i];
+    }
+    return false;
+  }
   function ffTurnGuard(){
     if(typeof state==="undefined" || !state || (state.goal!=="leanbulk" && state.goal!=="bulk")) return null;
     var t=mobTests(); if(t.length<2) return null;
-    var a=t[t.length-2], b=t[t.length-1], z=t.length>2 ? t[t.length-3] : null;
+    var a=t[t.length-2], b=t[t.length-1];
     if(!a || !b || !a.tests || !b.tests) return null;
     var names={ trunk:"trunk rotation", hip:"hips", squat:"deep squat", hiprot:"hip rotation",
       coil:"shoulder–hip separation", leadarm:"lead arm", lats:"overhead reach" };
@@ -58,9 +71,8 @@
     var shared=Object.keys(b.tests).filter(function(k){ return has(a,k); });
     var fall=shared.reduce(function(n,k){ return n+Math.max(0,(a.tests[k]|0)-(b.tests[k]|0)); }, 0);
     var dropped=shared.filter(function(k){
-      var lowerNow=(b.tests[k]|0)<(a.tests[k]|0),
-          confirmed=has(z,k) && (a.tests[k]|0)<(z.tests[k]|0) && (b.tests[k]|0)<(z.tests[k]|0);
-      return (fall>=2 && lowerNow) || confirmed;
+      var lowerNow=(b.tests[k]|0)<(a.tests[k]|0);
+      return (fall>=2 && lowerNow) || mobDown(t, k);
     });
     if(!dropped.length) return null;
     return { dropped:dropped, ts:b.ts||0, why:(fall>=2?"clear":"confirmed"),
@@ -171,10 +183,13 @@
     var entry=mobEntry(mobState.vals, Date.now(), todayStr());
     var t=mobTests(), prev=t.length?t[t.length-1]:null;
     var wk=mobWatch(prev, entry), wt=wk && MOB_TESTS.filter(function(x){ return x.key===wk; })[0];
-    // One move a level lower: inside the noise on its own. Say what the next check decides.
-    mobState.watch=wt ? '<b>'+wt.ic+' '+wt.t+' came back a level lower.</b> One move on one day can be noise, so nothing changes yet. If it’s still lower on your next check, your plan adjusts to protect your turn.' : null;
     t.push(entry); if(t.length>40) t=t.slice(-40);
     lsSet("ff_mobility", t);
+    // One move a level lower: inside the noise on its own. Say what the next check decides —
+    // only where the guard exists (Build) and only when this screen didn't just switch it on
+    // (a 2 → 1 → 0 slide, or another move already confirmed — Codex, #128).
+    var building=typeof state!=="undefined" && state && (state.goal==="leanbulk" || state.goal==="bulk");
+    mobState.watch=(wt && building && !ffTurnGuard()) ? '<b>'+wt.ic+' '+wt.t+' came back a level lower.</b> One move on one day can be noise, so nothing changes yet. If it’s still lower on your next check, your plan adjusts to protect your turn.' : null;
     mobState.saved=entry;
     renderMobility();
   }
