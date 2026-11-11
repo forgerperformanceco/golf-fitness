@@ -447,13 +447,15 @@
   // Warm-up & power primer as scannable, tappable checklists (gym-readable).
   function warmupBase(name){
     // Speed day: mobility, then a short ramp of easy jumps and throws before the
-    // first max-intent drill (the lift days get "Light ramp-up sets" the same way).
+    // first max-intent drill. Lift days ramp at their first loaded lift instead, with
+    // the real weights (070 ffRampSets): "half your working weight" means nothing in
+    // the opening warm-up, before you've seen today's weight (owner, Nov 2026).
     if(name==="speed") return [["90/90 hip switches","×6/side"],["Open-book T-spine","×8/side"],["Leg swings","×10/side"],["Build-up swings","10–15 · 50→90%"],["Ramp-up jumps and throws","2–3 easy reps each"]];
-    if(/Full Body/.test(name)) return [["Leg swings","×10/side"],["90/90 hip switches","×8/side"],["Open-book T-spine","×8/side"],["Band pull-aparts","×20"],["Light ramp-up sets","×2"]];
+    if(/Full Body/.test(name)) return [["Leg swings","×10/side"],["90/90 hip switches","×8/side"],["Open-book T-spine","×8/side"],["Band pull-aparts","×20"]];
     if(/Pull|Rotate/.test(name)) return [["Cat–cow","×8"],["Open-book T-spine","×8/side"],["Band pull-aparts","×20"],["Dead hang","20s"]];
-    if(/Push|Upper/.test(name)) return [["Open-book rotation","×8/side"],["Band pull-aparts","×20"],["Shoulder CARs","×5/side"],["Light ramp-up sets","×2"]];
-    if(/Lower|Squat|Hinge/.test(name)) return [["Leg swings","×10/side"],["90/90 hip switches","×8/side"],["World's greatest stretch","×5/side"],["Light ramp-up sets","×2"]];
-    return [["Dynamic flow","5 min"],["Mobilize hips & T-spine","—"],["Ramp to working weight","×2 sets"]];
+    if(/Push|Upper/.test(name)) return [["Open-book rotation","×8/side"],["Band pull-aparts","×20"],["Shoulder CARs","×5/side"]];
+    if(/Lower|Squat|Hinge/.test(name)) return [["Leg swings","×10/side"],["90/90 hip switches","×8/side"],["World's greatest stretch","×5/side"]];
+    return [["Dynamic flow","5 min"],["Mobilize hips & T-spine","—"]];
   }
   // Mobility-screen routing: anything the turn check flagged adds a targeted move
   // to the relevant warm-ups (marked so the user knows why it's there). If the day's
@@ -580,8 +582,6 @@
       "Leg swings": "Hold a wall. Swing one leg front-to-back, then side-to-side, a little bigger each rep.",
       "Build-up swings": "Real swings, smooth, building from about half speed to 90%.",
       "Ramp-up jumps and throws": "Easy reps of today's first jumps and throws, building toward fast.",
-      "Light ramp-up sets": "About half your working weight for 10, then three-quarters for 5. Not logged.",
-      "Ramp to working weight": "Two lighter sets building up to your first working weight.",
       "Band pull-aparts": "Arms straight at chest height. Pull the band apart to your chest, squeeze the shoulder blades.",
       "Cat–cow": "On hands and knees, slowly round your back up, then let it sag. The whole spine moves.",
       "Dead hang": "Hang from a bar, shoulders relaxed. Keep your toes on a box if your back complains.",
