@@ -249,7 +249,9 @@
           : (ballistic
             ? (topLast ? '⚡ Last time: <b>'+topLast+' lb</b> — keep every rep fast; add load only while it stays explosive.' : '⚡ <b>Light and fast</b> — pick a load you can move explosively. The set ends the moment a rep slows.')
             : (topLast
-              ? (wv==="peak" ? '🏁 Peak week — hold <b>'+topLast+' lb</b>, fewer sets, every rep crisp.' : 'Last time’s top: <b>'+topLast+' lb</b> — beat the reps, then the load follows.')
+              ? (wv==="peak" ? '🏁 Peak week — hold <b>'+topLast+' lb</b>, fewer sets, every rep crisp.'
+                : dose.hold ? '🎯 Maintaining: hold <b>'+topLast+' lb</b>. Hit every rep again and it goes up next time.'
+                : 'Last time’s top: <b>'+topLast+' lb</b> — beat the reps, then the load follows.')
               : (lastReps ? 'Last time: <b>'+lastReps+' reps</b> — beat it.' : 'First time — find a weight you can own with 2 reps in reserve.'))));
       // Effort line in context: never "to failure" on an easy day, a recovery
       // dose, a peak week, a lift with no weight yet, the first session back, a

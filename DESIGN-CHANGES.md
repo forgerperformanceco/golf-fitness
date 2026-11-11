@@ -1,5 +1,30 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## Maintaining plans add weight more slowly (Nov 11, 2026)
+
+Owner, after asking whether progressive overload is built in: "maybe we take it a little easier on
+maintaining plans." It is built in (double progression, the wave, rep-change load matching,
+readiness/deload/return guards, stall and PR cards), and it ran the same on every plan: one session
+with every rep at the target meant more weight next time, on a maintain or cut goal too.
+
+- **Maintaining = a maintain/cut goal, or an in-season plan** (`ffEasyProgress`, 035, next to
+  `trainRetain`). There the jump needs every rep at that weight **two sessions in a row**
+  (`ffHeldTwice` in 077, fed by `lastSessionFor`'s new `_prev`, the previous full-dose session of the
+  lift). After one clean session the player says "🎯 Maintaining: hold 225 lb. Hit every rep again and
+  it goes up next time." Building plans are unchanged. One `ffDose` gate, so the player, the inline
+  logger and the Train card all agree.
+- **No "has stalled" card on maintaining plans**: holding a weight is the plan there.
+- Science: strength is kept by keeping intensity; volume can drop substantially (Bickel 2011,
+  Spiering 2021). Slower load increases fit a cut (recovery is limited) and in-season (rounds come
+  first) as well as maintain.
+
+**Verified:** `npm test` 264/264 (new: maintain + cut hold after one clean session, add after two,
+hold after a miss the session before, hold with only one session on record, building unchanged; which
+plans count as maintaining; the stall gate and player copy). Both new tests fail on the old code.
+Playwright, built app, light + dark, zero page errors, Deadlift on the Hinge day: Build, 225 hit once
+→ "You earned more weight — today: 230 lb" (placeholder 230); Maintain, once → "Maintaining: hold 225
+lb…" (placeholder 225); Maintain, twice → 230.
+
 ## Ramp-up sets move to the first main lift, with real numbers (Nov 11, 2026)
 
 Owner, with a screenshot of the player's Station 1: "Can't have warmup reps here cause we haven't

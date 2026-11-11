@@ -292,6 +292,13 @@ event." The ramp is a design choice: the optimal weekly dose is unknown
   last session, all with reps ≥ `topReps(target)`, and never fires off a
   `_reduced` (deload/recovery) session. Load- vs rep-progression build muscle
   about equally (Plotkin 2022), so the single-target model is fine.
+- **Maintaining plans progress more slowly** (Nov 2026): on a maintain/cut goal or
+  an in-season plan (`ffEasyProgress`, 035), `ffDose` (077) adds load only after
+  every rep at that weight **two sessions in a row** (`ffHeldTwice`, reading the
+  previous full-dose session `lastSessionFor` now attaches as `_prev`); after one,
+  the player says "🎯 Maintaining: hold X lb" (`dose.hold`). Rationale: keeping
+  strength needs intensity kept, not raised; volume can drop a lot (Bickel 2011;
+  Spiering 2021). The Home "has stalled" card is off on these plans too.
 - **Increment**: `incNum(name)` (040) — equipment-aware since the Oct 2026 fix
   round: med ball → **0** (no load bump); lower-body compounds
   (`Squat|Deadlift|Hinge|Lunge|Hip Thrust|Leg Press|Romanian|Swing|Carry`) → **5**;

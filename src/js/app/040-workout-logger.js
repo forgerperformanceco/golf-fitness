@@ -370,7 +370,9 @@
         var bucket=!full ? low : (dn===day ? same : any), cur=bucket[x.name];
         if(names.indexOf(x.name)<0) names.push(x.name);
         saw(x.name, ts);
-        if(!cur || w>cur.w || (w===cur.w && dn===day)) bucket[x.name]={ w:w, x:x, ts:ts };
+        // Keep the one before too (prev): a maintaining plan needs two clean sessions to add load.
+        if(!cur || w>cur.w || (w===cur.w && dn===day)) bucket[x.name]={ w:w, x:x, ts:ts, prev:(cur && cur.w<w) ? cur : (cur ? cur.prev : null) };
+        else if(w<cur.w && (!cur.prev || w>cur.prev.w)) cur.prev={ w:w, x:x, ts:ts };
       });
     });
     Object.keys(prior).concat(Object.keys(priorLow)).forEach(function(n){ if(names.indexOf(n)<0) names.push(n); });
@@ -381,7 +383,7 @@
     function lxOf(x, ts, extra){ var o={ name:x.name, orig:x.orig, target:x.target, sets:x.sets||[], _ts:ts, _seen:Math.max(ts||0, seen[x.name]||0) }; if(extra) o[extra]=true; return o; }
     return { ex: names.map(function(n){
       var hit=same[n]||any[n];
-      if(hit) return lxOf(hit.x, hit.ts);
+      if(hit){ var o=lxOf(hit.x, hit.ts); if(hit.prev) o._prev={ target:hit.prev.x.target, sets:hit.prev.x.sets||[] }; return o; }
       if(prior[n]) return lxOf(prior[n].x, prior[n].ts, "_prior");   // an earlier season's full dose
       var lw=low[n]||priorLow[n];
       return lxOf(lw.x, lw.ts, "_reduced");
