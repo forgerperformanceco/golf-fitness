@@ -298,6 +298,8 @@ test("free week hides the rest of the week: no week jump, future days are teaser
   assert.match(mode, /if\(!planStart\(\)\) return "week";\s*return "today";/);
   assert.doesNotMatch(mode, /ff_planview/, "a saved Full-week choice no longer applies");
   assert.doesNotMatch(train, /planview-seg|data-planview/, "no Today / Full week toggle");
+  const cs = readFileSync(new URL("../cloud-sync.js", import.meta.url), "utf8");
+  assert.doesNotMatch(cs.match(/var KEYS = \[[^\]]*\]/)[0], /ff_planview/, "the dead setting no longer syncs");
   assert.match(week, /if\(featLocked\)\{\s*html\+=ffLockedDayHtml\(featured\);/);
   assert.match(functionSource(train, "trainFootHtml"), /ffAccess\(\)!=="full" \? '' :/);
   const teaser = functionSource(access, "ffLockedDayHtml");

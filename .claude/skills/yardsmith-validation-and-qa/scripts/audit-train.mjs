@@ -189,12 +189,6 @@ function sweep(expect) {
     fails.push(`expected ${e.slRows} session-list rows, got ${q('.day-focus .sl-row').length}`);
   if (e.doneChips != null && q('.ws-chip.done').length !== e.doneChips)
     fails.push(`expected ${e.doneChips} done week-strip chips, got ${q('.ws-chip.done').length}`);
-  if (e.weekDays != null && q('#phaseDetail .day').length !== e.weekDays)
-    fails.push(`expected ${e.weekDays} week-view day cards, got ${q('#phaseDetail .day').length}`);
-  if (e.weekLogBtns != null && q('.logbtn').length !== e.weekLogBtns)
-    fails.push(`expected ${e.weekLogBtns} log buttons, got ${q('.logbtn').length}`);
-  if (e.cleardayCount != null && q('[data-clearday]').length !== e.cleardayCount)
-    fails.push(`expected ${e.cleardayCount} [data-clearday] resets, got ${q('[data-clearday]').length}`);
   return fails;
 }
 

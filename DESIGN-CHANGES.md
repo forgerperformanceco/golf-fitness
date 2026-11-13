@@ -13,8 +13,9 @@ see and edit the full workout when I am working out").
   - The Today / Full week toggle (`.planview-seg`) and its handler (085).
   - `planViewMode()` returns "today" once a plan has started. Before a plan starts it still returns
     "week", so the program can be browsed before day 1.
-  - A device with `ff_planview: "week"` saved lands on Today. The key is no longer written; it stays
-    in `KEYS`, and the plan reset still clears it.
+  - A device with `ff_planview: "week"` saved lands on Today. The key is no longer written or read,
+    and it was dropped from cloud-sync `KEYS` (pin v123 → v124), so the dead setting stops roaming.
+    The plan reset still clears a local copy.
   - The toggle's CSS, with its generated dark rules regenerated.
 - **What's unchanged:**
   - A chosen upcoming day shows its preview with **Log workout** ("train it early"). The Field / Gym
@@ -22,7 +23,10 @@ see and edit the full workout when I am working out").
   - The free week was already one day at a time.
 - **Verified:**
   - `tests/paywall.test.mjs`: the Full week test now asserts that `planViewMode` no longer reads
-    `ff_planview` and that there's no toggle anywhere in 035. It fails on main. Suite 310/310.
+    `ff_planview`, that there's no toggle anywhere in 035, and that `ff_planview` isn't in `KEYS`. It
+    fails on main. Suite 310/310.
+  - audit-train lost its three Full-week-only checks (`weekDays`, `weekLogBtns`,
+    `cleardayCount`).
   - The audits were updated with the view:
     - audit-train's two Full-week states became `legacy-fullweek-fresh` / `-logged`: a saved "week"
       lands on Today, with the strip and no toggle. 18/18.
