@@ -290,10 +290,14 @@ test("locked: a workout already under way this week can still be finished — Ho
   assert.equal(opened, 1);
 });
 
-test("free week hides the rest of the week: no Full week, no week jump, future days are teasers", () => {
+test("free week hides the rest of the week: no week jump, future days are teasers (Full week is gone for everyone)", () => {
   const week = functionSource(train, "trainWeekHtml");
-  assert.match(functionSource(train, "planViewMode"), /ffAccess\(\)==="full" \? lsGet\("ff_planview","today"\) : "today"/);
-  assert.match(week, /if\(access==="full"\)\s*html\+='<div class="planview-seg">/);
+  // Nov 2026 (owner: "I'm not sure I like the full week view. Idk the purpose"): Train is one view
+  // once a plan runs — the week strip + the chosen day. Only a not-yet-started plan browses the week.
+  const mode = functionSource(train, "planViewMode");
+  assert.match(mode, /if\(!planStart\(\)\) return "week";\s*return "today";/);
+  assert.doesNotMatch(mode, /ff_planview/, "a saved Full-week choice no longer applies");
+  assert.doesNotMatch(train, /planview-seg|data-planview/, "no Today / Full week toggle");
   assert.match(week, /if\(featLocked\)\{\s*html\+=ffLockedDayHtml\(featured\);/);
   assert.match(functionSource(train, "trainFootHtml"), /ffAccess\(\)!=="full" \? '' :/);
   const teaser = functionSource(access, "ffLockedDayHtml");

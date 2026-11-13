@@ -137,8 +137,8 @@ const INTERACTIONS = [
   { name: 'train-equip-preset', view: 'plan', node: 'window', sel: '[data-preset="home"]',
     pre: () => { const f = document.getElementById('setFold'); if (f) f.open = true; } },
   { name: 'train-speed-seg', view: 'plan', node: 'window', sel: '[data-speedmode="field"]',
-    pre: () => { localStorage.setItem('ff_planview', '"week"'); window.dispatchEvent(new Event('ff-external-write'));
-                 document.querySelector('[data-planview="week"]')?.click(); } },
+    // The Field/Gym switch lives on the speed day's card: pick that day in the week strip.
+    pre: () => { document.querySelector('[data-focusday*="Speed"]')?.click(); } },
   { name: 'round-holes', view: 'gameday', sel: '[data-gdholes="9"]', node: 'window' },
   { name: 'round-transport', view: 'gameday', sel: '[data-gdtransport="ride"]', node: 'window' },
   // You-tab settings live in folded groups (Sep 2026 You pass) — open them first.
@@ -151,8 +151,10 @@ const INTERACTIONS = [
   { name: 'acct-theme', view: 'account', sel: '#acctTheme [data-th="dark"]', node: 'window',
     pre: () => document.querySelectorAll('details.acct-group').forEach(d => { d.open = true; }) },
   { name: 'logger-set-check', view: 'plan', sel: '#logBody .donebtn', node: '#logBody',
-    pre: () => { document.querySelector('[data-planview="week"]')?.click(); },
-    pre2: () => { document.querySelector('[data-logday]')?.click(); } },
+    // "Log workout" sits on an upcoming day's card: pick the last lift day in the strip.
+    pre: () => { const c = [...document.querySelectorAll('.ws-chip[data-focusday]')].filter((b) => !/rest|speed/i.test(b.getAttribute('data-focusday'))); c[c.length - 1]?.click(); },
+    // A not-yet-logged day asks the readiness check-in first; skip it (the original session).
+    pre2: () => { document.querySelector('[data-logday]')?.click(); document.querySelector('[data-readyskip]')?.click(); } },
   { name: 'history-delete-deep', view: 'plan', sel: '.hist-row:nth-of-type(10) .hist-del', node: '.swap-card', clicks: 2,
     pre2: () => { document.querySelector('[data-gohistory]')?.click(); } },
 ];

@@ -93,7 +93,7 @@ is a *setting*: on conflict the **cloud value wins wholesale**.
 | `ff_rounds` | `[{id:"r"+Date.now(), ts, date, score?, drive?, driving?, energy?}]` one per day, upsert by date (082:63-75) | `unionSeries` key=`id \|\| ts` | cap **60** |
 | `ff_fuel` | `{"YYYY-MM-DD": {m:{idx:"a"\|"c"}, rating("on"\|"close"\|"off"\|null), n, ts}}` (030:17-31) | `unionFuel` — **whole day-record**, newer `ts` wins; never field-merged (meal detail vs day rating are exclusive modes — field-merge could resurrect deliberately cleared meals) | **95 days** (fuelPrune 030:12 AND unionFuel cloud-sync.js:423) |
 | `ff_swaps` | `{origName: newName}` (040:186-188) | setting | |
-| `ff_planview` | `"today"\|"week"` (085:520) | setting | |
+| `ff_planview` | `"today"\|"week"`. **Legacy since Nov 13, 2026:** the Full-week view was retired, so it's no longer written or read. It stays in `KEYS` (harmless) and is cleared by the plan reset. | setting | |
 | `ff_onboarded` | bool (090:18,83,226) | setting | |
 | `ff_handle` | string, leaderboard handle (085:467) | setting | DB enforces 2-20 chars, unique lower(handle) |
 | `ff_kcal_adj` | int, clamped ±600 (085:678) | setting | metabolism check-in nudge; flows into carbs (025:206) |

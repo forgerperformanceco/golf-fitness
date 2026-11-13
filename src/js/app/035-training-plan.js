@@ -1158,9 +1158,13 @@
     return Math.max(20, Math.min(120, Math.round(secs/60/5)*5));
   }
   var focusDay=null;   // which day the Today view is showing (null = auto = next un-logged)
+  // One view once a plan runs: the week strip + the chosen day (tap a chip to see,
+  // preview or log any day). The "Full week" stack was retired Nov 2026 (owner: "Idk
+  // the purpose") — everything it showed lives on a day's card or in the player. A
+  // not-yet-started plan still browses the whole week. A legacy ff_planview is ignored.
   function planViewMode(){
     if(!planStart()) return "week";
-    return ffAccess()==="full" ? lsGet("ff_planview","today") : "today";   // free week: one day at a time (036)
+    return "today";
   }
 
   function renderPhase(){
@@ -1280,9 +1284,6 @@
         html+=ffRestTodayBtnHtml(restable.name);
     }
 
-    if(access==="full")
-      html+='<div class="planview-seg"><button data-planview="today"'+(mode==="today"?' class="active"':'')+'>Today</button>'+
-        '<button data-planview="week"'+(mode==="week"?' class="active"':'')+'>Full week</button></div>';
 
     var wvKey=waveFor(wk), wave=WAVES[wvKey];
     if(wvKey!=="accumulate") html+='<div class="deload-banner">'+wave.ic+' <b>'+wave.label+' week.</b> '+wave.strap+' '+ffTerm('wave','How the weeks work ›')+'</div>';

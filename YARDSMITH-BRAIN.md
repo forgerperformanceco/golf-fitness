@@ -496,6 +496,12 @@ stores; we're a URL). Shipping the app matters more than more docs.
   as it was.
 
 **Rejected (deliberately):**
+- **Train's "Full week" view** — retired Nov 13, 2026. The owner: "I'm not sure I like the full week
+  view. Idk the purpose."
+  - Once a plan runs, Train is one view: the week strip plus the chosen day.
+  - Tapping any day previews it and offers "Log workout"; hold-drag moves days. The effort notes,
+    each lift's why and gear swaps are shown in the player.
+  - A not-yet-started plan still browses the whole week.
 - **A "Bulk" (+20%) goal** — retired Nov 8, 2026. Golfers build, they don't bulk: in trained
   lifters the bigger surplus mostly adds fat with no extra strength or speed (Helms 2023), and the
   owner's own physique bulk cost him mobility. Legacy users keep the setting until they switch.

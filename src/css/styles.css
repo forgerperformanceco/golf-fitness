@@ -1487,10 +1487,6 @@
   .startbar .sb-jump select { flex:1; }
   .sb-go2 { background:#7ef0a8; color:#0d2216; border:0; border-radius:9px; padding:9px 15px; font:800 13px var(--font); cursor:pointer; }
   /* Today vs Full-week view */
-  .planview-seg { display:flex; gap:6px; background:#eef3ee; padding:4px; border-radius:11px; margin-bottom:12px; }
-  .planview-seg button { flex:1; min-height:44px; border:0; background:transparent; padding:9px; border-radius:8px; font:700 13px var(--font); color:var(--muted); cursor:pointer; }
-  .planview-seg button.active { background:#fff; color:var(--green-700); box-shadow:0 1px 4px rgba(0,0,0,.08); }
-  .planview-seg button:disabled { opacity:.4; cursor:default; }
   /* The full 7-day week at a glance (no horizontal scroll) — equal columns. */
   .weekstrip { display:grid; grid-template-columns:repeat(7, minmax(0, 1fr)); gap:2px; padding:1px 0 12px; margin-bottom:2px; }
   .ws-chip { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; min-height:44px; border:1px solid var(--line); background:var(--paper);
@@ -2601,8 +2597,6 @@
   html:not([data-theme="light"]) .wk-adjrow{ background:#152015; }
   html:not([data-theme="light"]) .startbar .sb-go{ background:#274934; color:#cae6d6; }
   html:not([data-theme="light"]) .sb-go2{ background:#274934; color:#cae6d6; }
-  html:not([data-theme="light"]) .planview-seg{ background:#182218; }
-  html:not([data-theme="light"]) .planview-seg button.active{ background:#1a1a1a; }
   html:not([data-theme="light"]) .ws-chip.done{ border-color:#274531; }
   html:not([data-theme="light"]) .il-ex{ background:#1a1a1a; }
   html:not([data-theme="light"]) .il-why.on{ background:#142417; }
@@ -2915,8 +2909,6 @@
   html[data-theme="dark"] .wk-adjrow{ background:#152015; }
   html[data-theme="dark"] .startbar .sb-go{ background:#274934; color:#cae6d6; }
   html[data-theme="dark"] .sb-go2{ background:#274934; color:#cae6d6; }
-  html[data-theme="dark"] .planview-seg{ background:#182218; }
-  html[data-theme="dark"] .planview-seg button.active{ background:#1a1a1a; }
   html[data-theme="dark"] .ws-chip.done{ border-color:#274531; }
   html[data-theme="dark"] .il-ex{ background:#1a1a1a; }
   html[data-theme="dark"] .il-why.on{ background:#142417; }
