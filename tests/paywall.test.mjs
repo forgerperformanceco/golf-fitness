@@ -292,11 +292,11 @@ test("locked: a workout already under way this week can still be finished — Ho
 
 test("free week hides the rest of the week: no week jump, future days are teasers (Full week is gone for everyone)", () => {
   const week = functionSource(train, "trainWeekHtml");
-  // Nov 2026 (owner: "I'm not sure I like the full week view. Idk the purpose"): Train is one view
-  // once a plan runs — the week strip + the chosen day. Only a not-yet-started plan browses the week.
-  const mode = functionSource(train, "planViewMode");
-  assert.match(mode, /if\(!planStart\(\)\) return "week";\s*return "today";/);
-  assert.doesNotMatch(mode, /ff_planview/, "a saved Full-week choice no longer applies");
+  // Nov 2026 (owner: "I'm not sure I like the full week view. Idk the purpose" … "remove the waste"):
+  // Train is one view — the week strip + the chosen day. Before a plan starts renderPhase shows only
+  // the start card (it never builds the week), so there's no second mode left anywhere (Codex, #133).
+  assert.doesNotMatch(train, /function planViewMode\(|planViewMode\(\)|ff_planview|Browsing the full week|Your training week/,
+    "no view mode, no saved Full-week choice, no week-browse copy");
   assert.doesNotMatch(train, /planview-seg|data-planview/, "no Today / Full week toggle");
   const cs = readFileSync(new URL("../cloud-sync.js", import.meta.url), "utf8");
   assert.doesNotMatch(cs.match(/var KEYS = \[[^\]]*\]/)[0], /ff_planview/, "the dead setting no longer syncs");

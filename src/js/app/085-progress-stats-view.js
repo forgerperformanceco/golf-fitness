@@ -715,7 +715,7 @@
       setTimeout(function(){ if(cw&&cw.isConnected){ cw.removeAttribute("data-armed"); cw.textContent="↺ Clear / reset this workout"; cw.classList.remove("arm"); } }, 3500);
       return;
     }
-    var cd=e.target.closest("[data-clearday]");                        // reset a specific logged day (Full-week / non-featured)
+    var cd=e.target.closest("[data-clearday]");                        // reset a specific logged day (a static day card)
     if(cd){
       var cdn=cd.getAttribute("data-clearday");
       if(cd.getAttribute("data-armed")==="1"){ clearWorkoutFor(curWeek(), cdn); return; }

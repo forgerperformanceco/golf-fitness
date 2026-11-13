@@ -11,8 +11,9 @@ see and edit the full workout when I am working out").
 
 - **What's gone:**
   - The Today / Full week toggle (`.planview-seg`) and its handler (085).
-  - `planViewMode()` returns "today" once a plan has started. Before a plan starts it still returns
-    "week", so the program can be browsed before day 1.
+  - `planViewMode()` and its "week" branch are gone; `trainWeekHtml` has one path. Before a plan
+    starts, Train shows only the start card and never builds the week (Codex, #133), so no
+    week-browse mode was left anywhere.
   - A device with `ff_planview: "week"` saved lands on Today. The key is no longer written or read,
     and it was dropped from cloud-sync `KEYS` (pin v123 → v124), so the dead setting stops roaming.
     The plan reset still clears a local copy.
@@ -22,8 +23,8 @@ see and edit the full workout when I am working out").
     switch is on the speed day's card.
   - The free week was already one day at a time.
 - **Verified:**
-  - `tests/paywall.test.mjs`: the Full week test now asserts that `planViewMode` no longer reads
-    `ff_planview`, that there's no toggle anywhere in 035, and that `ff_planview` isn't in `KEYS`. It
+  - `tests/paywall.test.mjs`: the Full week test now asserts there's no view mode, no
+    `ff_planview` and no week-browse copy anywhere in 035, and that `ff_planview` isn't in `KEYS`. It
     fails on main. Suite 310/310.
   - audit-train lost its three Full-week-only checks (`weekDays`, `weekLogBtns`,
     `cleardayCount`).

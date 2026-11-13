@@ -439,8 +439,8 @@
     if(!sess) return '<div class="day-foot"><button class="logbtn" data-logday="'+escAttr(name)+'">'+ffIcon("play",13)+' Log workout</button></div>';
     if(!done) return '<div class="day-foot"><button class="logbtn" data-logday="'+escAttr(name)+'">'+ffIcon("play",13)+' Resume workout</button>'+
       '<button class="logbtn reset" data-clearday="'+escAttr(name)+'">↺ Clear / reset this workout</button></div>';
-    // Logged: full-width edit button + a reset, so any logged day (Full-week or a
-    // non-featured day) can be cleared without hunting for the Today finish bar.
+    // Logged: full-width edit button + a reset, so a logged day shown as a static
+    // card can be cleared without hunting for the Today finish bar.
     return '<div class="day-foot"><button class="logbtn logged" data-logday="'+escAttr(name)+'">✓ Logged — tap to edit</button>'+
       '<button class="logbtn reset" data-clearday="'+escAttr(name)+'">↺ Clear / reset this workout</button></div>';
   }

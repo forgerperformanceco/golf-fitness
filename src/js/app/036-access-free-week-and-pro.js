@@ -7,7 +7,7 @@
      When it's on, three states:
        "preview" — the first 7 calendar days. Each workout opens ON ITS DAY: future
                    days are locked teasers (type + minutes, no exercise list), no
-                   Full-week browse, no jumping weeks, no logging ahead. The whole
+                   browsing ahead, no jumping weeks, no logging ahead. The whole
                    program is one repeated week, so hiding the rest of week 1 is
                    what keeps it from being read in one sitting.
        "locked"  — day 8+, not subscribed. Workouts, speed tests and the coach
