@@ -928,7 +928,8 @@
     if(best.r>0) return n+" · best "+best.r+" reps";
     return n;
   }
-  // One day's full card (rest / speed / lift) — used by both Today and Full-week views.
+  // One day's full card (rest / speed / lift): interactive for the day you're on, a
+  // static preview (with "Log workout") for a day picked ahead in the week strip.
   // interactive=true → the featured "today" lift day renders the inline logger.
   function dayCardHtml(d, showPrimerNote, interactive){
     var p = PHASES[planState.phase];
@@ -974,7 +975,7 @@
       // The featured (interactive) speed day is COMPACT like a lift day: player
       // CTA up top, warm-up + the "why" prose folded, and the drills as a
       // tap-for-more list instead of an inline wall of descriptions — that full
-      // table + prose stays the browsable Full-week reference below. Keeps the
+      // table + prose stays as the static preview of the day. Keeps the
       // Today view short (this day used to dwarf every lift day).
       if(interactive){
         ilog = { week: curWeek(), day: d.name, sess: buildSession(d, curWeek()) };
@@ -1078,8 +1079,7 @@
         (plDone ? '' : '<details class="prelift"><summary>🔥 Warm-up &amp; power primer — do these first</summary><div class="prelift-body">'+warmPrimer+'</div></details>')+
         body+cooldownFoldHtml(d.name)+'</div>';
     }
-    // Full-week (non-interactive) day: fold the warm-up too — otherwise every
-    // day in the week prints its whole checklist and the page runs for screens.
+    // Static (preview) day: fold the warm-up too, so the card leads with the lifts.
     var head = '<div class="day"><div class="day-head">'+d.name+' <span class="tag '+(d.tag==="Lift"?"":d.tag)+'">'+labelFor(d.tag)+'</span></div>'+
       '<details class="prelift"><summary>🔥 Warm-up &amp; power primer — do these first</summary><div class="prelift-body">'+warmPrimer+'</div></details>';
     return head +
@@ -1158,10 +1158,6 @@
     return Math.max(20, Math.min(120, Math.round(secs/60/5)*5));
   }
   var focusDay=null;   // which day the Today view is showing (null = auto = next un-logged)
-  function planViewMode(){
-    if(!planStart()) return "week";
-    return ffAccess()==="full" ? lsGet("ff_planview","today") : "today";   // free week: one day at a time (036)
-  }
 
   function renderPhase(){
     ilog=null;                       // reset; the interactive day re-sets it
@@ -1230,7 +1226,9 @@
   // swap it wholesale.
   function trainWeekHtml(p, shown, wk){
     var html="";
-    var mode=planViewMode(), wd=weekDoneCount();
+    // One view (Nov 2026: the "Full week" stack was retired — owner: "Idk the purpose"):
+    // the week strip + the chosen day; tap a chip to see, preview or log any day.
+    var wd=weekDoneCount();
     // Focus is tracked by dayKey (not name) so the two identically-named rest days
     // don't both resolve/highlight as the focused day.
     // On a rest day with no explicit focus, feature TODAY (the recovery card) so
@@ -1243,13 +1241,13 @@
     var featured=null; shown.forEach(function(d){ if(dayKey(d)===featName) featured=d; });
     if(!featured) featured=shown[0];
     var featKey=dayKey(featured), featRI=ffRestInstead(wk,featured);
-    var heroName=(mode==="today")?(featRI?"Rest day":(featured.name.split("—")[1]||featured.name).trim()):"Your training week";
+    var heroName=featRI?"Rest day":(featured.name.split("—")[1]||featured.name).trim();
 
     // ---- clean hero: the workout, front and centre ----
     html+='<div class="lift-hero"><div class="lh-l">'+
       '<div class="lh-week">WEEK '+wk+' OF 20 · '+WAVES[waveFor(wk)].ic+' '+WAVES[waveFor(wk)].label.toUpperCase()+' WEEK</div>'+
       '<h2 class="lh-name">'+heroName+'</h2>'+
-      '<div class="lh-sub">'+(mode==="today"?('About '+(featRI?10:sessionMinutes(featured))+' min <span class="lh-dot">·</span> Day '+dayOfPlan()+' of your week'):'Browsing the full week')+
+      '<div class="lh-sub">About '+(featRI?10:sessionMinutes(featured))+' min <span class="lh-dot">·</span> Day '+dayOfPlan()+' of your week'+
         (wd.total?(' <span class="lh-dot">·</span> '+(wd.done>=wd.total?'<b class="lh-done">week complete ✓</b>':'<b class="lh-done">'+wd.done+' of '+wd.total+' done</b>')):'')+'</div>'+
       '<div class="lh-prog"><span style="width:'+Math.max(5,Math.round(wk/20*100))+'%"></span></div></div></div>';
 
@@ -1259,7 +1257,7 @@
     // Free week: a day that hasn't arrived is a teaser, not a readable preview.
     var featLocked=access==="preview" && featured.type!=="rest" && isFutureDay(featured.name);
 
-    if(mode==="today" && !featLocked){
+    if(!featLocked){
       if(typeof ffReadinessInlineHtml==="function" && !ffRestInstead(wk,featured)) html+=ffReadinessInlineHtml(featured);
       if(featured.type==="rest" && ffTodayRound(featured)){
         html+='<button type="button" class="train-today-cta recovery done" data-roundlog="1">'+
@@ -1280,9 +1278,6 @@
         html+=ffRestTodayBtnHtml(restable.name);
     }
 
-    if(access==="full")
-      html+='<div class="planview-seg"><button data-planview="today"'+(mode==="today"?' class="active"':'')+'>Today</button>'+
-        '<button data-planview="week"'+(mode==="week"?' class="active"':'')+'>Full week</button></div>';
 
     var wvKey=waveFor(wk), wave=WAVES[wvKey];
     if(wvKey!=="accumulate") html+='<div class="deload-banner">'+wave.ic+' <b>'+wave.label+' week.</b> '+wave.strap+' '+ffTerm('wave','How the weeks work ›')+'</div>';
@@ -1291,63 +1286,53 @@
       ((typeof ffTurnGuardTrains!=="function" || ffTurnGuardTrains()) ? 'chest, shoulder and arm isolation drop a set, rotation lifts gain one, and ' : '')+
       'the calorie surplus is halved. Do every cool-down.</div>';
 
-    if(mode==="today"){
-      var todayDate = new Date();
-      var strip = stripDays().map(function(d, i){
-        var ri = ffRestInstead(wk, d);
-        var done = (d.type==="rest" || ri) ? (restDone(wk, dayKey(d)) || !!ffTodayRound(d)) : sessionFinished(getSession(wk, d.name));
-        var cd = chipDate(i), isToday = sameDay(cd, todayDate);
-        var dateLbl = isToday ? "Today" : (cd ? fmtChipDate(cd) : ("Day "+(i+1)));
-        var lockd = access==="preview" && d.type!=="rest" && isFutureDay(d.name);
-        return '<button class="ws-chip'+(dayKey(d)===featKey?" cur":"")+(done?" done":"")+(isToday?" today":"")+(lockd?" locked":"")+'" data-focusday="'+escAttr(dayKey(d))+'">'+
-          '<span class="ws-date">'+dateLbl+'</span>'+
-          '<span class="ws-name">'+(done?"✓ ":"")+(lockd?"🔒 ":"")+(ri?"Rest":wsShort(d))+'</span></button>';
-      }).join("");
-      html+='<div class="weekstrip">'+strip+'</div>';
-      // Hold-and-drag (042) — say it's there, and offer the way back.
-      if(access==="full")
-        html+='<div class="ws-hint">'+(ffLayoutActive()
-          ? 'Your own order. <button type="button" class="ws-reset" data-layoutreset="1">Reset to automatic</button>'
-          : 'Hold a day, then drag it onto another day to swap them.')+'</div>';
-      // A future day is a PREVIEW, never an active session: rendering it
-      // interactive is what used to auto-open the inline logger the moment you
-      // tapped a day that hadn't arrived yet ("it starts to log it"). Show the
-      // plan read-only instead, with a note that it opens on the day — and an
-      // explicit "log it early" path still available from the card's log button.
-      var featFuture = featured.type!=="rest" && isFutureDay(featured.name);
-      if(featLocked){
-        html+=ffLockedDayHtml(featured);
-      } else if(featFuture){
-        var fdt=dayCalDate(featured.name);
-        var fwhen=fdt?fdt.toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric"}):"soon";
-        html+='<div class="upcoming-banner">📅 <b>Coming up '+fwhen+'.</b> Here’s the plan to preview — opening it won’t start logging. It unlocks on the day; to train it early, use <b>Log workout</b> at the bottom of the card.</div>';
-        html+=dayCardHtml(featured, true, false);   // static preview — opening never logs
-      } else {
-        html+=dayCardHtml(featured, true, true);   // interactive: player CTA + list (or opted-in inline logger)
-        // Finish + Clear/reset. Show whenever there's anything to save OR clear —
-        // a finished session (logged via the player or manually) always gets its
-        // reset control here, not only while manual mode is on.
-        var hasSession = !!getSession(curWeek(), featured.name);
-        var workNow = !!(ilog && ilog.sess.ex.some(function(x){ return (x.sets||[]).some(function(st){ return st.w||st.r||st.done; }); }));
-        var typing = lsGet("ff_manual_log", false) && !sessionFinished(getSession(curWeek(), featured.name));
-        if(ffRestInstead(curWeek(), featured)){}
-        else if(typing){
-          html+='<div id="finishBar">'+finishBtnHtml()+'</div>';
-          // Offer the way back only while nothing's logged — never hide entered work.
-          if(!workNow && !hasSession) html+='<button type="button" class="sl-manual off" data-manuallog="0">Hide manual logging — back to the simple list</button>';
-        } else if(hasSession){
-          // Not typing: no finish/saved block on Today, just the reset (every logged day keeps one).
-          html+='<div id="finishBar"><button class="clear-workout" data-clearworkout="1">↺ Clear / reset this workout</button></div>';
-        }
-      }
+    var todayDate = new Date();
+    var strip = stripDays().map(function(d, i){
+      var ri = ffRestInstead(wk, d);
+      var done = (d.type==="rest" || ri) ? (restDone(wk, dayKey(d)) || !!ffTodayRound(d)) : sessionFinished(getSession(wk, d.name));
+      var cd = chipDate(i), isToday = sameDay(cd, todayDate);
+      var dateLbl = isToday ? "Today" : (cd ? fmtChipDate(cd) : ("Day "+(i+1)));
+      var lockd = access==="preview" && d.type!=="rest" && isFutureDay(d.name);
+      return '<button class="ws-chip'+(dayKey(d)===featKey?" cur":"")+(done?" done":"")+(isToday?" today":"")+(lockd?" locked":"")+'" data-focusday="'+escAttr(dayKey(d))+'">'+
+        '<span class="ws-date">'+dateLbl+'</span>'+
+        '<span class="ws-name">'+(done?"✓ ":"")+(lockd?"🔒 ":"")+(ri?"Rest":wsShort(d))+'</span></button>';
+    }).join("");
+    html+='<div class="weekstrip">'+strip+'</div>';
+    // Hold-and-drag (042) — say it's there, and offer the way back.
+    if(access==="full")
+      html+='<div class="ws-hint">'+(ffLayoutActive()
+        ? 'Your own order. <button type="button" class="ws-reset" data-layoutreset="1">Reset to automatic</button>'
+        : 'Hold a day, then drag it onto another day to swap them.')+'</div>';
+    // A future day is a PREVIEW, never an active session: rendering it
+    // interactive is what used to auto-open the inline logger the moment you
+    // tapped a day that hadn't arrived yet ("it starts to log it"). Show the
+    // plan read-only instead, with a note that it opens on the day — and an
+    // explicit "log it early" path still available from the card's log button.
+    var featFuture = featured.type!=="rest" && isFutureDay(featured.name);
+    if(featLocked){
+      html+=ffLockedDayHtml(featured);
+    } else if(featFuture){
+      var fdt=dayCalDate(featured.name);
+      var fwhen=fdt?fdt.toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric"}):"soon";
+      html+='<div class="upcoming-banner">📅 <b>Coming up '+fwhen+'.</b> Here’s the plan to preview — opening it won’t start logging. It unlocks on the day; to train it early, use <b>Log workout</b> at the bottom of the card.</div>';
+      html+=dayCardHtml(featured, true, false);   // static preview — opening never logs
     } else {
-      var primerNoteShown=false;
-      shown.forEach(function(d){
-        // The beginner caution shows once: on the first lift or speed day.
-        var note = d.type!=="rest" && !primerNoteShown;
-        html+=dayCardHtml(d, note);
-        if(note) primerNoteShown=true;
-      });
+      html+=dayCardHtml(featured, true, true);   // interactive: player CTA + list (or opted-in inline logger)
+      // Finish + Clear/reset. Show whenever there's anything to save OR clear —
+      // a finished session (logged via the player or manually) always gets its
+      // reset control here, not only while manual mode is on.
+      var hasSession = !!getSession(curWeek(), featured.name);
+      var workNow = !!(ilog && ilog.sess.ex.some(function(x){ return (x.sets||[]).some(function(st){ return st.w||st.r||st.done; }); }));
+      var typing = lsGet("ff_manual_log", false) && !sessionFinished(getSession(curWeek(), featured.name));
+      if(ffRestInstead(curWeek(), featured)){}
+      else if(typing){
+        html+='<div id="finishBar">'+finishBtnHtml()+'</div>';
+        // Offer the way back only while nothing's logged — never hide entered work.
+        if(!workNow && !hasSession) html+='<button type="button" class="sl-manual off" data-manuallog="0">Hide manual logging — back to the simple list</button>';
+      } else if(hasSession){
+        // Not typing: no finish/saved block on Today, just the reset (every logged day keeps one).
+        html+='<div id="finishBar"><button class="clear-workout" data-clearworkout="1">↺ Clear / reset this workout</button></div>';
+      }
     }
 
     return html;
@@ -1361,7 +1346,7 @@
     // Manual logging is opt-in (the player is the default); the row only offers
     // it on a workout day that can be logged, and never while it's already on.
     var dop=dayOfPlan(), today=dop?stripDays()[dop-1]:null;
-    if(planViewMode()==="today" && ffAccess()!=="locked" && !lsGet("ff_manual_log", false) && !seasonComplete() && today && today.type!=="rest" && !ffRestInstead(curWeek(), today))
+    if(ffAccess()!=="locked" && !lsGet("ff_manual_log", false) && !seasonComplete() && today && today.type!=="rest" && !ffRestInstead(curWeek(), today))
       html+=homeRow("⌨️","Log by typing instead","Enter sets yourself — no player",' data-manuallog="1"');
     html+=homeRow("💬","Adjust this week","Ask the coach to rework it",' data-ask="train"');
     html+=homeRow("📖","Workout history","Every session, all time",' data-gohistory="1"');

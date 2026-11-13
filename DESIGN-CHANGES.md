@@ -1,5 +1,41 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## Train: one view — the "Full week" view is retired (Nov 13, 2026)
+
+The owner: "I'm not sure I like the full week view. Idk the purpose." Full week was the original plan
+page, all seven day cards stacked. Today was added beside it later, and the week strip has since
+taken over the browsing job: tap a chip to preview or log any day, hold-drag to move one. Nothing
+remained that only Full week did. The effort notes, each lift's "why" and the gear-swap badges are
+on a day's card or in the player, where the owner said he wants the full workout ("I only need to
+see and edit the full workout when I am working out").
+
+- **What's gone:**
+  - The Today / Full week toggle (`.planview-seg`) and its handler (085).
+  - `planViewMode()` and its "week" branch are gone; `trainWeekHtml` has one path. Before a plan
+    starts, Train shows only the start card and never builds the week (Codex, #133), so no
+    week-browse mode was left anywhere.
+  - A device with `ff_planview: "week"` saved lands on Today. The key is no longer written or read,
+    and it was dropped from cloud-sync `KEYS` (pin v123 → v124), so the dead setting stops roaming.
+    The plan reset still clears a local copy.
+  - The toggle's CSS, with its generated dark rules regenerated.
+- **What's unchanged:**
+  - A chosen upcoming day shows its preview with **Log workout** ("train it early"). The Field / Gym
+    switch is on the speed day's card.
+  - The free week was already one day at a time.
+- **Verified:**
+  - `tests/paywall.test.mjs`: the Full week test now asserts there's no view mode, no
+    `ff_planview` and no week-browse copy anywhere in 035, and that `ff_planview` isn't in `KEYS`. It
+    fails on main. Suite 310/310.
+  - audit-train lost its three Full-week-only checks (`weekDays`, `weekLogBtns`,
+    `cleardayCount`).
+  - The audits were updated with the view:
+    - audit-train's two Full-week states became `legacy-fullweek-fresh` / `-logged`: a saved "week"
+      lands on Today, with the strip and no toggle. 18/18.
+    - audit-scroll's speed-switch case picks the speed day in the strip.
+    - Its logger case opens an upcoming lift day's **Log workout** and skips the readiness check-in.
+      16/16.
+  - Contrast clean, type 1 known; the release gate, claims-lint and data contract are clean.
+
 ## Fuel: a "1 g per lb" protein option (Nov 11, 2026)
 
 The owner said: "I tend to eat more protein than this. I've always at least done 1g per 1lb …

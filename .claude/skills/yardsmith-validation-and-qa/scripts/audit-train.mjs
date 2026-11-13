@@ -125,11 +125,13 @@ const STATES = [
     focusChip: 3, expect: { speedday: true, resetExposed: true, plStartText: /Speed session done/ } },
   { name: 'deload-week', seed: { ff_start: daysAgoIso(35) },
     expect: { dayFocus: true, deloadBanner: true, heroWeek: /WEEK 6/ } },
-  { name: 'fullweek-fresh', seed: { ff_start: daysAgoIso(3), ff_planview: 'week' },
-    expect: { weekDays: 7, weekLogBtns: 5 } },
-  { name: 'fullweek-logged', seed: { ff_start: daysAgoIso(3), ff_planview: 'week', ff_log: {
+  // The Full-week view was retired Nov 2026: a device that still has ff_planview "week" saved
+  // lands on Today (one view: the week strip + the chosen day), logged or not.
+  { name: 'legacy-fullweek-fresh', seed: { ff_start: daysAgoIso(3), ff_planview: 'week' },
+    expect: { dayFocus: true, plStartText: /Start workout/, noWeekToggle: true } },
+  { name: 'legacy-fullweek-logged', seed: { ff_start: daysAgoIso(3), ff_planview: 'week', ff_log: {
       ['1|' + DAY1]: liftSess(true), ['1|' + DAY2]: pushSess(true), ['1|' + SPEED]: speedSess(true) } },
-    expect: { weekDays: 7, cleardayCount: 3 } },
+    expect: { doneChips: 3, noWeekToggle: true } },   // the week strip only exists on Today
 ];
 
 /* ---------- in-page invariant sweep ---------- */
@@ -169,6 +171,7 @@ function sweep(expect) {
   const has = s => q(s).some(vis);
   if (e.startbar && !has('.startbar')) fails.push('expected .startbar (plan not started)');
   if (e.dayFocus && !has('.day-focus')) fails.push('expected featured .day-focus card');
+  if (e.noWeekToggle && (has('[data-planview]') || q('#phaseDetail .day').length > 1)) fails.push('the retired Full-week view is back');
   if (e.speedday && !has('.day-focus.speedday')) fails.push('expected featured speed-day card');
   if (e.ilogBox && !document.getElementById('ilogBox')) fails.push('expected #ilogBox (manual logging)');
   if (e.finishBar && !has('#finishBar')) fails.push('expected #finishBar');
@@ -186,12 +189,6 @@ function sweep(expect) {
     fails.push(`expected ${e.slRows} session-list rows, got ${q('.day-focus .sl-row').length}`);
   if (e.doneChips != null && q('.ws-chip.done').length !== e.doneChips)
     fails.push(`expected ${e.doneChips} done week-strip chips, got ${q('.ws-chip.done').length}`);
-  if (e.weekDays != null && q('#phaseDetail .day').length !== e.weekDays)
-    fails.push(`expected ${e.weekDays} week-view day cards, got ${q('#phaseDetail .day').length}`);
-  if (e.weekLogBtns != null && q('.logbtn').length !== e.weekLogBtns)
-    fails.push(`expected ${e.weekLogBtns} log buttons, got ${q('.logbtn').length}`);
-  if (e.cleardayCount != null && q('[data-clearday]').length !== e.cleardayCount)
-    fails.push(`expected ${e.cleardayCount} [data-clearday] resets, got ${q('[data-clearday]').length}`);
   return fails;
 }
 

@@ -111,7 +111,7 @@ Pass counts **as of 2026-07-08, HEAD `f21930a`, build `04f691fff1`**:
 
 | Script | Result | Historical standard it recreates |
 |---|---|---|
-| `scripts/audit-train.mjs` | **18/18 clean** (9 states × light/dark) | §60's 18/18 |
+| `scripts/audit-train.mjs` | **18/18 clean** (9 states × light/dark; the two Full-week states became `legacy-fullweek-*`, a saved `ff_planview:"week"` landing on Today, when the view was retired Nov 2026) | §60's 18/18 |
 | `scripts/audit-scroll.mjs` | **16/16 preserve scroll** | §66's 16/16 |
 | `scripts/audit-type.mjs` | **clean** across 7 surfaces; band exactly 11/12/13/13.5; only `.ws-date` renders at 10.5 | §67 |
 | `scripts/audit-contrast.mjs` | **clean** — 0 of 1408 text nodes under 3.0:1 (6 views × 2 themes; 1 allowlisted known defect, see §5) | §4 |

@@ -715,7 +715,7 @@
       setTimeout(function(){ if(cw&&cw.isConnected){ cw.removeAttribute("data-armed"); cw.textContent="↺ Clear / reset this workout"; cw.classList.remove("arm"); } }, 3500);
       return;
     }
-    var cd=e.target.closest("[data-clearday]");                        // reset a specific logged day (Full-week / non-featured)
+    var cd=e.target.closest("[data-clearday]");                        // reset a specific logged day (a static day card)
     if(cd){
       var cdn=cd.getAttribute("data-clearday");
       if(cd.getAttribute("data-armed")==="1"){ clearWorkoutFor(curWeek(), cdn); return; }
@@ -740,8 +740,6 @@
       // every day already logged. History/bodyweight/7-iron trends survive.
       if(confirm("Restart from week 1? This clears the plan start date and this season's logged workouts — your history, bodyweight and 7-iron trends stay.")) resetPlanFull();
       return; }
-    var pv=e.target.closest("[data-planview]");
-    if(pv && !pv.disabled){ lsSet("ff_planview", pv.getAttribute("data-planview")); focusDay=null; renderPhase(); return; }
     var spm=e.target.closest("[data-speedmode]");
     if(spm){ lsSet("ff_speedmode", spm.getAttribute("data-speedmode")); renderPhase(); return; }
     var fdc=e.target.closest("[data-focusday]");
