@@ -374,7 +374,6 @@
 
   try{ migrateDayNames(); }catch(e){}   // re-key workouts logged under the old "(Squat)" day labels
   restore();      // bring back the user's saved inputs/equipment/tab
-  try{ ffArrangeCutover(); }catch(e){}   // the Nov 2026 back-day rule: a week under way keeps its layout (040)
   var sharedLink = applyShareParams();   // a shared ?link= overrides local state so friends see your numbers
   // Returning users (and shared-link viewers) start with the calculator collapsed to a summary.
   calcCollapsed = !sharedLink && !FF_FRESH && lsGet("ff_targets", null) != null;

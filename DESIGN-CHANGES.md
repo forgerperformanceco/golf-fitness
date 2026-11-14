@@ -24,11 +24,13 @@ before a round is the wrong place for it.
     course", with a one-tap swap to the push day, or "keep the pulls and rotations 2–3 reps short
     of hard".
   - The swap-in offered before a round is never the back day.
-- **No mid-week reshuffle (`ffArrangeCutover`, once per device after the profile loads):**
-  - If play or off days are set, no hand-made order is active, and this week already has logged
-    work, this week keeps the layout it was shown (the old rule). The new one starts next week.
-  - This is the same mechanism a play-day change uses (`prevLayout` + `arrangeWeek`). It's marked
-    by `ff_gameday.arrangeV = 2` (no new key).
+- **No mid-week reshuffle (`FF_BACK_RULE_FROM`):** the rule applies to plan weeks that start on or
+  after Nov 15, 2026, so a week already under way when this shipped keeps the layout it was shown.
+  - It's decided from the plan's own dates, with no stored marker, so every device agrees whatever
+    order cloud sync lands in.
+  - The first version used a boot-time cutover marker (`ff_gameday.arrangeV`). Codex (P1, #134)
+    showed it could be set before the cloud merge brought in this week's logged work, then skip the
+    freeze for good.
 - **Verified:**
   - New tests in `tests/season-schedule-health.test.mjs` (3) and `tests/program-changes.test.mjs`
     (1), all failing without the change, cover:
@@ -36,11 +38,13 @@ before a round is the wrong place for it.
       (the Tue + Fri 5-day case asserts legs only);
     - the owner's week;
     - the drag warning;
-    - the cutover: logged week frozen, next week new; nothing logged applies now; it runs once;
+    - the start date: the week of Nov 8 keeps the old layout, and from the week of Nov 15 on the
+      new rule applies, with no stored marker or boot hook;
     - the Home note's copy and its swap-in.
   - Suite 314/314.
-  - A Playwright e2e on the owner's setup passes in light and dark, with zero page errors. Friday is
-    Push, and Sat/Sun are rest.
+  - A Playwright e2e on the owner's setup passes in light and dark, with zero page errors.
+    - In the week of Nov 15, Friday is Push and Sat/Sun are rest.
+    - The week of Nov 8 keeps Pull on Friday, as it was shown.
   - Audits: train 18/18, scroll 16/16, contrast clean, type 1 known. The release gate, claims-lint
     and data contract are clean.
 

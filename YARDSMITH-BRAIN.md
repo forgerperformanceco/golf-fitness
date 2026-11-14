@@ -502,7 +502,9 @@ stores; we're a URL). Shipping the app matters more than more docs.
   - Legs win when a week is overbooked: a 5-day plan with rounds on Tue + Fri can't clear both.
   - Hold-and-drag flags it, and Home's "Playing tomorrow?" note covers the back day too and never
     offers it as the swap-in.
-  - A week already under way keeps its layout; the rule starts next week (`ffArrangeCutover`).
+  - It applies to plan weeks starting on or after Nov 15, 2026 (`FF_BACK_RULE_FROM`), so a week
+    already under way keeps its layout on every device. It's date-based, so it doesn't depend on
+    the order cloud sync lands in (Codex, #134).
 
 **Rejected (deliberately):**
 - **Train's "Full week" view** — retired Nov 13, 2026. The owner: "I'm not sure I like the full week

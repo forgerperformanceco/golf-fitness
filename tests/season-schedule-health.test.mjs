@@ -41,7 +41,8 @@ function decl(source, name, open) {
 }
 
 // startWd: weekday the plan's week starts on (0 = Sunday); store = localStorage.
-function engine({ inseason = false, freq = 4, store = {}, startWd = 1, week = 3, health = null, profile = {}, dop = 1 } = {}) {
+// wsBase: [y, m, d] the week-start search begins from (default early Oct 2026).
+function engine({ inseason = false, freq = 4, store = {}, startWd = 1, week = 3, health = null, profile = {}, dop = 1, wsBase = [2026, 9, 4] } = {}) {
   const ctx = { __store: { fairwayfuel: profile, ...store } };
   vm.runInNewContext(`
     var state={goal:"leanbulk", inseason:${JSON.stringify(inseason)}, health:${JSON.stringify(health)}};
@@ -51,14 +52,14 @@ function engine({ inseason = false, freq = 4, store = {}, startWd = 1, week = 3,
     function curWeek(){ return ${week}; }
     function dayOfPlan(){ return ${dop}; }
     function planStart(){ return lsGet("ff_start", null); }
-    function weekStartDate(){ var d=new Date(2026,9,4); while(d.getDay()!==${startWd}) d.setDate(d.getDate()+1); return d; }
+    function weekStartDate(){ var d=new Date(${wsBase.join(",")}); while(d.getDay()!==${startWd}) d.setDate(d.getDate()+1); return d; }
     ${decl(PLAN, "PHASES", "[")}
     ${decl(PLAN, "FF_HEALTH_QS", "[")}
     ${["ffInSeasonMode", "ffInSeason", "ffInSeasonPlan", "activeDays", "ffSessionsPerWeek", "ffHealthQs", "ffHealth",
        "ffHealthCaution", "ffHealthRedFlag", "ffHealthAdvice", "ffOnRamp", "ffLowImpact", "purposeFor", "trimSets",
        "capSets", "plainSetCount", "adjSets", "trainRetain", "eventInfo", "waveFor", "bumpReps", "plainReps", "waveAdjust",
        "effTarget"].map((n) => fn(PLAN, n)).join("\n")}
-    ${["stripDays", "ffBaseWeek", "ffLayoutActive", "ffHeavyLegs", "ffBackRotate", "ffArrangeWeek", "ffArrangeCutover", "ffPlayDaysNow", "ffOffDays", "ffOffDaysNow", "ffLayoutNow", "ffApplyLayout",
+    ${["stripDays", "ffBaseWeek", "ffLayoutActive", "ffHeavyLegs", "ffBackRotate", "ffArrangeWeek", "ffPlayDaysNow", "ffOffDays", "ffOffDaysNow", "ffLayoutNow", "ffApplyLayout",
        "dayKey", "getLog", "getSession", "getRest", "restDone", "cardioDone",
        "getSkippedSessions", "sessionSkipped", "skipSession", "unskipSession", "ffRestInstead", "sessionFinished"].map((n) => fn(LOGGER, n)).join("\n")}
     var __toasts=[], window={ dispatchEvent:function(){} }, Event=function(){};
@@ -70,8 +71,8 @@ function engine({ inseason = false, freq = 4, store = {}, startWd = 1, week = 3,
     ${fn(LOGGER, "ffSaveSchedule")}
     ${fn(GAME, "ffPlayDays")}
     ${fn(MODEL, "ffBmi")}
-    ${(LOGGER.match(/var FF_ARRANGE_V=\d+;/) || ["var FF_ARRANGE_V=0;"])[0]}
-    this.api={ ffMoveDay, ffBackRotate, ffArrangeCutover, ffRestableToday, ffRestToday, ffRestUndo, ffRestInstead, ffDayLogged, ffSaveSchedule, sessionSkipped, skipSession,
+    ${(LOGGER.match(/var FF_BACK_RULE_FROM=[^;]+;/) || ["var FF_BACK_RULE_FROM=0;"])[0]}
+    this.api={ ffMoveDay, ffBackRotate, ffRestableToday, ffRestToday, ffRestUndo, ffRestInstead, ffDayLogged, ffSaveSchedule, sessionSkipped, skipSession,
       ffLayoutActive, store:__store, toasts:__toasts, activeDays, ffSessionsPerWeek, ffInSeasonMode, stripDays, ffOnRamp, ffLowImpact, ffHealthCaution,
       ffHealthAdvice, ffHealthQs, effTarget, PHASES, state:state };
   `, ctx);
@@ -363,7 +364,7 @@ test("rest today: a rested-instead day with a check-off stays put; a skip freeze
 // legs it never sits the day before a round. Legs stay the stronger rule when a week is overbooked.
 test("the back + rotation day never lands the day before a round (any start day, any play days)", () => {
   for (const freq of [4, 5]) for (let startWd = 0; startWd < 7; startWd++) for (const days of [[6, 0], [6], [0], [3], [2, 5]]) {
-    const E = engine({ freq, startWd, store: { ff_gameday: { days } } });
+    const E = engine({ freq, startWd, wsBase: [2026, 10, 15], store: { ff_gameday: { days } } });
     const week = E.stripDays(), wd = (i) => (startWd + i) % 7;
     week.forEach((d, i) => {
       if (!days.includes(wd((i + 1) % 7))) return;
@@ -376,7 +377,7 @@ test("the back + rotation day never lands the day before a round (any start day,
     });
   }
   // The owner's week: 5 days, the plan's week starts Sunday, golf Saturday + Sunday.
-  const E = engine({ freq: 5, startWd: 0, store: { ff_gameday: { days: [6, 0] } } });
+  const E = engine({ freq: 5, startWd: 0, wsBase: [2026, 10, 15], store: { ff_gameday: { days: [6, 0] } } });
   const w = E.stripDays(), fri = w[5], sat = w[6], sun = w[0];
   assert.equal(sat.type, "rest"); assert.equal(sun.type, "rest");
   assert.match(fri.name, /Push|Speed/, `Friday is a push or speed day, not ${fri.name}`);
@@ -386,36 +387,21 @@ test("the back + rotation day never lands the day before a round (any start day,
 });
 
 test("dragging the back day onto the day before a round is allowed but flagged", () => {
-  const E = engine({ freq: 5, startWd: 1, store: { ff_gameday: { days: [6] } } });
+  const E = engine({ freq: 5, startWd: 1, wsBase: [2026, 10, 15], store: { ff_gameday: { days: [6] } } });
   const w = E.stripDays(), pull = w.findIndex((d) => /Pull/.test(d.name)), fri = 4;
   assert.notEqual(pull, fri, "the automatic week keeps it off Friday");
   assert.match(E.ffMoveDay(pull, fri), /Heads up: back and rotation work the day before a round\./);
 });
 
-test("the new back-day rule never reshuffles a week that's already under way (it starts next week)", () => {
-  const nm = (w) => w.map((d) => d.name.replace(/^Day \d+ — /, "")).join(" | ");
-  // Week 3, plan week starts Sunday, golf Sat + Sun; the old rule put Pull on Friday.
-  const base = () => ({ ff_start: "2026-10-18T12:00:00.000Z", ff_gameday: { days: [6, 0] } });
-  // Logged work this week → this week keeps the layout it was shown; next week gets the new rule.
-  let store = { ...base(), ff_log: { "3|Day 1 — Lower (Quads)": { ex: [], finishedAt: 1 } } };
-  let E = engine({ freq: 5, startWd: 0, week: 3, store });
-  E.ffArrangeCutover();
-  assert.equal(E.store.ff_gameday.arrangeV, 2);
-  assert.equal(E.store.ff_gameday.arrangeWeek, 4);
-  assert.match(E.stripDays()[5].name, /Pull/, "this week: Friday stays as shown (" + nm(E.stripDays()) + ")");
-  const next = engine({ freq: 5, startWd: 0, week: 4, store: E.store });
-  assert.match(next.stripDays()[5].name, /Push|Speed/, "next week: the new rule (" + nm(next.stripDays()) + ")");
-  // Runs once: a second call changes nothing.
-  const snap = JSON.stringify(E.store.ff_gameday); E.ffArrangeCutover(); assert.equal(JSON.stringify(E.store.ff_gameday), snap);
-  // Nothing logged this week → the new rule applies now, no freeze.
-  E = engine({ freq: 5, startWd: 0, week: 3, store: base() });
-  E.ffArrangeCutover();
-  assert.equal(E.store.ff_gameday.arrangeV, 2);
-  assert.equal(E.store.ff_gameday.arrangeWeek, undefined);
-  assert.match(E.stripDays()[5].name, /Push|Speed/);
-  // A hand-made order (hold-and-drag) is the user's own: never touched.
-  E = engine({ freq: 5, startWd: 0, week: 3, store: { ...base(), ff_gameday: { days: [6, 0], layout: null } } });
-  E.ffArrangeCutover(); assert.equal(E.store.ff_gameday.arrangeWeek, undefined);
-  // Boot calls it after the profile is restored (planState.freq known), before the first render.
-  assert.match(ONBOARD, /restore\(\);[^\n]*\n[\s\S]{0,400}try\{ ffArrangeCutover\(\); \}catch\(e\)\{\}[\s\S]{0,1200}renderPhase\(\);/);
+test("the back-day rule starts with weeks beginning Nov 15, 2026: a week already under way never reshuffles (Codex, #134)", () => {
+  // Decided from the plan's own dates, not stored state, so every device agrees whatever order
+  // cloud sync lands in. (A boot-time cutover marker could be set before a cloud merge brought in
+  // this week's logged work — Codex P1, #134.)
+  assert.match(LOGGER, /var FF_BACK_RULE_FROM=new Date\(2026,10,15\)\.getTime\(\);/);
+  assert.doesNotMatch(LOGGER + ONBOARD, /ffArrangeCutover|arrangeV/, "no stored marker, no boot hook");
+  // The workout on Friday (the day before Saturday's round), whatever weekday the plan's week starts on.
+  const at = (wsBase, startWd) => engine({ freq: 5, startWd, wsBase, store: { ff_gameday: { days: [6, 0] } } }).stripDays()[(5 - startWd + 7) % 7].name;
+  assert.match(at([2026, 10, 8], 0), /Pull/, "the week that started Sun Nov 8 keeps the old layout");
+  assert.match(at([2026, 10, 15], 0), /Push|Speed/, "from the week starting Sun Nov 15: the new rule");
+  assert.match(at([2026, 10, 22], 0), /Push|Speed/, "and every week after");
 });
