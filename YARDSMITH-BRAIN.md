@@ -495,6 +495,15 @@ stores; we're a URL). Shipping the app matters more than more docs.
   plan's row demoted the day's main lift and cost it its history. A user's swap duplicate stays
   as it was.
 
+- **No back + rotation day the day before a round (Nov 14, 2026).** The owner: "I don't like back
+  day on Friday because I want to golf on Saturday and Sunday and that gets me in trouble."
+  - The weekly arrangement (040 `ffArrangeWeek`) now keeps the Pull + Rotate day off the day before
+    a play day, as it already did for heavy legs.
+  - Legs win when a week is overbooked: a 5-day plan with rounds on Tue + Fri can't clear both.
+  - Hold-and-drag flags it, and Home's "Playing tomorrow?" note covers the back day too and never
+    offers it as the swap-in.
+  - A week already under way keeps its layout; the rule starts next week (`ffArrangeCutover`).
+
 **Rejected (deliberately):**
 - **Train's "Full week" view** — retired Nov 13, 2026. The owner: "I'm not sure I like the full week
   view. Idk the purpose."

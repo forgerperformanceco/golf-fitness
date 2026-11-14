@@ -159,7 +159,8 @@
   /* Arrange the week around rounds. With play days set (Train › Plan settings,
      ff_gameday.days), the training days move so rounds land on rest days and a
      heavy-legs day never sits the day before a round (muscle-damaging leg work
-     dents power for ~1–2 days — Byrne 2004). The plan's ORDER is kept (only
+     dents power for ~1–2 days — Byrne 2004) — nor the back + rotation day (Nov 2026,
+     ffBackRotate). The plan's ORDER is kept (only
      the starting point rotates), as is spacing where possible: back-to-back
      training days and two leg days in a row cost points. Deterministic, and
      the same every week (weekdays repeat), so it only moves when play days
@@ -168,7 +169,12 @@
      block a slot like a round does (without the legs-before-a-round rule), and
      outrank rounds when the week is overbooked. */
   function ffHeavyLegs(d){ return !!d && d.type!=="rest" && d.type!=="speed" && /Lower|Squat|Hinge|Quads|Full Body/.test(d.name); }
-  function ffArrangeWeek(ds){
+  // The back + rotation day (Upper (Pull + Rotate): weighted pull-ups, rows, cable
+  // rotations). Lats, mid-back and the trunk rotators drive the turn, and a hard pull
+  // day leaves them stiff for a day or two (owner, Nov 2026: back day on Friday before
+  // weekend golf "gets me in trouble"). Like heavy legs, never the day before a round.
+  function ffBackRotate(d){ return !!d && d.type!=="rest" && d.type!=="speed" && /Pull/.test(d.name) && !/Lower|Squat|Hinge|Quads|Full Body/.test(d.name); }
+  function ffArrangeWeek(ds, legacy){
     var play=ffPlayDaysNow(), off=ffOffDaysNow(); if(!play.length && !off.length) return ds;
     var ws=weekStartDate(); if(!ws) return ds;
     var wd0=ws.getDay(), isPlay=function(i){ return play.indexOf((wd0+i)%7)!==-1; },
@@ -192,6 +198,7 @@
           // workout lands on a round day before it ever lands on a day off.
           if(d && isOff(i)) sc+=1000; else if(d && isPlay(i)) sc+=100;
           if(ffHeavyLegs(d) && isPlay((i+1)%7)) sc+=10;            // no heavy legs the day before
+          if(!legacy && ffBackRotate(d) && isPlay((i+1)%7)) sc+=6; // …nor the back + rotation day (legs win if overbooked)
           if(d && nx) sc+=1;                                        // spacing (wraps into next week)
           if(ffHeavyLegs(d) && ffHeavyLegs(nx)) sc+=3;              // never two leg days in a row
           if(!!d!==authored[i]) sc+=0.1;                            // stay close to the authored week
@@ -204,6 +211,28 @@
     var ri=0;
     for(var i=0;i<7;i++) if(!best[i]) best[i]=rests[ri++]||rests[0];
     return best;
+  }
+  // The arrangement rules changed (v2, Nov 2026: no back + rotation day before a round).
+  // Like every schedule change (ffSaveSchedule), a week that already has logged work keeps
+  // the layout it was shown — the old rule's — and the new one starts next week. Runs once
+  // per device at boot, after the profile is restored (planState.freq is known). A
+  // hand-made order (hold-and-drag) is the user's own and is never touched.
+  var FF_ARRANGE_V=2;
+  function ffArrangeCutover(){
+    var g=lsGet("ff_gameday", null);
+    if(!g || typeof g!=="object" || (g.arrangeV|0)>=FF_ARRANGE_V) return;
+    var wk=planStart()?curWeek():0;
+    if(wk && !(g.arrangeWeek>wk) && !ffLayoutActive() && (ffPlayDaysNow().length || ffOffDaysNow().length)){
+      var old=ffArrangeWeek(ffBaseWeek(), true), ws=weekStartDate();
+      var busy=old && old.some(function(x){
+        return x.type==="rest" ? (restDone(wk, dayKey(x)) || cardioDone(wk, dayKey(x))) : (!!getSession(wk, x.name) || sessionSkipped(wk, x.name)); });
+      if(busy && ws){
+        var lay=new Array(7), wd0=ws.getDay();
+        for(var i=0;i<7;i++) lay[(wd0+i)%7]=dayKey(old[i]);
+        g.prevDays=ffPlayDaysNow().slice(); g.prevOff=ffOffDaysNow().slice(); g.prevLayout=lay; g.arrangeWeek=wk+1;
+      }
+    }
+    g.arrangeV=FF_ARRANGE_V; gdSave(g);
   }
   // The play days in force for THIS week: a change made after the week already
   // has logged work waits for next week, so nothing done today jumps around.

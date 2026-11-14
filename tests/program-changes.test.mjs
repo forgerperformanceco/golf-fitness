@@ -212,3 +212,23 @@ test("round-aware note: leg day before or on a play day suggests the open upper 
   assert.match(note, /ffAccess\(\)==="full"/, "never offers a future day in the free week");
   assert.match(fn(HOME, "nextUpCard"), /ffPullCapHtml\(d\)\+ffRoundNote\(d, wk\)/);
 });
+
+test("round-aware note: the back day before a round gets a note too, and the swap-in is never the back day", () => {
+  const days = [{ name: "Day 2 — Upper (Push)", type: "lift" }, { name: "Day 5 — Upper (Pull + Rotate)", type: "lift" },
+    { name: "Day 1 — Lower (Quads)", type: "lift" }, { name: "Rest / Play 18", type: "rest" }];
+  const run = (today, done = {}) => {
+    const ctx = { Date, stripDays: () => days, ffAccess: () => "full", getSession: (w, n) => (done[n] ? { finishedAt: 1 } : null),
+      sessionSkipped: () => false, escAttr: (x) => x, ffEsc: (x) => x,
+      ffPlaysOn: (d) => d.getDate() !== new Date().getDate() };   // a round tomorrow, not today
+    vm.runInNewContext(fn(LOGGER, "ffBackRotate") + "\n" + fn(HOME, "ffRoundNote"), ctx);
+    return ctx.ffRoundNote(days.find((d) => d.name === today), 3);
+  };
+  const pull = run("Day 5 — Upper (Pull + Rotate)");
+  assert.match(pull, /Playing tomorrow\?/);
+  assert.match(pull, /back and rotation work today can leave your turn stiff/i);
+  assert.match(pull, /data-startplayer="Day 2 — Upper \(Push\)"/, "offers the push day instead");
+  const legs = run("Day 1 — Lower (Quads)", { "Day 2 — Upper (Push)": true });
+  assert.doesNotMatch(legs, /data-startplayer="Day 5/, "the back day is never the swap-in before a round");
+  assert.match(legs, /stop 2–3 reps short/);
+  assert.equal(run("Day 2 — Upper (Push)"), "", "the push day needs no note");
+});

@@ -53,6 +53,7 @@
       var cur=s[j], nx=s[(j+1)%7];
       if(ffHeavyLegs(cur) && ffHeavyLegs(nx)) warn=" Heads up: that puts legs on back-to-back days.";
       else if(ffHeavyLegs(cur) && play.indexOf((wd0+j+1)%7)!==-1) warn=" Heads up: heavy legs the day before a round.";
+      else if(ffBackRotate(cur) && play.indexOf((wd0+j+1)%7)!==-1) warn=" Heads up: back and rotation work the day before a round.";
     }
     if(da.type!=="rest" && db.type!=="rest")
       msg="Swapped "+wsShort(da)+" ("+FF_WD[(wd0+b)%7]+") and "+wsShort(db)+" ("+FF_WD[(wd0+a)%7]+"). Your week keeps this order."+warn;
