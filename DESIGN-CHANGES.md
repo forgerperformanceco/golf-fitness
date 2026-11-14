@@ -1,5 +1,53 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## No back day the day before a round (Nov 14, 2026)
+
+The owner said: "I don't like back day on Friday because I want to golf on Saturday and Sunday and
+that gets me in trouble."
+
+The weekly arrangement already kept heavy legs off the day before a play day, but Pull + Rotate was
+fair game. That day is weighted pull-ups, rows and cable rotations, so the lats, mid-back and trunk
+rotators that drive the turn come out of it stiff. For a golfer with a sore low back, the day
+before a round is the wrong place for it.
+
+- **The rule (040 `ffBackRotate` + `ffArrangeWeek`):**
+  - The Pull + Rotate day costs 6 when it sits the day before a play day. Heavy legs cost 10, so
+    legs still win when a week is overbooked.
+  - Example: a 5-day plan whose week starts Sunday, with golf on Sat + Sun, now runs Mon Speed ·
+    Tue Hinge · Wed Pull · Thu Quads · Fri Push. Before this it put Pull on Friday.
+  - One combination can't clear both "day befores" while the plan's order holds: a 5-day plan with
+    rounds on Tue + Fri. Legs win there, and the back day takes one of them.
+- **Hold-and-drag (042):** dropping the back day before a round is allowed but flagged: "Heads up:
+  back and rotation work the day before a round."
+- **Home's round note (075 `ffRoundNote`):**
+  - It now covers the back day: "Back and rotation work today can leave your turn stiff on the
+    course", with a one-tap swap to the push day, or "keep the pulls and rotations 2–3 reps short
+    of hard".
+  - The swap-in offered before a round is never the back day.
+- **No mid-week reshuffle (`FF_BACK_RULE_FROM`):** the rule applies to plan weeks that start on or
+  after Nov 15, 2026, so a week already under way when this shipped keeps the layout it was shown.
+  - It's decided from the plan's own dates, with no stored marker, so every device agrees whatever
+    order cloud sync lands in.
+  - The first version used a boot-time cutover marker (`ff_gameday.arrangeV`). Codex (P1, #134)
+    showed it could be set before the cloud merge brought in this week's logged work, then skip the
+    freeze for good.
+- **Verified:**
+  - New tests in `tests/season-schedule-health.test.mjs` (3) and `tests/program-changes.test.mjs`
+    (1), all failing without the change, cover:
+    - no back day before a round for 4/5-day plans × every start weekday × five play-day patterns
+      (the Tue + Fri 5-day case asserts legs only);
+    - the owner's week;
+    - the drag warning;
+    - the start date: the week of Nov 8 keeps the old layout, and from the week of Nov 15 on the
+      new rule applies, with no stored marker or boot hook;
+    - the Home note's copy and its swap-in.
+  - Suite 314/314.
+  - A Playwright e2e on the owner's setup passes in light and dark, with zero page errors.
+    - In the week of Nov 15, Friday is Push and Sat/Sun are rest.
+    - The week of Nov 8 keeps Pull on Friday, as it was shown.
+  - Audits: train 18/18, scroll 16/16, contrast clean, type 1 known. The release gate, claims-lint
+    and data contract are clean.
+
 ## Train: one view — the "Full week" view is retired (Nov 13, 2026)
 
 The owner: "I'm not sure I like the full week view. Idk the purpose." Full week was the original plan

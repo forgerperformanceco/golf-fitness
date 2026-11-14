@@ -159,7 +159,8 @@
   /* Arrange the week around rounds. With play days set (Train › Plan settings,
      ff_gameday.days), the training days move so rounds land on rest days and a
      heavy-legs day never sits the day before a round (muscle-damaging leg work
-     dents power for ~1–2 days — Byrne 2004). The plan's ORDER is kept (only
+     dents power for ~1–2 days — Byrne 2004) — nor the back + rotation day (Nov 2026,
+     ffBackRotate). The plan's ORDER is kept (only
      the starting point rotates), as is spacing where possible: back-to-back
      training days and two leg days in a row cost points. Deterministic, and
      the same every week (weekdays repeat), so it only moves when play days
@@ -168,9 +169,19 @@
      block a slot like a round does (without the legs-before-a-round rule), and
      outrank rounds when the week is overbooked. */
   function ffHeavyLegs(d){ return !!d && d.type!=="rest" && d.type!=="speed" && /Lower|Squat|Hinge|Quads|Full Body/.test(d.name); }
+  // The back + rotation day (Upper (Pull + Rotate): weighted pull-ups, rows, cable
+  // rotations). Lats, mid-back and the trunk rotators drive the turn, and a hard pull
+  // day leaves them stiff for a day or two (owner, Nov 2026: back day on Friday before
+  // weekend golf "gets me in trouble"). Like heavy legs, never the day before a round.
+  function ffBackRotate(d){ return !!d && d.type!=="rest" && d.type!=="speed" && /Pull/.test(d.name) && !/Lower|Squat|Hinge|Quads|Full Body/.test(d.name); }
+  // The back-day rule applies to plan weeks that START on or after its release, so a week
+  // already under way never reshuffles. Decided from the plan's own dates rather than a
+  // stored marker, so every device agrees whatever order cloud sync lands in (Codex, #134).
+  var FF_BACK_RULE_FROM=new Date(2026,10,15).getTime();
   function ffArrangeWeek(ds){
     var play=ffPlayDaysNow(), off=ffOffDaysNow(); if(!play.length && !off.length) return ds;
     var ws=weekStartDate(); if(!ws) return ds;
+    var backRule=ws.getTime()>=FF_BACK_RULE_FROM;
     var wd0=ws.getDay(), isPlay=function(i){ return play.indexOf((wd0+i)%7)!==-1; },
       isOff=function(i){ return off.indexOf((wd0+i)%7)!==-1; };
     var train=ds.filter(function(d){ return d.type!=="rest"; }), rests=ds.filter(function(d){ return d.type==="rest"; });
@@ -192,6 +203,7 @@
           // workout lands on a round day before it ever lands on a day off.
           if(d && isOff(i)) sc+=1000; else if(d && isPlay(i)) sc+=100;
           if(ffHeavyLegs(d) && isPlay((i+1)%7)) sc+=10;            // no heavy legs the day before
+          if(backRule && ffBackRotate(d) && isPlay((i+1)%7)) sc+=6; // …nor the back + rotation day (legs win if overbooked)
           if(d && nx) sc+=1;                                        // spacing (wraps into next week)
           if(ffHeavyLegs(d) && ffHeavyLegs(nx)) sc+=3;              // never two leg days in a row
           if(!!d!==authored[i]) sc+=0.1;                            // stay close to the authored week
