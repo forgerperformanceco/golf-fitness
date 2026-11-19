@@ -2200,17 +2200,21 @@
   .pl-set{ background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.09); border-radius:16px; padding:10px 12px; }
   .pl-set.done{ border-color:#2f9e5d; background:rgba(47,158,93,.14); }
   .pl-set-head{ display:flex; justify-content:space-between; font-size:12px; color:#9fc4ac; margin-bottom:7px; font-weight:700; }
-  .pl-set-row{ display:flex; align-items:center; gap:8px; }
-  .pl-stp{ flex:1.25; display:flex; align-items:center; gap:5px; background:rgba(0,0,0,.22); border-radius:12px; padding:2px; }
+  /* Room for the numbers (Nov 2026): at 390px the reps box was 24px wide and clipped even
+     "6". Slimmer steppers (36px wide, still 44px tall) + a 46px check give a 3-digit weight
+     and 2-digit reps their full width down to 375px. */
+  .pl-set-row{ display:flex; align-items:center; gap:6px; }
+  .pl-stp{ flex:1.15; display:flex; align-items:center; gap:2px; background:rgba(0,0,0,.22); border-radius:12px; padding:2px; }
   .pl-bw{ flex:1.25; display:flex; align-items:center; justify-content:center; height:48px; background:rgba(0,0,0,.22); border-radius:12px; font-size:13px; font-weight:800; letter-spacing:.08em; color:#9fc4ac; }
   .pl-stp.reps{ flex:1; }
-  .pl-stp button{ width:40px; height:44px; border-radius:10px; border:0; background:rgba(255,255,255,.1); color:#fff;
+  .pl-stp button{ width:36px; height:44px; border-radius:10px; border:0; background:rgba(255,255,255,.1); color:#fff;
     font-size:19px; font-weight:800; cursor:pointer; flex:0 0 auto; }
   .pl-stp button:active{ background:rgba(255,255,255,.22); }
-  .pl-stp input{ flex:1; min-width:0; width:100%; text-align:center; font-size:20px; font-weight:800; background:transparent;
+  .pl-stp input{ flex:1; min-width:0; width:100%; text-align:center; font-size:19px; font-weight:800; background:transparent;
     border:0; color:#fff; padding:6px 0; outline:none; }
-  .pl-check{ width:52px; height:48px; border-radius:12px; border:0; background:rgba(255,255,255,.12); color:#fff;
+  .pl-check{ width:46px; height:48px; border-radius:12px; border:0; background:rgba(255,255,255,.12); color:#fff;
     font-size:19px; cursor:pointer; flex:0 0 auto; }
+  @media (max-width:370px){ .pl-stp button{ width:32px; } .pl-stp input{ font-size:18px; } }
   .pl-check.on{ background:#2f9e5d; }
   .pl-plates{ margin-top:7px; font-size:13px; color:#9fc4ac; }
   .pl-list{ display:flex; flex-direction:column; gap:9px; margin-top:12px; }

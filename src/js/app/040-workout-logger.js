@@ -599,6 +599,15 @@
     document.body.style.overflow="hidden";
   }
   function closeLogger(){ $("logModal").classList.remove("open"); $("logModal").setAttribute("aria-hidden","true"); $("logModal").hidden=true; document.body.style.overflow=""; logState=null; renderPhase(); }
+  // The logger window's dim numbers for an empty set — and what ✓ saves if it's left
+  // untouched (Nov 2026): today's dosed load from last time's set, last reps (today's
+  // when the rep target changed). Never invents a number; bodyweight has no weight.
+  function logGhost(x, lx, si, week, s){
+    var ls=lx && lx.sets && lx.sets[si], sh=repsShifted(lx, x), w="";
+    if(ls && ls.w){ var d=ffDose(ls.w, x, lx, week, s).w; w=String(d!=null ? d : ls.w); }
+    var r=(ls && ls.r && !sh) ? String(ls.r) : ((isDistEx(x.target) || sh) ? repSeed(x.target) : "");
+    return { w:isBodyweightEx(x.name) ? "" : w, r:r };
+  }
   function renderLogBody(){
     var s=logState.sess, week=logState.week, day=logState.day;
     var last=lastSessionFor(day, week), html="", wv=waveFor(week);
@@ -637,10 +646,8 @@
       html+='<div class="logx"><div class="logx-name">'+ffEsc(x.name)+'</div><div class="logx-target">Target: '+ffEsc(x.target)+'</div>'+ref+
         '<div class="setlabels"><div>Set</div><div>'+(bw?"Load":"Weight")+'</div><div>'+(dist?"Yards":"Reps")+'</div><div></div></div>';
       x.sets.forEach(function(st, si){
-        var lsW = (lx && lx.sets[si] && lx.sets[si].w) ? lx.sets[si].w : "–";
-        var sw = (lsW!=="–") ? ffDose(lsW, x, lx, week, s).w : null;   // prescribed load leads the placeholder
-        if(sw!=null) lsW=String(sw);
-        var lsR = (lx && lx.sets[si] && lx.sets[si].r && !repsShifted(lx, x)) ? lx.sets[si].r : ((dist || repsShifted(lx, x)) ? repSeed(x.target) : "–");
+        var g=logGhost(x, lx, si, week, s);   // the dim numbers — and what ✓ saves if untouched
+        var lsW=g.w||"–", lsR=g.r||"–";
         html+='<div class="setrow'+(st.done?" is-done":"")+'">'+
           '<div class="snum">'+(si+1)+'</div>'+
           (bw ? '<div class="setbw" aria-label="bodyweight">BW</div>'
@@ -668,7 +675,17 @@
   });
   $("logBody").addEventListener("click", function(e){
     var dn=e.target.closest("[data-done]");
-    if(dn){ var st=logState.sess.ex[+dn.getAttribute("data-x")].sets[+dn.getAttribute("data-s")]; st.done=!st.done; saveLog(); renderLogBody(); return; }
+    if(dn){
+      var dxi=+dn.getAttribute("data-x"), dsi=+dn.getAttribute("data-s"), dx=logState.sess.ex[dxi], st=dx.sets[dsi];
+      st.done=!st.done;
+      if(st.done){   // ticked untouched → save the numbers it was showing, so it logs
+        var dls=lastSessionFor(logState.day, logState.week), dlx=null;
+        if(dls) dls.ex.forEach(function(e2){ if(e2.name===dx.name) dlx=e2; });
+        var g=logGhost(dx, dlx, dsi, logState.week, logState.sess);
+        if(!st.w && g.w) st.w=g.w;
+        if(!st.r && g.r) st.r=g.r;
+      }
+      saveLog(); renderLogBody(); return; }
     var ad=e.target.closest("[data-add]");
     if(ad){ logState.sess.ex[+ad.getAttribute("data-x")].sets.push({w:"",r:"",done:false}); saveLog(); renderLogBody(); return; }
     var fl=e.target.closest("[data-fill]");
