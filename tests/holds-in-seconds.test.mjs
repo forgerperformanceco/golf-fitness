@@ -21,7 +21,7 @@ function fn(source, name) {
   }
   throw new Error(`Could not extract ${name}`);
 }
-const UNITS = [[PLAN, ["isBodyweightEx", "isTimeEx", "isHoldEx", "isTimedEx", "holdTarget", "plainReps", "slDoneText"]],
+const UNITS = [[PLAN, ["isBodyweightEx", "isTimeEx", "isHoldEx", "isTimedEx", "holdPerSide", "holdTarget", "plainReps", "slDoneText"]],
   [LOGGER, ["isDistEx", "repWord", "repsText", "repsShifted", "topReps", "repSeed"]]];
 function load(extra = {}, more = []) {
   const ctx = { ...extra };
@@ -121,4 +121,46 @@ test("the player: seconds step by 5, hold copy (not jump copy), and Dead Hang's 
   assert.ok(!f.cues.some((c) => /walk|handles/i.test(c)), "no carry cues on a hang");
   assert.doesNotMatch(w.cue, /handle/); assert.match(w.cue, /Step down a second before the grip goes/);
   assert.match(ctx.form("Farmer Carry").cues.join(" "), /walk with control/, "the carry keeps its cues");
+});
+
+// ---- Codex #136 ----
+const E1RM = fn(PLAYER, "e1RM");
+test("Codex #136: a timed hold's seconds never count as reps in lb moved or an e1RM", () => {
+  const sess = { date: "2026-11-19", ex: [
+    { name: "Plate Pinch", target: "3 × 30 s", sets: [{ w: "25", r: "30", done: true }, { w: "25", r: "30", done: true }] },
+    { name: "Deadlift", target: "4 × 4", sets: [{ w: "200", r: "4", done: true }] }] };
+  let saved = null;
+  const H = load({ lsGet: () => [], lsSet: (k, v) => { saved = v; }, todayStr: () => "2026-11-19" }, [fn(HIST, "pushHistory")]);
+  H.pushHistory(3, "Day 4", sess);
+  assert.equal(saved[0].volume, 800, "only the deadlift's 200 × 4 — not 25 lb × 30 s");
+  assert.equal(saved[0].sets, 3, "the hold's sets still count as sets");
+  const X = load({ lsGet: (k) => (k === "ff_history" ? [{ week: 3, day: "Day 4", date: "2026-11-19", ex: sess.ex }] : []), getLog: () => ({}) },
+    [E1RM, fn(HIST, "exHistData")]);
+  const pinch = X.exHistData("Plate Pinch")[0], dl = X.exHistData("Deadlift")[0];
+  assert.equal(pinch.e1, 0, "no e1RM for a hold"); assert.equal(pinch.vol, 0); assert.equal(pinch.topW, 25, "its heaviest weight still shows");
+  assert.ok(dl.e1 > 200 && dl.vol === 800, "lifts unchanged");
+  // The player's recap + share card and the coach snapshot read the same rule.
+  const recap = PLAYER.slice(PLAYER.indexOf("// recap"), PLAYER.indexOf("if(top>0){", PLAYER.indexOf("// recap")));
+  assert.match(recap, /tm=isTimedEx\(x\)/); assert.match(recap, /if\(!tm && w>0&&r>0\)\{ vol\+=w\*r;/);
+  assert.match(fn(PLAYER, "plShare"), /tm=isTimedEx\(x\)[\s\S]*if\(!tm && w>0&&r>0\)\{ vol\+=w\*r;/);
+  assert.match(src("076-brain-intelligence.js"), /var e=tm \? w\+r\/1000 : \(w\?e1RM\(w,r\):r\/100\);/);
+});
+
+test("Codex #136: a hold added mid-workout gets its seconds target", () => {
+  const E = load({}, [fn(HIST, "ffAddTarget")]);
+  assert.equal(E.ffAddTarget("Plank"), "3 × 30 s");
+  assert.equal(E.ffAddTarget("Side Plank"), "3 × 30 s / side");
+  assert.equal(E.ffAddTarget("Dead Hang"), "3 × 30 s");
+  assert.equal(E.ffAddTarget("DB Curl"), "3 × 10", "lifts keep the add-a-lift default");
+  const add = fn(HIST, "addLiftChoice");
+  assert.equal((add.match(/target:ffAddTarget\(name\)/g) || []).length, 2, "player and inline logger both");
+  assert.doesNotMatch(add, /target:"3 × 10"/);
+});
+
+test("Codex #136: swapping one hold for another fixes the per-side dose", () => {
+  const W = load({ findDay: () => null, effTarget: (t) => t }, [fn(HIST, "ffSwapTarget")]);
+  assert.equal(W.ffSwapTarget("3 × 30 s / side", "Pallof Press", "Hollow Hold", "Day 4", 3), "3 × 30 s", "Side Plank → Hollow Hold drops / side");
+  assert.equal(W.ffSwapTarget("2 × 30 s", "Pallof Press", "Side Plank", "Day 4", 3), "2 × 30 s / side", "Hollow Hold → Side Plank adds it, set count kept");
+  assert.equal(W.ffSwapTarget("3 × 30 s", "Anti-rotation Cable Hold", "Dead Hang", "Day 4", 3), "3 × 30 s");
+  assert.equal(W.ffSwapTarget("3 × 30 s / side", "Pallof Press", "Copenhagen Plank", "Day 4", 3), "3 × 30 s / side");
 });

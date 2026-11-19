@@ -706,9 +706,10 @@
   function isTimedEx(x){ return !!x && (isHoldEx(x.name) || isTimeEx(x.target)); }
   // 30 s a set — the dose the gear subs already use for holds ("3 × 30 s"); planks
   // done one side at a time keep "/ side".
+  function holdPerSide(n){ return /Side Plank|Copenhagen/i.test(n||""); }
   function holdTarget(sr, name){
     var m=String(sr||"").match(/^\s*(\d+)\s*[\u00d7x]/);
-    return (m?m[1]:"3")+" \u00d7 30 s"+(/Side Plank|Copenhagen/i.test(name||"")?" / side":"");
+    return (m?m[1]:"3")+" \u00d7 30 s"+(holdPerSide(name)?" / side":"");
   }
   // Build vs Retain: derived from the macro goal. Build = full volume (gaining).
   // Retain = trim ONE set off hypertrophy accessories (💪 only) to fit lower recovery

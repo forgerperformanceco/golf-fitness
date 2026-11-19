@@ -11,7 +11,7 @@
       h.ex.forEach(function(x){ if(x.name===name && x.sets && x.sets.length) hit=x; });
       if(!hit) return;
       seen[(h.week||"")+"|"+(h.day||"")]=true;
-      out.push({ ts:h.doneTs||h.ts||0, date:h.date||"", week:h.week, sets:hit.sets, note:h.note||"" });   // doneTs = real finish time
+      out.push({ ts:h.doneTs||h.ts||0, date:h.date||"", week:h.week, sets:hit.sets, note:h.note||"", timed:isTimedEx(hit) });   // doneTs = real finish time
     });
     var L=getLog();
     Object.keys(L).forEach(function(k){
@@ -22,13 +22,14 @@
         var sets=(x.sets||[]).filter(function(st){ return st.w||st.r; });
         if(!sets.length) return;
         out.push({ ts:new Date(sess.date||0).getTime()||0, date:sess.date||("Week "+w), week:w,
-          sets:sets, note:sess.note||"", live:!sess.finishedAt });
+          sets:sets, note:sess.note||"", live:!sess.finishedAt, timed:isTimedEx(x) });
       });
     });
     out.forEach(function(en){
       var top=0, topW=0, vol=0;
       en.sets.forEach(function(st){ var wv=parseFloat(st.w), r=parseFloat(st.r);
-        if(wv>0 && r>0){ vol+=wv*r; var e=e1RM(wv,r); if(e>top) top=e; }
+        // A hold's second number is seconds, not reps: no e1RM, no lb moved (Codex, #136).
+        if(wv>0 && r>0 && !en.timed){ vol+=wv*r; var e=e1RM(wv,r); if(e>top) top=e; }
         if(wv>topW) topW=wv; });
       en.e1=top; en.topW=topW; en.vol=vol;
     });
@@ -169,15 +170,17 @@
     var m=$("swapModal"); m.hidden=false; document.body.style.overflow="hidden";
   }
   var addFromPlayer=false;
+  // A lift added mid-workout starts at 3 × 10; a hang or hold at 30 s a set.
+  function ffAddTarget(name){ return isHoldEx(name) ? holdTarget("3 \u00d7 10", name) : "3 \u00d7 10"; }
   function addLiftChoice(name){
     if(addFromPlayer && player){
-      player.sess.ex.push({ name:name, orig:name, target:"3 × 10", sets:[{w:"",r:"",done:false},{w:"",r:"",done:false},{w:"",r:"",done:false}] });
+      player.sess.ex.push({ name:name, orig:name, target:ffAddTarget(name), sets:[{w:"",r:"",done:false},{w:"",r:"",done:false},{w:"",r:"",done:false}] });
       var nxi=player.sess.ex.length-1;
       player.stations.splice(player.stations.length-1, 0, { type:"lift", xi:nxi });
       player.st=player.stations.length-2;   // land on the new lift, recap stays last
       plSave(); plRender();
     } else if(ilog){
-      ilog.sess.ex.push({ name:name, orig:name, target:"3 × 10", sets:[{w:"",r:"",done:false},{w:"",r:"",done:false},{w:"",r:"",done:false}] });
+      ilog.sess.ex.push({ name:name, orig:name, target:ffAddTarget(name), sets:[{w:"",r:"",done:false},{w:"",r:"",done:false},{w:"",r:"",done:false}] });
       saveILog(); renderILog();
     }
     closeSwap();
@@ -233,9 +236,9 @@
   function pushHistory(week, day, sess){
     var hist=lsGet("ff_history", []); if(!Array.isArray(hist)) hist=[];
     var date=sess.date||todayStr(), id=date+" · "+day, vol=0, setCount=0;
-    (sess.ex||[]).forEach(function(x){ (x.sets||[]).forEach(function(s){
+    (sess.ex||[]).forEach(function(x){ var tm=isTimedEx(x); (x.sets||[]).forEach(function(s){
       if(s.w||s.r||s.done) setCount++;
-      var w=parseFloat(s.w), r=parseFloat(s.r); if(w>0&&r>0) vol+=w*r; }); });
+      var w=parseFloat(s.w), r=parseFloat(s.r); if(!tm && w>0&&r>0) vol+=w*r; }); });   // a hold's seconds aren't reps
     var idx=-1; for(var k=0;k<hist.length;k++){ if(hist[k] && hist[k].id===id){ idx=k; break; } }
     // ts = last write (sync merge + tombstones compare it); doneTs = the ORIGINAL
     // finish time, kept across re-saves so week counts / strips / history order
@@ -300,7 +303,12 @@
   // the new lift. The session's set count stays (it may carry a readiness trim).
   function ffSwapTarget(t, orig, chosen, dayName, week){
     t=String(t||"");
-    if(isHoldEx(chosen)) return isTimeEx(t) ? t : holdTarget(t, chosen);
+    if(isHoldEx(chosen)){
+      if(!isTimeEx(t)) return holdTarget(t, chosen);
+      // hold → hold: keep the seconds and set count, fix the per-side dose (Codex, #136)
+      var one=t.replace(/\s*\/\s*side\b/i, "");
+      return holdPerSide(chosen) ? one+" / side" : one;
+    }
     if(!isTimeEx(t)) return t;
     var d=findDay(dayName), row=d && (d.ex||[]).filter(function(r){ return r[0]===orig; })[0];
     if(!row || isTimeEx(row[1])) return t;

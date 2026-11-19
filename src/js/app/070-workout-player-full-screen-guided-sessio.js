@@ -293,9 +293,9 @@
     // recap
     var done=0, vol=0, prs=[], firsts=[];
     player.sess.ex.forEach(function(x){
-      var top=0;
+      var top=0, tm=isTimedEx(x);   // a hold's seconds aren't reps: no lb moved, no PR
       (x.sets||[]).forEach(function(s){ if(s.w||s.r||s.done) done++;
-        var w=parseFloat(s.w), r=parseFloat(s.r); if(w>0&&r>0){ vol+=w*r; top=Math.max(top, e1RM(w,r)); } });
+        var w=parseFloat(s.w), r=parseFloat(s.r); if(!tm && w>0&&r>0){ vol+=w*r; top=Math.max(top, e1RM(w,r)); } });
       if(top>0){
         var pb=player.prevBest[x.name];
         if(pb!=null && top>pb+0.5) prs.push({ name:x.name, e1:Math.round(top) });
@@ -391,8 +391,8 @@
   function plShare(){
     if(!player) return;
     var vol=0, prs=[];
-    player.sess.ex.forEach(function(x){ var top=0;
-      (x.sets||[]).forEach(function(s){ var w=parseFloat(s.w), r=parseFloat(s.r); if(w>0&&r>0){ vol+=w*r; top=Math.max(top, e1RM(w,r)); } });
+    player.sess.ex.forEach(function(x){ var top=0, tm=isTimedEx(x);
+      (x.sets||[]).forEach(function(s){ var w=parseFloat(s.w), r=parseFloat(s.r); if(!tm && w>0&&r>0){ vol+=w*r; top=Math.max(top, e1RM(w,r)); } });
       var pb=player.prevBest[x.name];
       if(top>0 && pb!=null && top>pb+0.5) prs.push(x.name+" e1RM "+Math.round(top)+" lb");
     });

@@ -32,17 +32,29 @@ Any hold swapped into a rep slot (a Plank for the Pallof Press) read reps the sa
   - A session saved before this fix reads its hold in seconds on open (`buildSession`).
   - A swap mid-session changes the target only when the unit changes (`ffSwapTarget`, 050). Into a
     hold → seconds. Back out → the slot's own target for the new lift, with the set count kept.
+- **Codex #136 fixes:**
+  - **Seconds aren't reps.** A loaded hold (Plate Pinch, Weighted Plank, cable holds) is left out
+    of "lb moved" (the history entry, the recap, the share card) and of the e1RM in its lift
+    history, so 25 lb for 30 s no longer records 750 lb or a 50 lb e1RM. Its sets still count, and
+    the coach snapshot ranks a hold's sets by weight, then seconds.
+  - **Adding a hold mid-workout** gives 30 s a set (`ffAddTarget`), not "3 × 10".
+  - **Swapping one hold for another** keeps the seconds and set count and fixes "/ side"
+    (`holdPerSide`): a Side Plank's "/ side" is dropped for a Hollow Hold and added back for a
+    Side Plank.
 - **Verified:**
-  - `tests/holds-in-seconds.test.mjs` (6 tests, all failing without the change) covers the
-    classification, target, units, ghosts, saved session, swap and cues.
-  - The test sandboxes that load `effTarget`, the ghosts or the brain snapshot now load the new
-    helpers. Suite 323/323.
+  - `tests/holds-in-seconds.test.mjs` has 9 tests: 6 for the change and 3 that reproduce the Codex
+    findings. All 9 fail without the fixes; the history test, for example, gave 2300 lb where 800
+    is right. They cover the classification, target, units, ghosts, saved session, swaps, cues,
+    lb moved / e1RM and add-a-lift.
+  - The test sandboxes that load `effTarget`, the ghosts, `pushHistory` or the brain snapshot now
+    load the new helpers. Suite 326/326.
   - A Playwright e2e in light and dark, with Farmer Carry swapped to Dead Hang, passes with zero
     page errors and no horizontal overflow:
     - "3 × 30 s", steady hold, hold copy;
     - BW chip, no weight box, ghost 30;
     - ＋ → 35;
     - ✓ saves 35 s, and set 2 untouched carries 35;
+    - a Plank added mid-workout reads "3 × 30 s" and ghosts 30;
     - buttons ≥44px.
   - The build without this fix fails the same run: "3 × 40 yd", a weight box, ＋ → 41.
   - Audits: train 18/18, scroll 16/16, contrast clean, type 1 known. The release gate passed and

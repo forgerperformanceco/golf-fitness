@@ -64,7 +64,7 @@ test("the rating survives a plan restart: permanent history keeps it", () => {
   const store = { ff_history: [] }, ctx = {
     lsGet: (k, d) => store[k] ?? d, lsSet: (k, v) => { store[k] = v; }, todayStr: () => "Nov 11, 2026",
   };
-  vm.runInNewContext(fn(HIST, "pushHistory"), ctx);
+  vm.runInNewContext(["isTimedEx", "isHoldEx", "isTimeEx"].map((n) => fn(PLAN, n)).concat(fn(HIST, "pushHistory")).join("\n"), ctx);
   ctx.pushHistory(2, "Day 4", { date: "Nov 11, 2026", ex: [{ name: "Deadlift", target: "4 × 4", feel: "grind", sets: [{ w: "225", r: "4", done: true }] },
     { name: "Hip Thrust", target: "4 × 8", sets: [{ w: "185", r: "8", done: true }] }] });
   const ex = store.ff_history[0].ex;
