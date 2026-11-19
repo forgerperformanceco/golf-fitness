@@ -11,7 +11,7 @@
       h.ex.forEach(function(x){ if(x.name===name && x.sets && x.sets.length) hit=x; });
       if(!hit) return;
       seen[(h.week||"")+"|"+(h.day||"")]=true;
-      out.push({ ts:h.doneTs||h.ts||0, date:h.date||"", week:h.week, sets:hit.sets, note:h.note||"" });   // doneTs = real finish time
+      out.push({ ts:h.doneTs||h.ts||0, date:h.date||"", week:h.week, sets:hit.sets, note:h.note||"", timed:isTimedEx(hit) });   // doneTs = real finish time
     });
     var L=getLog();
     Object.keys(L).forEach(function(k){
@@ -22,13 +22,14 @@
         var sets=(x.sets||[]).filter(function(st){ return st.w||st.r; });
         if(!sets.length) return;
         out.push({ ts:new Date(sess.date||0).getTime()||0, date:sess.date||("Week "+w), week:w,
-          sets:sets, note:sess.note||"", live:!sess.finishedAt });
+          sets:sets, note:sess.note||"", live:!sess.finishedAt, timed:isTimedEx(x) });
       });
     });
     out.forEach(function(en){
       var top=0, topW=0, vol=0;
       en.sets.forEach(function(st){ var wv=parseFloat(st.w), r=parseFloat(st.r);
-        if(wv>0 && r>0){ vol+=wv*r; var e=e1RM(wv,r); if(e>top) top=e; }
+        // A hold's second number is seconds, not reps: no e1RM, no lb moved (Codex, #136).
+        if(wv>0 && r>0 && !en.timed){ vol+=wv*r; var e=e1RM(wv,r); if(e>top) top=e; }
         if(wv>topW) topW=wv; });
       en.e1=top; en.topW=topW; en.vol=vol;
     });
@@ -169,15 +170,17 @@
     var m=$("swapModal"); m.hidden=false; document.body.style.overflow="hidden";
   }
   var addFromPlayer=false;
+  // A lift added mid-workout starts at 3 × 10; a hang or hold at 30 s a set.
+  function ffAddTarget(name){ return isHoldEx(name) ? holdTarget("3 \u00d7 10", name) : "3 \u00d7 10"; }
   function addLiftChoice(name){
     if(addFromPlayer && player){
-      player.sess.ex.push({ name:name, orig:name, target:"3 × 10", sets:[{w:"",r:"",done:false},{w:"",r:"",done:false},{w:"",r:"",done:false}] });
+      player.sess.ex.push({ name:name, orig:name, target:ffAddTarget(name), sets:[{w:"",r:"",done:false},{w:"",r:"",done:false},{w:"",r:"",done:false}] });
       var nxi=player.sess.ex.length-1;
       player.stations.splice(player.stations.length-1, 0, { type:"lift", xi:nxi });
       player.st=player.stations.length-2;   // land on the new lift, recap stays last
       plSave(); plRender();
     } else if(ilog){
-      ilog.sess.ex.push({ name:name, orig:name, target:"3 × 10", sets:[{w:"",r:"",done:false},{w:"",r:"",done:false},{w:"",r:"",done:false}] });
+      ilog.sess.ex.push({ name:name, orig:name, target:ffAddTarget(name), sets:[{w:"",r:"",done:false},{w:"",r:"",done:false},{w:"",r:"",done:false}] });
       saveILog(); renderILog();
     }
     closeSwap();
@@ -233,9 +236,9 @@
   function pushHistory(week, day, sess){
     var hist=lsGet("ff_history", []); if(!Array.isArray(hist)) hist=[];
     var date=sess.date||todayStr(), id=date+" · "+day, vol=0, setCount=0;
-    (sess.ex||[]).forEach(function(x){ (x.sets||[]).forEach(function(s){
+    (sess.ex||[]).forEach(function(x){ var tm=isTimedEx(x); (x.sets||[]).forEach(function(s){
       if(s.w||s.r||s.done) setCount++;
-      var w=parseFloat(s.w), r=parseFloat(s.r); if(w>0&&r>0) vol+=w*r; }); });
+      var w=parseFloat(s.w), r=parseFloat(s.r); if(!tm && w>0&&r>0) vol+=w*r; }); });   // a hold's seconds aren't reps
     var idx=-1; for(var k=0;k<hist.length;k++){ if(hist[k] && hist[k].id===id){ idx=k; break; } }
     // ts = last write (sync merge + tombstones compare it); doneTs = the ORIGINAL
     // finish time, kept across re-saves so week counts / strips / history order
@@ -277,7 +280,7 @@
     return hist.map(function(h){
       var nm=String(h.day||"").replace(/Days? [\d–-]+ — /,"").replace(/Day \d+ — /,"");
       var detail=(h.ex||[]).filter(function(x){ return x.sets && x.sets.length; }).map(function(x){
-        var sets=x.sets.map(function(s){ return (s.w&&s.r)?(s.w+'×'+s.r):(s.w?s.w+' lb':(s.r?s.r+' reps':'✓')); }).join('  ·  ');
+        var sets=x.sets.map(function(s){ return (s.w&&s.r)?(s.w+'×'+s.r+(isTimedEx(x)?' s':'')):(s.w?s.w+' lb':(s.r?repsText(s.r, x):'✓')); }).join('  ·  ');
         return '<div class="hist-ex"><span class="hex-name">'+ffEsc(x.name)+'</span><span class="hex-sets">'+ffEsc(sets)+'</span></div>';
       }).join("") || '<div class="hist-ex"><span class="hex-name" style="color:var(--muted)">No set details saved for this one.</span></div>';
       return '<div class="hist-row" data-histtoggle="'+escAttr(h.id)+'">'+
@@ -295,19 +298,40 @@
     var m=$("swapModal"); m.hidden=false; document.body.style.overflow="hidden";
   }
   var swapFromPlayer=false;
+  // A swap mid-session changes the target only when the unit changes: a hold into a
+  // rep/yard slot → seconds (holdTarget); out of a hold → the slot's own target for
+  // the new lift. The session's set count stays (it may carry a readiness trim).
+  function ffSwapTarget(t, orig, chosen, dayName, week){
+    t=String(t||"");
+    if(isHoldEx(chosen)){
+      if(!isTimeEx(t)) return holdTarget(t, chosen);
+      // hold → hold: keep the seconds and set count, fix the per-side dose (Codex, #136)
+      var one=t.replace(/\s*\/\s*side\b/i, "");
+      return holdPerSide(chosen) ? one+" / side" : one;
+    }
+    if(!isTimeEx(t)) return t;
+    var d=findDay(dayName), row=d && (d.ex||[]).filter(function(r){ return r[0]===orig; })[0];
+    if(!row || isTimeEx(row[1])) return t;
+    var n=t.match(/^\s*(\d+)/), nt=effTarget(row[1], chosen, week);
+    return n ? String(nt).replace(/^\s*\d+/, n[1]) : nt;
+  }
   function applySwapChoice(chosen){
     if(!swapCtx) return;
     setSwap(swapCtx.orig, chosen);
     if(swapFromPlayer && player && player.sess.ex[swapCtx.xi]){
       // Swapping mid-player: same-muscle replacement takes over this station,
       // sets reset (different lift, different loads), and it sticks in the plan.
-      var px=player.sess.ex[swapCtx.xi]; px.name=chosen; px.orig=swapCtx.orig;
+      var px=player.sess.ex[swapCtx.xi];
+      px.target=ffSwapTarget(px.target, swapCtx.orig, chosen, player.dayName, player.week);
+      px.name=chosen; px.orig=swapCtx.orig;
       px.sets=px.sets.map(function(){ return {w:"",r:"",done:false}; });
       plFeelReset(px);
       if(player.whyOpen) player.whyOpen[swapCtx.xi]=false;
       plSave(); plRender();
     } else if(ilog && ilog.sess.ex[swapCtx.xi]){
-      var ex=ilog.sess.ex[swapCtx.xi]; ex.name=chosen; ex.orig=swapCtx.orig;
+      var ex=ilog.sess.ex[swapCtx.xi];
+      ex.target=ffSwapTarget(ex.target, swapCtx.orig, chosen, ilog.day, ilog.week);
+      ex.name=chosen; ex.orig=swapCtx.orig;
       ex.sets=ex.sets.map(function(){ return {w:"",r:"",done:false}; });
       plFeelReset(ex);
       saveILog(); renderILog();

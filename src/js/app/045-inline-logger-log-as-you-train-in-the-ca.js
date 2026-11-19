@@ -18,7 +18,7 @@
     var ls=lx && lx.sets && lx.sets[si], pw=(ls && ls.w) ? ls.w : null, pr=(ls && ls.r) ? ls.r : null, sh=repsShifted(lx, x);
     var sug=ffDose(pw, x, lx, week, s).w;
     var w=sug!=null ? String(sug) : (pw ? String(pw) : "");
-    var r=(pr!=null && !sh) ? String(pr) : ((isDistEx(x.target) || sh) ? repSeed(x.target) : "");
+    var r=(pr!=null && !sh) ? String(pr) : ((isDistEx(x.target) || isTimeEx(x.target) || sh) ? repSeed(x.target) : "");
     return { w:isBodyweightEx(x.name) ? "" : w, r:r };
   }
   function ilogBodyHtml(){
@@ -37,7 +37,7 @@
       x.sets.forEach(function(st, si){
         tot++; if(st.done) done++;
         var pw=(lx&&lx.sets[si]&&lx.sets[si].w)?lx.sets[si].w:null, pr=(lx&&lx.sets[si]&&lx.sets[si].r)?lx.sets[si].r:null;
-        var prev = ffEsc(bw ? (pr?(pr+' reps'):'–') : (pw ? (pw+' × '+(pr||'–')) : '–'));
+        var prev = ffEsc(bw ? (pr?repsText(pr, x):'–') : (pw ? (pw+' × '+(pr ? pr+(isTimedEx(x)?' s':'') : '–')) : '–'));
         // Prescribed load leads: the weight placeholder shows what to lift TODAY
         // (deload ~60%, progression-ready last + one jump); PREVIOUS keeps the raw history.
         var g=ilGhost(x, lx, si, week, s);
@@ -68,7 +68,7 @@
           // First session back after 4+ weeks: the same ease-in line as the modal logger + player.
           ((td.back && td.band!=="recharge" && wv!=="deload") ? '<br>👋 Welcome back — ease in at about <b>'+td.w+' lb</b>. Leave 2 reps in the tank.' : '')+'</div>'+
         '<div class="il-why-box"'+(openWhy[xi]?"":" hidden")+'>'+whyHtml(x.name)+'</div>'+
-        '<div class="il-cols"><span>SET</span><span>PREVIOUS</span><span>'+(bw?'LOAD':'LBS')+'</span><span>'+repWord(x.target).toUpperCase()+'</span><span></span></div>'+
+        '<div class="il-cols"><span>SET</span><span>PREVIOUS</span><span>'+(bw?'LOAD':'LBS')+'</span><span>'+repWord(x.target, x.name).toUpperCase()+'</span><span></span></div>'+
         setsHtml+
         '<button class="il-add" data-x="'+xi+'" data-iadd="1">＋ Add set</button></div>';
     });
@@ -166,7 +166,9 @@
       return { why:"Pressing strength feeds the trail-arm extension that adds speed late in the downswing, and armors the shoulders for high swing volume.", cue:"Press explosively, control the lowering." };
     if(m(/Row|Pull.?up|\bChin|\bLat\b|Pulldown|Pull/i))
       return { why:"The lead arm pulls the club through impact, and a strong back decelerates the swing safely. Pulling adds whip on the way down and protects the shoulder on the way through.", cue:"Pull with the back, not the arms — squeeze the shoulder blade, control the return." };
-    if(m(/Carry|Farmer|Suitcase|Grip|Pinch|Dead Hang/i))
+    if(m(/Dead Hang/i))
+      return { why:"A strong grip holds the clubface steady at speed, and hanging under your own weight opens up the lats and shoulders that a full turn needs.", cue:"Hang still, shoulders gently down from the ears, and breathe. Step down a second before the grip goes." };
+    if(m(/Carry|Farmer|Suitcase|Grip|Pinch/i))
       return { why:"A stable trunk and strong grip hold the clubface steady against the forces a fast swing generates — speed you can't control isn't speed you can use.", cue:"Stand tall, brace the core, crush the handle." };
     if(m(/Leg Raise|Knee Raise|Crunch|Sit.?up|Ab Wheel|Rollout/i))
       return { why:"Your abs link the hips to the ribcage. Strong abs keep the pelvis under control, so a fast turn doesn't become a low-back arch.", cue:"Curl the pelvis up with the abs, don't swing the legs — slow on the way down." };
@@ -216,7 +218,8 @@
     if(m(/\bDip\b/i)) return { mu:"Chest · shoulders · triceps", cues:["Grip the bars, shoulders down away from the ears.","Lean slightly forward and lower until the upper arms are about level with the bars.","Press back up to straight arms.","Add weight only once bodyweight reps are easy."], miss:["Shrugging the shoulders up to the ears.","Dropping too deep — it strains the front of the shoulder.","Bouncing out of the bottom."] };
     if(m(/Bench|Push.?up|Chest(?!-?Supported)|Incline(?!.*Curl)|\bDip\b|Fly|Crossover|Pec Deck|Floor .*Press|Flat .*Press|Svend|Landmine Press|Band (Explosive )?Press/i)) return { mu:"Chest · shoulders · triceps", cues:["Shoulder blades pinned, slight arch.","Lower under control to mid-chest.","Elbows ~45°, not flared to 90°.","Press explosively, drive the floor with your feet."], miss:["Flaring elbows straight out.","Bouncing the bar off the chest.","Hips lifting off the bench."] };
     if(m(/Row|Pull.?up|\bChin|\bLat\b|Pulldown|Pull/i)) return { mu:"Lats · upper back · biceps · rear delts", cues:["Start by setting the shoulder blade (don't just yank with arms).","Pull the elbow toward the hip/ribs.","Squeeze the back at the top.","Control the return — full stretch."], miss:["Using only the arms / shrugging.","Heaving with momentum.","Half range — not controlling the lowering."] };
-    if(m(/Carry|Farmer|Suitcase|Grip|Pinch|Dead Hang/i)) return { mu:"Grip · traps · core · whole body", cues:["Stand tall, shoulders back, ribs down.","Brace the core, walk with control.","Crush the handles — strong grip.","Don't lean; resist any tilt."], miss:["Leaning or rounding under the load.","Rushing / losing posture."] };
+    if(m(/Dead Hang/i)) return { mu:"Grip · forearms · lats · shoulders", cues:["Grab the bar about shoulder-width or a little wider, arms straight.","Hang still: shoulders gently down from the ears, ribs down, legs quiet.","Breathe slowly through the whole hold.","Sore back? Keep your toes on a box and take some of the weight off."], miss:["Swinging or kicking the legs.","Shrugging up into the ears.","Dropping off the bar when the grip fails. Step down a second before."] };
+    if(m(/Carry|Farmer|Suitcase|Grip|Pinch/i)) return { mu:"Grip · traps · core · whole body", cues:["Stand tall, shoulders back, ribs down.","Brace the core, walk with control.","Crush the handles — strong grip.","Don't lean; resist any tilt."], miss:["Leaning or rounding under the load.","Rushing / losing posture."] };
     if(m(/Leg Raise|Knee Raise|Crunch|Sit.?up|Ab Wheel|Rollout/i)) return { mu:"Abs · hip flexors", cues:["Hang (or lie) still, ribs down.","Curl the pelvis up — lift with the abs, not a swing.","Raise the knees or legs as high as you can control.","Lower slowly, no swinging."], miss:["Swinging for momentum.","Arching the low back on the way down."] };
     if(m(/Plank|Dead ?Bug|Hollow|Bird ?Dog|Core| Ab|Abs/i)) return { mu:"Deep core · abs · obliques", cues:["Ribs down, squeeze glutes, flat line head-to-heels.","Brace like you're about to be punched.","Breathe behind the brace.","Quality over time — stop when form breaks."], miss:["Hips sagging or piking up.","Holding your breath."] };
     if(m(/Overhead.*Triceps|Triceps.*Extension/i)) return { mu:"Triceps (long head)", cues:["Face away from the cable (or hold the dumbbell overhead).","Lower the hands behind your head — get the deep stretch.","Extend to lockout, elbows pointing forward.","Ribs down — don't arch the lower back."], miss:["Elbows flaring wide.","Cutting the stretch short."] };

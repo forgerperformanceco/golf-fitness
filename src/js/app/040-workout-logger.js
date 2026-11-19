@@ -422,7 +422,11 @@
   // /yd/ signal the wave engine keys on to skip rep bumps (035 waveAdjust) —
   // keep them in step so display and prescription never drift.
   function isDistEx(t){ return /\byd\b|yards?\b/i.test(t||""); }
-  function repWord(t){ return isDistEx(t) ? "yards" : "reps"; }   // lower-case unit
+  // Lower-case unit for the second slot. A hold (by name or a "30 s" target) is
+  // seconds even under an older yard/rep target — the name wins.
+  function repWord(t, n){ return (isTimeEx(t) || isHoldEx(n)) ? "sec" : (isDistEx(t) ? "yards" : "reps"); }
+  // "30 s", "40 yd", "12 reps" — one set's second slot with its unit.
+  function repsText(r, x){ return r+(isTimedEx(x) ? " s" : (isDistEx(x && x.target) ? " yd" : " reps")); }
   function repSeed(t){ var n=topReps(t); return n!=null ? String(n) : ""; }
   // Single smallest sensible jump for the one-tap "add weight" nudge (progress by LOAD,
   // holding reps/sets), by equipment — a step the gym actually stocks:
@@ -567,7 +571,13 @@
   var logState=null;
   function buildSession(day, week){
     var existing=getSession(week, day.name);
-    if(existing) return JSON.parse(JSON.stringify(existing));
+    if(existing){
+      // A hold saved under its slot's rep/yard target (before holds logged seconds)
+      // reads in seconds too — the same holdTarget a fresh session gets.
+      var c=JSON.parse(JSON.stringify(existing));
+      (c.ex||[]).forEach(function(x){ if(x && isHoldEx(x.name) && !isTimeEx(x.target)) x.target=holdTarget(x.target, x.name); });
+      return c;
+    }
     // dayTargets (035): user swaps + gear subs (deduped like the card), retain
     // trim + wave shift — the same list the "About N min" estimate counts.
     var ex = dayTargets(day, week).map(function(t){
@@ -605,7 +615,7 @@
   function logGhost(x, lx, si, week, s){
     var ls=lx && lx.sets && lx.sets[si], sh=repsShifted(lx, x), w="";
     if(ls && ls.w){ var d=ffDose(ls.w, x, lx, week, s).w; w=String(d!=null ? d : ls.w); }
-    var r=(ls && ls.r && !sh) ? String(ls.r) : ((isDistEx(x.target) || sh) ? repSeed(x.target) : "");
+    var r=(ls && ls.r && !sh) ? String(ls.r) : ((isDistEx(x.target) || isTimeEx(x.target) || sh) ? repSeed(x.target) : "");
     return { w:isBodyweightEx(x.name) ? "" : w, r:r };
   }
   function renderLogBody(){
@@ -638,13 +648,15 @@
       } else if(dose.bump && dose.w!=null){
         ref='<div class="logx-nudge">✅ Hit all reps last time — go up to <b>'+dose.w+' lb</b> this session</div>';
       } else if(lx){
-        var d=lx.sets.filter(function(st){return st.w||st.r;}).map(function(st){return (st.w||"–")+"×"+(st.r||"–");}).join(", ");
+        var lbw=isBodyweightEx(x.name);
+        var d=lx.sets.filter(function(st){return st.w||st.r;}).map(function(st){
+          return (lbw && st.r) ? repsText(st.r, x) : (st.w||"–")+"×"+(st.r ? st.r+(isTimedEx(x)?" s":"") : "–"); }).join(", ");
         if(d) ref='<div class="logx-last">Last time: '+ffEsc(d)+'</div>';
       }
       var hasLastW = !!(lx && lx.sets.some(function(st){return st.w;}));
-      var dist=isDistEx(x.target), bw=isBodyweightEx(x.name);
+      var bw=isBodyweightEx(x.name);
       html+='<div class="logx"><div class="logx-name">'+ffEsc(x.name)+'</div><div class="logx-target">Target: '+ffEsc(x.target)+'</div>'+ref+
-        '<div class="setlabels"><div>Set</div><div>'+(bw?"Load":"Weight")+'</div><div>'+(dist?"Yards":"Reps")+'</div><div></div></div>';
+        '<div class="setlabels"><div>Set</div><div>'+(bw?"Load":"Weight")+'</div><div>'+({sec:"Sec",yards:"Yards"}[repWord(x.target, x.name)]||"Reps")+'</div><div></div></div>';
       x.sets.forEach(function(st, si){
         var g=logGhost(x, lx, si, week, s);   // the dim numbers — and what ✓ saves if untouched
         var lsW=g.w||"–", lsR=g.r||"–";

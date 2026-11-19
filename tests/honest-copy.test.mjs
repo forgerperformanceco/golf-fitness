@@ -56,7 +56,7 @@ function weeklySets(goal, freq, week) {
     function lsGet(k,d){ return d; } function planStart(){ return null; }
     ${decl(PLAN, "PHASES", "[")}
     ${["purposeFor", "trainRetain", "adjSets", "eventInfo", "waveFor", "bumpReps", "trimSets", "plainReps", "waveAdjust",
-      "effTarget", "ffOnRamp", "ffHealth", "ffHealthCaution", "capSets", "plainSetCount", "ffInSeason", "ffInSeasonMode", "ffInSeasonPlan", "overspeedDose", "speedDrillTarget"].map((n) => fn(PLAN, n)).join("\n")}
+      "effTarget", "isHoldEx", "isTimeEx", "holdPerSide", "holdTarget", "ffOnRamp", "ffHealth", "ffHealthCaution", "capSets", "plainSetCount", "ffInSeason", "ffInSeasonMode", "ffInSeasonPlan", "overspeedDose", "speedDrillTarget"].map((n) => fn(PLAN, n)).join("\n")}
     this.api={PHASES, effTarget, speedDrillTarget, waveFor};`, ctx);
   const { PHASES, effTarget, speedDrillTarget, waveFor } = ctx.api;
   const P = PHASES[0];

@@ -692,7 +692,24 @@
     n=n||"";
     if(/Trap-?bar|Dumbbell|\bDB\b|Barbell|\bBar\b|Kettlebell|\bKB\b|Weighted|Med-?ball|Medicine|Landmine|Cable|Band|Sled/i.test(n)) return false;
     // Thoracic Rotation: the no-gear half-kneeling rotation, hands behind the head.
-    return /\bJump\b|\bBound\b|Plyo|Pogo|\bHop\b|Skater|Broad|Overspeed|Footwork|Thoracic Rotation/i.test(n);
+    // Hangs and planks: your own bodyweight, timed (isHoldEx) — no weight box.
+    return /\bJump\b|\bBound\b|Plyo|Pogo|\bHop\b|Skater|Broad|Overspeed|Footwork|Thoracic Rotation|Dead Hang|Plank|Hollow Hold/i.test(n);
+  }
+  // A movement measured by TIME, not reps — a hang or a hold (owner, Nov 2026: "dead
+  // hangs should be in seconds"). Its sets log SECONDS: the loggers label the second
+  // column "sec", "last" lines read "30 s", the player steps by 5. A hold swapped into
+  // a rep or yard slot (Dead Hang for the Farmer Carry's "3 × 40 yd") keeps the slot's
+  // set count and takes a seconds target (holdTarget, applied in effTarget). The same
+  // "\d s" signal effortNote ("steady hold") and sessionMinutes already read.
+  function isTimeEx(t){ return /\d\s*s\b/.test(String(t||"")); }
+  function isHoldEx(n){ return /Dead Hang|Plank|Hollow Hold|Plate Pinch|\bHold$/i.test(n||""); }
+  function isTimedEx(x){ return !!x && (isHoldEx(x.name) || isTimeEx(x.target)); }
+  // 30 s a set — the dose the gear subs already use for holds ("3 × 30 s"); planks
+  // done one side at a time keep "/ side".
+  function holdPerSide(n){ return /Side Plank|Copenhagen/i.test(n||""); }
+  function holdTarget(sr, name){
+    var m=String(sr||"").match(/^\s*(\d+)\s*[\u00d7x]/);
+    return (m?m[1]:"3")+" \u00d7 30 s"+(holdPerSide(name)?" / side":"");
   }
   // Build vs Retain: derived from the macro goal. Build = full volume (gaining).
   // Retain = trim ONE set off hypertrophy accessories (💪 only) to fit lower recovery
@@ -839,6 +856,7 @@
   // fortnight is learnable and DOMS stays manageable) + wave shift (week) +
   // in-season cap.
   function effTarget(sr, name, week){
+    if(isHoldEx(name) && !isTimeEx(sr)) sr=holdTarget(sr, name);   // a hold in a rep/yard slot → seconds
     var t=adjSets(sr, name);
     if(purposeFor(name)==="💪" && ffOnRamp(week)) t=trimSets(t, 1);
     t=waveAdjust(t, name, week);
@@ -923,9 +941,9 @@
     var best=null;
     sets.forEach(function(s){ var w=parseFloat(s.w)||0, r=parseInt(s.r,10)||0;
       if(!best || w>best.w || (w===best.w && r>best.r)) best={w:w,r:r}; });
-    var n="✓ "+sets.length+" set"+(sets.length===1?"":"s");
-    if(best.w>0) return n+" · best "+best.w+" × "+(best.r||"–");
-    if(best.r>0) return n+" · best "+best.r+" reps";
+    var n="✓ "+sets.length+" set"+(sets.length===1?"":"s"), tm=isTimedEx(x);
+    if(best.w>0) return n+" · best "+best.w+" × "+(best.r ? best.r+(tm?" s":"") : "–");
+    if(best.r>0) return n+" · best "+repsText(best.r, x);
     return n;
   }
   // One day's full card (rest / speed / lift): interactive for the day you're on, a

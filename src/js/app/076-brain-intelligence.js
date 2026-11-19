@@ -170,11 +170,11 @@
         var row={ day:d.name, when:when,
           status:log?(sessionFinished(log)?"done":"started"):((typeof sessionSkipped==="function"&&sessionSkipped(wk,d.name))?"skipped":"not started"),
           ex:tg.slice(0,9).map(function(t){
-            var x={ name:t.name, target:t.target }, lx=log&&(log.ex||[]).filter(function(e){ return e&&e.name===t.name; })[0], top=null;
+            var x={ name:t.name, target:t.target }, lx=log&&(log.ex||[]).filter(function(e){ return e&&e.name===t.name; })[0], top=null, tm=isTimedEx(x);
             if(lx) (lx.sets||[]).forEach(function(st){
               var w=parseFloat(st.w)||0, r=parseInt(st.r,10)||0; if(!r) return;
-              var e=w?e1RM(w,r):r/100; if(!top || e>top.e) top={ e:e, w:w, r:r }; });
-            if(top) x.top=top.w?(top.w+"×"+top.r):(top.r+" reps");
+              var e=tm ? w+r/1000 : (w?e1RM(w,r):r/100); if(!top || e>top.e) top={ e:e, w:w, r:r }; });   // a hold: heaviest, then longest
+            if(top) x.top=top.w?(top.w+"×"+top.r+(tm?" s":"")):repsText(top.r, x);
             return x; }) };
         out.days.push(row);
       });

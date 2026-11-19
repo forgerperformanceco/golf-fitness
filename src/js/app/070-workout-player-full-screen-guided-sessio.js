@@ -216,7 +216,7 @@
         var wVal=s2.w||"", rVal=s2.r||"";
         // The dim numbers in an empty set — and exactly what ✓ saves if it's left untouched.
         var g=plGhost(x, si, lx, presc);
-        var wPh=g.w||"lbs", rPh=g.r||repWord(x.target);
+        var wPh=g.w||"lbs", rPh=g.r||repWord(x.target, x.name);
         var pm=(!bw&&isBarbell(x.name)&&s2.w)?platesFor(s2.w):"";
         // Bodyweight drills: the load slot becomes a static "BW" chip (no weight
         // to enter), only reps are logged. Everything else keeps the ± stepper.
@@ -226,7 +226,7 @@
               '<input class="pl-in" type="number" inputmode="decimal" placeholder="'+escAttr(wPh)+'" value="'+escAttr(wVal)+'" data-plf="w" data-si="'+si+'"/>'+
               '<button type="button" data-plstep="w" data-dir="1" data-si="'+si+'">＋</button></div>';
         return '<div class="pl-set'+(s2.done?" done":"")+'" data-plsetrow="'+si+'">'+
-          '<div class="pl-set-head"><span>SET '+(si+1)+'</span><span>last: '+(bw?(pr?(pr+' reps'):'–'):(pw?(pw+' × '+(pr||'–')):'–'))+'</span></div>'+
+          '<div class="pl-set-head"><span>SET '+(si+1)+'</span><span>last: '+(bw?(pr?repsText(pr, x):'–'):(pw?(pw+' × '+(pr ? pr+(isTimedEx(x)?' s':'') : '–')):'–'))+'</span></div>'+
           '<div class="pl-set-row">'+
             wCell+
             '<div class="pl-stp reps"><button type="button" data-plstep="r" data-dir="-1" data-si="'+si+'">−</button>'+
@@ -246,7 +246,8 @@
       var prescLine = readyBand==="recharge"
         ? (bw?'🌱 Recovery dose — move cleanly and stop well before fatigue.':'🌱 Recovery dose — about <b>'+(presc!=null?presc+" lb":"70–80% of normal")+'</b>, no PR chasing.')
         : bw
-        ? (/Overspeed/i.test(x.name) ? '⚡ <b>Light stick</b> — every swing at max speed, both sides, full rest. Log the reps.'
+        ? (isTimedEx(x) ? '⏱️ <b>Bodyweight</b> — hold steady and breathe; end each hold a second before your form or grip goes. Log the seconds.'
+          : /Overspeed/i.test(x.name) ? '⚡ <b>Light stick</b> — every swing at max speed, both sides, full rest. Log the reps.'
           : (/Footwork/i.test(x.name) ? '⚡ <b>Bodyweight</b> — drive hard into the ground every rep, full rest. Log the reps.'
           : '⚡ <b>Bodyweight</b> — every rep max height, land soft, full rest. Log the reps.'))
         : (presc!=null
@@ -263,7 +264,7 @@
                 : dose.grind ? '💪 Last time was a grind at <b>'+topLast+' lb</b>. Hold it and own every rep.'
                 : dose.hold ? '🎯 Maintaining: hold <b>'+topLast+' lb</b>. Hit every rep again and it goes up next time.'
                 : 'Last time’s top: <b>'+topLast+' lb</b> — beat the reps, then the load follows.')
-              : (lastReps ? 'Last time: <b>'+lastReps+' reps</b> — beat it.' : 'First time — find a weight you can own with 2 reps in reserve.'))));
+              : (lastReps ? 'Last time: <b>'+repsText(lastReps, x)+'</b> — beat it.' : 'First time — find a weight you can own with 2 reps in reserve.'))));
       // Effort line in context: never "to failure" on an easy day, a recovery
       // dose, a peak week, a lift with no weight yet, the first session back, a
       // beginner's first 2 weeks, or an accessory before a big lift today.
@@ -292,9 +293,9 @@
     // recap
     var done=0, vol=0, prs=[], firsts=[];
     player.sess.ex.forEach(function(x){
-      var top=0;
+      var top=0, tm=isTimedEx(x);   // a hold's seconds aren't reps: no lb moved, no PR
       (x.sets||[]).forEach(function(s){ if(s.w||s.r||s.done) done++;
-        var w=parseFloat(s.w), r=parseFloat(s.r); if(w>0&&r>0){ vol+=w*r; top=Math.max(top, e1RM(w,r)); } });
+        var w=parseFloat(s.w), r=parseFloat(s.r); if(!tm && w>0&&r>0){ vol+=w*r; top=Math.max(top, e1RM(w,r)); } });
       if(top>0){
         var pb=player.prevBest[x.name];
         if(pb!=null && top>pb+0.5) prs.push({ name:x.name, e1:Math.round(top) });
@@ -341,7 +342,7 @@
     function carry(f){ for(var k=si-1;k>=0;k--){ if(x.sets[k] && x.sets[k][f]) return String(x.sets[k][f]); } return ""; }
     var ls=lx && lx.sets && lx.sets[si], pw=(ls && ls.w) ? String(ls.w) : "", pr=(ls && ls.r) ? String(ls.r) : "";
     var w=carry("w") || (presc!=null ? String(presc) : pw);
-    var r=carry("r") || ((repsShifted(lx, x) ? repSeed(x.target) : pr) || "");
+    var r=carry("r") || ((repsShifted(lx, x) ? repSeed(x.target) : pr) || (isTimeEx(x.target) ? repSeed(x.target) : ""));   // a hold seeds its seconds
     return { w:isBodyweightEx(x.name) ? "" : w, r:r };
   }
   function plRender(){
@@ -390,8 +391,8 @@
   function plShare(){
     if(!player) return;
     var vol=0, prs=[];
-    player.sess.ex.forEach(function(x){ var top=0;
-      (x.sets||[]).forEach(function(s){ var w=parseFloat(s.w), r=parseFloat(s.r); if(w>0&&r>0){ vol+=w*r; top=Math.max(top, e1RM(w,r)); } });
+    player.sess.ex.forEach(function(x){ var top=0, tm=isTimedEx(x);
+      (x.sets||[]).forEach(function(s){ var w=parseFloat(s.w), r=parseFloat(s.r); if(!tm && w>0&&r>0){ vol+=w*r; top=Math.max(top, e1RM(w,r)); } });
       var pb=player.prevBest[x.name];
       if(top>0 && pb!=null && top>pb+0.5) prs.push(x.name+" e1RM "+Math.round(top)+" lb");
     });
@@ -443,19 +444,20 @@
         var st=player.stations[player.st]; if(st.type!=="lift") return;
         var x=player.sess.ex[st.xi], si=+stp.getAttribute("data-si"), f=stp.getAttribute("data-plstep"), dir=+stp.getAttribute("data-dir");
         var s2=x.sets[si]; if(!s2) return;
+        var rStep=isTimedEx(x)?5:1;   // seconds move 5 at a time
         var cur=parseFloat(s2[f]);
         if(isNaN(cur)){
           // Seed from the prescription / last time so the first tap lands on a real number.
           var carry=null;
           for(var ci=si-1;ci>=0;ci--){ if(x.sets[ci]&&x.sets[ci][f]){ carry=parseFloat(x.sets[ci][f]); break; } }
-          if(carry!=null && !isNaN(carry)){ cur=carry; if(dir<0) cur+=(f==="w"?plStepW(x.name):1); }
+          if(carry!=null && !isNaN(carry)){ cur=carry; if(dir<0) cur+=(f==="w"?plStepW(x.name):rStep); }
           else if(f==="w"){ var lx=plLastFor(x.name), top=0; if(lx) lx.sets.forEach(function(ls){ var w=parseFloat(ls.w); if(w>top) top=w; });
             var presc=ffDose(top||null, x, lx, player.week, player.sess).w;   // same read as the placeholder
             cur=(presc!=null?presc:(top||45));
             if(dir<0) cur+= (f==="w"? plStepW(x.name):1);   // first minus lands on the seed itself
-          } else { var m=String(x.target).match(/[×x]\s*(\d+)/); cur=m?parseInt(m[1],10):8; if(dir<0) cur+=1; }
+          } else { var m=String(x.target).match(/[×x]\s*(\d+)/); cur=m?parseInt(m[1],10):(rStep>1?30:8); if(dir<0) cur+=rStep; }
         }
-        var step=(f==="w")?plStepW(x.name):1;
+        var step=(f==="w")?plStepW(x.name):rStep;
         var nv=Math.max(0, Math.round((cur+dir*step)*100)/100);
         s2[f]=String(nv);
         plSave(); plRender(); return;
