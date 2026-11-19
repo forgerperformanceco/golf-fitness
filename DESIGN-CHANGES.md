@@ -1,5 +1,41 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## Ticking an untouched set logs it, and the numbers have room (Nov 19, 2026)
+
+The owner said: "Need to make sure when I check a set without changing it from last time that it
+logs. The text is never lit and still low lit."
+
+An empty set shows a dim suggestion: today's prescribed load (`ffDose`) and last time's reps. In the
+player, ✓ only copied numbers from an earlier set this session. So set 1, or any set with nothing
+filled above it, saved as done with no weight and no reps, and the browser's gray placeholder stayed
+on screen. On the live build, ticking Leg Press set 1 untouched stored `{"w":"","r":"","done":true}`.
+The logger window and Train's inline logger never filled anything in at all.
+
+- **One "ghost" read per surface** feeds both the placeholder and what ✓ saves, so a set ticked
+  untouched logs exactly the numbers on screen:
+  - player: `plGhost` (070) — an earlier set this session, else today's load and last reps;
+  - logger window: `logGhost` (040);
+  - inline Train logger: `ilGhost` (045, with its ✓ in 085).
+- **Shared rules:** after a change in rep target, today's reps show. Nothing is invented when
+  there's no history (the placeholder shows a word). A bodyweight lift never gets a weight.
+- **Room for the numbers (player):** at 390px the reps box was 24px wide and clipped even "6".
+  - The steppers are now 36px wide (still 44px tall), the check is 46px and the row gap is
+    tighter, so "285" and "12" fit down to 375px.
+  - Under 370px the steppers go to 32px and the font to 18px.
+- **Verified:**
+  - `tests/check-logs-ghost.test.mjs` (3 tests, all failing without the change) covers each
+    surface's ghost and that each ✓ saves it. The rep-shift shape test points at the ghost
+    functions. Suite 317/317.
+  - A Playwright e2e in light and dark, on week 3 with last Day 1 at 280 × 6, passes with zero page
+    errors. It checks:
+    - the player shows a dim 285 × 6;
+    - ✓ untouched → 285 × 6, saved in `ff_log` and bright;
+    - set 2 untouched carries set 1;
+    - "285" and "12" fit at 390 and 375 px;
+    - buttons stay ≥44px tall.
+  - On main's build the ✓ assertions fail exactly as reported.
+  - Audits: train 18/18, scroll 16/16, contrast clean, type 1 known. The release gate is clean.
+
 ## No back day the day before a round (Nov 14, 2026)
 
 The owner said: "I don't like back day on Friday because I want to golf on Saturday and Sunday and

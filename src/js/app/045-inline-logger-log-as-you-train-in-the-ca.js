@@ -12,6 +12,15 @@
   }
   // Rest defaults: 2 min between sets of the same lift, 3 min before a different lift.
   var REST_BETWEEN_SETS = 120, REST_BETWEEN_LIFTS = 180;
+  // The inline logger's dim numbers for an empty set — and what ✓ saves if it's left
+  // untouched (Nov 2026). Same read as the placeholders always used; never invents a number.
+  function ilGhost(x, lx, si, week, s){
+    var ls=lx && lx.sets && lx.sets[si], pw=(ls && ls.w) ? ls.w : null, pr=(ls && ls.r) ? ls.r : null, sh=repsShifted(lx, x);
+    var sug=ffDose(pw, x, lx, week, s).w;
+    var w=sug!=null ? String(sug) : (pw ? String(pw) : "");
+    var r=(pr!=null && !sh) ? String(pr) : ((isDistEx(x.target) || sh) ? repSeed(x.target) : "");
+    return { w:isBodyweightEx(x.name) ? "" : w, r:r };
+  }
   function ilogBodyHtml(){
     var s=ilog.sess, week=ilog.week, day=ilog.day, last=lastSessionFor(day, week), html="", tot=0, done=0;
     var wv=waveFor(week);
@@ -31,14 +40,14 @@
         var prev = ffEsc(bw ? (pr?(pr+' reps'):'–') : (pw ? (pw+' × '+(pr||'–')) : '–'));
         // Prescribed load leads: the weight placeholder shows what to lift TODAY
         // (deload ~60%, progression-ready last + one jump); PREVIOUS keeps the raw history.
-        var sug=ffDose(pw, x, lx, week, s).w;
+        var g=ilGhost(x, lx, si, week, s);
         var pm=(!bw&&isBarbell(x.name)&&st.w)?platesFor(st.w):"";
         setsHtml+='<div class="il-set'+(st.done?" done":"")+'">'+
           '<span class="il-sn">'+(si+1)+'</span>'+
           '<button class="il-prev" data-x="'+xi+'" data-s="'+si+'" data-prevfill="1"'+((pw||(bw&&pr))?'':' disabled')+'>'+prev+'</button>'+
           (bw ? '<span class="il-in il-bw" aria-label="bodyweight">BW</span>'
-              : '<input class="il-in" type="number" inputmode="decimal" placeholder="'+escAttr(sug!=null?sug:(pw||""))+'" value="'+escAttr(st.w||"")+'" data-x="'+xi+'" data-s="'+si+'" data-f="w"/>')+
-          '<input class="il-in" type="number" inputmode="numeric" placeholder="'+escAttr((pr!=null&&!shifted)?pr:((isDistEx(x.target)||shifted)?repSeed(x.target):""))+'" value="'+escAttr(st.r||"")+'" data-x="'+xi+'" data-s="'+si+'" data-f="r"/>'+
+              : '<input class="il-in" type="number" inputmode="decimal" placeholder="'+escAttr(g.w)+'" value="'+escAttr(st.w||"")+'" data-x="'+xi+'" data-s="'+si+'" data-f="w"/>')+
+          '<input class="il-in" type="number" inputmode="numeric" placeholder="'+escAttr(g.r)+'" value="'+escAttr(st.r||"")+'" data-x="'+xi+'" data-s="'+si+'" data-f="r"/>'+
           '<button class="il-check'+(st.done?" on":"")+'" data-x="'+xi+'" data-s="'+si+'" data-idone="1" aria-label="set done">✓</button></div>'+
           (pm?'<div class="il-plates">🏋️ '+pm+'</div>':'');
       });

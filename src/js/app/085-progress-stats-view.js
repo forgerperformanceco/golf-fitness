@@ -756,7 +756,15 @@
     var idn=e.target.closest("[data-idone]");
     if(idn && ilog){ var dxi=+idn.getAttribute("data-x"), dsi=+idn.getAttribute("data-s");
       var dex=ilog.sess.ex[dxi], st=dex.sets[dsi];
-      st.done=!st.done; saveILog();
+      st.done=!st.done;
+      if(st.done){   // ticked untouched → save the numbers it was showing, so it logs
+        var ils=lastSessionFor(ilog.day, ilog.week), ilx=null;
+        if(ils) ils.ex.forEach(function(e2){ if(e2.name===dex.name) ilx=e2; });
+        var g=ilGhost(dex, ilx, dsi, ilog.week, ilog.sess);
+        if(!st.w && g.w) st.w=g.w;
+        if(!st.r && g.r) st.r=g.r;
+      }
+      saveILog();
       if(st.done){
         var lastSet = dsi >= dex.sets.length-1;   // finishing a lift → longer rest before the next one
         startRest(lastSet ? REST_BETWEEN_LIFTS : REST_BETWEEN_SETS, lastSet ? "Next lift" : "Between sets");

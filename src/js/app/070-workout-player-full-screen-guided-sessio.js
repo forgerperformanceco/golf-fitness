@@ -210,20 +210,13 @@
       var dose=ffDose(topLast||null, x, lx, player.week, player.sess);
       var presc=dose.w, readyBand=dose.band, ballistic=isBallistic(x.name);
       var cue=liftWhy(x.name).cue;
-      // This session's values carry forward: the nearest EARLIER set with data
-      // ghosts into later empty sets, and tapping ✓ on an empty set commits it.
-      function plCarry(sets, si, f){
-        for(var k=si-1;k>=0;k--){ if(sets[k] && sets[k][f]) return sets[k][f]; }
-        return null;
-      }
       var bw=isBodyweightEx(x.name);   // box/broad/squat jumps etc. — no weight field
       var setsHtml=x.sets.map(function(s2, si){
         var pw=(lx&&lx.sets[si]&&lx.sets[si].w)?lx.sets[si].w:null, pr=(lx&&lx.sets[si]&&lx.sets[si].r)?lx.sets[si].r:null;
         var wVal=s2.w||"", rVal=s2.r||"";
-        var cw=plCarry(x.sets, si, "w"), cr=plCarry(x.sets, si, "r");
-        var wPh=cw!=null?cw:(presc!=null?presc:(pw||"lbs"));
-        // A changed rep target (Heavy week / back to Build) ghosts TODAY's reps.
-        var rPh=cr!=null?cr:((repsShifted(lx, x)?repSeed(x.target):pr)||repWord(x.target));
+        // The dim numbers in an empty set — and exactly what ✓ saves if it's left untouched.
+        var g=plGhost(x, si, lx, presc);
+        var wPh=g.w||"lbs", rPh=g.r||repWord(x.target);
         var pm=(!bw&&isBarbell(x.name)&&s2.w)?platesFor(s2.w):"";
         // Bodyweight drills: the load slot becomes a static "BW" chip (no weight
         // to enter), only reps are logged. Everything else keeps the ± stepper.
@@ -338,6 +331,18 @@
         return '<button type="button" class="pl-item'+(cd[i]?" done":"")+'" data-plcd="'+i+'">'+
           '<span>'+m[0]+(m[2]?' <small style="color:#d4b06a">· from your mobility screen</small>':'')+plCueHtml(m[0])+'</span><span class="dose">'+m[1]+'</span></button>';
       }).join("")+'</div></div>';
+  }
+  // What an empty set shows (dim) — and what ✓ saves when it's left untouched. One read,
+  // so "tick it unchanged" logs exactly the numbers on screen (owner, Nov 2026: "when I
+  // check a set without changing it from last time … it logs"). In order: the nearest
+  // earlier set this session, today's prescribed load (ffDose) / last time's reps (today's
+  // reps when the rep target changed). Never invents a number; bodyweight has no weight.
+  function plGhost(x, si, lx, presc){
+    function carry(f){ for(var k=si-1;k>=0;k--){ if(x.sets[k] && x.sets[k][f]) return String(x.sets[k][f]); } return ""; }
+    var ls=lx && lx.sets && lx.sets[si], pw=(ls && ls.w) ? String(ls.w) : "", pr=(ls && ls.r) ? String(ls.r) : "";
+    var w=carry("w") || (presc!=null ? String(presc) : pw);
+    var r=carry("r") || ((repsShifted(lx, x) ? repSeed(x.target) : pr) || "");
+    return { w:isBodyweightEx(x.name) ? "" : w, r:r };
   }
   function plRender(){
     if(!player) return;
@@ -493,9 +498,13 @@
         s3.done=!s3.done;
         if(!s3.done) plFeelReset(x2);
         if(s3.done){
-          // Empty fields inherit the nearest earlier set — one tap repeats the work.
-          if(!s3.w){ for(var cw2=si2-1;cw2>=0;cw2--){ if(x2.sets[cw2]&&x2.sets[cw2].w){ s3.w=x2.sets[cw2].w; break; } } }
-          if(!s3.r){ for(var cr2=si2-1;cr2>=0;cr2--){ if(x2.sets[cr2]&&x2.sets[cr2].r){ s3.r=x2.sets[cr2].r; break; } } }
+          // Ticking an untouched set saves the numbers it was showing (an earlier set this
+          // session, else today's load / last time's reps) — so it logs, and lights up.
+          var lx3=plLastFor(x2.name), top3=0;
+          if(lx3) lx3.sets.forEach(function(ls3){ var tw3=parseFloat(ls3.w); if(tw3>top3) top3=tw3; });
+          var g3=plGhost(x2, si2, lx3, ffDose(top3||null, x2, lx3, player.week, player.sess).w);
+          if(!s3.w && g3.w) s3.w=g3.w;
+          if(!s3.r && g3.r) s3.r=g3.r;
           // Live PR moment: this set beats your all-time e1RM for the lift —
           // celebrate NOW, not at the recap.
           try{

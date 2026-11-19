@@ -176,9 +176,10 @@ test("all three loggers say 'Welcome back — ease in' on the first session afte
 });
 
 test("the rep ghost and placeholders follow today's target after a rep shift", () => {
-  assert.match(PLAYER, /repsShifted\(lx, x\)\?repSeed\(x\.target\)/);
-  assert.match(LOGGER, /repsShifted\(lx, x\)\) \? repSeed\(x\.target\)/);
-  assert.match(INLINE, /shifted\)\?repSeed\(x\.target\)/);
+  // One "ghost" per surface feeds the placeholder AND what ✓ saves (Nov 2026, check-logs-ghost.test).
+  assert.match(fn(PLAYER, "plGhost"), /repsShifted\(lx, x\) \? repSeed\(x\.target\) : pr/);
+  assert.match(fn(LOGGER, "logGhost"), /sh=repsShifted\(lx, x\)[\s\S]*\(isDistEx\(x\.target\) \|\| sh\) \? repSeed\(x\.target\)/);
+  assert.match(fn(INLINE, "ilGhost"), /sh=repsShifted\(lx, x\)[\s\S]*\(isDistEx\(x\.target\) \|\| sh\) \? repSeed\(x\.target\)/);
 });
 
 // --------------------------------------------------------- shared reduction
