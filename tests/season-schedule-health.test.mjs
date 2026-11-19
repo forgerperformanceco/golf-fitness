@@ -58,7 +58,7 @@ function engine({ inseason = false, freq = 4, store = {}, startWd = 1, week = 3,
     ${["ffInSeasonMode", "ffInSeason", "ffInSeasonPlan", "activeDays", "ffSessionsPerWeek", "ffHealthQs", "ffHealth",
        "ffHealthCaution", "ffHealthRedFlag", "ffHealthAdvice", "ffOnRamp", "ffLowImpact", "purposeFor", "trimSets",
        "capSets", "plainSetCount", "adjSets", "trainRetain", "eventInfo", "waveFor", "bumpReps", "plainReps", "waveAdjust",
-       "effTarget"].map((n) => fn(PLAN, n)).join("\n")}
+       "effTarget", "isHoldEx", "isTimeEx", "holdTarget"].map((n) => fn(PLAN, n)).join("\n")}
     ${["stripDays", "ffBaseWeek", "ffLayoutActive", "ffHeavyLegs", "ffBackRotate", "ffArrangeWeek", "ffPlayDaysNow", "ffOffDays", "ffOffDaysNow", "ffLayoutNow", "ffApplyLayout",
        "dayKey", "getLog", "getSession", "getRest", "restDone", "cardioDone",
        "getSkippedSessions", "sessionSkipped", "skipSession", "unskipSession", "ffRestInstead", "sessionFinished"].map((n) => fn(LOGGER, n)).join("\n")}

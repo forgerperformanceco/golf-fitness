@@ -23,7 +23,9 @@ function fn(source, name) {
   }
   throw new Error(`Could not extract ${name}`);
 }
-const helpers = ["repsShifted", "topReps", "repSeed", "isDistEx"].map((n) => fn(LOGGER, n)).join("\n");
+const PLAN = src("035-training-plan.js");
+const helpers = ["repsShifted", "topReps", "repSeed", "isDistEx"].map((n) => fn(LOGGER, n)).join("\n") + "\n" +
+  ["isTimeEx"].map((n) => fn(PLAN, n)).join("\n");
 const base = (extra = {}) => ({ isBodyweightEx: (n) => /Box Jump|Push-up/.test(n), ...extra });
 const empty = (n) => Array.from({ length: n }, () => ({ w: "", r: "", done: false }));
 const LAST = { target: "4 × 6", sets: [{ w: "185", r: "6" }, { w: "185", r: "6" }, { w: "185", r: "5" }] };

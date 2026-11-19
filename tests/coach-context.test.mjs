@@ -23,6 +23,10 @@ function block(source, start, open) {
 }
 const WAVES = block(PLAN, PLAN.indexOf("var WAVES = {"), "{") + ";";
 const E1RM = block(PLAYER, PLAYER.indexOf("function e1RM("), "{");
+const LOGGER = readFileSync(new URL("../src/js/app/040-workout-logger.js", import.meta.url), "utf8");
+// "30 s" / "40 yd" / "4 reps" for a logged top set (holds log seconds, Nov 2026).
+const UNITS = [[LOGGER, "repsText"], [LOGGER, "isDistEx"], [PLAN, "isTimedEx"], [PLAN, "isHoldEx"], [PLAN, "isTimeEx"]]
+  .map(([src, n]) => block(src, src.indexOf(`function ${n}(`), "{")).join("\n");
 
 const DAYS = [
   { name: "Day 1 — Lower Strength", type: "strength" }, { name: "Rest", type: "rest" },
@@ -49,6 +53,7 @@ function brain({ access = "full", dop = 3, week = 10, wave = "intensify", starte
     var window={};
     ${WAVES}
     ${E1RM}
+    ${UNITS}
     function lsGet(k,d){ var v=__store[k]; return v==null?d:v; }
     function planStart(){ return ${started ? '"2026-07-01"' : "null"}; }
     function curWeek(){ return ${week}; } function dayOfPlan(){ return ${dop}; }

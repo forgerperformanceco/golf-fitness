@@ -1,5 +1,53 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## Dead hangs, planks and holds log in seconds (Nov 19, 2026)
+
+The owner said: "dead hangs should be in seconds."
+
+A lift swapped in keeps its slot's target. A Dead Hang in the Farmer Carry slot read "3 × 40 yd":
+- the loggers showed "yards" and a weight box;
+- ＋ stepped 40 → 41;
+- the cues said "walk with control".
+
+Any hold swapped into a rep slot (a Plank for the Pallof Press) read reps the same way.
+
+- **Holds are timed.** `isHoldEx` (035) covers Dead Hang, planks, Hollow Hold, Plate Pinch and any
+  "… Hold". Swapped into a rep or yard slot, a hold keeps the slot's set count and takes 30 s a
+  set (`holdTarget` via `effTarget`), the dose the gear subs already used. A plank done one side at
+  a time keeps "/ side". The existing "\d s" signal then gives "steady hold · rest ~90s" and a real
+  minutes estimate, and the wave never bumps seconds like reps.
+- **Every surface says seconds:**
+  - `repWord` gives "sec" (the name wins over a stale target), and `repsText` makes "last: 35 s" and
+    "best 35 s" on the Train list, in history and in the coach snapshot.
+  - The ghosts seed the prescribed seconds, so ✓ on an untouched hold logs 30.
+  - The player's ＋/− move 5 s at a time.
+- **Bodyweight holds** (hang, planks, hollow hold) get the BW chip and no load progression. Weighted
+  Plank, Plate Pinch and cable/band holds keep their weight box.
+- **The player line for a bodyweight hold:** "hold steady and breathe; end each hold a second
+  before your form or grip goes. Log the seconds." It replaces the jump copy ("max height, land
+  soft").
+- **Dead Hang gets its own cues and why** (grip at speed, lats and shoulders for the turn), with the
+  sore-back option from the warm-up how-to: toes on a box.
+- **Already-saved sessions and mid-session swaps:**
+  - A session saved before this fix reads its hold in seconds on open (`buildSession`).
+  - A swap mid-session changes the target only when the unit changes (`ffSwapTarget`, 050). Into a
+    hold → seconds. Back out → the slot's own target for the new lift, with the set count kept.
+- **Verified:**
+  - `tests/holds-in-seconds.test.mjs` (6 tests, all failing without the change) covers the
+    classification, target, units, ghosts, saved session, swap and cues.
+  - The test sandboxes that load `effTarget`, the ghosts or the brain snapshot now load the new
+    helpers. Suite 323/323.
+  - A Playwright e2e in light and dark, with Farmer Carry swapped to Dead Hang, passes with zero
+    page errors and no horizontal overflow:
+    - "3 × 30 s", steady hold, hold copy;
+    - BW chip, no weight box, ghost 30;
+    - ＋ → 35;
+    - ✓ saves 35 s, and set 2 untouched carries 35;
+    - buttons ≥44px.
+  - The build without this fix fails the same run: "3 × 40 yd", a weight box, ＋ → 41.
+  - Audits: train 18/18, scroll 16/16, contrast clean, type 1 known. The release gate passed and
+    claims-lint is clean.
+
 ## Ticking an untouched set logs it, and the numbers have room (Nov 19, 2026)
 
 The owner said: "Need to make sure when I check a set without changing it from last time that it

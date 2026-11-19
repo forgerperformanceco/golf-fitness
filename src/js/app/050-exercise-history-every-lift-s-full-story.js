@@ -277,7 +277,7 @@
     return hist.map(function(h){
       var nm=String(h.day||"").replace(/Days? [\d–-]+ — /,"").replace(/Day \d+ — /,"");
       var detail=(h.ex||[]).filter(function(x){ return x.sets && x.sets.length; }).map(function(x){
-        var sets=x.sets.map(function(s){ return (s.w&&s.r)?(s.w+'×'+s.r):(s.w?s.w+' lb':(s.r?s.r+' reps':'✓')); }).join('  ·  ');
+        var sets=x.sets.map(function(s){ return (s.w&&s.r)?(s.w+'×'+s.r+(isTimedEx(x)?' s':'')):(s.w?s.w+' lb':(s.r?repsText(s.r, x):'✓')); }).join('  ·  ');
         return '<div class="hist-ex"><span class="hex-name">'+ffEsc(x.name)+'</span><span class="hex-sets">'+ffEsc(sets)+'</span></div>';
       }).join("") || '<div class="hist-ex"><span class="hex-name" style="color:var(--muted)">No set details saved for this one.</span></div>';
       return '<div class="hist-row" data-histtoggle="'+escAttr(h.id)+'">'+
@@ -295,19 +295,35 @@
     var m=$("swapModal"); m.hidden=false; document.body.style.overflow="hidden";
   }
   var swapFromPlayer=false;
+  // A swap mid-session changes the target only when the unit changes: a hold into a
+  // rep/yard slot → seconds (holdTarget); out of a hold → the slot's own target for
+  // the new lift. The session's set count stays (it may carry a readiness trim).
+  function ffSwapTarget(t, orig, chosen, dayName, week){
+    t=String(t||"");
+    if(isHoldEx(chosen)) return isTimeEx(t) ? t : holdTarget(t, chosen);
+    if(!isTimeEx(t)) return t;
+    var d=findDay(dayName), row=d && (d.ex||[]).filter(function(r){ return r[0]===orig; })[0];
+    if(!row || isTimeEx(row[1])) return t;
+    var n=t.match(/^\s*(\d+)/), nt=effTarget(row[1], chosen, week);
+    return n ? String(nt).replace(/^\s*\d+/, n[1]) : nt;
+  }
   function applySwapChoice(chosen){
     if(!swapCtx) return;
     setSwap(swapCtx.orig, chosen);
     if(swapFromPlayer && player && player.sess.ex[swapCtx.xi]){
       // Swapping mid-player: same-muscle replacement takes over this station,
       // sets reset (different lift, different loads), and it sticks in the plan.
-      var px=player.sess.ex[swapCtx.xi]; px.name=chosen; px.orig=swapCtx.orig;
+      var px=player.sess.ex[swapCtx.xi];
+      px.target=ffSwapTarget(px.target, swapCtx.orig, chosen, player.dayName, player.week);
+      px.name=chosen; px.orig=swapCtx.orig;
       px.sets=px.sets.map(function(){ return {w:"",r:"",done:false}; });
       plFeelReset(px);
       if(player.whyOpen) player.whyOpen[swapCtx.xi]=false;
       plSave(); plRender();
     } else if(ilog && ilog.sess.ex[swapCtx.xi]){
-      var ex=ilog.sess.ex[swapCtx.xi]; ex.name=chosen; ex.orig=swapCtx.orig;
+      var ex=ilog.sess.ex[swapCtx.xi];
+      ex.target=ffSwapTarget(ex.target, swapCtx.orig, chosen, ilog.day, ilog.week);
+      ex.name=chosen; ex.orig=swapCtx.orig;
       ex.sets=ex.sets.map(function(){ return {w:"",r:"",done:false}; });
       plFeelReset(ex);
       saveILog(); renderILog();

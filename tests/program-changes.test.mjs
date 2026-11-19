@@ -52,7 +52,7 @@ function engine({ goal = "leanbulk", store = {}, prep = [], inseason = false, eq
     var FF_PLAN_RENAMED={};
     ${decl(PLAN, "PHASES", "[")} ${decl(PLAN, "EQUIPMENT", "[")} ${decl(PLAN, "MACHINES", "[")}
     ${["purposeFor", "isBallistic", "trainRetain", "adjSets", "eventInfo", "waveFor", "bumpReps", "trimSets", "plainReps",
-       "waveAdjust", "capSets", "plainSetCount", "ffInSeason", "ffInSeasonMode", "ffInSeasonPlan", "ffOnRamp", "ffHealth", "ffHealthCaution", "effTarget", "overspeedDose", "speedDrillTarget",
+       "waveAdjust", "capSets", "plainSetCount", "ffInSeason", "ffInSeasonMode", "ffInSeasonPlan", "ffOnRamp", "ffHealth", "ffHealthCaution", "effTarget", "isHoldEx", "isTimeEx", "holdTarget", "overspeedDose", "speedDrillTarget",
        "speedMode", "have", "ffLowImpact", "speedRows"].map((n) => fn(PLAN, n)).join("\n")}
     ${["ffProfileDefault", "applySwapName", "setSwap", "ffPullCapNeeded", "ffPullAssist"].map((n) => fn(LOGGER, n)).join("\n")}
     ${fn(MODEL, "ffBmi")}

@@ -174,7 +174,7 @@
             if(lx) (lx.sets||[]).forEach(function(st){
               var w=parseFloat(st.w)||0, r=parseInt(st.r,10)||0; if(!r) return;
               var e=w?e1RM(w,r):r/100; if(!top || e>top.e) top={ e:e, w:w, r:r }; });
-            if(top) x.top=top.w?(top.w+"×"+top.r):(top.r+" reps");
+            if(top) x.top=top.w?(top.w+"×"+top.r):repsText(top.r, x);
             return x; }) };
         out.days.push(row);
       });

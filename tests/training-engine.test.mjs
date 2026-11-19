@@ -47,7 +47,7 @@ function decl(source, name, open) {
 
 const PLAN_FNS = ["effortNote", "ffOnRamp", "ffHealth", "ffHealthCaution", "heavyAfter", "warmupBase", "primerFor", "purposeFor", "isBallistic",
   "isBigLift", "isBodyweightEx", "trainRetain", "ffEasyProgress", "adjSets", "eventInfo", "waveFor", "bumpReps", "trimSets", "plainReps",
-  "waveAdjust", "capSets", "plainSetCount", "ffInSeason", "ffInSeasonMode", "ffInSeasonPlan", "ffLowImpact", "speedRows", "effTarget", "overspeedDose", "speedDrillTarget", "prescribeW", "ffReduceLoad", "repShiftLoad",
+  "waveAdjust", "capSets", "plainSetCount", "ffInSeason", "ffInSeasonMode", "ffInSeasonPlan", "ffLowImpact", "speedRows", "effTarget", "isHoldEx", "isTimeEx", "isTimedEx", "holdTarget", "overspeedDose", "speedDrillTarget", "prescribeW", "ffReduceLoad", "repShiftLoad",
   "normName", "have", "equipNeedsFor", "equipOk", "speedMode", "resolveEx", "resolveDay", "activeDays", "ffSessionsPerWeek", "dayTargets", "sessionMinutes",
   "cdHold", "cooldownBase", "cdAddFixes", "cooldownList", "recoveryList", "holdSecs", "listMinutes"];
 const LOGGER_FNS = ["lastSessionFor", "sessFullDose", "repsShifted", "topReps", "isDistEx", "repSeed", "incNum",
@@ -178,8 +178,9 @@ test("all three loggers say 'Welcome back — ease in' on the first session afte
 test("the rep ghost and placeholders follow today's target after a rep shift", () => {
   // One "ghost" per surface feeds the placeholder AND what ✓ saves (Nov 2026, check-logs-ghost.test).
   assert.match(fn(PLAYER, "plGhost"), /repsShifted\(lx, x\) \? repSeed\(x\.target\) : pr/);
-  assert.match(fn(LOGGER, "logGhost"), /sh=repsShifted\(lx, x\)[\s\S]*\(isDistEx\(x\.target\) \|\| sh\) \? repSeed\(x\.target\)/);
-  assert.match(fn(INLINE, "ilGhost"), /sh=repsShifted\(lx, x\)[\s\S]*\(isDistEx\(x\.target\) \|\| sh\) \? repSeed\(x\.target\)/);
+  // (a distance or a timed hold seeds its prescribed yards / seconds too — holds-in-seconds.test)
+  assert.match(fn(LOGGER, "logGhost"), /sh=repsShifted\(lx, x\)[\s\S]*\(isDistEx\(x\.target\) \|\| isTimeEx\(x\.target\) \|\| sh\) \? repSeed\(x\.target\)/);
+  assert.match(fn(INLINE, "ilGhost"), /sh=repsShifted\(lx, x\)[\s\S]*\(isDistEx\(x\.target\) \|\| isTimeEx\(x\.target\) \|\| sh\) \? repSeed\(x\.target\)/);
 });
 
 // --------------------------------------------------------- shared reduction
