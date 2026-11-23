@@ -1,10 +1,22 @@
   /* ===================== WORKOUT PLAYER — full-screen guided session =====================
      One station at a time: warm-up checklist → power primer → each lift (prescribed
-     load front and center, steppers, auto rest countdown) → recap with volume, PRs
-     and a share moment. Reads/writes the SAME ff_log session as the inline logger,
+     load front and center, steppers, auto rest countdown) → cool-down → recap with
+     volume, PRs and a share moment. Reads/writes the SAME ff_log session as the inline logger,
      saving on every change — exit any time, nothing is lost. Always dark (focus mode). */
   var player=null, plRestTimer=null, plRestEnd=0, plRestTotal=0;
   function plLiftBase(day){ return (day.type==="speed") ? 1 : 2; }   // stations before the first lift
+  // THE station order (start, reorder and add-a-lift all build it here). The cool-down
+  // is its own station after the last lift, while you're still in the workout (owner,
+  // Nov 2026: "show me the cooldown after the workout when I'm still in it") — it used
+  // to sit on the recap under "Session complete", where it read as already over.
+  function plStations(day, sess){
+    var st=[{type:"warmup"}];
+    if(day.type!=="speed") st.push({type:"primer"});
+    sess.ex.forEach(function(x, xi){ st.push({type:"lift", xi:xi}); });
+    st.push({type:"cooldown"}, {type:"recap"});
+    return st;
+  }
+  function plCdList(){ return cooldownList(player.day.type==="speed"?"speed":player.dayName); }
   // resumeWeek: the pause bar passes the paused session's OWN week — after a week
   // rollover, curWeek() would open a blank new-week session and orphan the paused one.
   function startPlayer(dayName,readinessChecked,resumeWeek){
@@ -22,10 +34,7 @@
     }
     var sess=buildSession(day, week);
     var prevBest=plLifetimeBests();
-    var stations=[{type:"warmup"}];
-    if(day.type!=="speed") stations.push({type:"primer"});
-    sess.ex.forEach(function(x, xi){ stations.push({type:"lift", xi:xi}); });
-    stations.push({type:"recap"});
+    var stations=plStations(day, sess);
     player={ day:day, dayName:day.name, week:week, sess:sess, stations:stations, st:0,
              wuDone:{}, prDone:false, prevBest:prevBest, startedAt:Date.now(),
              octBefore:(ffScore().score||0) };
@@ -41,7 +50,7 @@
       player.st=paused.st; restored=true;
     }
     if(!restored && hasAny){
-      player.st=stations.length-1;   // every set done but never finished → the recap's Finish button
+      player.st=stations.length-2;   // every set done but never finished → the cool-down, then Finish
       for(var i=0;i<sess.ex.length;i++){
         if(!sess.ex[i].sets.every(function(s){ return s.done; })){ player.st=plLiftBase(day)+i; break; }
       }
@@ -123,6 +132,7 @@
     var st=player.stations[i];
     if(st.type==="warmup"){ var list=warmupList(player.day.type==="speed"?"speed":player.dayName); return Object.keys(player.wuDone).length>=list.length; }
     if(st.type==="primer") return player.prDone;
+    if(st.type==="cooldown") return Object.keys(player.cdDone||{}).length>=plCdList().length;
     if(st.type==="lift"){ var x=player.sess.ex[st.xi]; return x && x.sets.length>0 && x.sets.every(function(s){ return s.done; }); }
     return false;
   }
@@ -191,6 +201,17 @@
           return '<button type="button" class="pl-item'+(player.wuDone[i]?" done":"")+'" data-plwu="'+i+'">'+
             '<span>'+(player.wuDone[i]?"✓ ":"")+m[0]+(m[2]?' <small style="color:#d4b06a">· from your mobility screen</small>':'')+plCueHtml(m[0])+'</span><span class="dose">'+m[1]+'</span></button>';
         }).join("")+'</div>';
+    }
+    if(st.type==="cooldown"){
+      var cl=plCdList(), cd=player.cdDone||{};
+      return '<div class="pl-skick">Last station · Cool-down — keep your turn</div>'+
+        '<div class="pl-exname">Keep your turn</div>'+
+        '<div class="pl-cue">~'+listMinutes(cl)+' minutes, right now while you\'re warm. Hold each stretch and breathe slowly — tap each one as you finish it.</div>'+
+        '<div class="pl-list pl-cd">'+cl.map(function(m,i){
+          return '<button type="button" class="pl-item'+(cd[i]?" done":"")+'" data-plcd="'+i+'">'+
+            '<span>'+(cd[i]?"✓ ":"")+m[0]+(m[2]?' <small style="color:#d4b06a">· from your mobility screen</small>':'')+plCueHtml(m[0])+'</span><span class="dose">'+m[1]+'</span></button>';
+        }).join("")+'</div>'+
+        '<div class="pl-note">Muscle you add should never cost you rotation. Next: your recap and Finish.</div>';
     }
     if(st.type==="primer"){
       var p=primerFor(player.dayName), low=player.sess.readiness&&player.sess.readiness.band==="recharge"&&!player.sess.readiness.original;
@@ -315,23 +336,20 @@
         '<div class="pl-stat"><div class="v">'+octNow+(dOct>0?' <small style="color:#8be9ac">▲'+dOct+'</small>':'')+'</div><div class="k">Octane</div></div>'+
       '</div>'+
       '<div class="pl-cue" style="text-align:center">'+(prs.length?'Force is the raw material for clubhead speed — that PR is yards in the bank.':'Consistency is the biggest lever on your Octane. Session banked.')+'</div>'+
-      plCooldownHtml()+
+      plCdRecapHtml()+
       '<textarea class="pl-notes" id="plNote" rows="2" maxlength="240" placeholder="Session notes — sleep, energy, aches… (saved with the workout)">'+lbEsc(player.sess.note||"")+'</textarea>'+
       '<button class="pl-share" data-pladdlift="1" style="border-color:rgba(255,255,255,.25);color:#dff1e4;">＋ Add one more lift</button>'+
       '<button class="pl-share" data-plshare="1">'+ffIcon("share",15)+' Share this session</button>'+
       '</div>';
   }
-  // Cool-down on the recap, before Finish: a few rotation holds so the mass you
-  // add never costs your turn (035 cooldownList). Taps toggle in place — no
-  // re-render, so the recap's count-ups and PR moment don't replay.
+  // The recap's one line about the cool-down: done, or how far along with a tap back
+  // to its station (the list itself lives on the cool-down station).
   function plCueHtml(n){ var c=(typeof moveCue==="function")?moveCue(n):""; return c ? '<small class="pl-move-cue">'+c+'</small>' : ''; }
-  function plCooldownHtml(){
-    var cl=cooldownList(player.day.type==="speed"?"speed":player.dayName), cd=player.cdDone||{};
-    return '<div class="pl-cd"><div class="pl-skick">Cool-down · ~'+listMinutes(cl)+' min — keep your turn</div>'+
-      '<div class="pl-list">'+cl.map(function(m,i){
-        return '<button type="button" class="pl-item'+(cd[i]?" done":"")+'" data-plcd="'+i+'">'+
-          '<span>'+m[0]+(m[2]?' <small style="color:#d4b06a">· from your mobility screen</small>':'')+plCueHtml(m[0])+'</span><span class="dose">'+m[1]+'</span></button>';
-      }).join("")+'</div></div>';
+  function plCdRecapHtml(){
+    var n=plCdList().length, k=Object.keys(player.cdDone||{}).length, all=k>=n;
+    return '<div class="pl-list pl-cd pl-cdline"><button type="button" class="pl-item'+(all?" done":"")+'" data-plgocd="1">'+
+      '<span>'+(all?"✓ Cool-down done — your turn's looked after":"🌀 Cool-down — ~"+listMinutes(plCdList())+" min to keep your turn")+'</span>'+
+      '<span class="dose">'+(all?"":(k?k+" of "+n+" · ":"")+"do it ›")+'</span></button></div>';
   }
   // What an empty set shows (dim) — and what ✓ saves when it's left untouched. One read,
   // so "tick it unchanged" logs exactly the numbers on screen (owner, Nov 2026: "when I
@@ -437,7 +455,10 @@
       var cdb=e.target.closest("[data-plcd]");
       if(cdb){ var ci=+cdb.getAttribute("data-plcd"); player.cdDone=player.cdDone||{};
         if(player.cdDone[ci]) delete player.cdDone[ci]; else player.cdDone[ci]=true;
-        cdb.classList.toggle("done", !!player.cdDone[ci]); return; }
+        plRender(); return; }
+      if(e.target.closest("[data-plgocd]")){
+        for(var gi=0;gi<player.stations.length;gi++){ if(player.stations[gi].type==="cooldown"){ player.st=gi; break; } }
+        plRender(); return; }
       if(e.target.closest("[data-plshare]")){ plShare(); return; }
       var stp=e.target.closest("[data-plstep]");
       if(stp){
@@ -632,11 +653,7 @@
   // arrows) and the session order, stations and inline logger all follow.
   function plRebuildStations(keepObj){
     var base=plLiftBase(player.day);
-    var stations=[{type:"warmup"}];
-    if(player.day.type!=="speed") stations.push({type:"primer"});
-    player.sess.ex.forEach(function(x,xi){ stations.push({type:"lift", xi:xi}); });
-    stations.push({type:"recap"});
-    player.stations=stations;
+    player.stations=plStations(player.day, player.sess);
     if(keepObj){ var ni=player.sess.ex.indexOf(keepObj); if(ni>=0) player.st=base+ni; }
   }
   function plOrdRows(){

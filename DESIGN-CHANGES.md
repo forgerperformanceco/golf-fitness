@@ -1,5 +1,44 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## The cool-down is its own step in the workout (Nov 23, 2026)
+
+The owner asked: "Can you show me the cooldown after the workout when I'm still in it?"
+
+The player's cool-down sat on the recap, under "Session complete", "Work banked" and the stats, so it
+read as if the workout was already over. Next to Finish, it was easy to skip.
+
+- **Its own station after the last lift.** The order is now warm-up → primer → lifts → cool-down →
+  recap. `plStations` (070) builds it in one place for starting, reordering lifts and adding a lift
+  mid-workout. An added lift goes before the cool-down and recap, and the player lands on it.
+- **The station** mirrors the warm-up:
+  - heading "Last station · Cool-down — keep your turn";
+  - "~6 minutes, right now while you're warm";
+  - a tap-to-check list with each hold's how-to and dose; a tap re-renders in place and keeps the
+    scroll;
+  - its dot fills when every hold is done;
+  - the button still says "Next ›", and the recap with Finish comes after it.
+- **The recap keeps one line** that links back to the station instead of the full list. It shows
+  "~6 min to keep your turn · do it ›", then "1 of 3", then "✓ Cool-down done".
+- **Resume:** a workout with every set done but not finished now opens on the cool-down (it used to
+  open on the recap's Finish).
+- **Speed day** gets the station too, with its own cool-down list.
+- **Verified:**
+  - `tests/player-cooldown-station.test.mjs` (3 tests, failing without the change) covers the
+    station order on lift and speed days, the one builder, add-a-lift, the resume index, the
+    station's list and done rule, and the recap link. Suite 329/329.
+  - A Playwright e2e in light and dark at 390px passes with zero page errors and no horizontal
+    overflow:
+    - Next from lift 8 of 8 → the cool-down (Next, not Finish, no "Session complete"), and Back →
+      lift 8;
+    - 3 holds with how-tos, each ≥44px; a tap → ✓ and keeps the scroll (125 → 125);
+    - the recap reads "1 of 3 · do it ›" and its link goes back to the station;
+    - with every hold done the recap says "✓ Cool-down done" and the dot is filled;
+    - a DB Curl added from the recap → lands on it, then Next → the cool-down;
+    - resuming with every set done → the cool-down;
+    - the speed day has the station.
+  - The seconds and untouched-set e2es re-ran green. Audits: train 18/18, scroll 16/16, contrast
+    clean, type 1 known. The release gate passed and claims-lint is clean.
+
 ## Dead hangs, planks and holds log in seconds (Nov 19, 2026)
 
 The owner said: "dead hangs should be in seconds."
