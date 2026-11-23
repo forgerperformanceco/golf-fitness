@@ -175,9 +175,9 @@
   function addLiftChoice(name){
     if(addFromPlayer && player){
       player.sess.ex.push({ name:name, orig:name, target:ffAddTarget(name), sets:[{w:"",r:"",done:false},{w:"",r:"",done:false},{w:"",r:"",done:false}] });
-      var nxi=player.sess.ex.length-1;
-      player.stations.splice(player.stations.length-1, 0, { type:"lift", xi:nxi });
-      player.st=player.stations.length-2;   // land on the new lift, recap stays last
+      // Rebuild the stations: the new lift goes after the others, before the
+      // cool-down and recap, and the player lands on it.
+      plRebuildStations(player.sess.ex[player.sess.ex.length-1]);
       plSave(); plRender();
     } else if(ilog){
       ilog.sess.ex.push({ name:name, orig:name, target:ffAddTarget(name), sets:[{w:"",r:"",done:false},{w:"",r:"",done:false},{w:"",r:"",done:false}] });
