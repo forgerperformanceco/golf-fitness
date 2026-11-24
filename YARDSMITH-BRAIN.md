@@ -66,6 +66,12 @@ deeper doc when there is one.
 builds the athletic engine (strength, power, fuel) and converts it into driver
 distance, then proves it with the golfer's own numbers.
 
+**North star (owner, Nov 24, 2026): "Golf forward for everything we do."** The owner's
+goals, in their words: "get dramatically better at golf, increase flexibility, and gain
+distance", and be able to load the hips and create torque. Every feature, prescription,
+nutrition rule, number and line of copy is judged by whether it serves that golfer. It's
+the test that settles a choice; see the §11 house rule for how it's applied.
+
 **The thesis (validated, see §4):** driving distance is a **physical** output
 before a technical one. Build lean muscle → convert to power → the yards follow.
 It's muscle *quality and power*, not bulk; flexibility barely matters for speed.
@@ -732,6 +738,9 @@ publishable key + VAPID public key ship client.
   diff — never the builder's reasoning — and its findings are fixed with tests before pushing; Codex
   still reviews the PR. In the trial it caught the 2 biggest bugs; Codex then caught 4 edge cases in
   the code those fixes added, so re-review a large fix commit too. Small tweaks skip the pre-PR pass.
+- **Golf forward for everything** (owner, Nov 24, 2026), §1's north star. A choice that doesn't
+  help the golfer play better, hit it farther, turn more freely or stay healthy loses to one
+  that does.
 - **The plan always prescribes the best training for golf performance** (owner, Nov 24, 2026:
   "You should be recommending the best workouts to be better at golf always"). When a question
   or a change surfaces a prescription that the evidence says is worse for the golfer (more
