@@ -1,5 +1,33 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## Moving days works while a schedule change waits for next week (Nov 24, 2026)
+
+The owner said: "Day moving isn't working and I want to push today."
+
+They had changed days off mid-week (Wednesday back on). With work logged that week, the change waits
+for next week (`ffSaveSchedule`: `arrangeWeek` plus a snapshot of this week's days and order). While
+a change waited, `ffMoveDay` refused every drag with "Your new days start next week."
+
+- **A drag now reshapes this week only.** With a change queued, the swap writes this week's order
+  (`prevLayout`, which `ffLayoutNow` already reads for the week under way) and leaves next week's
+  order and the queued change alone. The toast reads: "Swapped Push (Tuesday) and Speed (Friday)
+  for this week. Your new days start next week."
+- **The guard rails read this week's days.** The days-off check uses `ffOffDaysNow` (Wednesday is
+  still off this week), and the warnings use `ffPlayDaysNow`. A logged day still stays put.
+- **Verified:**
+  - Two tests in `tests/season-schedule-health.test.mjs` fail on the old code. They use the owner's
+    stored settings:
+    - the swap and its message;
+    - next week's order untouched, with `arrangeWeek` kept;
+    - Wednesday blocked as this week's day off;
+    - a logged day staying put;
+    - week 4 arriving with the game week.
+  - The haptics shape test follows the new save line. Suite 335/335.
+  - A Playwright e2e on the owner's exact settings (Chicago time, Tue Nov 24), with both the mouse
+    and the touch path, passes with zero page errors:
+    - drag Friday's Push onto Today, and today shows Push with Friday showing Speed;
+    - tap Today, then Start workout, and the player opens Push.
+
 ## The game week: speed day on a fresh day (Nov 24, 2026)
 
 The owner asked: "Are the workout days in the right order? I feel like it's odd starting with a speed

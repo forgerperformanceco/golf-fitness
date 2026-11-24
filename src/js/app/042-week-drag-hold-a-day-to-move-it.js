@@ -27,16 +27,17 @@
     if(typeof ffAccess==="function" && ffAccess()!=="full") return "";
     var g=gdState(), wk=curWeek(), ws=weekStartDate();
     if(!ws) return "";
-    var msg;
-    if(g.arrangeWeek && wk<g.arrangeWeek){
-      msg="Your new days start next week. Move days around after that."; ffToast(msg); return msg;
-    }
+    // A schedule change made mid-week waits for next week (ffSaveSchedule); this week runs on
+    // its snapshot. A move then reshapes THIS week only (prevLayout) and leaves next week alone.
+    // It used to be refused outright (owner, Nov 2026: "Day moving isn't working and I want to
+    // push today").
+    var msg, queued=!!(g.arrangeWeek && wk<g.arrangeWeek);
     var s=stripDays().slice(), wd0=ws.getDay(), da=s[a], db=s[b];
     if(!da || !db || (da.type==="rest" && db.type==="rest")) return "";   // rest ↔ rest changes nothing
     if(ffDayLogged(wk, da) || ffDayLogged(wk, db)){
       msg="Days you've already logged stay put."; ffToast(msg); return msg;
     }
-    var off=ffOffDays(), offAt=function(i){ return off.indexOf((wd0+i)%7)!==-1; };
+    var off=ffOffDaysNow(), offAt=function(i){ return off.indexOf((wd0+i)%7)!==-1; };   // this week's days off
     if((da.type!=="rest" && offAt(b)) || (db.type!=="rest" && offAt(a))){
       var odd=(da.type!=="rest" && offAt(b)) ? b : a;
       msg=FF_WD[(wd0+odd)%7]+" is a day off. Turn it back on in Plan settings first."; ffToast(msg); return msg;
@@ -44,12 +45,13 @@
     s[a]=db; s[b]=da;
     var lay=new Array(7);
     for(var i=0;i<7;i++) lay[(wd0+i)%7]=dayKey(s[i]);
-    g.layout=lay; gdSave(g);
+    if(queued) g.prevLayout=lay; else g.layout=lay;
+    gdSave(g);
     try{ if(typeof ffTick==="function") ffTick(10); }catch(_){}        // it landed (light)
     // Moving a skipped workout ("Rest today", 043) means you'll do it there.
     [da,db].forEach(function(x){ if(x.type!=="rest" && sessionSkipped(wk, x.name)) unskipSession(wk, x.name); });
     // Flag (don't block) the combos the automatic arrangement avoids.
-    var play=ffPlayDays(), warn="";
+    var play=ffPlayDaysNow(), warn="", keeps=queued ? " for this week. Your new days start next week." : ". Your week keeps this order.";
     for(var j=0;j<7 && !warn;j++){
       var cur=s[j], nx=s[(j+1)%7];
       if(ffHeavyLegs(cur) && ffHeavyLegs(nx)) warn=" Heads up: that puts legs on back-to-back days.";
@@ -59,10 +61,10 @@
       else if(cur.type==="speed" && (play.indexOf((wd0+j+1)%7)!==-1 || play.indexOf((wd0+j+6)%7)!==-1)) warn=" Heads up: speed day right next to a round — it's best fresh.";
     }
     if(da.type!=="rest" && db.type!=="rest")
-      msg="Swapped "+wsShort(da)+" ("+FF_WD[(wd0+b)%7]+") and "+wsShort(db)+" ("+FF_WD[(wd0+a)%7]+"). Your week keeps this order."+warn;
+      msg="Swapped "+wsShort(da)+" ("+FF_WD[(wd0+b)%7]+") and "+wsShort(db)+" ("+FF_WD[(wd0+a)%7]+")"+keeps+warn;
     else {
       var moved=da.type!=="rest" ? da : db, to=(moved===da) ? b : a;
-      msg="Moved "+wsShort(moved)+" to "+FF_WD[(wd0+to)%7]+". Your week keeps this order."+warn;
+      msg="Moved "+wsShort(moved)+" to "+FF_WD[(wd0+to)%7]+keeps+warn;
     }
     ffToast(msg);
     try{ window.dispatchEvent(new Event("ff-data-changed")); }catch(_){}
