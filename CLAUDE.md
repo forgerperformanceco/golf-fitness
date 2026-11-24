@@ -3,6 +3,15 @@
 Vanilla-JS PWA (no framework, no npm build for the site itself), served as-is
 from the repo root by GitHub Pages at yardsmith.golf.
 
+## North star: golf forward, in everything
+
+The owner's rule (Nov 2026): **"Golf forward for everything we do."** Judge every
+change by whether it makes the golfer better at golf: more distance, a freer turn,
+a durable back, fresher rounds. That covers features, training prescriptions,
+nutrition, numbers and copy. When the evidence is clear, change the plan; don't
+just offer the option. Mobility is for the turn and durability, never sold as mph.
+Details and the evidence base: YARDSMITH-BRAIN.md §1 and §11.
+
 ## Where to edit (the one rule that matters)
 
 **Edit `src/` — never the generated files at the repo root.**
