@@ -262,3 +262,15 @@ test("compound lifts cue a fast, max-intent concentric", () => {
   for (const n of ["Leg Press", "Back Squat", "Romanian Deadlift", "Barbell Bench Press"])
     assert.match(ctx.why(n).cue, /fast|explosive|Snap/i, `${n} already asks for speed`);
 });
+
+test("Codex #142: single-joint pulls keep a controlled cue — only the compound pulls ask for speed", () => {
+  const ctx = {};
+  vm.runInNewContext(`${fn(INLINE, "liftWhy")}\nthis.why = liftWhy;`, ctx);
+  for (const n of ["Straight-Arm Pulldown", "Single-Arm Straight-Arm Pulldown", "Cable Pullover"]) {
+    assert.doesNotMatch(ctx.why(n).cue, /fast/i, n);
+    assert.match(ctx.why(n).cue, /Arms long.*lats.*control the return/, n);
+  }
+  for (const n of ["Upright Row", "Cable Upright Row"])
+    assert.equal(ctx.why(n).cue, "Lead with the elbows out to shoulder height — no shrug, no swing.", n);
+  for (const n of ["Lat Pulldown", "Seated Cable Row", "Barbell Row", "Chin-up"]) assert.match(ctx.why(n).cue, /^Pull fast and hard/, n);
+});

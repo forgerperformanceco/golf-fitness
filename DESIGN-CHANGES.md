@@ -14,6 +14,10 @@ That's rate of force development, the quality most tied to swing speed.
   - overhead press: "…ribs down, then drive it up fast…".
 - Isolation work keeps "strict and controlled", because rep tempo barely changes muscle growth
   (Schoenfeld 2015).
+- **Codex #142:** the pull matcher was broad, so single-joint pulls first got the compound cue. Now:
+  - straight-arm pulldowns and the cable pullover get "Arms long, elbows soft and fixed — sweep it
+    down with the lats, control the return";
+  - upright rows join the shoulder-raise cue ("Lead with the elbows out to shoulder height").
 - Nothing was copied from the article. Its "+8 MPH" banner claims fall under the banned-claims rule.
 - **Verified:** a test in `tests/exercise-cues.test.mjs` fails on the old cues. It checks the pull and
   press cues and that the leg press, squat, RDL and bench already ask for speed.
