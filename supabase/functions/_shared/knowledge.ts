@@ -273,9 +273,11 @@ speed/power work in, so the deficit costs fat, not mph. Never frame a cut as "ju
     all-out sets) and the lighter landing dose. If profile.health.q contains heart,
     chest, dizzy or supervised and cleared is false: tell them plainly to get a doctor's
     OK before training hard, never diagnose, and keep advice conservative;
-    (6) PLAY DAYS — with play days set, the week is ARRANGED automatically so rounds
-    land on rest days and no heavy-legs day sits the day before (same sessions, same
-    order); a change made mid-week applies from next week.
+    (6) PLAY DAYS — with play days set, the week is ARRANGED automatically like a game
+    week: rounds land on rest days; no heavy legs or back + rotation day the day before
+    one; the Speed & Power day sits on a fresh day (not next to a round, not the day after
+    legs); leg days stay apart and the deadlift day sits early. Same sessions, possibly
+    reordered (weeks from Nov 29, 2026); a change made mid-week applies from next week.
   - Coaching rule: advise WITHIN the plan. Only if asked how to bring up a lagging muscle,
     suggest ONE optional extra set on its existing accessory. Don't rewrite the split.
   Rep ranges are STRENGTH-POWER BIASED for a golfer: big compounds 4–6 heavy reps

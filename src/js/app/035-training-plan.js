@@ -1427,7 +1427,7 @@
     if(g && g.arrangeWeek && wk && wk<g.arrangeWeek) return "Starts next week, so this week’s workouts stay put.";
     // Rounds give way before days off do, so only the days off themselves can overbook this row.
     if(7-off.length<k) return k+" workouts but only "+(7-off.length)+" days left, so one lands on a day off. Free a day or train fewer days a week.";
-    return "Your workouts move to the other days, same order, with leg days kept apart.";
+    return "Your workouts move to the other days, with leg days kept apart.";
   }
   function ffPlaySub(){
     var g=lsGet("ff_gameday", null), wk=planStart()?curWeek():0;
@@ -1435,7 +1435,7 @@
     if(g && g.arrangeWeek && wk && wk<g.arrangeWeek) return "Your week rearranges from next week, so this week’s workouts stay put.";
     var k=ffSessionsPerWeek(), open=ffOpenDays(ffOffDays(), ffPlayDays()), over=k-open;
     if(over>0) return k+" workouts but only "+open+" open days, so "+(over===1?"one lands":over+" land")+" on a round day. Train fewer days a week, or try In-season.";
-    return "Your week is arranged so rounds land on rest days, with no heavy legs the day before.";
+    return "Your week is arranged around your rounds: nothing heavy the day before, and speed day on a fresh day, away from them.";
   }
   function ffSeasonSub(){
     var m=ffInSeasonMode();

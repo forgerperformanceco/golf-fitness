@@ -59,7 +59,7 @@ function engine({ inseason = false, freq = 4, store = {}, startWd = 1, week = 3,
        "ffHealthCaution", "ffHealthRedFlag", "ffHealthAdvice", "ffOnRamp", "ffLowImpact", "purposeFor", "trimSets",
        "capSets", "plainSetCount", "adjSets", "trainRetain", "eventInfo", "waveFor", "bumpReps", "plainReps", "waveAdjust",
        "effTarget", "isHoldEx", "isTimeEx", "holdPerSide", "holdTarget"].map((n) => fn(PLAN, n)).join("\n")}
-    ${["stripDays", "ffBaseWeek", "ffLayoutActive", "ffHeavyLegs", "ffBackRotate", "ffArrangeWeek", "ffPlayDaysNow", "ffOffDays", "ffOffDaysNow", "ffLayoutNow", "ffApplyLayout",
+    ${["stripDays", "ffBaseWeek", "ffLayoutActive", "ffHeavyLegs", "ffBackRotate", "ffArrangeWeek", ...["ffArrangeWeekRaw", "ffPerms"].filter((n) => LOGGER.includes(`function ${n}(`)), "ffPlayDaysNow", "ffOffDays", "ffOffDaysNow", "ffLayoutNow", "ffApplyLayout",
        "dayKey", "getLog", "getSession", "getRest", "restDone", "cardioDone",
        "getSkippedSessions", "sessionSkipped", "skipSession", "unskipSession", "ffRestInstead", "sessionFinished"].map((n) => fn(LOGGER, n)).join("\n")}
     var __toasts=[], window={ dispatchEvent:function(){} }, Event=function(){};
@@ -72,6 +72,7 @@ function engine({ inseason = false, freq = 4, store = {}, startWd = 1, week = 3,
     ${fn(GAME, "ffPlayDays")}
     ${fn(MODEL, "ffBmi")}
     ${(LOGGER.match(/var FF_BACK_RULE_FROM=[^;]+;/) || ["var FF_BACK_RULE_FROM=0;"])[0]}
+    ${(LOGGER.match(/var FF_WEEK_V2_FROM=[^;]+;/) || [""])[0]} ${(LOGGER.match(/var ffArrMemo=[^;]+;/) || [""])[0]}
     this.api={ ffMoveDay, ffBackRotate, ffRestableToday, ffRestToday, ffRestUndo, ffRestInstead, ffDayLogged, ffSaveSchedule, sessionSkipped, skipSession,
       ffLayoutActive, store:__store, toasts:__toasts, activeDays, ffSessionsPerWeek, ffInSeasonMode, stripDays, ffOnRamp, ffLowImpact, ffHealthCaution,
       ffHealthAdvice, ffHealthQs, effTarget, PHASES, state:state };
@@ -404,4 +405,90 @@ test("the back-day rule starts with weeks beginning Nov 15, 2026: a week already
   assert.match(at([2026, 10, 8], 0), /Pull/, "the week that started Sun Nov 8 keeps the old layout");
   assert.match(at([2026, 10, 15], 0), /Push|Speed/, "from the week starting Sun Nov 15: the new rule");
   assert.match(at([2026, 10, 22], 0), /Push|Speed/, "and every week after");
+});
+
+// ---- The game week (Nov 2026). Owner: "odd starting with a speed day after a golf weekend." ----
+// From weeks starting Nov 29, 2026 the arranger may reorder the days and keeps the speed day fresh.
+const V2 = [2026, 10, 29];   // week-start search from Sun Nov 29
+const shortOf = (d) => d.type === "rest" ? "·" : d.type === "speed" ? "Speed" : /Full Body A/.test(d.name) ? "FB-A" : /Full Body B/.test(d.name) ? "FB-B"
+  : /Pull/.test(d.name) ? "Pull" : /Push/.test(d.name) ? "Push" : /Quads & Hinge/.test(d.name) ? "Legs" : /Quads/.test(d.name) ? "Quads" : "Hinge";
+// Mon..Sun labels for a plan week that starts on startWd.
+const calendar = (week, startWd) => { const c = {}; week.forEach((d, i) => { c[(startWd + i) % 7] = shortOf(d); }); return [1, 2, 3, 4, 5, 6, 0].map((x) => c[x]); };
+const heavy = (d) => d.type !== "rest" && d.type !== "speed" && /Lower|Squat|Hinge|Quads|Full Body/.test(d.name);
+const backDay = (d) => d.type !== "rest" && d.type !== "speed" && /Pull/.test(d.name) && !/Lower|Squat|Hinge|Quads|Full Body/.test(d.name);
+
+test("the game week: a weekend golfer's speed day lands midweek, fresh", () => {
+  // The owner's week: 4 days, the plan's week starts Monday, golf Saturday + Sunday.
+  const four = engine({ freq: 4, startWd: 1, wsBase: V2, store: { ff_gameday: { days: [6, 0] } } });
+  assert.deepEqual(calendar(four.stripDays(), 1), ["Push", "Legs", "Pull", "Speed", "·", "·", "·"],
+    "an easy upper day after the rounds, heavy legs furthest from both weekends, speed two days out, a free day before you play");
+  const five = engine({ freq: 5, startWd: 1, wsBase: V2, store: { ff_gameday: { days: [6, 0] } } });
+  assert.deepEqual(calendar(five.stripDays(), 1), ["Hinge", "Pull", "Speed", "Quads", "Push", "·", "·"], "the deadlift day early, speed Wednesday");
+  // The week before the cutover keeps the old layout (speed straight after the weekend).
+  const old = engine({ freq: 4, startWd: 1, wsBase: [2026, 10, 22], store: { ff_gameday: { days: [6, 0] } } });
+  assert.equal(calendar(old.stripDays(), 1)[0], "Speed", "a week already under way never reshuffles");
+  assert.match(LOGGER, /var FF_WEEK_V2_FROM=new Date\(2026,10,29\)\.getTime\(\);/);
+});
+
+test("the game week holds its rules for every 1–2 round schedule, plan size and start day", () => {
+  const sets = []; for (let m = 1; m < 128; m++) { const a = []; for (let b = 0; b < 7; b++) if (m >> b & 1) a.push(b); if (a.length <= 2) sets.push(a); }
+  const count = (wsBase) => {
+    const t = { weeks: 0, speedNextToRound: 0, speedAfterLegs: 0, legsBackToBack: 0, heavyOrBackBeforeRound: 0, backAfterRound: 0, onRound: 0 };
+    for (const [freq, inseason] of [[4, false], [5, false], [4, 3]]) for (const days of sets) for (let startWd = 0; startWd < 7; startWd++) {
+      const w = [...engine({ freq, inseason, startWd, wsBase, store: { ff_gameday: { days } } }).stripDays()], ip = (i) => days.includes((startWd + i + 7) % 7);
+      t.weeks++;
+      w.forEach((d, i) => { const nx = w[(i + 1) % 7], pv = w[(i + 6) % 7];
+        if (d.type === "speed" && (ip(i + 1) || ip(i - 1))) t.speedNextToRound++;
+        if (d.type === "speed" && heavy(pv)) t.speedAfterLegs++;
+        if (heavy(d) && heavy(nx)) t.legsBackToBack++;
+        if ((heavy(d) || backDay(d)) && ip(i + 1)) t.heavyOrBackBeforeRound++;
+        if (backDay(d) && ip(i - 1)) t.backAfterRound++;
+        if (d.type !== "rest" && ip(i)) t.onRound++; });
+    }
+    return t;
+  };
+  const before = count([2026, 9, 4]), after = count(V2);
+  for (const k of ["speedAfterLegs", "legsBackToBack", "heavyOrBackBeforeRound", "backAfterRound", "onRound"])
+    assert.equal(after[k], 0, `${k}: ${JSON.stringify(after)}`);
+  assert.ok(after.speedNextToRound < before.speedNextToRound, `speed next to a round ${before.speedNextToRound} → ${after.speedNextToRound}`);
+  // Speed sits next to a round ONLY when no week could avoid it without breaking a stronger rule
+  // (brute force over every placement and order of that plan's days).
+  const perms = (a) => a.length < 2 ? [a] : a.flatMap((x, i) => perms(a.slice(0, i).concat(a.slice(i + 1))).map((p) => [x, ...p]));
+  const cleanExists = (train, days) => {
+    const k = train.length, ip = (i) => days.includes((i + 7) % 7), slotSets = [];
+    (function c(st, l, acc) { if (!l) { slotSets.push(acc.slice()); return; } for (let i = st; i <= 6; i++) { acc.push(i); c(i + 1, l - 1, acc); acc.pop(); } })(0, k, []);
+    return slotSets.some((slots) => !slots.some((i) => ip(i)) && perms([...Array(k).keys()]).some((o) => {
+      const w = new Array(7).fill({ type: "rest", name: "Rest" }); slots.forEach((si, j) => { w[si] = train[o[j]]; });
+      return w.every((d, i) => { const nx = w[(i + 1) % 7], pv = w[(i + 6) % 7];
+        return !(d.type === "speed" && (heavy(pv) || ip(i + 1) || ip(i - 1))) && !(heavy(d) && heavy(nx)) && !((heavy(d) || backDay(d)) && ip(i + 1)) && !(backDay(d) && ip(i - 1)); });
+    }));
+  };
+  let checked = 0;
+  for (const [freq, inseason] of [[4, false], [5, false], [4, 3]]) for (const days of sets) {
+    const train = engine({ freq, inseason }).activeDays().filter((d) => d.type !== "rest");
+    if (!cleanExists(train, days)) continue;
+    checked++;
+    for (let startWd = 0; startWd < 7; startWd++) {
+      const w = [...engine({ freq, inseason, startWd, wsBase: V2, store: { ff_gameday: { days } } }).stripDays()], ip = (i) => days.includes((startWd + i + 7) % 7);
+      w.forEach((d, i) => { if (d.type === "speed") assert.ok(!ip(i + 1) && !ip(i - 1), `a clean week exists for ${freq}/${inseason}, plays ${days}, starts ${startWd}: ${calendar(w, startWd)}`); });
+    }
+  }
+  assert.equal(checked, 49, "schedules with a fully clean week");
+  // Weekend golfers (Sat, Sun or both) never get speed next to a round on the 4- or 5-day plan.
+  for (const freq of [4, 5]) for (const days of [[6], [0], [6, 0]]) for (let startWd = 0; startWd < 7; startWd++) {
+    const w = [...engine({ freq, startWd, wsBase: V2, store: { ff_gameday: { days } } }).stripDays()], ip = (i) => days.includes((startWd + i + 7) % 7);
+    w.forEach((d, i) => { if (d.type === "speed") assert.ok(!ip(i + 1) && !ip(i - 1), `${freq}-day, plays ${days}, starts ${startWd}: ${calendar(w, startWd)}`); });
+  }
+});
+
+test("the game week: remembered between reads, a copy each time; drag flags a stale speed day", () => {
+  const E = engine({ freq: 5, startWd: 1, wsBase: V2, store: { ff_gameday: { days: [6, 0] } } });
+  const a = E.stripDays(); a.reverse();
+  assert.deepEqual(calendar(E.stripDays(), 1), ["Hinge", "Pull", "Speed", "Quads", "Push", "·", "·"], "a caller changing its copy changes nothing");
+  // Hold-and-drag: speed onto Monday (after Sunday's round), then onto Friday (the day before Saturday's).
+  const w = E.stripDays(), sp = w.findIndex((d) => d.type === "speed");
+  assert.match(E.ffMoveDay(sp, 0), /Heads up: speed day right (next to a round|after legs) — it's best fresh\./);
+  assert.match(DRAG, /Heads up: speed day right after legs — it's best fresh\./);
+  assert.match(PLAN, /nothing heavy the day before, and speed day on a fresh day, away from them\./);
+  assert.doesNotMatch(PLAN, /same order, with leg days kept apart/, "the days-off line no longer promises the same order");
 });
