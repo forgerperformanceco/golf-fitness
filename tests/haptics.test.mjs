@@ -57,5 +57,5 @@ test("browser: navigator.vibrate with the given pattern; reduced motion mutes th
 test("the week drag buzzes on lift (medium), ticks per day passed over (light), taps when it lands", () => {
   assert.match(DRAG, /ffTick\(18\); \}catch\(_\)\{\}\s+\/\/ the "picked up" buzz/);
   assert.match(DRAG, /if\(c\) try\{ if\(typeof ffTick==="function"\) ffTick\(8\); \}/);
-  assert.match(DRAG, /g\.layout=lay; gdSave\(g\);\s+try\{ if\(typeof ffTick==="function"\) ffTick\(10\); \}/);
+  assert.match(DRAG, /gdSave\(g\);\s+try\{ if\(typeof ffTick==="function"\) ffTick\(10\); \}/);
 });

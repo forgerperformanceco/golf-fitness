@@ -257,9 +257,9 @@ test("hold-and-drag moves: swaps save your week; logged days, days off and queue
   assert.equal(wOff[2].type, "rest", "Wednesday is a rest day");
   assert.match(E.ffMoveDay(wOff.findIndex((d) => d.type !== "rest"), 2), /^Wednesday is a day off\. Turn it back on in Plan settings first\.$/);
   assert.equal(E.store.ff_gameday.layout, undefined, "nothing saved");
-  // A queued schedule change blocks moves until it lands.
+  // A queued schedule change no longer blocks moves: this week's days still move (next test).
   E = engine({ startWd: 1, week: 3, store: { ff_gameday: { arrangeWeek: 4, prevDays: [], prevOff: [] } } });
-  assert.match(E.ffMoveDay(1, 2), /^Your new days start next week/);
+  assert.match(E.ffMoveDay(1, 2), / for this week\. Your new days start next week\./);
 });
 
 test("health check: any yes → a gentler start (4-week on-ramp, softer landings) until cleared", () => {
@@ -554,4 +554,31 @@ test("Codex #138: the play-days line says what THIS week does with the speed day
   // A week that started before the game week keeps the old line.
   assert.equal(engine({ freq: 4, startWd: 1, wsBase: [2026, 10, 22], store: { ff_gameday: { days: [6, 0] } } }).ffPlaySub(),
     "Your week is arranged so rounds land on rest days, with no heavy legs the day before.");
+});
+
+test("a schedule change waiting for next week still lets you move THIS week's days (owner, Nov 2026)", () => {
+  // The owner's stored settings on Tue Nov 24: days off changed mid-week (Wednesday back on), so the
+  // change waits for week 4 and this week runs on the previous order. Owner: "Day moving isn't working
+  // and I want to push today" — the drag was refused while a change was queued.
+  const gd = () => ({ off: [0, 6], days: [0, 6], prevOff: [0, 3, 6], prevDays: [0, 6], arrangeWeek: 4,
+    prevLayout: ["rest@2", "Day 4 — Upper (Pull + Rotate)", "Day 3 — Speed & Power", "rest@4", "Day 1 — Lower (Quads & Hinge)", "Day 2 — Upper (Push)", "rest@6"] });
+  let E = engine({ startWd: 0, week: 3, wsBase: [2026, 10, 22], store: { ff_gameday: gd() } });
+  assert.deepEqual(calendar(E.stripDays(), 0), ["Pull", "Speed", "·", "Legs", "Push", "·", "·"], "this week: Mon Pull, Tue Speed, …, Fri Push");
+  // Push (Friday) onto today (Tuesday): swapped for this week only.
+  const msg = E.ffMoveDay(5, 2);
+  assert.match(msg, /^Swapped Push \(Tuesday\) and Speed \(Friday\) for this week\. Your new days start next week\./);
+  assert.deepEqual(calendar(E.stripDays(), 0), ["Pull", "Push", "·", "Legs", "Speed", "·", "·"]);
+  assert.equal(E.store.ff_gameday.layout, undefined, "next week's order is untouched");
+  assert.equal(E.store.ff_gameday.arrangeWeek, 4, "the queued change still lands next week");
+  assert.equal(E.store.ff_gameday.prevLayout[2], "Day 2 — Upper (Push)", "Tuesday (2) is Push this week");
+  // This week's days off are the ones in force now: Wednesday is still off this week.
+  E = engine({ startWd: 0, week: 3, wsBase: [2026, 10, 22], store: { ff_gameday: gd() } });
+  assert.match(E.ffMoveDay(1, 3), /^Wednesday is a day off\. Turn it back on in Plan settings first\.$/);
+  // A logged day still stays put.
+  E = engine({ startWd: 0, week: 3, wsBase: [2026, 10, 22], store: { ff_gameday: gd(), ff_log: { "3|Day 3 — Speed & Power": { ex: [] } } } });
+  assert.equal(E.ffMoveDay(5, 2), "Days you've already logged stay put.");
+  // Next week (from Sun Nov 29) the change lands and the game week arranges it: Monday off after
+  // the rounds, legs Tuesday, back Wednesday, speed Thursday (fresh), push Friday.
+  E = engine({ startWd: 0, week: 4, wsBase: V2, store: { ff_gameday: gd() } });
+  assert.deepEqual(calendar(E.stripDays(), 0), ["·", "Legs", "Pull", "Speed", "Push", "·", "·"]);
 });
