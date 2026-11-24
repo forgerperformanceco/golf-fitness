@@ -150,12 +150,12 @@
       return { why:"At impact nearly all your weight braces on the lead leg. Single-leg strength builds the lead-side post you slam into — a firm post snaps the club through faster.", cue:"Plant and brace the front leg like a wall — drive down through the heel." };
     if(m(/Face ?Pull|Rear.?Delt|Y-T-W|Reverse (Pec Deck|Fly)/i))
       return { why:"Your rear shoulders and rotator cuff slow the arms down after impact. Strong ones protect the shoulder through thousands of fast swings.", cue:"Lead with the elbows and squeeze the shoulder blades together — no shrug, control the return." };
-    if(m(/Lateral Raise|Front Raise|Y-?Raise/i))
+    if(m(/Lateral Raise|Front Raise|Y-?Raise|Upright Row/i))   // upright rows: a shoulder raise, elbows to shoulder height (Codex, #142)
       return { why:"Strong, healthy delts hold your arms in a wide, repeatable swing arc and handle high swing volume. Support work for the shoulder, not a speed lift.", cue:"Lead with the elbows out to shoulder height — no shrug, no swing." };
     if(m(/Pike Push.?up/i))
       return { why:"Overhead pressing builds shoulder strength and stability so you can deliver force through a long, repeatable swing arc without breaking down.", cue:"Hips high, lower the top of your head toward the floor, press back up — elbows in, not flared." };
     if(m(/Overhead Press|Shoulder Press|Military|OHP|Push Press|Arnold|Z-?Press|Standing .*Press/i))
-      return { why:"Overhead pressing builds shoulder strength and stability so you can deliver force through a long, repeatable swing arc without breaking down.", cue:"Stack the weight over mid-foot, ribs down — no leaning back." };
+      return { why:"Overhead pressing builds shoulder strength and stability so you can deliver force through a long, repeatable swing arc without breaking down.", cue:"Stack the weight over mid-foot, ribs down, then drive it up fast — no leaning back." };
     if(m(/Speed Bench|Explosive DB Floor Press/i))
       return { why:"A light bar pressed as fast as you can trains upper-body speed. It isn't a true throw — the bar has to slow down at the top — so keep it light and push hard all the way.", cue:"Light bar — push every rep as fast as you can; stop when the bar slows." };
     if(m(/Push.?up/i))
@@ -164,8 +164,11 @@
       return { why:"Pressing strength feeds the trail-arm extension that adds speed late in the downswing, and armors the shoulders for high swing volume.", cue:"Shoulders down, lean slightly forward, lower under control, then press back up hard." };
     if(m(/Bench|Push.?up|Chest(?!-?Supported)|Incline(?!.*Curl)|\bDip\b|Fly|Crossover|Pec Deck|Floor .*Press|Flat .*Press|Svend|Landmine Press|Band (Explosive )?Press/i))
       return { why:"Pressing strength feeds the trail-arm extension that adds speed late in the downswing, and armors the shoulders for high swing volume.", cue:"Press explosively, control the lowering." };
+    // Single-joint lat work stays controlled; only the compound pulls below ask for speed (Codex, #142).
+    if(m(/Straight-?Arm|Pullover/i))
+      return { why:"The lead arm pulls the club through impact, and strong lats help the arms stay connected to the turn.", cue:"Arms long, elbows soft and fixed — sweep it down with the lats, control the return." };
     if(m(/Row|Pull.?up|\bChin|\bLat\b|Pulldown|Pull/i))
-      return { why:"The lead arm pulls the club through impact, and a strong back decelerates the swing safely. Pulling adds whip on the way down and protects the shoulder on the way through.", cue:"Pull with the back, not the arms — squeeze the shoulder blade, control the return." };
+      return { why:"The lead arm pulls the club through impact, and a strong back decelerates the swing safely. Pulling adds whip on the way down and protects the shoulder on the way through.", cue:"Pull fast and hard with the back, not the arms — squeeze the shoulder blade, control the return." };
     if(m(/Dead Hang/i))
       return { why:"A strong grip holds the clubface steady at speed, and hanging under your own weight opens up the lats and shoulders that a full turn needs.", cue:"Hang still, shoulders gently down from the ears, and breathe. Step down a second before the grip goes." };
     if(m(/Carry|Farmer|Suitcase|Grip|Pinch/i))

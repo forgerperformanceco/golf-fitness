@@ -1,5 +1,27 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## Every compound lift asks for speed on the way up (Nov 24, 2026)
+
+The owner shared a speed article from a competitor's blog. Its one concrete instruction was 100% intent
+on the lifting phase of every rep. Independent evidence backs that: lifting at maximal intended speed
+builds more strength and speed than lifting deliberately slow (González-Badillo 2014; Behm & Sale 1993).
+That's rate of force development, the quality most tied to swing speed.
+
+- Most compound cues already ask for it: "drive the platform away fast", "press explosively", "snap the
+  hips".
+- Two didn't, so they gain it:
+  - rows and pull-ups: "Pull fast and hard with the back, not the arms…";
+  - overhead press: "…ribs down, then drive it up fast…".
+- Isolation work keeps "strict and controlled", because rep tempo barely changes muscle growth
+  (Schoenfeld 2015).
+- **Codex #142:** the pull matcher was broad, so single-joint pulls first got the compound cue. Now:
+  - straight-arm pulldowns and the cable pullover get "Arms long, elbows soft and fixed — sweep it
+    down with the lats, control the return";
+  - upright rows join the shoulder-raise cue ("Lead with the elbows out to shoulder height").
+- Nothing was copied from the article. Its "+8 MPH" banner claims fall under the banned-claims rule.
+- **Verified:** a test in `tests/exercise-cues.test.mjs` fails on the old cues. It checks the pull and
+  press cues and that the leg press, squat, RDL and bench already ask for speed.
+
 ## Maintaining: no Heavy weeks (Nov 24, 2026)
 
 The owner asked: "If I'm in maintenance phase, is low rep heavy weight really the best?" Then: "You

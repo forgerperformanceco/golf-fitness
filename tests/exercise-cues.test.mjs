@@ -248,3 +248,29 @@ test("the speed day's chop and punch are coached for speed; the push day's wood-
     assert.match(liftWhy(n).cue, /control the way back/, n);
   }
 });
+
+// Owner, Nov 2026 ("golf forward"): every compound lift's cue asks for maximal intent on the way up.
+// Lifting with maximal intended velocity builds more strength and speed than deliberately slow lifting
+// (González-Badillo 2014; Behm & Sale 1993) — the quality most tied to swing speed. Rows / pull-ups and
+// the overhead press were the two compound cues without it.
+test("compound lifts cue a fast, max-intent concentric", () => {
+  const ctx = {};
+  vm.runInNewContext(`${fn(INLINE, "liftWhy")}\nthis.why = liftWhy;`, ctx);
+  for (const n of ["Weighted Pull-up", "Chest-Supported Row", "Single-Arm DB Row", "Lat Pulldown"])
+    assert.match(ctx.why(n).cue, /^Pull fast and hard with the back, not the arms/, n);
+  assert.match(ctx.why("Standing Overhead Press").cue, /drive it up fast/);
+  for (const n of ["Leg Press", "Back Squat", "Romanian Deadlift", "Barbell Bench Press"])
+    assert.match(ctx.why(n).cue, /fast|explosive|Snap/i, `${n} already asks for speed`);
+});
+
+test("Codex #142: single-joint pulls keep a controlled cue — only the compound pulls ask for speed", () => {
+  const ctx = {};
+  vm.runInNewContext(`${fn(INLINE, "liftWhy")}\nthis.why = liftWhy;`, ctx);
+  for (const n of ["Straight-Arm Pulldown", "Single-Arm Straight-Arm Pulldown", "Cable Pullover"]) {
+    assert.doesNotMatch(ctx.why(n).cue, /fast/i, n);
+    assert.match(ctx.why(n).cue, /Arms long.*lats.*control the return/, n);
+  }
+  for (const n of ["Upright Row", "Cable Upright Row"])
+    assert.equal(ctx.why(n).cue, "Lead with the elbows out to shoulder height — no shrug, no swing.", n);
+  for (const n of ["Lat Pulldown", "Seated Cable Row", "Barbell Row", "Chin-up"]) assert.match(ctx.why(n).cue, /^Pull fast and hard/, n);
+});
