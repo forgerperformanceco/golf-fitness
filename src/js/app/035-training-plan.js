@@ -1423,11 +1423,11 @@
   }
   function ffOffSub(){
     var g=lsGet("ff_gameday", null), wk=planStart()?curWeek():0, off=ffOffDays(), k=ffSessionsPerWeek();
-    if(!off.length) return "Tap the days you never train. Your workouts move to the other days, same order.";
+    if(!off.length) return "Tap the days you never train. Your workouts move to the other days.";
     if(g && g.arrangeWeek && wk && wk<g.arrangeWeek) return "Starts next week, so this week’s workouts stay put.";
     // Rounds give way before days off do, so only the days off themselves can overbook this row.
     if(7-off.length<k) return k+" workouts but only "+(7-off.length)+" days left, so one lands on a day off. Free a day or train fewer days a week.";
-    return "Your workouts move to the other days, same order, with leg days kept apart.";
+    return "Your workouts move to the other days, with leg days kept apart.";
   }
   function ffPlaySub(){
     var g=lsGet("ff_gameday", null), wk=planStart()?curWeek():0;
@@ -1435,7 +1435,18 @@
     if(g && g.arrangeWeek && wk && wk<g.arrangeWeek) return "Your week rearranges from next week, so this week’s workouts stay put.";
     var k=ffSessionsPerWeek(), open=ffOpenDays(ffOffDays(), ffPlayDays()), over=k-open;
     if(over>0) return k+" workouts but only "+open+" open days, so "+(over===1?"one lands":over+" land")+" on a round day. Train fewer days a week, or try In-season.";
-    return "Your week is arranged so rounds land on rest days, with no heavy legs the day before.";
+    // The game week starts with weeks from Nov 29, 2026 (040 FF_WEEK_V2_FROM); a week under way keeps the old promise.
+    var ws=weekStartDate();
+    if(ws && ws.getTime()<FF_WEEK_V2_FROM) return "Your week is arranged so rounds land on rest days, with no heavy legs the day before.";
+    // Say what THIS week does with the speed day: some round days leave no slot away from
+    // them (a 4-day plan with Tuesday + Friday rounds), and some plans have none (Codex, #138).
+    var base="Your week is arranged around your rounds: nothing heavy the day before", w=stripDays(), si=-1, play=ffPlayDays();
+    w.forEach(function(d, i){ if(d.type==="speed") si=i; });
+    if(si<0) return base+".";
+    if(!ws) return base+", and speed day on a fresh day when your days allow.";
+    var wd=function(i){ return (ws.getDay()+i+7)%7; };
+    if(play.indexOf(wd(si-1))!==-1 || play.indexOf(wd(si+1))!==-1) return base+". With these days, speed day has to sit next to a round.";
+    return base+", and speed day on a fresh day, away from them.";
   }
   function ffSeasonSub(){
     var m=ffInSeasonMode();

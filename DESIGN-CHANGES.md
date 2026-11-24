@@ -1,5 +1,100 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## The game week: speed day on a fresh day (Nov 24, 2026)
+
+The owner asked: "Are the workout days in the right order? I feel like it's odd starting with a speed
+day after a golf weekend."
+
+The owner is right, and the cause is systematic. The plan template puts Speed & Power straight after
+a "Rest / Play 18" slot, and the arranger only ROTATED the plan's order to put rounds on rest days.
+- Across every 1–3 round schedule, all 4 plan shapes and every start weekday (1,764 weeks), speed sat
+  next to a round in 1,309. The owner's 4-day week with Saturday + Sunday golf ran Speed Monday,
+  Pull, rest, Legs, Push.
+- With rounds on both weekend days, no rotation can keep speed away from them: it lands Monday or
+  Friday.
+
+**From weeks starting Nov 29, 2026** (`FF_WEEK_V2_FROM`, a date gate like the back-day rule, so a
+week under way never moves), `ffArrangeWeek` may reorder the days and scores the week the way a team
+sport builds one around game day. Each penalty lists its reason.
+
+- **Speed the day after heavy legs: +5.** Leg damage dents jump power for 1–2 days (Byrne 2004).
+- **Speed right before or after a round: +3 each side.** That's three straight days of max-speed
+  rotation on the back, and a stale session.
+- **Back + rotation day the day after a round: +2.** More rotation on a back that just played.
+- **Heavy legs:**
+  - the day after a round: +1.5;
+  - two days before one: +1.5, or +2.5 for the deadlift day, whose soreness lasts longest.
+- These sit on top of the hard rules, which are raised so no sum of game-week points can buy one
+  back:
+  - heavy legs the day before a round +30 (was +10);
+  - the back day the day before a round +20 (was +6);
+  - legs on back-to-back days +12 (was +3).
+- Ties go to the plan's own order. The search tries every order, but only on the placements with the
+  fewest workouts on rounds and days off, and it's cached per week. That's ~0.5 ms; across 7,252
+  weeks the results are identical to the full ~4.4 ms search.
+
+**Results:**
+
+| Plan, golf Sat + Sun | Mon | Tue | Wed | Thu | Fri |
+|---|---|---|---|---|---|
+| 4-day (the owner's) | Push | Legs | Pull | Speed | free |
+| 5-day | Hinge | Pull | Speed | Quads | Push |
+
+- The 4-day week is the classic game-week shape: an easy upper day after the rounds, heavy legs
+  furthest from both weekends, speed two days out, and a free day before play.
+- **Every 1–2 round schedule** across the 4-day, 5-day and in-season 3-day plans has zero cases of:
+  - speed after legs;
+  - legs back to back;
+  - heavy legs or back work the day before a round;
+  - a back day after a round.
+- **Speed still sits next to a round only in the 35 schedules where no week can avoid it** without
+  breaking one of the rules above (brute-forced). Example: two midweek rounds three days apart. That's
+  245 weeks, down from 490.
+- **Weekend golfers** (Sat, Sun or both) never get speed next to a round on the 4- or 5-day plan.
+
+**Also changed:**
+- **Plan settings:** "Your week is arranged around your rounds: nothing heavy the day before, and speed
+  day on a fresh day, away from them." The days-off line no longer promises "same order".
+- **Hold-and-drag** now flags dragging speed right after legs or next to a round.
+- **The coach's knowledge** (`supabase/functions/_shared/knowledge.ts`) describes the game week.
+
+**Independent review before the PR** found:
+- **Hard rules could lose.** The first weights let game-week points outweigh "nothing heavy the day
+  before a round": in-season 3-day, rounds Sun + Wed, Thursday off put Full Body B on Saturday. A
+  sweep of rounds plus days off (up to 4 blocked days, every plan) reproduced it. Raising the hard
+  rules fixed it: no week now breaks a hard rule the old arrangement kept.
+- **The cache test never read the cache.**
+- **Two lines of copy were stale.** The days-off line still said "same order", and the Plan settings
+  line promised the game week during a week still on the old rules (it now waits for the week's
+  start).
+- **Known and left as is:** reminders queued across the switch may name the old layout for a day or
+  two, until the app is opened (as with any queued schedule change).
+
+**Codex #138:** the play-days line now says what this week does with the speed day:
+- "…and speed day on a fresh day, away from them" when it is;
+- "With these days, speed day has to sit next to a round" when the round days leave no other slot
+  (a 4-day plan with Tuesday + Friday rounds);
+- nothing about a speed day on a plan without one.
+
+**Verified:**
+- `tests/season-schedule-health.test.mjs` has 4 new tests, which fail on the old code while its 18
+  existing tests pass. They cover:
+  - the owner's and the 5-day weeks;
+  - the week before the cutoff unchanged;
+  - the sweep, with zero hard violations and speed next to a round only where a brute-forced clean
+    week doesn't exist (49 schedules checked);
+  - no week breaks a hard rule the old arrangement kept;
+  - the cache returns a copy on a cached read (it fails if the cache hands out its own array);
+  - both drag flags, by actually dragging;
+  - the copy, including the Codex #138 line for each case.
+- Suite 334/334, ~5 s.
+- A Playwright e2e in light and dark (4-day plan, plan week from Monday, golf Sat + Sun) passes with
+  zero page errors:
+  - the week of Nov 30 reads Push · Quads · Pull · Speed · Rest · Rest · Rest;
+  - this week (from Nov 23) still reads Speed · Pull · Rest · Quads · Push.
+- The cool-down, seconds and untouched-set e2es re-ran green. Audits: train 18/18, scroll 16/16,
+  contrast clean, type 1 known. The release gate passed and claims-lint is clean.
+
 ## The cool-down is its own step in the workout (Nov 23, 2026)
 
 The owner asked: "Can you show me the cooldown after the workout when I'm still in it?"

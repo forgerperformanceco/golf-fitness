@@ -6,8 +6,9 @@
        - a day you've already logged (a started workout, a checked rest or cardio)
          stays put, so history never jumps to another date;
        - a workout can't land on one of your days off;
-       - legs back to back, or heavy legs the day before a round, is allowed but
-         flagged, since that's the user's call.
+       - legs back to back, heavy legs or back work the day before a round, or the
+         speed day right after legs or next to a round, is allowed but flagged,
+         since that's the user's call.
      Touch has its own path: once the hold fires, touchmove is cancelled so the
      page doesn't scroll out from under the finger. Mouse uses pointer events. */
 
@@ -54,6 +55,8 @@
       if(ffHeavyLegs(cur) && ffHeavyLegs(nx)) warn=" Heads up: that puts legs on back-to-back days.";
       else if(ffHeavyLegs(cur) && play.indexOf((wd0+j+1)%7)!==-1) warn=" Heads up: heavy legs the day before a round.";
       else if(ffBackRotate(cur) && play.indexOf((wd0+j+1)%7)!==-1) warn=" Heads up: back and rotation work the day before a round.";
+      else if(cur.type==="speed" && ffHeavyLegs(s[(j+6)%7])) warn=" Heads up: speed day right after legs — it's best fresh.";
+      else if(cur.type==="speed" && (play.indexOf((wd0+j+1)%7)!==-1 || play.indexOf((wd0+j+6)%7)!==-1)) warn=" Heads up: speed day right next to a round — it's best fresh.";
     }
     if(da.type!=="rest" && db.type!=="rest")
       msg="Swapped "+wsShort(da)+" ("+FF_WD[(wd0+b)%7]+") and "+wsShort(db)+" ("+FF_WD[(wd0+a)%7]+"). Your week keeps this order."+warn;
