@@ -14,6 +14,7 @@ const LOGGER = src("040-workout-logger.js");
 const INLINE = src("045-inline-logger-log-as-you-train-in-the-ca.js");
 const HISTORY = src("050-exercise-history-every-lift-s-full-story.js");
 const PLAYER = src("070-workout-player-full-screen-guided-sessio.js");
+const GLOSS = src("009-glossary.js");
 const HOME = src("075-proactive-coaching-your-focus-insights.js");
 const READY = src("077-daily-readiness-adaptive-session.js");
 const STATS = src("085-progress-stats-view.js");
@@ -1125,4 +1126,27 @@ test("retry review: tapping the chosen answer again clears it; every score and a
   assert.match(h, /if\(mobState\.retry\[rk\]===ra\) delete mobState\.retry\[rk\]; else mobState\.retry\[rk\]=ra;/);
   assert.match(fn(MOB, "renderMobility"), /aria-pressed="'\+\(mobState\.vals\[t\.key\]===v\)\+'"/, "score buttons say which is chosen");
   assert.match(h, /mobRefocus\(/, "focus returns to the tapped button after the re-render");
+});
+
+// ------------------------------------------------- maintaining: no Heavy weeks
+// Owner, Nov 2026: "If I'm in maintenance phase, is low rep heavy weight really the best?" — and
+// "You should be recommending the best workouts to be better at golf always." Maintaining strength
+// and muscle needs the LOAD kept, not raised (Bickel 2011; Spiering 2021: volume can drop to a third
+// or less if intensity holds), and 6–30 reps keep muscle alike when sets are hard (Schoenfeld 2017).
+// So when maintaining (Maintain, Lean Out or in-season) the Heavy weeks stay Build weeks: the big
+// lifts keep their reps and weight instead of dropping to 3–4 reps, which adds joint and low-back
+// load without helping keep anything. Easy and Peak weeks are unchanged.
+test("maintaining: the Heavy weeks stay Build weeks — the big lifts keep their usual reps", () => {
+  const wave = (E) => Array.from({ length: 20 }, (_, i) => E.waveFor(i + 1)[0].toUpperCase()).join("");
+  assert.equal(wave(engine({ goal: "leanbulk" })), "AAAIIDAAAIIDAAAIIDPP", "building: the usual wave");
+  for (const goal of ["maintain", "cut"]) assert.equal(wave(engine({ goal })), "AAAAADAAAAADAAAAADPP", `${goal}: no Heavy weeks`);
+  const M = engine({ goal: "maintain" }), B = engine({ goal: "leanbulk" });
+  assert.equal(M.effTarget("4 × 6 (heavy · fast up)", "Romanian Deadlift", 4), "4 × 6 (heavy · fast up)", "maintain, week 4: RDL keeps 6 reps");
+  assert.equal(B.effTarget("4 × 6 (heavy · fast up)", "Romanian Deadlift", 4), "4 × 4 (heavy · fast up)", "building, week 4: RDL drops to 4");
+  assert.equal(M.effTarget("4 × 5 (heavy · fast up)", "Barbell Bench Press", 5), "4 × 5 (heavy · fast up)");
+  assert.equal(M.effTarget("4 × 6", "Leg Press", 6), "3 × 6", "the Easy week still takes a set off");
+  // Codex #140: the maintaining progression still adds weight once every rep is hit twice, so the copy
+  // promises the reps and "no heavier, lower-rep sets" — never "same weight".
+  assert.match(GLOSS, /When you're maintaining \(Maintain, Lean Out or in-season\), the heavy weeks stay build weeks: your usual reps, no switch to fewer, heavier reps\./);
+  assert.doesNotMatch(GLOSS + src("../../../supabase/functions/_shared/knowledge.ts"), /same reps, same weight|same reps and loads/);
 });

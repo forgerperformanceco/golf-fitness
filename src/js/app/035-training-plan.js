@@ -758,7 +758,8 @@
      Weeks 1-3 · 7-9 · 13-15 accumulate — targets as authored; build reps to the target,
        then the logger adds weight (double progression against ONE target number).
      Weeks 4-5 · 10-11 · 16-17 intensify — big lifts drop ~2 reps (go heavier),
-       accessories drop a set so recovery follows the loads up.
+       accessories drop a set so recovery follows the loads up. Building only: when
+       maintaining (Maintain, Lean Out or in-season) these stay accumulate weeks.
      Weeks 6 · 12 · 18 deload — one set less (never below 2 sets), ~60% loads prescribed.
      Weeks 19-20 peak — 🏋️ and 💪 lose 2 sets, ⚡/🌀 1 (floor 2), reps and loads held:
        ~35% fewer weekly sets in Build mode, ~25% in Retain (whose 💪 already sit at 2). ---- */
@@ -811,7 +812,12 @@
     // ev.week, not ev.taper — taper has switched off by then.
     if(pos===6 && ev && ev.week && week===ev.week+2) return "accumulate";
     if(pos===6) return "deload";
-    if(pos>=4) return "intensify";
+    // Maintaining (Maintain, Lean Out or in-season): no Heavy weeks. Keeping strength and muscle
+    // needs the load kept, not raised; volume can drop a lot if intensity holds (Bickel 2011;
+    // Spiering 2021), so the big lifts keep their usual reps (and the slow maintaining
+    // progression) instead of dropping to 3–4 at heavier loads, which only adds joint and low-back load (owner, Nov 2026: "If I'm in maintenance phase,
+    // is low rep heavy weight really the best?").
+    if(pos>=4) return (typeof ffEasyProgress==="function" && ffEasyProgress()) ? "accumulate" : "intensify";
     return "accumulate";
   }
   function bumpReps(sr, delta, minReps){

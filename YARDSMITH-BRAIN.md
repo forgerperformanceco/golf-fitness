@@ -363,6 +363,9 @@ stores; we're a URL). Shipping the app matters more than more docs.
   (now 6 pillars incl. mobility + fuel adherence); flexible measurement.
 - **Real periodization** — 6-week Accumulate → Intensify → Deload waves + 2-week
   peak, with **auto-prescribed loads** (overload applied for you).
+  **Maintaining has no Intensify weeks** (Nov 2026): on Maintain, Lean Out or in-season those
+  weeks stay Accumulate. Holding strength needs the load kept, not raised (Bickel 2011;
+  Spiering 2021), and 3–4-rep weeks only add joint and low-back load.
 - **Workout Player** — full-screen guided sessions, prescribed loads, rest bar,
   pause/resume, reorder/remove mid-workout; **inline logger** on the Today card.
 - **One-tap load nudge** — hit all reps → fill last weight + one small jump
@@ -729,6 +732,13 @@ publishable key + VAPID public key ship client.
   diff — never the builder's reasoning — and its findings are fixed with tests before pushing; Codex
   still reviews the PR. In the trial it caught the 2 biggest bugs; Codex then caught 4 edge cases in
   the code those fixes added, so re-review a large fix commit too. Small tweaks skip the pre-PR pass.
+- **The plan always prescribes the best training for golf performance** (owner, Nov 24, 2026:
+  "You should be recommending the best workouts to be better at golf always"). When a question
+  or a change surfaces a prescription that the evidence says is worse for the golfer (more
+  load or stress for no golf benefit, wrong day order, wrong dose), fix the plan, not just the
+  answer: say what the evidence shows, make the change with tests, and record it. Don't stop at
+  offering an option when the evidence is clear. First applied to: the game week (speed on a
+  fresh day) and no Heavy weeks while maintaining.
 - **Evidence ethos:** independent/public/peer-reviewed sources, cited with
   confidence levels. Never copy a competitor's data, branded protocol, trademark,
   or written/marketing content. Demo/anecdote numbers are illustrative, not effects.
