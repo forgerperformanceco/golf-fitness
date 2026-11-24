@@ -580,7 +580,9 @@ generated outputs together.**
   (latest push wins, no queue-timeout), **paths-ignore** for docs/backend/native,
   and **stages only served files** (rsync deny-list into `_site/`, CNAME kept) so
   `.md` strategy docs / `src/` / `social/` / tooling are **not** published to the
-  app domain.
+  app domain. Since Nov 24, 2026 it's **two jobs, build then deploy** (`needs: build`),
+  as in GitHub's Pages template. In one job, `deploy-pages` sometimes found no artifact a
+  second after the upload. That happened twice that day, and a re-run failed the same way.
 - **Edge functions** deploy through **Supabase's GitHub integration** on merge to
   `main` (the old `deploy-functions.yml` workflow was removed Sep 2026 — its
   access token had expired and it only duplicated the integration). Function

@@ -32,12 +32,14 @@ concurrency:
   group: pages
   cancel-in-progress: true
 
+# Two jobs, as in GitHub's own Pages template: build uploads the site, deploy
+# publishes it. With both in one job, deploy-pages asked for the artifact a second
+# after the upload and sometimes found none ("No artifacts named github-pages"),
+# twice on Nov 24, 2026 and again on the re-run. A separate job starts only after
+# the upload has fully registered.
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
@@ -88,6 +90,13 @@ jobs:
         with:
           path: _site
 
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
