@@ -1,5 +1,37 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## Maintaining: no Heavy weeks (Nov 24, 2026)
+
+The owner asked: "If I'm in maintenance phase, is low rep heavy weight really the best?" Then: "You
+should be recommending the best workouts to be better at golf always." (The second is now a house
+rule in YARDSMITH-BRAIN §11.)
+
+- **The evidence.**
+  - Keeping strength and muscle needs the load kept, not raised. Volume can drop to a third or less
+    and still hold both for months, as long as intensity holds (Bickel 2011; Spiering 2021).
+  - Hard sets of anywhere from 6 to 30 reps keep muscle alike (Schoenfeld 2017).
+  - The plan's maintenance rule already said "keep the weight on the bar, don't add to it". Its
+    Heavy weeks contradicted that: in weeks 4–5, 10–11 and 16–17 the big lifts dropped to 3–4 reps
+    at heavier loads (RDL 4 × 4, bench 4 × 3, weighted pull-up 4 × 4). That's a building and peaking
+    tool, and while maintaining it only adds joint and low-back load.
+- **The change.** When maintaining (`ffEasyProgress`: Maintain, Lean Out or in-season), `waveFor`
+  returns Build for those weeks.
+  - Everything follows: the label, the targets, the loads (no rep shift, so no "fewer reps, more
+    weight") and the slower maintaining progression.
+  - Easy weeks and the Peak are unchanged, and building keeps the full wave.
+  - The glossary's "The weeks" entry and the coach's knowledge say so.
+- **Verified:**
+  - A test in `tests/training-engine.test.mjs`, failing on the old code, checks the 20-week wave:
+    - building: AAAIIDAAAIIDAAAIIDPP;
+    - Maintain and Lean Out: AAAAADAAAAADAAAAADPP;
+    - maintaining in week 4: RDL keeps 4 × 6, bench keeps 4 × 5;
+    - building in week 4: RDL drops to 4 × 4;
+    - the Easy week still takes a set off.
+  - Suite 336/336.
+  - A Playwright e2e of week 4 on the 4-day plan passes with zero page errors:
+    - maintain and cut read "BUILD WEEK" with RDL 4 × 6;
+    - lean bulk reads "HEAVY WEEK" with 4 × 4.
+
 ## Moving days works while a schedule change waits for next week (Nov 24, 2026)
 
 The owner said: "Day moving isn't working and I want to push today."
