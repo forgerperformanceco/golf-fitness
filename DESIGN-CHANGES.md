@@ -18,16 +18,20 @@ week under way never moves), `ffArrangeWeek` may reorder the days and scores the
 sport builds one around game day. Each penalty lists its reason.
 
 - **Speed the day after heavy legs: +5.** Leg damage dents jump power for 1–2 days (Byrne 2004).
-- **Legs on back-to-back days: +5** (was +3).
 - **Speed right before or after a round: +3 each side.** That's three straight days of max-speed
   rotation on the back, and a stale session.
 - **Back + rotation day the day after a round: +2.** More rotation on a back that just played.
 - **Heavy legs:**
   - the day after a round: +1.5;
   - two days before one: +1.5, or +2.5 for the deadlift day, whose soreness lasts longest.
-- These sit on top of the existing rules (no training on rounds or days off, nothing heavy and no
-  back day the day before a round, spacing). Ties go to the plan's own order. The search runs over
-  every placement and order (2,520 for 5 days, ~4 ms), so it's cached per week.
+- These sit on top of the hard rules, which are raised so no sum of game-week points can buy one
+  back:
+  - heavy legs the day before a round +30 (was +10);
+  - the back day the day before a round +20 (was +6);
+  - legs on back-to-back days +12 (was +3).
+- Ties go to the plan's own order. The search tries every order, but only on the placements with the
+  fewest workouts on rounds and days off, and it's cached per week. That's ~0.5 ms; across 7,252
+  weeks the results are identical to the full ~4.4 ms search.
 
 **Results:**
 
@@ -54,16 +58,30 @@ sport builds one around game day. Each penalty lists its reason.
 - **Hold-and-drag** now flags dragging speed right after legs or next to a round.
 - **The coach's knowledge** (`supabase/functions/_shared/knowledge.ts`) describes the game week.
 
+**Independent review before the PR** found:
+- **Hard rules could lose.** The first weights let game-week points outweigh "nothing heavy the day
+  before a round": in-season 3-day, rounds Sun + Wed, Thursday off put Full Body B on Saturday. A
+  sweep of rounds plus days off (up to 4 blocked days, every plan) reproduced it. Raising the hard
+  rules fixed it: no week now breaks a hard rule the old arrangement kept.
+- **The cache test never read the cache.**
+- **Two lines of copy were stale.** The days-off line still said "same order", and the Plan settings
+  line promised the game week during a week still on the old rules (it now waits for the week's
+  start).
+- **Known and left as is:** reminders queued across the switch may name the old layout for a day or
+  two, until the app is opened (as with any queued schedule change).
+
 **Verified:**
-- `tests/season-schedule-health.test.mjs` has 3 new tests, which fail on the old code while its 18
+- `tests/season-schedule-health.test.mjs` has 4 new tests, which fail on the old code while its 18
   existing tests pass. They cover:
   - the owner's and the 5-day weeks;
   - the week before the cutoff unchanged;
   - the sweep, with zero hard violations and speed next to a round only where a brute-forced clean
     week doesn't exist (49 schedules checked);
-  - the cache returns a copy;
-  - the drag flag and the copy.
-- Suite 332/332.
+  - no week breaks a hard rule the old arrangement kept;
+  - the cache returns a copy on a cached read (it fails if the cache hands out its own array);
+  - both drag flags, by actually dragging;
+  - the copy.
+- Suite 333/333, ~5 s.
 - A Playwright e2e in light and dark (4-day plan, plan week from Monday, golf Sat + Sun) passes with
   zero page errors:
   - the week of Nov 30 reads Push · Quads · Pull · Speed · Rest · Rest · Rest;
