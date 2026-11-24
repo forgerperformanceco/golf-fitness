@@ -70,6 +70,12 @@ sport builds one around game day. Each penalty lists its reason.
 - **Known and left as is:** reminders queued across the switch may name the old layout for a day or
   two, until the app is opened (as with any queued schedule change).
 
+**Codex #138:** the play-days line now says what this week does with the speed day:
+- "…and speed day on a fresh day, away from them" when it is;
+- "With these days, speed day has to sit next to a round" when the round days leave no other slot
+  (a 4-day plan with Tuesday + Friday rounds);
+- nothing about a speed day on a plan without one.
+
 **Verified:**
 - `tests/season-schedule-health.test.mjs` has 4 new tests, which fail on the old code while its 18
   existing tests pass. They cover:
@@ -80,8 +86,8 @@ sport builds one around game day. Each penalty lists its reason.
   - no week breaks a hard rule the old arrangement kept;
   - the cache returns a copy on a cached read (it fails if the cache hands out its own array);
   - both drag flags, by actually dragging;
-  - the copy.
-- Suite 333/333, ~5 s.
+  - the copy, including the Codex #138 line for each case.
+- Suite 334/334, ~5 s.
 - A Playwright e2e in light and dark (4-day plan, plan week from Monday, golf Sat + Sun) passes with
   zero page errors:
   - the week of Nov 30 reads Push · Quads · Pull · Speed · Rest · Rest · Rest;

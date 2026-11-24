@@ -58,7 +58,7 @@ function engine({ inseason = false, freq = 4, store = {}, startWd = 1, week = 3,
     ${["ffInSeasonMode", "ffInSeason", "ffInSeasonPlan", "activeDays", "ffSessionsPerWeek", "ffHealthQs", "ffHealth",
        "ffHealthCaution", "ffHealthRedFlag", "ffHealthAdvice", "ffOnRamp", "ffLowImpact", "purposeFor", "trimSets",
        "capSets", "plainSetCount", "adjSets", "trainRetain", "eventInfo", "waveFor", "bumpReps", "plainReps", "waveAdjust",
-       "effTarget", "isHoldEx", "isTimeEx", "holdPerSide", "holdTarget"].map((n) => fn(PLAN, n)).join("\n")}
+       "effTarget", "isHoldEx", "isTimeEx", "holdPerSide", "holdTarget", "ffOpenDays", "ffPlaySub"].map((n) => fn(PLAN, n)).join("\n")}
     ${["stripDays", "ffBaseWeek", "ffLayoutActive", "ffHeavyLegs", "ffBackRotate", "ffArrangeWeek", ...["ffArrangeWeekRaw", "ffPerms"].filter((n) => LOGGER.includes(`function ${n}(`)), "ffPlayDaysNow", "ffOffDays", "ffOffDaysNow", "ffLayoutNow", "ffApplyLayout",
        "dayKey", "getLog", "getSession", "getRest", "restDone", "cardioDone",
        "getSkippedSessions", "sessionSkipped", "skipSession", "unskipSession", "ffRestInstead", "sessionFinished"].map((n) => fn(LOGGER, n)).join("\n")}
@@ -75,7 +75,7 @@ function engine({ inseason = false, freq = 4, store = {}, startWd = 1, week = 3,
     ${(LOGGER.match(/var FF_WEEK_V2_FROM=[^;]+;/) || [""])[0]} ${(LOGGER.match(/var ffArrMemo=[^;]+;/) || [""])[0]}
     this.api={ ffMoveDay, ffBackRotate, ffRestableToday, ffRestToday, ffRestUndo, ffRestInstead, ffDayLogged, ffSaveSchedule, sessionSkipped, skipSession,
       ffLayoutActive, store:__store, toasts:__toasts, activeDays, ffSessionsPerWeek, ffInSeasonMode, stripDays, ffOnRamp, ffLowImpact, ffHealthCaution,
-      ffHealthAdvice, ffHealthQs, effTarget, PHASES, state:state };
+      ffHealthAdvice, ffHealthQs, effTarget, PHASES, state:state, ffPlaySub };
   `, ctx);
   return ctx.api;
 }
@@ -503,7 +503,7 @@ test("the game week: remembered between reads, a copy each time; drag flags a st
   const sp = E.stripDays().findIndex((d) => d.type === "speed");
   assert.match(mk().ffMoveDay(sp, 0), /Heads up: speed day right next to a round — it's best fresh\./);
   assert.match(mk().ffMoveDay(sp, 1), /Heads up: speed day right after legs — it's best fresh\./);
-  assert.match(PLAN, /nothing heavy the day before, and speed day on a fresh day, away from them\./);
+  assert.match(PLAN, /", and speed day on a fresh day, away from them\."/);   // the full line: Codex #138 test below
   assert.doesNotMatch(PLAN, /same order/, "the days-off lines no longer promise the same order");
   assert.match(PLAN, /if\(ws && ws\.getTime\(\)<FF_WEEK_V2_FROM\) return "Your week is arranged so rounds land on rest days, with no heavy legs the day before\.";/,
     "a week under way keeps the old line until its game week starts");
@@ -537,4 +537,21 @@ test("the game week never trades a hard rule for a game-week one (review: in-sea
     }
   }
   assert.deepEqual(worse.slice(0, 5), [], `${worse.length} weeks break a hard rule the old arrangement kept`);
+});
+
+test("Codex #138: the play-days line says what THIS week does with the speed day", () => {
+  const line = (o) => engine({ wsBase: V2, startWd: 1, ...o }).ffPlaySub();
+  // 4-day, rounds Tuesday + Friday: five open days, yet no slot keeps speed away from both rounds.
+  const tight = engine({ freq: 4, startWd: 1, wsBase: V2, store: { ff_gameday: { days: [2, 5] } } });
+  const w = [...tight.stripDays()], si = w.findIndex((d) => d.type === "speed"), wd = (i) => (1 + i + 7) % 7;
+  assert.ok([2, 5].includes(wd(si - 1)) || [2, 5].includes(wd(si + 1)), `speed sits next to a round here: ${calendar(w, 1)}`);
+  assert.equal(tight.ffPlaySub(), "Your week is arranged around your rounds: nothing heavy the day before. With these days, speed day has to sit next to a round.");
+  // Weekend golf: the full promise holds.
+  assert.equal(line({ freq: 4, store: { ff_gameday: { days: [6, 0] } } }),
+    "Your week is arranged around your rounds: nothing heavy the day before, and speed day on a fresh day, away from them.");
+  // A plan with no speed day (in-season 2 days) promises nothing about one.
+  assert.equal(line({ freq: 4, inseason: 2, store: { ff_gameday: { days: [6, 0] } } }), "Your week is arranged around your rounds: nothing heavy the day before.");
+  // A week that started before the game week keeps the old line.
+  assert.equal(engine({ freq: 4, startWd: 1, wsBase: [2026, 10, 22], store: { ff_gameday: { days: [6, 0] } } }).ffPlaySub(),
+    "Your week is arranged so rounds land on rest days, with no heavy legs the day before.");
 });
