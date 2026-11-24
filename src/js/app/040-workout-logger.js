@@ -184,13 +184,14 @@
      week. From weeks starting Nov 29, 2026 the arranger may REORDER the days, not only
      rotate them, and scores the week the way a team sport builds one around game day:
        · speed the day after heavy legs     +5  leg damage dents jump power 1–2 days (Byrne 2004)
-       · legs on back-to-back days          +5
        · speed right before / after a round +3 each  three straight days of max-speed rotation, a stale session
        · back + rotation the day after one  +2  more rotation on a back that just played
        · heavy legs the day after a round   +1.5
        · heavy legs two days before a round +1.5, +1 for the deadlift day (its soreness lasts longest)
-     on top of the rules above. Ties go to the plan's own order (fewest moves from a rotation of
-     it). Gated by the week's start date like the back-day rule, so a week under way never moves. */
+     on top of the hard rules, raised so nothing above can outweigh them: heavy legs the day
+     before a round +30, the back day +20, legs on back-to-back days +12. Ties go to the plan's
+     own order (fewest moves from a rotation of it). Gated by the week's start date like the
+     back-day rule, so a week under way never moves. */
   var FF_WEEK_V2_FROM=new Date(2026,10,29).getTime();
   function ffPerms(n){
     var out=[];
@@ -224,6 +225,14 @@
       for(var i=start;i<=7-left;i++){ acc.push(i); combos(i+1, left-1, acc, out); acc.pop(); }
     }
     var slotSets=[]; combos(0, k, [], slotSets);
+    // Game week: only the placements with the fewest workouts on days off / round days are
+    // candidates (what "never train on a day off or a round day" means), which also keeps
+    // the full reorder search cheap on a phone.
+    if(v2){
+      var cost=function(sl){ var c=0; sl.forEach(function(i){ c+=isOff(i)?1000:(isPlay(i)?100:0); }); return c; };
+      var minC=Infinity; slotSets.forEach(function(sl){ minC=Math.min(minC, cost(sl)); });
+      slotSets=slotSets.filter(function(sl){ return cost(sl)===minC; });
+    }
     // The orders to try: every reordering (v2), or only rotations of the plan's order.
     var orders=[];
     if(v2) ffPerms(k).forEach(function(o){
@@ -240,10 +249,12 @@
           // Never train on a day off or a round day. If the week is overbooked, a
           // workout lands on a round day before it ever lands on a day off.
           if(d && isOff(i)) sc+=1000; else if(d && isPlay(i)) sc+=100;
-          if(ffHeavyLegs(d) && isPlay((i+1)%7)) sc+=10;            // no heavy legs the day before
-          if(backRule && ffBackRotate(d) && isPlay((i+1)%7)) sc+=6; // …nor the back + rotation day (legs win if overbooked)
+          // The hard rules. Under the game week they're raised so no sum of game-week
+          // points can ever buy one back (review, Nov 2026: speed +5 +3 outweighed a +10).
+          if(ffHeavyLegs(d) && isPlay((i+1)%7)) sc+=(v2?30:10);     // no heavy legs the day before
+          if(backRule && ffBackRotate(d) && isPlay((i+1)%7)) sc+=(v2?20:6); // …nor the back + rotation day (legs win if overbooked)
           if(d && nx) sc+=1;                                        // spacing (wraps into next week)
-          if(ffHeavyLegs(d) && ffHeavyLegs(nx)) sc+=(v2?5:3);       // never two leg days in a row
+          if(ffHeavyLegs(d) && ffHeavyLegs(nx)) sc+=(v2?12:3);      // never two leg days in a row
           if(!!d!==authored[i]) sc+=0.1;                            // stay close to the authored week
           if(v2 && d){                                              // the game week (see FF_WEEK_V2_FROM)
             var pv=week[(i+6)%7], after=isPlay((i+6)%7), before=isPlay((i+1)%7);

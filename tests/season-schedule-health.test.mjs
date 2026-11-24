@@ -415,6 +415,17 @@ const shortOf = (d) => d.type === "rest" ? "·" : d.type === "speed" ? "Speed" :
 // Mon..Sun labels for a plan week that starts on startWd.
 const calendar = (week, startWd) => { const c = {}; week.forEach((d, i) => { c[(startWd + i) % 7] = shortOf(d); }); return [1, 2, 3, 4, 5, 6, 0].map((x) => c[x]); };
 const heavy = (d) => d.type !== "rest" && d.type !== "speed" && /Lower|Squat|Hinge|Quads|Full Body/.test(d.name);
+// One sandbox per plan × start day × date; the round/day-off sets swap in through its store (the
+// arranger's memo keys on them), so the sweeps below don't rebuild a sandbox per case.
+const engines = new Map(), weeks = new Map();
+const weekFor = (freq, inseason, startWd, wsBase, gameday) => {
+  const key = [freq, inseason, startWd, wsBase].join("|"), wkey = key + "|" + JSON.stringify(gameday);
+  if (weeks.has(wkey)) return [...weeks.get(wkey)];
+  if (!engines.has(key)) engines.set(key, engine({ freq, inseason, startWd, wsBase }));
+  const E = engines.get(key); E.store.ff_gameday = JSON.parse(JSON.stringify(gameday));
+  const w = [...E.stripDays()]; weeks.set(wkey, w);
+  return [...w];
+};
 const backDay = (d) => d.type !== "rest" && d.type !== "speed" && /Pull/.test(d.name) && !/Lower|Squat|Hinge|Quads|Full Body/.test(d.name);
 
 test("the game week: a weekend golfer's speed day lands midweek, fresh", () => {
@@ -435,7 +446,7 @@ test("the game week holds its rules for every 1–2 round schedule, plan size an
   const count = (wsBase) => {
     const t = { weeks: 0, speedNextToRound: 0, speedAfterLegs: 0, legsBackToBack: 0, heavyOrBackBeforeRound: 0, backAfterRound: 0, onRound: 0 };
     for (const [freq, inseason] of [[4, false], [5, false], [4, 3]]) for (const days of sets) for (let startWd = 0; startWd < 7; startWd++) {
-      const w = [...engine({ freq, inseason, startWd, wsBase, store: { ff_gameday: { days } } }).stripDays()], ip = (i) => days.includes((startWd + i + 7) % 7);
+      const w = weekFor(freq, inseason, startWd, wsBase, { days }), ip = (i) => days.includes((startWd + i + 7) % 7);
       t.weeks++;
       w.forEach((d, i) => { const nx = w[(i + 1) % 7], pv = w[(i + 6) % 7];
         if (d.type === "speed" && (ip(i + 1) || ip(i - 1))) t.speedNextToRound++;
@@ -469,26 +480,61 @@ test("the game week holds its rules for every 1–2 round schedule, plan size an
     if (!cleanExists(train, days)) continue;
     checked++;
     for (let startWd = 0; startWd < 7; startWd++) {
-      const w = [...engine({ freq, inseason, startWd, wsBase: V2, store: { ff_gameday: { days } } }).stripDays()], ip = (i) => days.includes((startWd + i + 7) % 7);
+      const w = weekFor(freq, inseason, startWd, V2, { days }), ip = (i) => days.includes((startWd + i + 7) % 7);
       w.forEach((d, i) => { if (d.type === "speed") assert.ok(!ip(i + 1) && !ip(i - 1), `a clean week exists for ${freq}/${inseason}, plays ${days}, starts ${startWd}: ${calendar(w, startWd)}`); });
     }
   }
   assert.equal(checked, 49, "schedules with a fully clean week");
   // Weekend golfers (Sat, Sun or both) never get speed next to a round on the 4- or 5-day plan.
   for (const freq of [4, 5]) for (const days of [[6], [0], [6, 0]]) for (let startWd = 0; startWd < 7; startWd++) {
-    const w = [...engine({ freq, startWd, wsBase: V2, store: { ff_gameday: { days } } }).stripDays()], ip = (i) => days.includes((startWd + i + 7) % 7);
+    const w = weekFor(freq, false, startWd, V2, { days }), ip = (i) => days.includes((startWd + i + 7) % 7);
     w.forEach((d, i) => { if (d.type === "speed") assert.ok(!ip(i + 1) && !ip(i - 1), `${freq}-day, plays ${days}, starts ${startWd}: ${calendar(w, startWd)}`); });
   }
 });
 
 test("the game week: remembered between reads, a copy each time; drag flags a stale speed day", () => {
-  const E = engine({ freq: 5, startWd: 1, wsBase: V2, store: { ff_gameday: { days: [6, 0] } } });
-  const a = E.stripDays(); a.reverse();
+  const mk = () => engine({ freq: 5, startWd: 1, wsBase: V2, store: { ff_gameday: { days: [6, 0] } } });
+  const E = mk();
+  E.stripDays();                              // computes and remembers the week
+  const a = E.stripDays(); a.reverse();       // a remembered read — the caller changes its copy
   assert.deepEqual(calendar(E.stripDays(), 1), ["Hinge", "Pull", "Speed", "Quads", "Push", "·", "·"], "a caller changing its copy changes nothing");
-  // Hold-and-drag: speed onto Monday (after Sunday's round), then onto Friday (the day before Saturday's).
-  const w = E.stripDays(), sp = w.findIndex((d) => d.type === "speed");
-  assert.match(E.ffMoveDay(sp, 0), /Heads up: speed day right (next to a round|after legs) — it's best fresh\./);
-  assert.match(DRAG, /Heads up: speed day right after legs — it's best fresh\./);
+  // Hold-and-drag (Mon Hinge, Tue Pull, Wed Speed, …): speed onto Monday sits after Sunday's round;
+  // speed onto Tuesday sits the day after the deadlift day.
+  const sp = E.stripDays().findIndex((d) => d.type === "speed");
+  assert.match(mk().ffMoveDay(sp, 0), /Heads up: speed day right next to a round — it's best fresh\./);
+  assert.match(mk().ffMoveDay(sp, 1), /Heads up: speed day right after legs — it's best fresh\./);
   assert.match(PLAN, /nothing heavy the day before, and speed day on a fresh day, away from them\./);
-  assert.doesNotMatch(PLAN, /same order, with leg days kept apart/, "the days-off line no longer promises the same order");
+  assert.doesNotMatch(PLAN, /same order/, "the days-off lines no longer promise the same order");
+  assert.match(PLAN, /if\(ws && ws\.getTime\(\)<FF_WEEK_V2_FROM\) return "Your week is arranged so rounds land on rest days, with no heavy legs the day before\.";/,
+    "a week under way keeps the old line until its game week starts");
+});
+
+test("the game week never trades a hard rule for a game-week one (review: in-season + days off)", () => {
+  // In-season 3 days, rounds Sun + Wed, Thursday off, plan week from Sunday: 4 open days, 3 workouts —
+  // nothing heavy has to sit the day before a round.
+  const days = { days: [0, 3], off: [4] };
+  const w = [...engine({ inseason: 3, startWd: 0, wsBase: V2, store: { ff_gameday: days } }).stripDays()];
+  const ip = (i) => days.days.includes((i + 7) % 7);
+  w.forEach((d, i) => assert.ok(!(heavy(d) && ip(i + 1)), `heavy the day before a round: ${calendar(w, 0)}`));
+  // Across rounds + days off (up to 4 blocked days), every plan and start day: wherever the old
+  // arrangement kept the hard rules (nothing heavy / no back day before a round, legs apart),
+  // the game week keeps them too.
+  const hard = (w, play, startWd) => { const ip2 = (i) => play.includes((startWd + i + 7) % 7); let n = 0;
+    w.forEach((d, i) => { const nx = w[(i + 1) % 7]; if ((heavy(d) || backDay(d)) && ip2(i + 1)) n++; if (heavy(d) && heavy(nx)) n++; }); return n; };
+  let worse = [];
+  for (const [freq, inseason] of [[4, false], [5, false], [4, 3], [4, 2]]) for (let m = 1; m < 128; m++) {
+    const play = [], blocked = []; for (let b = 0; b < 7; b++) if (m >> b & 1) blocked.push(b);
+    if (blocked.length > 4) continue;
+    // split the blocked days: the first one or two are rounds, the rest days off
+    for (const nRounds of [1, 2]) {
+      if (blocked.length < nRounds) continue;
+      const rounds = blocked.slice(0, nRounds), off = blocked.slice(nRounds);
+      for (const startWd of [0, 1]) {
+        const v1 = weekFor(freq, inseason, startWd, [2026, 9, 4], { days: rounds, off });
+        const v2 = weekFor(freq, inseason, startWd, V2, { days: rounds, off });
+        if (hard(v2, rounds, startWd) > hard(v1, rounds, startWd)) worse.push(`${freq}/${inseason} rounds ${rounds} off ${off} start ${startWd}: ${calendar(v2, startWd)}`);
+      }
+    }
+  }
+  assert.deepEqual(worse.slice(0, 5), [], `${worse.length} weeks break a hard rule the old arrangement kept`);
 });
