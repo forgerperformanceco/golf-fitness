@@ -1136,7 +1136,7 @@ test("retry review: tapping the chosen answer again clears it; every score and a
 // So when maintaining (Maintain, Lean Out or in-season) the Heavy weeks stay Build weeks: the big
 // lifts keep their reps and weight instead of dropping to 3–4 reps, which adds joint and low-back
 // load without helping keep anything. Easy and Peak weeks are unchanged.
-test("maintaining: the Heavy weeks stay Build weeks — same reps, same weight on the big lifts", () => {
+test("maintaining: the Heavy weeks stay Build weeks — the big lifts keep their usual reps", () => {
   const wave = (E) => Array.from({ length: 20 }, (_, i) => E.waveFor(i + 1)[0].toUpperCase()).join("");
   assert.equal(wave(engine({ goal: "leanbulk" })), "AAAIIDAAAIIDAAAIIDPP", "building: the usual wave");
   for (const goal of ["maintain", "cut"]) assert.equal(wave(engine({ goal })), "AAAAADAAAAADAAAAADPP", `${goal}: no Heavy weeks`);
@@ -1145,5 +1145,8 @@ test("maintaining: the Heavy weeks stay Build weeks — same reps, same weight o
   assert.equal(B.effTarget("4 × 6 (heavy · fast up)", "Romanian Deadlift", 4), "4 × 4 (heavy · fast up)", "building, week 4: RDL drops to 4");
   assert.equal(M.effTarget("4 × 5 (heavy · fast up)", "Barbell Bench Press", 5), "4 × 5 (heavy · fast up)");
   assert.equal(M.effTarget("4 × 6", "Leg Press", 6), "3 × 6", "the Easy week still takes a set off");
-  assert.match(GLOSS, /When you're maintaining \(Maintain, Lean Out or in-season\), the heavy weeks stay build weeks: same reps, same weight\./);
+  // Codex #140: the maintaining progression still adds weight once every rep is hit twice, so the copy
+  // promises the reps and "no heavier, lower-rep sets" — never "same weight".
+  assert.match(GLOSS, /When you're maintaining \(Maintain, Lean Out or in-season\), the heavy weeks stay build weeks: your usual reps, no switch to fewer, heavier reps\./);
+  assert.doesNotMatch(GLOSS + src("../../../supabase/functions/_shared/knowledge.ts"), /same reps, same weight|same reps and loads/);
 });

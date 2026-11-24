@@ -246,7 +246,8 @@ speed/power work in, so the deficit costs fat, not mph. Never frame a cut as "ju
     session. Heavy weeks take a set off the hypertrophy accessories; Lean Out / In-Season
     Maintain (Retain mode) trims one more; Easy and Peak weeks are lower again. When
     maintaining (Maintain, Lean Out or in-season) there are NO Heavy weeks: those weeks stay
-    Build (same reps and loads on the big lifts; maintaining needs the load kept, not raised,
+    Build (the big lifts keep their usual reps, no switch to fewer, heavier reps; load still
+    rises only by the slow maintaining rule. Maintaining needs the load kept, not pushed up,
     and volume can drop a lot — Bickel 2011, Spiering 2021).
   - Growth rises with weekly sets with diminishing returns (Schoenfeld 2017; Pelland
     2025): ~10–20 sets maximizes it, fewer still builds muscle. At equal volume, more

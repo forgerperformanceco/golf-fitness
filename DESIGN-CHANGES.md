@@ -19,7 +19,9 @@ rule in YARDSMITH-BRAIN §11.)
   - Everything follows: the label, the targets, the loads (no rep shift, so no "fewer reps, more
     weight") and the slower maintaining progression.
   - Easy weeks and the Peak are unchanged, and building keeps the full wave.
-  - The glossary's "The weeks" entry and the coach's knowledge say so.
+  - The glossary's "The weeks" entry and the coach's knowledge say so: "your usual reps, no
+    switch to fewer, heavier reps". They don't say "same weight". Codex #140 caught that the slow
+    maintaining progression still adds weight once every rep is hit twice.
 - **Verified:**
   - A test in `tests/training-engine.test.mjs`, failing on the old code, checks the 20-week wave:
     - building: AAAIIDAAAIIDAAAIIDPP;

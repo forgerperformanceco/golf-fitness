@@ -814,8 +814,8 @@
     if(pos===6) return "deload";
     // Maintaining (Maintain, Lean Out or in-season): no Heavy weeks. Keeping strength and muscle
     // needs the load kept, not raised; volume can drop a lot if intensity holds (Bickel 2011;
-    // Spiering 2021), so the big lifts keep their reps and weight instead of dropping to 3–4,
-    // which only adds joint and low-back load (owner, Nov 2026: "If I'm in maintenance phase,
+    // Spiering 2021), so the big lifts keep their usual reps (and the slow maintaining
+    // progression) instead of dropping to 3–4 at heavier loads, which only adds joint and low-back load (owner, Nov 2026: "If I'm in maintenance phase,
     // is low rep heavy weight really the best?").
     if(pos>=4) return (typeof ffEasyProgress==="function" && ffEasyProgress()) ? "accumulate" : "intensify";
     return "accumulate";
