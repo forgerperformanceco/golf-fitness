@@ -155,7 +155,7 @@
     if(m(/Pike Push.?up/i))
       return { why:"Overhead pressing builds shoulder strength and stability so you can deliver force through a long, repeatable swing arc without breaking down.", cue:"Hips high, lower the top of your head toward the floor, press back up — elbows in, not flared." };
     if(m(/Overhead Press|Shoulder Press|Military|OHP|Push Press|Arnold|Z-?Press|Standing .*Press/i))
-      return { why:"Overhead pressing builds shoulder strength and stability so you can deliver force through a long, repeatable swing arc without breaking down.", cue:"Stack the weight over mid-foot, ribs down — no leaning back." };
+      return { why:"Overhead pressing builds shoulder strength and stability so you can deliver force through a long, repeatable swing arc without breaking down.", cue:"Stack the weight over mid-foot, ribs down, then drive it up fast — no leaning back." };
     if(m(/Speed Bench|Explosive DB Floor Press/i))
       return { why:"A light bar pressed as fast as you can trains upper-body speed. It isn't a true throw — the bar has to slow down at the top — so keep it light and push hard all the way.", cue:"Light bar — push every rep as fast as you can; stop when the bar slows." };
     if(m(/Push.?up/i))
@@ -165,7 +165,7 @@
     if(m(/Bench|Push.?up|Chest(?!-?Supported)|Incline(?!.*Curl)|\bDip\b|Fly|Crossover|Pec Deck|Floor .*Press|Flat .*Press|Svend|Landmine Press|Band (Explosive )?Press/i))
       return { why:"Pressing strength feeds the trail-arm extension that adds speed late in the downswing, and armors the shoulders for high swing volume.", cue:"Press explosively, control the lowering." };
     if(m(/Row|Pull.?up|\bChin|\bLat\b|Pulldown|Pull/i))
-      return { why:"The lead arm pulls the club through impact, and a strong back decelerates the swing safely. Pulling adds whip on the way down and protects the shoulder on the way through.", cue:"Pull with the back, not the arms — squeeze the shoulder blade, control the return." };
+      return { why:"The lead arm pulls the club through impact, and a strong back decelerates the swing safely. Pulling adds whip on the way down and protects the shoulder on the way through.", cue:"Pull fast and hard with the back, not the arms — squeeze the shoulder blade, control the return." };
     if(m(/Dead Hang/i))
       return { why:"A strong grip holds the clubface steady at speed, and hanging under your own weight opens up the lats and shoulders that a full turn needs.", cue:"Hang still, shoulders gently down from the ears, and breathe. Step down a second before the grip goes." };
     if(m(/Carry|Farmer|Suitcase|Grip|Pinch/i))
