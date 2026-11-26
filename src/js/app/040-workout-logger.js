@@ -394,6 +394,35 @@
   // as one. Training days have unique names, so they key by name as before.
   function dayKey(d){ if(!d) return ""; if(d.type!=="rest") return d.name; var i=activeDays().indexOf(d); return i>=0?("rest@"+i):d.name; }
   function parseSets(t){ var m=String(t).match(/(\d+)\s*[×x]/); return m?Math.min(8,Math.max(1,parseInt(m[1],10))):3; }
+  // Your order for a day: the order you last ran it in is its order next time
+  // (owner, Nov 2026: "I don't love the flow of the day" — curl and extension
+  // first). The player's reorder sheet sets it; "Plan order" there puts it back.
+  // Rows match by plan slot (orig, else the name), so swaps and the Back defaults
+  // keep their place; a row the last session didn't have keeps its own slot.
+  // Reads the latest session of that day from an EARLIER week, so this week's
+  // session is the one that sets next week's order.
+  function ffLastOrder(dayName, week){
+    var L=getLog(), best=null, bw=-1;
+    Object.keys(L).forEach(function(k){
+      var i=k.indexOf("|"); if(i<0 || k.slice(i+1)!==dayName) return;
+      var w=parseInt(k.slice(0,i),10), s=L[k];
+      if(!(w<week) || w<=bw || !s || !Array.isArray(s.ex)) return;
+      bw=w; best=s;
+    });
+    return best ? best.ex.map(function(x){ return x ? (x.orig||x.name) : ""; }) : null;
+  }
+  function ffDayRows(d, week){
+    var rows=(d && d.ex) || [];
+    if(rows.length<2) return rows;
+    var ord=ffLastOrder(d.name, week); if(!ord) return rows;
+    var pos=rows.map(function(r){ var a=ord.indexOf(r[0]); return a>=0 ? a : ord.indexOf(applySwapName(r[0])); });
+    var known=[]; pos.forEach(function(p, i){ if(p>=0) known.push(i); });
+    if(known.length<2) return rows;
+    var sorted=known.slice().sort(function(a, b){ return pos[a]-pos[b]; });
+    if(sorted.join()===known.join()) return rows;   // already the plan's order
+    var q=0;
+    return rows.map(function(r, i){ return pos[i]>=0 ? rows[sorted[q++]] : r; });
+  }
   function findDay(name){ var f=null; activeDays().forEach(function(d){ if(d.name===name) f=d; }); return f; }
   function todayStr(){ try{ return new Date().toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"}); }catch(e){ return ""; } }
   // What progression reads from: per exercise, its most recent FULL-DOSE earlier

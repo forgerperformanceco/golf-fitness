@@ -54,7 +54,7 @@ const PLAN_FNS = ["effortNote", "ffOnRamp", "ffHealth", "ffHealthCaution", "heav
 const LOGGER_FNS = ["lastSessionFor", "sessFullDose", "repsShifted", "topReps", "isDistEx", "repSeed", "incNum",
   "progressReady", "parseSets", "getLog", "sessionFinished", "swapOptionsFor", "exGroupFor", "getSkippedSessions", "sessionSkipped",
   "getSwaps", "ffBackOn", "ffPlanHasLift", "ffProfileDefault", "ffProfileSr", "applySwapName",
-  "getSession", "saveSession", "freshSession", "ffPlanNames", "ffRetarget", "ffRefreshUntouched"];
+  "getSession", "saveSession", "freshSession", "ffPlanNames", "ffRetarget", "ffRefreshUntouched", "ffLastOrder", "ffDayRows"];
 
 function engine({ goal = "leanbulk", equip = null, store = {}, week = 2, now = Date.now(), freq = 4, prep = [] } = {}) {
   const code = [
@@ -90,7 +90,7 @@ function engine({ goal = "leanbulk", equip = null, store = {}, week = 2, now = D
       prescribeW, ffReduceLoad, repShiftLoad, incNum, ffDose, lastSessionFor, resolveDay, dayTargets, sessionMinutes,
       cooldownList, recoveryList, listMinutes, holdSecs,
       effTarget, swapOptionsFor, ffReadinessAdaptSession, bigLiftStats, strengthGain, plLifetimeBests, ffInsights,
-      PHASES, EXERCISE_DB, activeDays, applySwapName, freshSession, ffPlanNames, ffRefreshUntouched, isBigLift, state, planState, setWeek:function(w){ __week=w; } };
+      PHASES, EXERCISE_DB, activeDays, applySwapName, freshSession, ffPlanNames, ffRefreshUntouched, isBigLift, ffDayRows, state, planState, setWeek:function(w){ __week=w; } };
   `, ctx);
   return ctx.api;
 }
@@ -1287,4 +1287,46 @@ test("refresh over a readiness trim: the trimmed set count, the new lift's reps 
   assert.equal(x.target, now.target.replace(/^\d+/, "2"), "2 sets kept, the new lift's reps and units");
   assert.equal(x.baseTarget, now.target, "the untrimmed target follows too");
   assert.equal(x.sets.length, 2);
+});
+
+// Owner, Nov 2026: "I don't love the flow of the day" → asked for "machines first, like today".
+// The player's reorder used to last one session; now the order a day was last run in is its
+// order next time. Matched by plan slot (orig), so swaps and Back defaults keep their place.
+test("your lift order sticks: a day's last order (an earlier week) is next week's order", () => {
+  const D = "Day 1 — Lower (Quads & Hinge)", store = {};
+  const E = engine({ store, week: 4 });
+  const day = E.PHASES[0].days4.find((d) => d.name === D);
+  const plan = Array.from(day.ex, (r) => r[0]);
+  // Week 3 as the owner ran it: curl + extension first (swapped names, orig = the plan slot).
+  const ran = ["Seated Leg Curl", "Leg Extension", "Romanian Deadlift", "Leg Press", "Hip Thrust", "Single-leg Glute Bridge", "Walking Lunge", "Standing Calf Raise"];
+  const shown = { "Seated Leg Curl": "Lying Leg Curl", "Walking Lunge": "Bulgarian Split Squat", "Standing Calf Raise": "Leg-Press Calf Raise" };
+  store.ff_log = { ["3|" + D]: { ex: ran.map((o) => ({ name: shown[o] || o, orig: o, sets: [] })) } };
+  store.ff_swaps = shown;
+  const orig = (w) => Array.from(E.dayTargets(day, w), (t) => t.orig);
+  assert.deepEqual(orig(4), ran, "week 4 starts the way week 3 was run");
+  assert.deepEqual(orig(3), plan, "week 3 itself is set by weeks before it (none) → the plan");
+  assert.deepEqual(Array.from(E.dayTargets(day, 4), (t) => t.name).slice(0, 3), ["Lying Leg Curl", "Leg Extension", "Romanian Deadlift"]);
+  // Back on: the trap bar takes the RDL's place in YOUR order.
+  E.state.prep = ["back"];
+  assert.equal(E.dayTargets(day, 4)[2].name, "Trap-Bar Deadlift");
+  E.state.prep = [];
+  // The latest earlier week wins; a plan-order week resets it.
+  store.ff_log["2|" + D] = { ex: plan.slice().reverse().map((o) => ({ name: o, orig: o, sets: [] })) };
+  assert.deepEqual(orig(4), ran, "week 3 beats week 2");
+  store.ff_log["3|" + D] = { ex: plan.map((o) => ({ name: shown[o] || o, orig: o, sets: [] })) };
+  assert.equal(E.ffDayRows(day, 4), day.ex, "plan order → the plan's own rows");
+});
+
+test("your lift order: added lifts are ignored, a lift the last session lacked keeps its slot, old logs match by name", () => {
+  const D = "Day 1 — Lower (Quads & Hinge)", store = {};
+  const E = engine({ store, week: 4 });
+  const day = E.PHASES[0].days4.find((d) => d.name === D), plan = Array.from(day.ex, (r) => r[0]);
+  // No orig (an older log), one plan lift missing, one lift added mid-session.
+  const last = ["Leg Extension", "Seated Leg Curl", "Romanian Deadlift", "Leg Press", "DB Curl", "Hip Thrust", "Walking Lunge", "Standing Calf Raise"];
+  store.ff_log = { ["3|" + D]: { ex: last.map((n) => ({ name: n, sets: [] })) } };
+  const got = Array.from(E.ffDayRows(day, 4), (r) => r[0]);
+  assert.equal(got.length, plan.length); assert.ok(!got.includes("DB Curl"));
+  assert.deepEqual(got.slice(0, 2), ["Leg Extension", "Seated Leg Curl"]);
+  assert.equal(got[plan.indexOf("Single-leg Glute Bridge")], "Single-leg Glute Bridge", "missing last time → stays in its plan slot");
+  assert.deepEqual(got.slice().sort(), plan.slice().sort(), "same lifts, just reordered");
 });

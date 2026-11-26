@@ -51,3 +51,16 @@ test("the cool-down station: checklist with how-to cues; the recap keeps a one-t
   assert.match(fn(PLAYER, "plCdRecapHtml"), /data-plgocd="1"/);
   assert.match(PLAYER, /if\(e\.target\.closest\("\[data-plgocd\]"\)\)\{[\s\S]{0,160}type==="cooldown"\)\{ player\.st=gi;/);
 });
+
+// Owner, Nov 2026 ("I don't love the flow of the day"): the order you run a day in carries to
+// next week (040 ffDayRows); the reorder sheet says so and can put the plan's order back.
+test("reorder sheet: the order sticks, and one tap restores the plan's order", () => {
+  const sheet = fn(PLAYER, "openReorder");
+  assert.match(sheet, /Next time this day starts in your order too\./);
+  assert.match(sheet, /id="plOrdReset">↺ Back to the plan’s order</);
+  const reset = sheet.slice(sheet.indexOf('closest("#plOrdReset")'), sheet.indexOf('var mv=e.target.closest("[data-ordmv]")'));
+  assert.match(reset, /player\.day&&player\.day\.ex/, "the plan's rows, by slot");
+  assert.match(reset, /x\.orig\|\|x\.name/);
+  assert.match(reset, /\(slot\(a\.x\)-slot\(b\.x\)\) \|\| \(a\.i-b\.i\)/, "added lifts keep their order after the plan's");
+  assert.match(reset, /plRebuildStations\(keep0\); plSave\(\); plRender\(\);/, "the player follows the lift you were on, and it saves");
+});

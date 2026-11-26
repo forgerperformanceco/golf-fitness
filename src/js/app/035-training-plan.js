@@ -1046,14 +1046,15 @@
           '<b>'+ffIcon("play",13)+' Start speed session</b><span class="pls-sub">Guided player — warm-up, max-intent drills, full rest</span></button></div>'+
         logFoot(d.name)+'</div>';
     }
-    var resolved = resolveDay(d.ex);   // the SAME dedupe buildSession logs with
+    var dex = ffDayRows(d, curWeek());   // your order for this day (040), same as the session
+    var resolved = resolveDay(dex);   // the SAME dedupe buildSession logs with
     // Effort in context — the same rules the player applies: this week's wave,
     // a beginner's on-ramp, a big lift still to come, a lift with no weight yet
     // or not done in 4+ weeks.
     var cwk=curWeek(), cwave=waveFor(cwk), onRamp=ffOnRamp(cwk), prevLx=lastSessionFor(d.name, cwk);
-    var dayNames=resolved.map(function(r, ri){ return r.status==="swap" ? r.name : applySwapName(d.ex[ri][0]); });
+    var dayNames=resolved.map(function(r, ri){ return r.status==="swap" ? r.name : applySwapName(dex[ri][0]); });
     function lxFor(n){ var f=null; if(prevLx) prevLx.ex.forEach(function(e){ if(e.name===n) f=e; }); return f; }
-    var rows = d.ex.map(function(row, ri){
+    var rows = dex.map(function(row, ri){
       var base = applySwapName(row[0]);
       var r = resolved[ri], lxr=lxFor(dayNames[ri]);
       var hasW=!!(lxr && (lxr.sets||[]).some(function(st){ return st && (parseFloat(st.w)>0 || parseInt(st.r,10)>0); }));
@@ -1162,8 +1163,8 @@
     if(!d || d.type==="rest") return [];
     if(d.type==="speed") return speedRows().map(function(e){
       return { name:e[0], orig:e[3], target:speedDrillTarget(e[0], e[1], week) }; });
-    var rs=resolveDay(d.ex);
-    return d.ex.map(function(row, ri){
+    var dex=ffDayRows(d, week), rs=resolveDay(dex);
+    return dex.map(function(row, ri){
       var base=applySwapName(row[0]), r=rs[ri], nm=(r.status==="swap")?r.name:base;   // user swap first
       return { name:nm, orig:row[0], target:effTarget(r.sr||row[1], nm, week) }; });
   }
