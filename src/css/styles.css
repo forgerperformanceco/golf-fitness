@@ -980,6 +980,7 @@
   .hq-list.light .hq-box{ border-color:#b9c9be; color:#3d2a07; }
   .hq-list.light .hq.sel .hq-box{ background:#f0c46a; border-color:#d9a441; }
   .hq-advice{ margin-top:10px; }
+  .hq small{ font-size:11px; font-weight:500; }   /* Extra care: "Back · back-friendly lifts" (11px floor) */
   .ob-healthfield .ob-health{ margin-top:8px; }
   .ob-prep{ display:grid; grid-template-columns:repeat(4,1fr); gap:7px; }
   .ob-prep button{ padding:10px 5px; border:1.5px solid rgba(255,255,255,.14); border-radius:11px;

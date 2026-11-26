@@ -225,7 +225,7 @@
     var e=EX[normName(name)]; if(e) return e.needs;
     var n=name||""; function m(re){ return re.test(n); }
     if(m(/Smith/i)) return ["smith"];
-    if(m(/Leg Press/i)) return ["legpress"];
+    if(m(/Leg[- ]Press/i)) return ["legpress"];   // "Leg-Press Calf Raise" too
     if(m(/Hack Squat|Pendulum Squat/i)) return ["hacksquat"];
     if(m(/Leg Extension/i)) return ["legext"];
     if(m(/Leg Curl|Glute-?Ham Raise/i)) return ["legcurl"];
@@ -292,12 +292,13 @@
   // THIS, so the card and the logged session always agree. Aligned with rows.
   function resolveDay(rows){
     var bases=(rows||[]).map(function(row){ return applySwapName(row[0]); });
-    var res=bases.map(function(b, i){ return resolveEx(b, rows[i][1]); });
+    // ffProfileSr (040): a single-leg "Back" default reads per leg.
+    var res=bases.map(function(b, i){ return resolveEx(b, ffProfileSr(rows[i][0], rows[i][1])); });
     var used={};
     res.forEach(function(r){ if(r.status==="ok") used[normName(r.name).toLowerCase()]=true; });
     return res.map(function(r, i){
       if(r.status!=="swap") return r;
-      var alt=resolveEx(bases[i], rows[i][1], used);
+      var alt=resolveEx(bases[i], ffProfileSr(rows[i][0], rows[i][1]), used);
       used[normName(alt.name).toLowerCase()]=true;
       return alt;
     });
@@ -424,6 +425,10 @@
     ["supervised","A doctor said to exercise only with supervision",true],
     ["pregnant","Pregnant, or had a baby in the last 6 months",false,"female"]
   ];
+  // "Extra care" areas (setup, and You › Your plan any time). Each adds a prep
+  // move to the warm-ups that use it; Back also swaps the leg-day lifts that load
+  // the spine (040 ffProfileDefault). Not a diagnosis.
+  var FF_PREP_OPTS=[["back","Back","back-friendly lifts"],["hips","Hips","turn freely"],["shoulders","Shoulders","swing volume"],["knees","Knees","lower days"]];
   function ffHealthQs(sex){ return FF_HEALTH_QS.filter(function(q){ return !q[3] || q[3]===sex; }); }
   function ffHealth(){ var h=(typeof state!=="undefined") && state.health; return (h && Array.isArray(h.q)) ? h : null; }
   function ffHealthCaution(){ var h=ffHealth(); return !!(h && h.q.length && !h.cleared); }
@@ -677,7 +682,7 @@
   // isn't strength. wide = also lunges/split squats (the Stats e1RM list).
   function isBigLift(n, wide){
     n=String(n||"");
-    if(isBallistic(n) || /Pallof|Anti-?rotation|Explosive|^Speed\s/i.test(n)) return false;
+    if(isBallistic(n) || /Pallof|Anti-?rotation|Explosive|^Speed\s|Calf/i.test(n)) return false;   // "Leg-Press Calf Raise" isn't a press
     return (wide ? /Squat|Deadlift|Bench|Press|\bRow\b|Romanian|Hinge|Hip Thrust|Pull-?up|Chin|Lunge|Split Squat/i
                  : /Squat|Deadlift|Bench|Press|\bRow\b|Romanian|Hinge|Hip Thrust|Pull-?up|Chin/i).test(n);
   }
@@ -1052,12 +1057,12 @@
       var base = applySwapName(row[0]);
       var r = resolved[ri], lxr=lxFor(dayNames[ri]);
       var hasW=!!(lxr && (lxr.sets||[]).some(function(st){ return st && (parseFloat(st.w)>0 || parseInt(st.r,10)>0); }));
-      var eff = '<div class="effort">'+effortNote(r.status==="swap" ? (r.sr||row[1]) : row[1], dayNames[ri],
+      var eff = '<div class="effort">'+effortNote(r.sr||row[1], dayNames[ri],
         { wave:cwave, onRamp:onRamp, first:!hasW, easeIn:ffBackFor(lxr), beforeHeavy:heavyAfter(dayNames, ri) })+'</div>';
       var pe = ffPurposeIc(base)+' ';
       var us = base===row[0] ? '' : (!getSwaps()[row[0]] && ffProfileDefault(row[0])
         ? ' <span class="swap-badge">⇄ back-friendly default</span>' : ' <span class="swap-badge">⇄ your swap</span>');
-      if(r.status==="ok"){ var c=exNameCell(pe, base, us); return '<tr>'+c.cell+'<td class="sets">'+effTarget(row[1],base,curWeek())+eff+'</td></tr>'+c.row; }
+      if(r.status==="ok"){ var c=exNameCell(pe, base, us); return '<tr>'+c.cell+'<td class="sets">'+effTarget(r.sr||row[1],base,curWeek())+eff+'</td></tr>'+c.row; }
       if(r.status==="swap"){ var cs=exNameCell(pe, r.name, ' <span class="swap-badge">⇄ subbed for '+escAttr(base)+' (your gear)</span>'); return '<tr class="swap">'+cs.cell+'<td class="sets">'+effTarget(r.sr,r.name,curWeek())+eff+'</td></tr>'+cs.row; }
       return '<tr class="skip"><td class="exname"><span class="nm">'+pe+ffEsc(base)+'</span><span class="need">needs '+r.need.map(eqLabel).join(" + ")+'</span></td><td class="sets">'+row[1]+'</td></tr>';
     }).join("");

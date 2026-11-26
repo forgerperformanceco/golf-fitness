@@ -100,7 +100,7 @@ test("a session saved before this fix, and a mid-session swap, read seconds too"
   assert.equal(s.ex[0].target, "3 × 30 s"); assert.equal(s.ex[1].target, "3 × 40 yd");
   assert.equal(saved.ex[0].target, "3 × 40 yd", "a copy — the stored session changes only when you log");
   const day = { ex: [["Farmer Carry", "3 × 40 yd"], ["Pallof Press", "3 × 12 / side"], ["Deadlift", "4 × 4"]] };
-  const W = load({ findDay: () => day, effTarget: (t) => t }, [fn(HIST, "ffSwapTarget")]);
+  const W = load({ findDay: () => day, effTarget: (t) => t }, [fn(HIST, "ffLegTarget"), fn(HIST, "ffSwapTarget")]);
   assert.equal(W.ffSwapTarget("3 × 40 yd", "Farmer Carry", "Dead Hang", "Day 4", 3), "3 × 30 s", "into the carry slot → seconds");
   assert.equal(W.ffSwapTarget("2 × 30 s", "Farmer Carry", "Farmer Carry", "Day 4", 3), "2 × 40 yd", "back out → the slot's yards, set count kept");
   assert.equal(W.ffSwapTarget("3 × 30 s / side", "Pallof Press", "Pallof Press", "Day 4", 3), "3 × 12 / side", "a Side Plank gear sub → back to Pallof reps");
@@ -158,9 +158,20 @@ test("Codex #136: a hold added mid-workout gets its seconds target", () => {
 });
 
 test("Codex #136: swapping one hold for another fixes the per-side dose", () => {
-  const W = load({ findDay: () => null, effTarget: (t) => t }, [fn(HIST, "ffSwapTarget")]);
+  const W = load({ findDay: () => null, effTarget: (t) => t }, [fn(HIST, "ffLegTarget"), fn(HIST, "ffSwapTarget")]);
   assert.equal(W.ffSwapTarget("3 × 30 s / side", "Pallof Press", "Hollow Hold", "Day 4", 3), "3 × 30 s", "Side Plank → Hollow Hold drops / side");
   assert.equal(W.ffSwapTarget("2 × 30 s", "Pallof Press", "Side Plank", "Day 4", 3), "2 × 30 s / side", "Hollow Hold → Side Plank adds it, set count kept");
   assert.equal(W.ffSwapTarget("3 × 30 s", "Anti-rotation Cable Hold", "Dead Hang", "Day 4", 3), "3 × 30 s");
   assert.equal(W.ffSwapTarget("3 × 30 s / side", "Pallof Press", "Copenhagen Plank", "Day 4", 3), "3 × 30 s / side");
+});
+
+// Pre-PR review (Back-friendly leg days): "Reset to original" from the Back default's Single-Leg RDL
+// kept "3 × 8 / leg" on the RDL. "/ leg" now follows the lift in a two-leg slot, as on the card.
+test("a swap in a two-leg slot: '/ leg' comes with a single-leg lift and goes with it", () => {
+  const day = { name: "Day 1", ex: [["Romanian Deadlift", "3 × 8"], ["Walking Lunge", "3 × 10 / leg"]] };
+  const W = load({ findDay: () => day, effTarget: (t) => t }, [fn(HIST, "ffLegTarget"), fn(HIST, "ffSwapTarget")]);
+  assert.equal(W.ffSwapTarget("3 × 8 / leg", "Romanian Deadlift", "Romanian Deadlift", "Day 1", 3), "3 × 8");
+  assert.equal(W.ffSwapTarget("2 × 8 / leg", "Romanian Deadlift", "Trap-Bar Deadlift", "Day 1", 3), "2 × 8", "set count kept");
+  assert.equal(W.ffSwapTarget("3 × 8", "Romanian Deadlift", "Single-Leg RDL", "Day 1", 3), "3 × 8 / leg");
+  assert.equal(W.ffSwapTarget("3 × 10 / leg", "Walking Lunge", "Leg Press", "Day 1", 3), "3 × 10 / leg", "a per-leg slot is left alone");
 });

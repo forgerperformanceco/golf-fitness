@@ -84,7 +84,8 @@
 
     // Push profile into the real app state + recompute. Idempotent: safe to call repeatedly.
     function applyProfile(){
-      var prevGoal=state.goal;
+      var prevGoal=state.goal, before=null;
+      try{ if(ob.revisit && planStart()) before=ffPlanNames(curWeek()); }catch(_){}   // for ffRefreshUntouched below
       state.sex=ob.sex; state.goal=ob.goal; state.workout=ob.workout;
       if(ob.revisit) ffGoalSwitched(prevGoal);   // 025: a new goal restarts the check-in window
       state.prep=ob.prep.slice(); state.equipPreset=ob.equip;
@@ -103,6 +104,8 @@
       if(ob.equip) applyEquipPreset(ob.equip);
       try{ calc(); }catch(e){}
       try{ persist(); }catch(e){}
+      // Back (or gear) changed on a re-run → this week's opened-but-empty sessions follow (040).
+      try{ ffRefreshUntouched(before); }catch(e){}
     }
     // Seed or update today's baseline through the shared deduping writer.
     // On a re-run every field is PREFILLED from saved numbers, so only the ones
@@ -154,8 +157,7 @@
         : 'None of these? You’re set. '+(ob.revisit?'':'Your first two weeks still skip all-out sets and start the speed swings light. ')+'Not medical advice.';
     }
     function prepToggleHtml(){
-      var opts=[["back","Back","stack & brace"],["hips","Hips","turn freely"],["shoulders","Shoulders","swing volume"],["knees","Knees","lower days"]];
-      return '<div class="ob-prep" id="obPrep">'+opts.map(function(o){
+      return '<div class="ob-prep" id="obPrep">'+FF_PREP_OPTS.map(function(o){
         return '<button type="button" data-prep="'+o[0]+'" class="'+(ob.prep.indexOf(o[0])!==-1?"sel":"")+'"><b>'+o[1]+'</b><small>'+o[2]+'</small></button>';
       }).join("")+'</div>';
     }
@@ -294,7 +296,7 @@
               '<button type="button" data-v="m" class="'+(ob.speedSrc==="m"?"sel":"")+'">Measured</button></div></div>'+
           '<div class="ob-field ob-prepfield"><label>Anything that benefits from extra prep? <span>(optional, not a diagnosis)</span></label>'+
             prepToggleHtml()+'</div>'+
-          '<p class="ob-p ob-quiet">Selected areas get one conservative prep move in relevant warm-ups. The 3-minute mobility screen refines this later.</p>';
+          '<p class="ob-p ob-quiet">Each area adds a prep move to the warm-ups. Back also swaps in back-friendly leg lifts. Change it any time in You › Your plan.</p>';
         nextLabel="Show me my plan →";
       } else if(s===5){
         var t=lsGet("ff_targets",null);

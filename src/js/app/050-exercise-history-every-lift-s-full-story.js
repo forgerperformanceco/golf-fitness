@@ -301,6 +301,17 @@
   // A swap mid-session changes the target only when the unit changes: a hold into a
   // rep/yard slot → seconds (holdTarget); out of a hold → the slot's own target for
   // the new lift. The session's set count stays (it may carry a readiness trim).
+  // "/ leg" follows the lift in a two-leg slot, as on the card (040 ffProfileSr): a
+  // single-leg lift adds it, anything else there drops it again — e.g. "Reset to
+  // original" from the Back default's Single-Leg RDL back to the RDL's "3 × 8".
+  function ffLegTarget(t, orig, chosen, dayName){
+    var d=findDay(dayName), row=d && (d.ex||[]).filter(function(r){ return r[0]===orig; })[0];
+    if(!row || /\/\s*(leg|side)/i.test(row[1])) return t;      // a per-leg slot anyway
+    var per=/\/\s*leg\b/i.test(t), want=/^Single-?Leg /i.test(chosen);
+    if(per && !want) return t.replace(/\s*\/\s*leg\b/i, "");
+    if(!per && want) return t.replace(/^(\s*\d+\s*×\s*\d+(?:\s*[–-]\s*\d+)?)/, "$1 / leg");
+    return t;
+  }
   function ffSwapTarget(t, orig, chosen, dayName, week){
     t=String(t||"");
     if(isHoldEx(chosen)){
@@ -309,7 +320,7 @@
       var one=t.replace(/\s*\/\s*side\b/i, "");
       return holdPerSide(chosen) ? one+" / side" : one;
     }
-    if(!isTimeEx(t)) return t;
+    if(!isTimeEx(t)) return ffLegTarget(t, orig, chosen, dayName);
     var d=findDay(dayName), row=d && (d.ex||[]).filter(function(r){ return r[0]===orig; })[0];
     if(!row || isTimeEx(row[1])) return t;
     var n=t.match(/^\s*(\d+)/), nt=effTarget(row[1], chosen, week);

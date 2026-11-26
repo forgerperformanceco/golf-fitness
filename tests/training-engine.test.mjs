@@ -52,9 +52,11 @@ const PLAN_FNS = ["effortNote", "ffOnRamp", "ffHealth", "ffHealthCaution", "heav
   "normName", "have", "equipNeedsFor", "equipOk", "speedMode", "resolveEx", "resolveDay", "activeDays", "ffSessionsPerWeek", "dayTargets", "sessionMinutes",
   "cdHold", "cooldownBase", "cdAddFixes", "cooldownList", "recoveryList", "holdSecs", "listMinutes"];
 const LOGGER_FNS = ["lastSessionFor", "sessFullDose", "repsShifted", "topReps", "isDistEx", "repSeed", "incNum",
-  "progressReady", "parseSets", "getLog", "sessionFinished", "swapOptionsFor", "exGroupFor", "getSkippedSessions", "sessionSkipped"];
+  "progressReady", "parseSets", "getLog", "sessionFinished", "swapOptionsFor", "exGroupFor", "getSkippedSessions", "sessionSkipped",
+  "getSwaps", "ffBackOn", "ffPlanHasLift", "ffProfileDefault", "ffProfileSr", "applySwapName",
+  "getSession", "saveSession", "freshSession", "ffPlanNames", "ffRetarget", "ffRefreshUntouched"];
 
-function engine({ goal = "leanbulk", equip = null, store = {}, week = 2, now = Date.now(), freq = 4 } = {}) {
+function engine({ goal = "leanbulk", equip = null, store = {}, week = 2, now = Date.now(), freq = 4, prep = [] } = {}) {
   const code = [
     decl(PLAN, "PHASES", "["), decl(PLAN, "EQUIPMENT", "["), decl(PLAN, "MACHINES", "["), decl(PLAN, "EX", "{"),
     decl(LOGGER, "EXERCISE_DB", "{"),
@@ -69,12 +71,13 @@ function engine({ goal = "leanbulk", equip = null, store = {}, week = 2, now = D
     __store: store,
   };
   vm.runInNewContext(`
-    var state={goal:${JSON.stringify(goal)}}, __week=${week};
+    var state={goal:${JSON.stringify(goal)}, prep:${JSON.stringify(prep)}}, __week=${week};
     var planState={phase:0,freq:${freq},equip:{}};
     function lsGet(k,d){ var v=__store[k]; return v==null?d:v; }
+    function lsSet(k,v){ __store[k]=v; }
     function planStart(){ return lsGet("ff_start", null); }
     function curWeek(){ return __week; }
-    function applySwapName(n){ var s=lsGet("ff_swaps",{}); return s[n]||n; }
+    var FF_PLAN_RENAMED={};
     function ffEsc(s){ return String(s); }
     function lastMob(){ return null; } function speedTestDue(){ return false; } function daysSinceTest(){ return null; }
     function weightTrend(){ return null; } function ffReadinessToday(){ return lsGet("__readiness", null); }
@@ -87,7 +90,7 @@ function engine({ goal = "leanbulk", equip = null, store = {}, week = 2, now = D
       prescribeW, ffReduceLoad, repShiftLoad, incNum, ffDose, lastSessionFor, resolveDay, dayTargets, sessionMinutes,
       cooldownList, recoveryList, listMinutes, holdSecs,
       effTarget, swapOptionsFor, ffReadinessAdaptSession, bigLiftStats, strengthGain, plLifetimeBests, ffInsights,
-      PHASES, EXERCISE_DB, setWeek:function(w){ __week=w; } };
+      PHASES, EXERCISE_DB, activeDays, applySwapName, freshSession, ffPlanNames, ffRefreshUntouched, isBigLift, state, planState, setWeek:function(w){ __week=w; } };
   `, ctx);
   return ctx.api;
 }
@@ -1006,7 +1009,7 @@ test("review: no bench → the hip-thrust slot is a 2-set two-leg bridge, so the
 
 test("review: the single-leg hip work is never taken to failure, even on a bulk (balance-heavy, like lunges)", () => {
   const E = engine({ goal: "leanbulk" });
-  for (const n of [SLB, "Single-Leg Hip Thrust", "Single-leg RDL"]) {
+  for (const n of [SLB, "Single-Leg Hip Thrust", "Single-Leg RDL"]) {
     const note = E.effortNote("2 × 10 / leg", n, { wave: "build" });
     assert.doesNotMatch(note, /failure/, n);
   }
@@ -1149,4 +1152,139 @@ test("maintaining: the Heavy weeks stay Build weeks — the big lifts keep their
   // promises the reps and "no heavier, lower-rep sets" — never "same weight".
   assert.match(GLOSS, /When you're maintaining \(Maintain, Lean Out or in-season\), the heavy weeks stay build weeks: your usual reps, no switch to fewer, heavier reps\./);
   assert.doesNotMatch(GLOSS + src("../../../supabase/functions/_shared/knowledge.ts"), /same reps, same weight|same reps and loads/);
+});
+
+// Owner, Nov 2026: "My leg day personally isn't back protective enough." "Back" (setup or
+// You › Your plan › Extra care) keeps the leg days heavy and fast but moves the load off the
+// spine: the heavy hinge → trap bar (Swinton 2011: lower lumbar moment, more power), a second
+// hinge → single-leg, calf raises off the shoulders. Everything else on the day is untouched.
+test("Back on: the 4-day leg day pulls the trap bar and presses calves on the leg press", () => {
+  const lower = (E) => E.dayTargets(E.PHASES[0].days4.find((d) => /Quads & Hinge/.test(d.name)), 2);
+  const off = lower(engine()), on = lower(engine({ prep: ["back"] }));
+  const swapped = { "Romanian Deadlift": "Trap-Bar Deadlift", "Standing Calf Raise": "Leg-Press Calf Raise" };
+  assert.deepEqual(Array.from(on, (x) => x.name), Array.from(off, (x) => swapped[x.name] || x.name));
+  on.forEach((x, i) => assert.equal(x.target, off[i].target, `${x.name} keeps the slot's dose`));
+  assert.match(on[0].target, /fast up/, "the trap bar is the day's heavy, fast lift");
+  assert.ok(off.some((x) => x.name === "Romanian Deadlift") && off.some((x) => x.name === "Standing Calf Raise"), "Back off: as written");
+});
+
+test("Back on, 5-day: one trap-bar lift a week; the second hinge goes single-leg, per leg", () => {
+  const E = engine({ prep: ["back"], freq: 5 }), week = E.PHASES[0].days5.filter((d) => d.ex);
+  const all = week.flatMap((d) => E.dayTargets(d, 2));
+  assert.equal(all.filter((x) => x.name === "Trap-Bar Deadlift").length, 1, "the deadlift; no second trap-bar slot");
+  const sl = all.find((x) => x.name === "Single-Leg RDL");
+  assert.ok(sl, "the RDL slot");
+  assert.match(sl.target, /^\d+ × \d+ \/ leg$/);
+  assert.ok(!all.some((x) => /^(Romanian Deadlift|Deadlift|Standing Calf Raise)$/.test(x.name)));
+  assert.equal(all.filter((x) => x.name === "Leg-Press Calf Raise").length, 2, "both calf slots");
+});
+
+test("Back on: the gear and your own swaps still decide", () => {
+  const day = (E) => E.dayTargets(E.PHASES[0].days4.find((d) => /Quads & Hinge/.test(d.name)), 2);
+  const noPress = day(engine({ prep: ["back"], equip: ["bodyweight", "barbell", "bench", "dumbbells", "legcurl", "legext"] }));
+  const cf = noPress.find((x) => /Calf/.test(x.name));
+  assert.equal(cf.name, "Single-Leg Calf Raise"); assert.match(cf.target, / \/ leg$/);
+  const noBar = day(engine({ prep: ["back"], equip: ["bodyweight", "dumbbells", "bench", "legpress", "legcurl", "legext"] }));
+  assert.equal(noBar[0].name, "DB Romanian Deadlift", "no barbell (so no trap bar): the gear sub, as before");
+  const kept = day(engine({ prep: ["back"], store: { ff_swaps: { "Romanian Deadlift": "Romanian Deadlift" } } }));
+  assert.equal(kept[0].name, "Romanian Deadlift", "choosing the straight bar in Swap sticks");
+  const mine = day(engine({ prep: ["back"], store: { ff_swaps: { "Standing Calf Raise": "Seated Calf Raise" } } }));
+  assert.equal(mine.find((x) => /Calf/.test(x.name)).name, "Seated Calf Raise");
+});
+
+test("Back on reaches this week's opened-but-empty leg day; logged or finished work is never rewritten", () => {
+  const D = "Day 1 — Lower (Quads & Hinge)", store = {};
+  const E = engine({ store, week: 3 });
+  const day = E.PHASES[0].days4.find((d) => d.name === D), push = E.PHASES[0].days4.find((d) => /Push/.test(d.name));
+  const flip = (prep) => { const before = E.ffPlanNames(3); E.state.prep = prep; E.ffRefreshUntouched(before); };
+  const opened = E.freshSession(day, 3); opened.date = "Nov 26"; opened._ts = 1000;      // opened today, nothing entered
+  const pushed = E.freshSession(push, 3); pushed.ex[0].sets[0].done = true;               // a ticked set
+  store.ff_log = { ["3|" + D]: opened, ["3|" + push.name]: pushed };
+  flip(["back"]);
+  const s = store.ff_log["3|" + D];
+  assert.equal(s.ex[0].name, "Trap-Bar Deadlift"); assert.equal(s.ex[0].orig, "Romanian Deadlift");
+  assert.equal(s.ex.at(-1).name, "Leg-Press Calf Raise");
+  assert.ok(s.ex.every((x) => x.sets.every((st) => !st.w && !st.r && !st.done)));
+  assert.equal(s.date, "Nov 26", "the session itself stays (date, readiness)");
+  assert.equal(s._ts, 1001, "old stamp + 1: beats its own stale copy, never another device's logged one");
+  assert.equal(store.ff_log["3|" + push.name], pushed, "a session with work is left alone");
+  // A set typed in, or a finished session: never rewritten.
+  const typed = E.freshSession(day, 3); typed.ex[2].sets[0].w = "135"; store.ff_log["3|" + D] = typed;
+  flip([]);
+  assert.equal(store.ff_log["3|" + D].ex[0].name, "Trap-Bar Deadlift", "work entered → kept as is");
+  const fin = E.freshSession(day, 3); fin.finishedAt = 5; store.ff_log["3|" + D] = fin;
+  flip(["back"]);
+  assert.equal(store.ff_log["3|" + D].ex[0].name, "Romanian Deadlift", "finished → kept as is");
+});
+
+// Pre-PR review: the refresh swapped whole sessions — today's readiness on another day's session,
+// and any Extra-care tap undid added lifts, your order and one-off swaps. Now: only rows that still
+// show what the plan gave them, and whose slot now resolves to another lift.
+test("the refresh changes only the rows Back changes: readiness trims, added lifts, order and one-off swaps stay", () => {
+  const D = "Day 1 — Lower (Quads & Hinge)", store = {};
+  const E = engine({ store, week: 3 });
+  const day = E.PHASES[0].days4.find((d) => d.name === D);
+  const flip = (prep) => { const before = E.ffPlanNames(3); E.state.prep = prep; E.ffRefreshUntouched(before); };
+  const s0 = E.freshSession(day, 3);
+  s0.readiness = { band: "recharge", date: "Nov 25" };
+  const trimmed = s0.ex[0].target.replace(/^\d+/, "2");                                      // trimmed by Monday's check-in (077 only cuts the count)
+  s0.ex[0].target = trimmed; s0.ex[0].sets = s0.ex[0].sets.slice(0, 2);
+  s0.ex.push({ name: "Nordic Curl", target: "2 × 5", sets: [{ w: "", r: "", done: false }] });   // added in the player
+  const ext = s0.ex.splice(5, 1)[0]; s0.ex.unshift(ext);                                   // leg extension moved first
+  const lp = s0.ex.find((x) => x.orig === "Leg Press"); lp.name = "Hack Squat";            // a one-off swap (not in ff_swaps)
+  s0._ts = 50; store.ff_log = { ["3|" + D]: s0 };
+  const snap = JSON.stringify(s0);
+  flip(["hips"]);
+  assert.equal(JSON.stringify(store.ff_log["3|" + D]), snap, "Hips changes no lift → nothing rewritten, no new stamp");
+  flip(["hips", "back"]);
+  const s = store.ff_log["3|" + D], rdl = s.ex.find((x) => x.orig === "Romanian Deadlift");
+  assert.equal(rdl.name, "Trap-Bar Deadlift"); assert.equal(rdl.target, trimmed, "Monday's trim stays");
+  assert.equal(rdl.sets.length, 2); assert.equal(s.readiness.band, "recharge");
+  assert.equal(s.ex[0].name, "Leg Extension", "your order stays");
+  assert.equal(s.ex.at(-1).name, "Nordic Curl", "the added lift stays");
+  assert.equal(s.ex.find((x) => x.orig === "Leg Press").name, "Hack Squat", "a one-off swap stays");
+  assert.equal(s._ts, 51);
+});
+
+test("5-day: the Single-Leg RDL default gains and loses '/ leg' with the flag, and calves don't count as big lifts", () => {
+  const D = "Day 1 — Lower (Quads)", store = {};
+  const E = engine({ store, week: 3, freq: 5 });
+  const day = E.PHASES[0].days5.find((d) => d.name === D);
+  const flip = (prep) => { const before = E.ffPlanNames(3); E.state.prep = prep; E.ffRefreshUntouched(before); };
+  const s0 = E.freshSession(day, 3); store.ff_log = { ["3|" + D]: s0 };
+  flip(["back"]);
+  const sl = () => store.ff_log["3|" + D].ex.find((x) => x.orig === "Romanian Deadlift");
+  assert.equal(sl().name, "Single-Leg RDL"); assert.match(sl().target, /^\d+ × \d+ \/ leg$/);
+  flip([]);
+  assert.equal(sl().name, "Romanian Deadlift"); assert.doesNotMatch(sl().target, /leg/);
+  // Review: /Press/ made the leg-press calf raise a "big lift" (PRs, Octane strength, stall cards).
+  assert.equal(E.isBigLift("Leg-Press Calf Raise"), false); assert.equal(E.isBigLift("Leg-Press Calf Raise", true), false);
+  assert.equal(E.isBigLift("Leg Press"), true);
+});
+
+test("your own single-leg swap into a two-leg slot reads per leg on the card too", () => {
+  const E = engine({ store: { ff_swaps: { "Hip Thrust": "Single-Leg Hip Thrust" } } });
+  const day = E.PHASES[0].days4.find((d) => /Quads & Hinge/.test(d.name));
+  const t = E.dayTargets(day, 2).find((x) => x.orig === "Hip Thrust");
+  assert.equal(t.name, "Single-Leg Hip Thrust"); assert.match(t.target, / \/ leg$/);
+});
+
+// Codex #144: a readiness-trimmed slot whose new lift has its own prescription kept the OLD reps
+// ("2 × 6" → "2 × 6 / leg"). The trim only cuts sets (077), so: the new lift's target, trimmed count.
+test("refresh over a readiness trim: the trimmed set count, the new lift's reps and units", () => {
+  const D = "Day 1 — Lower (Quads & Hinge)", store = {};
+  const E = engine({ store, week: 3 });
+  const day = E.PHASES[0].days4.find((d) => d.name === D);
+  const s0 = E.freshSession(day, 3), rdl = s0.ex.find((x) => x.orig === "Romanian Deadlift");
+  rdl.baseTarget = rdl.target; rdl.target = rdl.target.replace(/^\d+/, "2"); rdl.sets = rdl.sets.slice(0, 2);
+  s0.readiness = { band: "recharge" }; store.ff_log = { ["3|" + D]: s0 };
+  const before = E.ffPlanNames(3);
+  Object.keys(E.planState.equip).forEach((k) => { E.planState.equip[k] = k === "bodyweight"; });   // setup re-run: bodyweight only
+  E.ffRefreshUntouched(before);
+  const now = E.ffPlanNames(3)[D]["Romanian Deadlift"], x = store.ff_log["3|" + D].ex.find((e) => e.orig === "Romanian Deadlift");
+  assert.equal(x.name, now.name); assert.match(now.target, /\/ leg/);
+  assert.notEqual(now.target.replace(/^\d+/, ""), before[D]["Romanian Deadlift"].target.replace(/^\d+/, ""), "the case needs different reps");
+  assert.equal(x.target, now.target.replace(/^\d+/, "2"), "2 sets kept, the new lift's reps and units");
+  assert.equal(x.baseTarget, now.target, "the untrimmed target follows too");
+  assert.equal(x.sets.length, 2);
 });
