@@ -54,7 +54,7 @@ const PLAN_FNS = ["effortNote", "ffOnRamp", "ffHealth", "ffHealthCaution", "heav
 const LOGGER_FNS = ["lastSessionFor", "sessFullDose", "repsShifted", "topReps", "isDistEx", "repSeed", "incNum",
   "progressReady", "parseSets", "getLog", "sessionFinished", "swapOptionsFor", "exGroupFor", "getSkippedSessions", "sessionSkipped",
   "getSwaps", "ffBackOn", "ffPlanHasLift", "ffProfileDefault", "ffProfileSr", "applySwapName",
-  "getSession", "saveSession", "freshSession", "ffPlanNames", "ffRetarget", "ffRefreshUntouched"];
+  "getSession", "saveSession", "freshSession", "ffPlanNames", "ffRetarget", "ffRefreshUntouched", "ffLastOrder", "ffDayPerm", "ffDayRows"];
 
 function engine({ goal = "leanbulk", equip = null, store = {}, week = 2, now = Date.now(), freq = 4, prep = [] } = {}) {
   const code = [
@@ -62,7 +62,7 @@ function engine({ goal = "leanbulk", equip = null, store = {}, week = 2, now = D
     decl(LOGGER, "EXERCISE_DB", "{"),
     ...PLAN_FNS.map((n) => fn(PLAN, n)), ...LOGGER_FNS.map((n) => fn(LOGGER, n)),
     fn(INLINE, "isBarbell"),
-    ...["ffSessBand", "ffReadinessLoad", "ffDose", "ffHeldTwice", "ffDaysSince", "ffBackFor", "ffReadinessRetarget", "ffReadinessAdaptSession"].map((n) => fn(READY, n)),
+    ...["ffSessBand", "ffReadinessLoad", "ffDose", "ffHeldTwice", "ffDaysSince", "ffBackFor", "ffReadinessRetarget", "ffReadinessAdaptSession", "ffApplyReadiness"].map((n) => fn(READY, n)),
     fn(STATS, "bigLiftStats"), fn(PLAYER, "e1RM"), fn(PLAYER, "sessionsByWeek"), fn(PLAYER, "strengthGain"),
     fn(PLAYER, "plLifetimeBests"), fn(HOME, "ffInsights"),
   ].join("\n");
@@ -90,7 +90,7 @@ function engine({ goal = "leanbulk", equip = null, store = {}, week = 2, now = D
       prescribeW, ffReduceLoad, repShiftLoad, incNum, ffDose, lastSessionFor, resolveDay, dayTargets, sessionMinutes,
       cooldownList, recoveryList, listMinutes, holdSecs,
       effTarget, swapOptionsFor, ffReadinessAdaptSession, bigLiftStats, strengthGain, plLifetimeBests, ffInsights,
-      PHASES, EXERCISE_DB, activeDays, applySwapName, freshSession, ffPlanNames, ffRefreshUntouched, isBigLift, state, planState, setWeek:function(w){ __week=w; } };
+      PHASES, EXERCISE_DB, activeDays, applySwapName, freshSession, ffPlanNames, ffRefreshUntouched, isBigLift, ffDayRows, state, planState, setWeek:function(w){ __week=w; } };
   `, ctx);
   return ctx.api;
 }
@@ -370,7 +370,9 @@ test("'About N min' counts the real dose and moves with the wave and the goal", 
   assert.ok(speed % 5 === 0 && speed >= 40 && speed <= 90, String(speed));
   assert.equal(E.sessionMinutes({ type: "rest" }), 10);
   // One pipeline: the logger builds sessions from the same dayTargets.
-  assert.match(LOGGER, /var ex = dayTargets\(day, week\)\.map/);
+  // (built in plan order — subs and readiness as the card — then put in your order: ffDayPerm)
+  assert.match(LOGGER, /var ex = dayTargets\(day, week, true\)\.map/);
+  assert.match(fn(LOGGER, "freshSession"), /var p=\(day && day\.ex\) \? ffDayPerm\(day, week\) : null;/);
 });
 
 // ------------------------------------------------------- 11 no-load swaps
@@ -1287,4 +1289,96 @@ test("refresh over a readiness trim: the trimmed set count, the new lift's reps 
   assert.equal(x.target, now.target.replace(/^\d+/, "2"), "2 sets kept, the new lift's reps and units");
   assert.equal(x.baseTarget, now.target, "the untrimmed target follows too");
   assert.equal(x.sets.length, 2);
+});
+
+// Owner, Nov 2026: "I don't love the flow of the day" → asked for "machines first, like today".
+// The player's reorder used to last one session; now the order a day was last run in is its
+// order next time. Matched by plan slot (orig), so swaps and Back defaults keep their place.
+test("your lift order sticks: a day's last order (an earlier week) is next week's order", () => {
+  const D = "Day 1 — Lower (Quads & Hinge)", store = {};
+  const E = engine({ store, week: 4 });
+  const day = E.PHASES[0].days4.find((d) => d.name === D);
+  const plan = Array.from(day.ex, (r) => r[0]);
+  // Week 3 as the owner ran it: curl + extension first (swapped names, orig = the plan slot).
+  const ran = ["Seated Leg Curl", "Leg Extension", "Romanian Deadlift", "Leg Press", "Hip Thrust", "Single-leg Glute Bridge", "Walking Lunge", "Standing Calf Raise"];
+  const shown = { "Seated Leg Curl": "Lying Leg Curl", "Walking Lunge": "Bulgarian Split Squat", "Standing Calf Raise": "Leg-Press Calf Raise" };
+  store.ff_log = { ["3|" + D]: { ex: ran.map((o) => ({ name: shown[o] || o, orig: o, sets: [] })) } };
+  store.ff_swaps = shown;
+  const orig = (w) => Array.from(E.dayTargets(day, w), (t) => t.orig);
+  assert.deepEqual(orig(4), ran, "week 4 starts the way week 3 was run");
+  assert.deepEqual(orig(3), plan, "week 3 itself is set by weeks before it (none) → the plan");
+  assert.deepEqual(Array.from(E.dayTargets(day, 4), (t) => t.name).slice(0, 3), ["Lying Leg Curl", "Leg Extension", "Romanian Deadlift"]);
+  // Back on: the trap bar takes the RDL's place in YOUR order.
+  E.state.prep = ["back"];
+  assert.equal(E.dayTargets(day, 4)[2].name, "Trap-Bar Deadlift");
+  E.state.prep = [];
+  // The latest earlier week wins; a plan-order week resets it.
+  store.ff_log["2|" + D] = { ex: plan.slice().reverse().map((o) => ({ name: o, orig: o, sets: [] })) };
+  assert.deepEqual(orig(4), ran, "week 3 beats week 2");
+  store.ff_log["3|" + D] = { ex: plan.map((o) => ({ name: shown[o] || o, orig: o, sets: [] })) };
+  assert.equal(E.ffDayRows(day, 4), day.ex, "plan order → the plan's own rows");
+});
+
+test("your lift order: added lifts are ignored, a lift the last session lacked keeps its slot, old logs match by name", () => {
+  const D = "Day 1 — Lower (Quads & Hinge)", store = {};
+  const E = engine({ store, week: 4 });
+  const day = E.PHASES[0].days4.find((d) => d.name === D), plan = Array.from(day.ex, (r) => r[0]);
+  // No orig (an older log), one plan lift missing, one lift added mid-session.
+  const last = ["Leg Extension", "Seated Leg Curl", "Romanian Deadlift", "Leg Press", "DB Curl", "Hip Thrust", "Walking Lunge", "Standing Calf Raise"];
+  store.ff_log = { ["3|" + D]: { ex: last.map((n) => ({ name: n, sets: [] })) } };
+  const got = Array.from(E.ffDayRows(day, 4), (r) => r[0]);
+  assert.equal(got.length, plan.length); assert.ok(!got.includes("DB Curl"));
+  assert.deepEqual(got.slice(0, 2), ["Leg Extension", "Seated Leg Curl"]);
+  assert.equal(got[plan.indexOf("Single-leg Glute Bridge")], "Single-leg Glute Bridge", "missing last time → stays in its plan slot");
+  assert.deepEqual(got.slice().sort(), plan.slice().sort(), "same lifts, just reordered");
+});
+
+// Pre-PR review of the lift order: building a session in YOUR order changed which gear sub each
+// slot got (the dedupe is first-come) and moved the readiness smart trim's "first two lifts whole"
+// onto whatever you'd put first. Sessions are now built in plan order, then put in your order.
+test("your order: each slot keeps its own gear sub, whatever the order", () => {
+  const store = {}, E = engine({ store, week: 4, equip: ["bodyweight"] });
+  const pull = E.PHASES[0].days4.find((d) => /Pull/.test(d.name));
+  const plan3 = Array.from(E.dayTargets(pull, 3, true)), byOrig = Object.fromEntries(plan3.map((t) => [t.orig, t.name]));
+  // Run week 3 with the single-arm row before the chest-supported row.
+  const ran = plan3.slice(); const a = ran.findIndex((t) => t.orig === "Chest-Supported Row"), b = ran.findIndex((t) => t.orig === "Single-Arm DB Row");
+  [ran[a], ran[b]] = [ran[b], ran[a]];
+  store.ff_log = { ["3|" + pull.name]: { ex: ran.map((t) => ({ name: t.name, orig: t.orig, sets: [] })) } };
+  const w4 = Array.from(E.dayTargets(pull, 4));
+  assert.deepEqual(w4.map((t) => t.orig), ran.map((t) => t.orig), "your order");
+  w4.forEach((t) => assert.equal(t.name, byOrig[t.orig], `${t.orig} keeps ${byOrig[t.orig]}`));
+  assert.deepEqual(Array.from(E.freshSession(pull, 4).ex, (x) => x.name), w4.map((t) => t.name), "the logged session agrees");
+});
+
+test("your order: a readiness smart trim still keeps the plan's first two lifts whole", () => {
+  const store = { __readiness: { band: "steady", date: "Nov 26", ts: 1 } }, E = engine({ store, week: 4 });
+  const push = E.PHASES[0].days4.find((d) => /Push/.test(d.name)), plan = Array.from(push.ex, (r) => r[0]);
+  const moved = ["Lateral Raise", "Cable Overhead Triceps Extension"].concat(plan.filter((n) => !/Lateral Raise|Triceps/.test(n)));
+  store.ff_log = { ["3|" + push.name]: { ex: moved.map((o) => ({ name: o, orig: o, sets: [] })) } };
+  const s = E.freshSession(push, 4), sets = (o) => s.ex.find((x) => x.orig === o).sets.length;
+  assert.equal(s.ex[0].orig, "Lateral Raise", "your order");
+  const full = (o) => Number(String(push.ex.find((r) => r[0] === o)[1]).match(/^\d+/)[0]);
+  assert.equal(sets(plan[1]), E.freshSession(push, 4).ex.find((x) => x.orig === plan[1]).sets.length);
+  const planOnly = engine({ store: { __readiness: { band: "steady", date: "Nov 26", ts: 1 } }, week: 4 }).freshSession(push, 4);
+  for (const o of plan) assert.equal(sets(o), planOnly.ex.find((x) => x.orig === o).sets.length, `${o}: same trim as in plan order`);
+  assert.ok(sets("Lateral Raise") < full("Lateral Raise"), "moving the raise first doesn't exempt it");
+});
+
+// Codex #145: an added copy of a plan lift (orig = its own name) moved ahead of the plan's one
+// moved the plan slot next week. Added lifts are flagged (050 addLiftChoice) and skipped.
+test("your order ignores an added duplicate; the Back refresh leaves added lifts alone", () => {
+  const D = "Day 1 — Lower (Quads & Hinge)", store = {};
+  const E = engine({ store, week: 4 });
+  const day = E.PHASES[0].days4.find((d) => d.name === D), plan = Array.from(day.ex, (r) => r[0]);
+  const ex = plan.map((o) => ({ name: o, orig: o, sets: [] }));
+  ex.unshift({ name: "Leg Extension", orig: "Leg Extension", added: true, sets: [] });   // a second extension, done first
+  store.ff_log = { ["3|" + D]: { ex } };
+  assert.equal(E.ffDayRows(day, 4), day.ex, "only the added copy moved → the plan's order");
+  // The Back refresh: an added Romanian Deadlift stays as added.
+  const s0 = E.freshSession(day, 4); s0.ex.push({ name: "Romanian Deadlift", orig: "Romanian Deadlift", added: true, target: "2 × 8", sets: [{ w: "", r: "", done: false }] });
+  store.ff_log["4|" + D] = s0; E.setWeek(4);
+  const before = E.ffPlanNames(4); E.state.prep = ["back"]; E.ffRefreshUntouched(before);
+  const got = store.ff_log["4|" + D].ex;
+  assert.equal(got.find((x) => x.orig === "Romanian Deadlift" && !x.added).name, "Trap-Bar Deadlift");
+  assert.equal(got.find((x) => x.added).name, "Romanian Deadlift", "the lift you added is yours");
 });

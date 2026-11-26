@@ -1,5 +1,62 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## Your lift order sticks (Nov 26, 2026)
+
+The owner said: "I don't love the flow of the day." Their logs showed the reorder in action: that day
+they had moved leg curl and leg extension to the top. Asked to choose between heavy first by station,
+machines first, or a shorter day, they picked **"Machines first, like today"**.
+
+- **Why it's their call, not a plan change:** pre-fatiguing with isolation work costs some load on the
+  compounds after it: fewer leg-press reps and less quad activation (Augustsson 2003, J Strength Cond
+  Res 17:411). A lighter trap bar and leg press also means less load on a sore back. Exercise order
+  mostly shifts strength gains toward what's done first; muscle growth comes out the same (Nunes 2021
+  meta-analysis, Eur J Sport Sci 21:149). A flow someone finishes beats one they skip parts of: the
+  owner's calves (always last) were never done. Everyone else keeps the plan's heavy-first order.
+- **How it works:** the order you last ran a day in is its order next week.
+  - 040 `ffDayRows` / `ffLastOrder` read the latest session of that day from an earlier week, so
+    this week's session sets next week's order.
+  - Rows match by plan slot (`orig`, else the name), so swaps and the Back defaults keep their
+    place.
+  - Sessions are **built in plan order and then put in your order** (`ffDayPerm`), so each slot
+    keeps the same gear sub (the dedupe is first-come) and a readiness smart trim still keeps the
+    plan's first two lifts whole. The day card resolves the same way.
+  - Lifts added mid-session are ignored, and a plan lift the last session lacked keeps its own slot.
+  - The day card and `dayTargets` (so new sessions, the time estimate and the effort notes) all use
+    it.
+- **Effort notes stay safe:** a lift that comes before a heavy one is still told to stay 2 reps
+  short of failure.
+- **The speed day keeps its own order** (freshest, fastest moves first). Its sheet says "Just for
+  today", and the reset sorts by its drill list.
+- **Pre-PR review** (independent agent, diff only), fixed with tests that fail on the first version:
+  - building in your order changed which gear sub a slot got;
+  - the smart trim protected whatever you'd moved first;
+  - on the speed day the sheet's promise was false and the reset did nothing.
+  - Not built: a lift missing from last week's session returns to its plan slot. The app has no way
+    to remove a lift from a session, so this only follows a plan change.
+- **Codex #145:**
+  - Lifts added in the player are flagged `added:true`. Next week's order and the Back refresh skip
+    them, and the reset puts them after the plan's lifts. Before this, an added copy of a plan lift,
+    moved ahead, moved the plan's slot.
+  - The speed-day reset sorts by the drill list (Field or Gym) the session was built from, not the
+    mode the card shows now.
+- **Reorder sheet** (hold the lift name in the player):
+  - on lift days it now says "Next time this day starts in your order too";
+  - "↺ Back to the plan's order" sorts by plan slot, keeps added lifts after the plan's in your
+    order, and keeps the player on the lift you were on.
+- **No new storage:** the order lives in the sessions themselves (`ff_log`, already synced).
+- **Verified:**
+  - `npm test` 355/355, with new tests in `training-engine` (order carry-over, gear subs and the
+    readiness trim under a carried order, swaps, Back, the
+    latest week wins, plan order returns the plan's rows, added or missing lifts, old logs without
+    `orig`) and `player-cooldown-station` (the sheet).
+  - Playwright, light + dark at 390px, all green:
+    - last week run machines-first → this week's card and the player start curl → extension → RDL;
+    - holding the name opens the sheet;
+    - "Back to the plan's order" restores RDL → leg press … calves, with the player still on the
+      curl (now lift 7);
+    - the reset is 44px with text contrast ≥ 4.5;
+    - zero page errors.
+
 ## Back-friendly leg days, switched on from You (Nov 26, 2026)
 
 The owner said: "My leg day personally isn't back protective enough." Their 4-day leg day opens with

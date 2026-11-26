@@ -174,13 +174,13 @@
   function ffAddTarget(name){ return isHoldEx(name) ? holdTarget("3 \u00d7 10", name) : "3 \u00d7 10"; }
   function addLiftChoice(name){
     if(addFromPlayer && player){
-      player.sess.ex.push({ name:name, orig:name, target:ffAddTarget(name), sets:[{w:"",r:"",done:false},{w:"",r:"",done:false},{w:"",r:"",done:false}] });
+      player.sess.ex.push({ name:name, orig:name, added:true, target:ffAddTarget(name), sets:[{w:"",r:"",done:false},{w:"",r:"",done:false},{w:"",r:"",done:false}] });
       // Rebuild the stations: the new lift goes after the others, before the
       // cool-down and recap, and the player lands on it.
       plRebuildStations(player.sess.ex[player.sess.ex.length-1]);
       plSave(); plRender();
     } else if(ilog){
-      ilog.sess.ex.push({ name:name, orig:name, target:ffAddTarget(name), sets:[{w:"",r:"",done:false},{w:"",r:"",done:false},{w:"",r:"",done:false}] });
+      ilog.sess.ex.push({ name:name, orig:name, added:true, target:ffAddTarget(name), sets:[{w:"",r:"",done:false},{w:"",r:"",done:false},{w:"",r:"",done:false}] });
       saveILog(); renderILog();
     }
     closeSwap();

@@ -394,6 +394,46 @@
   // as one. Training days have unique names, so they key by name as before.
   function dayKey(d){ if(!d) return ""; if(d.type!=="rest") return d.name; var i=activeDays().indexOf(d); return i>=0?("rest@"+i):d.name; }
   function parseSets(t){ var m=String(t).match(/(\d+)\s*[×x]/); return m?Math.min(8,Math.max(1,parseInt(m[1],10))):3; }
+  // Your order for a day: the order you last ran it in is its order next time
+  // (owner, Nov 2026: "I don't love the flow of the day" — curl and extension
+  // first). The player's reorder sheet sets it; "Plan order" there puts it back.
+  // Rows match by plan slot (orig, else the name), so swaps and the Back defaults
+  // keep their place; a row the last session didn't have keeps its own slot.
+  // Reads the latest session of that day from an EARLIER week, so this week's
+  // session is the one that sets next week's order.
+  function ffLastOrder(dayName, week){
+    var L=getLog(), best=null, bw=-1;
+    Object.keys(L).forEach(function(k){
+      var i=k.indexOf("|"); if(i<0 || k.slice(i+1)!==dayName) return;
+      var w=parseInt(k.slice(0,i),10), s=L[k];
+      if(!(w<week) || w<=bw || !s || !Array.isArray(s.ex)) return;
+      bw=w; best=s;
+    });
+    // Lifts added in the player (flagged since Codex #145) aren't plan slots: skipped,
+    // so an added copy of a plan lift can't move the plan's own.
+    return best ? best.ex.filter(function(x){ return x && !x.added; }).map(function(x){ return x.orig||x.name; }) : null;
+  }
+  // The permutation (indices into d.ex) that puts a day in your order, or null for
+  // the plan's own. Sessions are BUILT in plan order — gear subs dedupe and the
+  // readiness smart trim keep the first two plan lifts whole, as always — and only
+  // then put in your order (review: building in your order handed a slot a
+  // different gear sub, and protected whatever you'd moved to the top).
+  function ffDayPerm(d, week){
+    var rows=(d && d.ex) || [];
+    if(rows.length<2) return null;
+    var ord=ffLastOrder(d.name, week); if(!ord) return null;
+    var pos=rows.map(function(r){ var a=ord.indexOf(r[0]); return a>=0 ? a : ord.indexOf(applySwapName(r[0])); });
+    var known=[]; pos.forEach(function(p, i){ if(p>=0) known.push(i); });
+    if(known.length<2) return null;
+    var sorted=known.slice().sort(function(a, b){ return pos[a]-pos[b]; });
+    if(sorted.join()===known.join()) return null;   // already the plan's order
+    var q=0;
+    return rows.map(function(r, i){ return pos[i]>=0 ? sorted[q++] : i; });
+  }
+  function ffDayRows(d, week){
+    var p=ffDayPerm(d, week), rows=(d && d.ex) || [];
+    return p ? p.map(function(i){ return rows[i]; }) : rows;
+  }
   function findDay(name){ var f=null; activeDays().forEach(function(d){ if(d.name===name) f=d; }); return f; }
   function todayStr(){ try{ return new Date().toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"}); }catch(e){ return ""; } }
   // What progression reads from: per exercise, its most recent FULL-DOSE earlier
@@ -666,14 +706,17 @@
   function freshSession(day, week){
     // dayTargets (035): user swaps + gear subs (deduped like the card), retain
     // trim + wave shift — the same list the "About N min" estimate counts.
-    var ex = dayTargets(day, week).map(function(t){
+    var ex = dayTargets(day, week, true).map(function(t){   // plan order: subs + readiness as always
       var n=parseSets(t.target), sets=[]; for(var i=0;i<n;i++) sets.push({w:"",r:"",done:false});
       return { name:t.name, orig:t.orig, target:t.target, sets:sets }; });
     // wave = the wave this session was RUN at. An event taper re-anchors waves only
     // until the recovery week ends, so waveFor(week) later forgets that week was a
     // deload — lastSessionFor reads this stamp first so it still skips those loads.
     var built={ date:"", wave:waveFor(week), ex:ex };
-    return (typeof ffApplyReadiness==="function")?ffApplyReadiness(built,day,week):built;
+    if(typeof ffApplyReadiness==="function") built=ffApplyReadiness(built,day,week);
+    var p=(day && day.ex) ? ffDayPerm(day, week) : null;   // then your order (ffDayPerm)
+    if(p && built && built.ex && built.ex.length===p.length) built.ex=p.map(function(i){ return built.ex[i]; });
+    return built;
   }
   // What the plan gives each slot this week: day name → orig → { name, target }.
   function ffPlanNames(wk){
@@ -710,7 +753,7 @@
         return x && (x.sets||[]).some(function(st){ return st && (st.w||st.r||st.done); }); })) return;
       var hit=false;
       s.ex.forEach(function(x){
-        var o=x && x.orig, was=o && b[o], now=o && a[o];
+        var o=x && !x.added && x.orig, was=o && b[o], now=o && a[o];   // a lift you added is yours
         if(!was || !now || x.name!==was.name || now.name===was.name) return;
         x.target=ffRetarget(x, was, now); x.name=now.name; hit=true;
       });

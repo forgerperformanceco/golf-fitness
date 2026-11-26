@@ -673,11 +673,22 @@
       m=document.createElement("div"); m.id="plOrdModal"; m.className="swap-modal"; m.hidden=true;
       m.innerHTML='<div class="swap-card"><div class="swap-head"><span>⇅ Reorder today’s lifts</span>'+
         '<button class="swap-x" id="plOrdX" type="button" aria-label="Close">×</button></div>'+
-        '<div class="swap-body"><div class="swap-sub">Drag a row — or use the arrows. The player follows the lift you were on.</div>'+
-        '<div id="plOrdList"></div></div></div>';
+        '<div class="swap-body"><div class="swap-sub" id="plOrdSub"></div>'+
+        '<div id="plOrdList"></div>'+
+        '<button type="button" class="ord-reset" id="plOrdReset">↺ Back to the plan’s order</button></div></div>';
       document.body.appendChild(m);
       m.addEventListener("click", function(e){
         if(e.target===m || e.target.closest("#plOrdX")){ m.hidden=true; return; }
+        if(e.target.closest("#plOrdReset") && player){
+          // The plan's order (by slot); lifts you added stay after the plan's, in your order.
+          var plan=plOrdPlan();
+          var slot=function(x){ var a=x.added ? plan.length : plan.indexOf(x.orig||x.name); return a<0 ? plan.length : a; };
+          var cur0=player.stations[player.st], keep0=(cur0&&cur0.type==="lift")?player.sess.ex[cur0.xi]:null;
+          player.sess.ex=player.sess.ex.map(function(x, i){ return { x:x, i:i }; })
+            .sort(function(a, b){ return (slot(a.x)-slot(b.x)) || (a.i-b.i); }).map(function(o){ return o.x; });
+          plRebuildStations(keep0); plSave(); plRender();
+          $("plOrdList").innerHTML=plOrdRows(); return;
+        }
         var mv=e.target.closest("[data-ordmv]");
         if(mv && player){
           var row=mv.closest(".ord-row"), i=+row.getAttribute("data-oi"), d=+mv.getAttribute("data-ordmv"), j=i+d;
@@ -725,8 +736,24 @@
       m.addEventListener("pointerup", ordDrop);
       m.addEventListener("pointercancel", ordDrop);
     }
+    // A lift day keeps your order next time (040 ffDayPerm); the speed day keeps its
+    // own — freshest, fastest moves first — so there it's just for today (review).
+    $("plOrdSub").textContent="Drag a row — or use the arrows. "+(player.day && player.day.type==="speed"
+      ? "Just for today: the speed day keeps its order, freshest and fastest moves first."
+      : "Next time this day starts in your order too.");
     $("plOrdList").innerHTML=plOrdRows();
     m.hidden=false;
+  }
+  // The plan's order by slot (orig): the day's rows, or the speed day's drill list.
+  function plOrdPlan(){
+    if(player.day && player.day.type==="speed"){
+      // The list this session was built from (Field or Gym), not the mode the card shows now (Codex #145).
+      var own=(player.sess.ex||[]).map(function(x){ return x.orig||x.name; });
+      var hits=function(l){ return own.filter(function(n){ return l.indexOf(n)!==-1; }).length; };
+      return ["field","gym"].map(function(m){ return speedRows(m).map(function(e){ return e[3]||e[0]; }); })
+        .reduce(function(a, b){ return hits(b)>hits(a) ? b : a; });
+    }
+    return ((player.day && player.day.ex) || []).map(function(r){ return r[0]; });
   }
 
   // Paused-session bar: when a session with logged work is exited un-finished,
