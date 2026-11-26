@@ -693,12 +693,13 @@
   // stay. Stamped old _ts + 1, not now: it beats this session's own stale copy in
   // the sync merge, but never a session logged (or cleared) on another device.
   // A session with any set entered or ticked, or a finished one, is never touched.
-  function ffRetarget(t, was, now){
-    t=String(t||""); if(t===was.target) return now.target;
-    var wl=/\/\s*leg\b/i.test(was.target), nl=/\/\s*leg\b/i.test(now.target);
-    if(nl && !wl && !/\/\s*(leg|side)/i.test(t)) return t.replace(/^(\s*\d+\s*×\s*\d+(?:\s*[–-]\s*\d+)?)/, "$1 / leg");
-    if(wl && !nl) return t.replace(/\s*\/\s*leg\b/i, "");
-    return t;
+  // The new lift's target. A readiness trim (077) only cut the set count, so that
+  // count stays and the reps, units and "/ leg" come from the new lift (Codex #144).
+  function ffRetarget(x, was, now){
+    var t=String(x.target||""), n=t.match(/^\s*(\d+)/);
+    if(x.baseTarget) x.baseTarget=now.target;
+    if(t===was.target || !n) return now.target;
+    return String(now.target).replace(/^(\s*)\d+/, function(_, sp){ return sp+n[1]; });
   }
   function ffRefreshUntouched(before){
     if(!before) return;
@@ -711,7 +712,7 @@
       s.ex.forEach(function(x){
         var o=x && x.orig, was=o && b[o], now=o && a[o];
         if(!was || !now || x.name!==was.name || now.name===was.name) return;
-        x.target=ffRetarget(x.target, was, now); x.name=now.name; hit=true;
+        x.target=ffRetarget(x, was, now); x.name=now.name; hit=true;
       });
       if(hit){ s._ts=(typeof s._ts==="number" ? s._ts : 0)+1; L[k]=s; changed=true; }
     });

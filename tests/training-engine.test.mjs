@@ -90,7 +90,7 @@ function engine({ goal = "leanbulk", equip = null, store = {}, week = 2, now = D
       prescribeW, ffReduceLoad, repShiftLoad, incNum, ffDose, lastSessionFor, resolveDay, dayTargets, sessionMinutes,
       cooldownList, recoveryList, listMinutes, holdSecs,
       effTarget, swapOptionsFor, ffReadinessAdaptSession, bigLiftStats, strengthGain, plLifetimeBests, ffInsights,
-      PHASES, EXERCISE_DB, activeDays, applySwapName, freshSession, ffPlanNames, ffRefreshUntouched, isBigLift, state, setWeek:function(w){ __week=w; } };
+      PHASES, EXERCISE_DB, activeDays, applySwapName, freshSession, ffPlanNames, ffRefreshUntouched, isBigLift, state, planState, setWeek:function(w){ __week=w; } };
   `, ctx);
   return ctx.api;
 }
@@ -1227,7 +1227,8 @@ test("the refresh changes only the rows Back changes: readiness trims, added lif
   const flip = (prep) => { const before = E.ffPlanNames(3); E.state.prep = prep; E.ffRefreshUntouched(before); };
   const s0 = E.freshSession(day, 3);
   s0.readiness = { band: "recharge", date: "Nov 25" };
-  s0.ex[0].target = "2 × 6"; s0.ex[0].sets = s0.ex[0].sets.slice(0, 2);                 // trimmed by Monday's check-in
+  const trimmed = s0.ex[0].target.replace(/^\d+/, "2");                                      // trimmed by Monday's check-in (077 only cuts the count)
+  s0.ex[0].target = trimmed; s0.ex[0].sets = s0.ex[0].sets.slice(0, 2);
   s0.ex.push({ name: "Nordic Curl", target: "2 × 5", sets: [{ w: "", r: "", done: false }] });   // added in the player
   const ext = s0.ex.splice(5, 1)[0]; s0.ex.unshift(ext);                                   // leg extension moved first
   const lp = s0.ex.find((x) => x.orig === "Leg Press"); lp.name = "Hack Squat";            // a one-off swap (not in ff_swaps)
@@ -1237,7 +1238,7 @@ test("the refresh changes only the rows Back changes: readiness trims, added lif
   assert.equal(JSON.stringify(store.ff_log["3|" + D]), snap, "Hips changes no lift → nothing rewritten, no new stamp");
   flip(["hips", "back"]);
   const s = store.ff_log["3|" + D], rdl = s.ex.find((x) => x.orig === "Romanian Deadlift");
-  assert.equal(rdl.name, "Trap-Bar Deadlift"); assert.equal(rdl.target, "2 × 6", "Monday's trim stays");
+  assert.equal(rdl.name, "Trap-Bar Deadlift"); assert.equal(rdl.target, trimmed, "Monday's trim stays");
   assert.equal(rdl.sets.length, 2); assert.equal(s.readiness.band, "recharge");
   assert.equal(s.ex[0].name, "Leg Extension", "your order stays");
   assert.equal(s.ex.at(-1).name, "Nordic Curl", "the added lift stays");
@@ -1266,4 +1267,24 @@ test("your own single-leg swap into a two-leg slot reads per leg on the card too
   const day = E.PHASES[0].days4.find((d) => /Quads & Hinge/.test(d.name));
   const t = E.dayTargets(day, 2).find((x) => x.orig === "Hip Thrust");
   assert.equal(t.name, "Single-Leg Hip Thrust"); assert.match(t.target, / \/ leg$/);
+});
+
+// Codex #144: a readiness-trimmed slot whose new lift has its own prescription kept the OLD reps
+// ("2 × 6" → "2 × 6 / leg"). The trim only cuts sets (077), so: the new lift's target, trimmed count.
+test("refresh over a readiness trim: the trimmed set count, the new lift's reps and units", () => {
+  const D = "Day 1 — Lower (Quads & Hinge)", store = {};
+  const E = engine({ store, week: 3 });
+  const day = E.PHASES[0].days4.find((d) => d.name === D);
+  const s0 = E.freshSession(day, 3), rdl = s0.ex.find((x) => x.orig === "Romanian Deadlift");
+  rdl.baseTarget = rdl.target; rdl.target = rdl.target.replace(/^\d+/, "2"); rdl.sets = rdl.sets.slice(0, 2);
+  s0.readiness = { band: "recharge" }; store.ff_log = { ["3|" + D]: s0 };
+  const before = E.ffPlanNames(3);
+  Object.keys(E.planState.equip).forEach((k) => { E.planState.equip[k] = k === "bodyweight"; });   // setup re-run: bodyweight only
+  E.ffRefreshUntouched(before);
+  const now = E.ffPlanNames(3)[D]["Romanian Deadlift"], x = store.ff_log["3|" + D].ex.find((e) => e.orig === "Romanian Deadlift");
+  assert.equal(x.name, now.name); assert.match(now.target, /\/ leg/);
+  assert.notEqual(now.target.replace(/^\d+/, ""), before[D]["Romanian Deadlift"].target.replace(/^\d+/, ""), "the case needs different reps");
+  assert.equal(x.target, now.target.replace(/^\d+/, "2"), "2 sets kept, the new lift's reps and units");
+  assert.equal(x.baseTarget, now.target, "the untrimmed target follows too");
+  assert.equal(x.sets.length, 2);
 });
