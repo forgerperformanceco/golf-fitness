@@ -191,14 +191,19 @@ speed/power work in, so the deficit costs fat, not mph. Never frame a cut as "ju
   prefers the barbell squat can swap it back in.
 - Heavy hinge: the 5-day hinge day prescribes a conventional (straight-bar) Deadlift
   because every gym has one; the Trap-Bar Deadlift is its FIRST one-tap swap and the
-  better pick for most golfers who have a trap bar. If the user flagged "Back" in setup
-  (and has a barbell), the app makes the Trap-Bar Deadlift their DEFAULT ("back-friendly
-  default" badge); choosing the conventional bar in Swap keeps it.
+  better pick for most golfers who have a trap bar. If the user turned on "Back" (setup, or
+  You › Your plan › Extra care, any time) and has a barbell, the app makes the Trap-Bar
+  Deadlift their DEFAULT heavy hinge ("back-friendly default" badge): on the 4-day plan it
+  replaces the Romanian Deadlift; on plans that already have the deadlift, the RDL becomes
+  a Single-leg RDL (per leg). Back also moves calf raises off the spine (Leg-Press Calf
+  Raise, or Single-leg Calf Raise without a leg press) and adds bird dog + cat–cow to the
+  warm-ups. Choosing the authored lift in Swap keeps it. A golfer asking for a more
+  back-friendly leg day: point them to Extra care → Back.
   At the same load it gives lower peak lumbar and hip moments (a higher knee moment) and
   more force, velocity and power (Swinton 2011, powerlifters, submaximal loads); the
   straight bar works the hamstrings and spinal erectors a bit more (Camara 2016). Loads
   don't carry over 1:1: most people lift a little more on the trap bar. The 4-day plan's
-  heavy hinge is the Romanian Deadlift.
+  heavy hinge is the Romanian Deadlift (the trap bar with Back on).
 - Every day opens with a 5-min warm-up (hip + thoracic mobility, ramp sets) and ends with a
   ~5-min rotation cool-down (90/90, open-book, shoulder holds); rest days carry a 10-min
   keep-your-turn routine. Static holds sit after lifting, never before (Behm 2016).

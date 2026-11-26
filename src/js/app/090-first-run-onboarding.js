@@ -154,8 +154,7 @@
         : 'None of these? You’re set. '+(ob.revisit?'':'Your first two weeks still skip all-out sets and start the speed swings light. ')+'Not medical advice.';
     }
     function prepToggleHtml(){
-      var opts=[["back","Back","stack & brace"],["hips","Hips","turn freely"],["shoulders","Shoulders","swing volume"],["knees","Knees","lower days"]];
-      return '<div class="ob-prep" id="obPrep">'+opts.map(function(o){
+      return '<div class="ob-prep" id="obPrep">'+FF_PREP_OPTS.map(function(o){
         return '<button type="button" data-prep="'+o[0]+'" class="'+(ob.prep.indexOf(o[0])!==-1?"sel":"")+'"><b>'+o[1]+'</b><small>'+o[2]+'</small></button>';
       }).join("")+'</div>';
     }
@@ -294,7 +293,7 @@
               '<button type="button" data-v="m" class="'+(ob.speedSrc==="m"?"sel":"")+'">Measured</button></div></div>'+
           '<div class="ob-field ob-prepfield"><label>Anything that benefits from extra prep? <span>(optional, not a diagnosis)</span></label>'+
             prepToggleHtml()+'</div>'+
-          '<p class="ob-p ob-quiet">Selected areas get one conservative prep move in relevant warm-ups. The 3-minute mobility screen refines this later.</p>';
+          '<p class="ob-p ob-quiet">Each area adds a prep move to the warm-ups. Back also swaps in back-friendly leg lifts. Change it any time in You › Your plan.</p>';
         nextLabel="Show me my plan →";
       } else if(s===5){
         var t=lsGet("ff_targets",null);

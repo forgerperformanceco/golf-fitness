@@ -597,6 +597,37 @@
     try{ renderPhase(); }catch(_){}
     try{ renderDash(); }catch(_){}
   });
+  // You › Your plan: the setup's "extra care" areas, editable any time. Back
+  // lists exactly what it changes in the plan you're on (ffProfileDefault, 040).
+  function ffPrepCardHtml(){
+    var prep=Array.isArray(state.prep)?state.prep:[], sw=getSwaps(), seen={}, ch=[];
+    activeDays().forEach(function(d){ (d.ex||[]).forEach(function(r){
+      var to=!sw[r[0]] && ffProfileDefault(r[0]);
+      if(to && !seen[r[0]]){ seen[r[0]]=1; ch.push(ffEsc(r[0])+' → <b>'+ffEsc(to)+'</b>'); }
+    }); });
+    return '<div class="acct-card" id="acctPrepCard"><div class="acct-head">🛡️ Extra care</div>'+
+      '<p class="acct-p">Tap any area that needs looking after. Each adds a prep move to your warm-ups.</p>'+
+      '<div class="hq-list light" id="acctPrep">'+FF_PREP_OPTS.map(function(o){
+        var on=prep.indexOf(o[0])!==-1;
+        return '<button type="button" class="hq'+(on?' sel':'')+'" data-prepk="'+o[0]+'" aria-pressed="'+on+'"><span class="hq-box" aria-hidden="true">'+(on?'✓':'')+'</span><span>'+o[1]+' · <small>'+o[2]+'</small></span></button>';
+      }).join("")+'</div>'+
+      (prep.indexOf("back")!==-1 ? '<p class="acct-p hq-advice">'+
+        (ch.length ? 'Your leg days swap the lifts that load your spine: '+ch.join(" · ")+'. Same hip and leg drive, less load on your low back.'
+                   : 'Your warm-ups add the bird dog and cat–cow.')+
+        ' Sharp pain, or pain that runs down a leg, is one for your doctor.</p>' : '')+
+      '</div>';
+  }
+  document.addEventListener("click", function(e){
+    var b=e.target.closest("#acctPrep [data-prepk]"); if(!b) return;
+    var k=b.getAttribute("data-prepk"), p=Array.isArray(state.prep)?state.prep.slice():[], i=p.indexOf(k);
+    if(i===-1) p.push(k); else p.splice(i,1);
+    state.prep=p;
+    persist();
+    try{ ffRefreshUntouched(); }catch(_){}   // this week's opened-but-empty sessions follow (040)
+    try{ renderAccount(); }catch(_){}
+    try{ renderPhase(); }catch(_){}
+    try{ renderDash(); }catch(_){}
+  });
   function renderAccount(){
     var el=$("accountBody"); if(!el) return;
     var user = window.FF && window.FF.user;
@@ -668,6 +699,7 @@
     var curFreq=(typeof planState!=="undefined" && planState.freq)||((prof&&prof.freq)||4);
     var curWk=(typeof state!=="undefined" && state.workout)||((prof&&prof.workout)||"morning");
     G.plan+=ffHealthCardHtml();
+    G.plan+=ffPrepCardHtml();
     G.plan+='<div class="acct-card"><div class="acct-head">🎯 Your training setup</div>'+
       '<div class="acct-set"><div class="acct-set-lbl">Distance mission <small>yards to add in 20 weeks</small></div>'+
         '<div class="goal-chips" id="acctGoalChips">'+[5,10,15,20,25,30].map(function(y){

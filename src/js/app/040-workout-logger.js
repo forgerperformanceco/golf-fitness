@@ -492,7 +492,7 @@
   function incNum(name){
     var n=String(name||""), needs=" "+(equipNeedsFor(n)||[]).join(" ")+" ";
     if(/ medball /.test(needs) || (/Med-?Ball|Medicine Ball|Chest Throw|Chest Pass|Slam|Scoop|Shotput/i.test(n) && !/Landmine|Cable|Band|Barbell/i.test(n))) return 0;
-    if(/Squat|Deadlift|Hinge|Lunge|Hip Thrust|Leg Press|Romanian|Swing|Carry/i.test(n)) return 5;
+    if(/Squat|Deadlift|Hinge|Lunge|Hip Thrust|Leg[- ]Press|Romanian|\bRDL\b|Swing|Carry/i.test(n)) return 5;
     if(isBarbell(n)) return 2.5;
     if(/ (dumbbells|kettlebell|cable|latpulldown|seatedrow|pecdeck|legext|legcurl|chestpress|shoulderpress|preacher|calfmachine|abductor|hipthrustm|assisted|machine-any) /.test(needs) || /\bDB\b|Dumbbell/i.test(n)) return 5;
     return 2.5;
@@ -523,15 +523,41 @@
   // old name (swaps are keyed by the ORIGINAL plan name); setting or resetting
   // the new one clears the old key so a reset really returns to the default.
   var FF_PLAN_RENAMED={ "Cable Overhead Triceps Extension":"Cable Triceps Pushdown" };
-  // Plan defaults that depend on the person, not the gear. Flagged "Back" in
-  // setup (+ a barbell) → the heavy hinge defaults to the trap-bar deadlift:
-  // a more upright torso and less lumbar shear for the same load (Swinton 2011;
-  // Lake 2017). An explicit swap — including back to the conventional bar —
-  // always wins.
+  // Plan defaults that depend on the person, not the gear. "Back" (setup, or
+  // You › Your plan › Extra care) keeps the leg days heavy and fast but takes the
+  // load off the spine where a lift puts it there:
+  //  - The heavy hinge → the trap-bar deadlift: lower peak lumbar and hip moments,
+  //    and more force, bar speed and power, than the straight bar (Swinton 2011,
+  //    J Strength Cond Res 25:2000). The 4-day plan's heavy hinge is the Romanian
+  //    deadlift, so there it's the RDL that becomes the trap bar.
+  //  - A plan that already has the deadlift (5-day, in-season) keeps one trap-bar
+  //    lift and its second hinge, the RDL, goes single-leg: half the weight in the
+  //    hands, the same hamstring stretch, and the lead-hip control the swing uses.
+  //  - Calf raises come off the shoulders: the standing machine stacks its load on
+  //    the spine; the leg-press version trains the same straight-knee calf.
+  // Training itself stays: exercise lowers the risk of a low-back pain episode
+  // (Steffens 2016, JAMA Intern Med 176:199). An explicit swap — including back to
+  // the authored lift — always wins.
+  function ffBackOn(){ return typeof state!=="undefined" && Array.isArray(state.prep) && state.prep.indexOf("back")!==-1; }
+  function ffPlanHasLift(n){
+    return activeDays().some(function(d){ return (d.ex||[]).some(function(r){ return r[0]===n; }); });
+  }
   function ffProfileDefault(name){
-    if(name==="Deadlift" && typeof state!=="undefined" && Array.isArray(state.prep) &&
-       state.prep.indexOf("back")!==-1 && planState.equip.barbell) return "Trap-Bar Deadlift";
+    if(!ffBackOn()) return null;
+    var bar=!!planState.equip.barbell;
+    if(name==="Deadlift") return bar ? "Trap-Bar Deadlift" : null;
+    if(name==="Romanian Deadlift"){
+      if(ffPlanHasLift("Deadlift")) return "Single-leg RDL";
+      return bar ? "Trap-Bar Deadlift" : null;
+    }
+    if(name==="Standing Calf Raise") return planState.equip.legpress ? "Leg-Press Calf Raise" : "Single-leg Calf Raise";
     return null;
+  }
+  // A single-leg default in a two-leg slot reads per leg: "3 × 8" → "3 × 8 / leg".
+  function ffProfileSr(orig, sr){
+    var s=String(sr||""), d=getSwaps()[orig] ? null : ffProfileDefault(orig);
+    if(!d || !/^Single-leg /i.test(d) || /\/\s*(leg|side)/i.test(s)) return sr;
+    return s.replace(/^(\s*\d+\s*×\s*\d+(?:\s*[–-]\s*\d+)?)/, "$1 / leg");
   }
   function applySwapName(name){ var s=getSwaps(), old=FF_PLAN_RENAMED[name]; return s[name] || (old && s[old]) || ffProfileDefault(name) || name; }
   function setSwap(orig, neu){ var s=getSwaps(); if(FF_PLAN_RENAMED[orig]) delete s[FF_PLAN_RENAMED[orig]];
@@ -634,6 +660,9 @@
       (c.ex||[]).forEach(function(x){ if(x && isHoldEx(x.name) && !isTimeEx(x.target)) x.target=holdTarget(x.target, x.name); });
       return c;
     }
+    return freshSession(day, week);
+  }
+  function freshSession(day, week){
     // dayTargets (035): user swaps + gear subs (deduped like the card), retain
     // trim + wave shift — the same list the "About N min" estimate counts.
     var ex = dayTargets(day, week).map(function(t){
@@ -644,6 +673,23 @@
     // deload — lastSessionFor reads this stamp first so it still skips those loads.
     var built={ date:"", wave:waveFor(week), ex:ex };
     return (typeof ffApplyReadiness==="function")?ffApplyReadiness(built,day,week):built;
+  }
+  // A plan-level change (You › Your plan › Extra care) also reaches this week's
+  // sessions that hold no work yet: opening today's workout saves it, so without
+  // this the old lifts would stay until next week. Rebuilt in place with a fresh
+  // _ts (the newer copy wins the sync merge, no tombstone needed). A session with
+  // any set entered or ticked, or a finished one, is never rewritten.
+  function ffRefreshUntouched(){
+    var wk=curWeek();
+    activeDays().forEach(function(d){
+      if(!d.ex) return;
+      var s=getSession(wk, d.name);
+      if(!s || sessionFinished(s) || (s.ex||[]).some(function(x){
+        return (x.sets||[]).some(function(st){ return st && (st.w||st.r||st.done); }); })) return;
+      var f=freshSession(d, wk), names=function(o){ return (o.ex||[]).map(function(x){ return x.name; }).join("|"); };
+      if(names(f)===names(s)) return;
+      s.ex=f.ex; saveSession(wk, d.name, s);
+    });
   }
   function openLogger(dayName,readinessChecked){
     var day=findDay(dayName); if(!day) return;

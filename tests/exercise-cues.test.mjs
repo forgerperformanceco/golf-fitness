@@ -64,6 +64,8 @@ const FAMILY = {
   squat:       [/^Quads · glutes · core/, /^Strong legs are where/],
   legcurl:     [/^Hamstrings \(knee flexion\)/, /^Curls train the hamstring/],
   hinge:       [/^Hamstrings · glutes · lower back/, /^The downswing is a violent hip/],
+  trapbar:     [/^Glutes · quads · hamstrings$/, /^The trap bar puts the weight in line/],   // Nov 2026: stand it up, not a hip hinge
+  slrdl:       [/^Hamstrings · glutes · hip control/, /^One leg holds your hips level/],
   swing:       [/^Glutes · hamstrings · core/, /^The downswing is a violent hip/],
   thrust:      [/^Glutes · hamstrings · core/, /^The downswing is a violent hip/],
   slbridge:    [/^Glutes · hamstrings · hip and pelvis control/, /^One leg holds the pelvis level/],   // Nov 2026: hips level, not the hip snap
@@ -100,6 +102,8 @@ function prescribedNames() {
     if (d.type !== "rest" && d.type !== "speed") out.add(primerFor(d.name).move);
   }
   for (const [k, v] of Object.entries(EX)) { out.add(k); for (const s of v.subs) out.add(s.name); }
+  // "Back" defaults (040 ffProfileDefault) — prescribed without a swap.
+  for (const n of ["Trap-Bar Deadlift", "Single-leg RDL", "Leg-Press Calf Raise", "Single-leg Calf Raise"]) out.add(n);
   return [...out];
 }
 
@@ -166,7 +170,18 @@ test("split squats use the lunge entry; the leg press keeps the pelvis on the pa
   is("Single-leg Glute Bridge", "slbridge");
   is("Single-Leg Hip Thrust", "slbridge");
   is("Hip Thrust", "thrust"); is("Glute Bridge", "thrust");
-  is("Single-leg RDL", "hinge");
+  is("Romanian Deadlift", "hinge"); is("Deadlift", "hinge");
+  // Owner, Nov 2026 ("my leg day isn't back protective enough"): the back-friendly
+  // defaults get their own cues. The trap bar is pushed up with hips and shoulders
+  // together — not coached as a hip hinge — and the single-leg RDL is about square hips.
+  is("Trap-Bar Deadlift", "trapbar");
+  const tb = exerciseForm("Trap-Bar Deadlift").cues.join(" ");
+  assert.match(tb, /middle of the bar/); assert.match(tb, /hips and shoulders rise together/);
+  assert.doesNotMatch(tb, /hinge from the hips|hamstring stretch/);
+  assert.match(liftWhy("Trap-Bar Deadlift").why, /less load on your low back/);
+  is("Single-leg RDL", "slrdl"); is("Single-Leg RDL", "slrdl");
+  assert.match(exerciseForm("Single-leg RDL").cues.join(" "), /Hips stay square to the floor/);
+  assert.equal(familyOf("Trap-bar jump").join(), "jump", "the speed-day trap-bar jump keeps jump coaching");
 });
 
 test("jumps teach soft, quiet, stuck landings — never a stiff, minimum-contact cue", () => {

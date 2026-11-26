@@ -749,7 +749,11 @@ publishable key + VAPID public key ship client.
   load or stress for no golf benefit, wrong day order, wrong dose), fix the plan, not just the
   answer: say what the evidence shows, make the change with tests, and record it. Don't stop at
   offering an option when the evidence is clear. First applied to: the game week (speed on a
-  fresh day) and no Heavy weeks while maintaining.
+  fresh day) and no Heavy weeks while maintaining. Then (Nov 26, 2026): **back-friendly leg days**.
+  "Back" (setup, or You › Your plan › Extra care any time) makes the heavy hinge a trap-bar deadlift
+  (less lumbar load and more power than a straight bar, Swinton 2011), a second hinge single-leg,
+  and calf raises leg-press. The legs keep training hard, because exercise is what protects a back
+  (Steffens 2016). DESIGN-CHANGES "Back-friendly leg days".
 - **Evidence ethos:** independent/public/peer-reviewed sources, cited with
   confidence levels. Never copy a competitor's data, branded protocol, trademark,
   or written/marketing content. Demo/anecdote numbers are illustrative, not effects.

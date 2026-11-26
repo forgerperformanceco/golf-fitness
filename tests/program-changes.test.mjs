@@ -53,15 +53,17 @@ function engine({ goal = "leanbulk", store = {}, prep = [], inseason = false, eq
     ${decl(PLAN, "PHASES", "[")} ${decl(PLAN, "EQUIPMENT", "[")} ${decl(PLAN, "MACHINES", "[")}
     ${["purposeFor", "isBallistic", "trainRetain", "adjSets", "eventInfo", "waveFor", "bumpReps", "trimSets", "plainReps",
        "waveAdjust", "capSets", "plainSetCount", "ffInSeason", "ffInSeasonMode", "ffInSeasonPlan", "ffOnRamp", "ffHealth", "ffHealthCaution", "effTarget", "isHoldEx", "isTimeEx", "holdPerSide", "holdTarget", "overspeedDose", "speedDrillTarget",
-       "speedMode", "have", "ffLowImpact", "speedRows"].map((n) => fn(PLAN, n)).join("\n")}
-    ${["ffProfileDefault", "applySwapName", "setSwap", "ffPullCapNeeded", "ffPullAssist"].map((n) => fn(LOGGER, n)).join("\n")}
+       "speedMode", "have", "ffLowImpact", "speedRows", "activeDays"].map((n) => fn(PLAN, n)).join("\n")}
+    ${["ffBackOn", "ffPlanHasLift", "ffProfileDefault", "ffProfileSr", "applySwapName", "setSwap", "ffPullCapNeeded", "ffPullAssist"].map((n) => fn(LOGGER, n)).join("\n")}
     ${fn(MODEL, "ffBmi")}
+    ${decl(PLAN, "FF_PREP_OPTS", "[")} ${fn(GAME, "ffPrepCardHtml")}
+    function ffEsc(s){ return String(s); }
     EQUIPMENT.forEach(function(e){ planState.equip[e.key]=true; });
     MACHINES.forEach(function(m){ planState.equip[m.key]=true; });
     var __eq=${JSON.stringify(equip)};
     if(__eq){ Object.keys(planState.equip).forEach(function(k){ planState.equip[k]=__eq.indexOf(k)!==-1; }); }
     this.api={ PHASES, effTarget, speedRows, applySwapName, setSwap, ffPullCapNeeded, ffPullAssist, ffLowImpact,
-      purposeFor, state:state, store:__store };
+      purposeFor, ffPrepCardHtml, state:state, store:__store };
   `, ctx);
   return ctx.api;
 }
@@ -164,6 +166,25 @@ test("flagged back + a barbell → trap-bar deadlift by default; an explicit cho
   assert.equal(engine({}).applySwapName("Deadlift"), "Deadlift", "no back flag: conventional");
   assert.equal(engine({ prep: ["back"], equip: ["bodyweight", "dumbbells"] }).applySwapName("Deadlift"), "Deadlift",
     "no barbell: the gear subs handle it");
+});
+
+// Owner, Nov 2026: "My leg day personally isn't back protective enough." The extra-care
+// areas were setup-only; You › Your plan now has them, and Back says what it changes.
+test("Extra care in You › Your plan: the setup's areas, editable, and Back lists its swaps", () => {
+  const off = engine({}).ffPrepCardHtml(), on = engine({ prep: ["back"] }).ffPrepCardHtml();
+  for (const k of ["back", "hips", "shoulders", "knees"]) assert.match(off, new RegExp(`data-prepk="${k}"`));
+  assert.match(off, /data-prepk="back" aria-pressed="false"/); assert.doesNotMatch(off, /hq-advice/);
+  assert.match(on, /class="hq sel" data-prepk="back" aria-pressed="true"/);
+  assert.match(on, /Romanian Deadlift → <b>Trap-Bar Deadlift<\/b> · Standing Calf Raise → <b>Leg-Press Calf Raise<\/b>/);
+  assert.match(on, /less load on your low back/); assert.match(on, /one for your doctor/);
+  const kept = engine({ prep: ["back"], store: { ff_swaps: { "Romanian Deadlift": "Romanian Deadlift" } } }).ffPrepCardHtml();
+  assert.doesNotMatch(kept, /Trap-Bar/, "a lift you chose yourself isn't listed as changed");
+  // It sits under the health check; a tap saves the profile (it roams) and redraws the plan.
+  assert.match(GAME, /G\.plan\+=ffHealthCardHtml\(\);\s*G\.plan\+=ffPrepCardHtml\(\);/);
+  assert.match(GAME, /closest\("#acctPrep \[data-prepk\]"\)[\s\S]{0,260}state\.prep=p;\s*persist\(\);\s*try\{ ffRefreshUntouched\(\); \}catch\(_\)\{\}[\s\S]{0,160}renderPhase\(\)/);
+  const OB = src("090-first-run-onboarding.js");
+  assert.match(OB, /FF_PREP_OPTS\.map/, "setup and You share one list");
+  assert.match(OB, /Back also swaps in back-friendly leg lifts\. Change it any time in You › Your plan\./);
 });
 
 test("gym speed day: a med ball turns the speed bench into the seated chest throw", () => {

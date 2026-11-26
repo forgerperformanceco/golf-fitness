@@ -1,5 +1,59 @@
 # Design changes — engagement & performance upgrade (Jul 2026)
 
+## Back-friendly leg days, switched on from You (Nov 26, 2026)
+
+The owner said: "My leg day personally isn't back protective enough." Their 4-day leg day opens with
+a heavy barbell Romanian deadlift (4 × 6) and ends with a standing calf raise, whose machine rests
+its load on the shoulders. "Back" already existed as a setup choice, but it could only be picked
+during setup, and it only swapped the 5-day plan's deadlift, never the 4-day RDL.
+
+- **Extra care in You › Your plan** (080 `ffPrepCardHtml`), under the health check:
+  - the setup's four areas (Back, Hips, Shoulders, Knees) as checkboxes, shared with setup through
+    one list (`FF_PREP_OPTS`);
+  - with Back on, the card lists exactly what it changes in the plan you're on ("Romanian Deadlift →
+    Trap-Bar Deadlift · Standing Calf Raise → Leg-Press Calf Raise"), plus a line that sharp pain, or
+    pain down a leg, is one for a doctor;
+  - setup's note now says Back swaps leg lifts and can be changed later.
+- **What Back changes** (040 `ffProfileDefault`; any explicit swap still wins):
+  - **The heavy hinge → trap-bar deadlift.** At the same load it has lower peak moments at the
+    lumbar spine and hip, and more peak force, bar speed and power than a straight bar (Swinton 2011,
+    J Strength Cond Res 25:2000, doi 10.1519/JSC.0b013e3181e73f87). On the 4-day plan that's the RDL
+    slot, at the same "4 × 6 (heavy · fast up)".
+  - **A second hinge goes single-leg.** The 5-day and in-season plans already have the deadlift,
+    so the trap bar takes that slot and the RDL becomes the Single-leg RDL, per leg (`ffProfileSr`):
+    half the weight in the hands, the same hamstring stretch, and the lead-hip control the swing uses.
+  - **Calf raises come off the spine:** Leg-Press Calf Raise (same straight-knee calf), or the
+    Single-leg Calf Raise without a leg press.
+  - The warm-ups keep adding the bird dog and cat–cow.
+  - Everything else stays. Training itself protects the back: exercise lowers the risk of a low-back
+    pain episode (Steffens 2016, JAMA Intern Med 176:199, doi 10.1001/jamainternmed.2015.7431).
+- **This week follows too** (040 `ffRefreshUntouched`). Opening today's workout saves the session,
+  so the old lifts would otherwise stay until next week. A saved session with nothing entered or
+  ticked is rebuilt in place with a fresh `_ts`, so the newer copy wins the sync merge. Any entered
+  work, or a finished session, is never rewritten.
+- **Cues:** the trap bar gets its own how-to ("hips and shoulders rise together") instead of the RDL's
+  hip-hinge cues, and its Why says less load on the low back. The single-leg RDL is coached on square
+  hips. The speed day's trap-bar jump keeps jump coaching.
+- **Small fixes found on the way:**
+  - "Leg-Press Calf Raise" now counts as leg-press gear;
+  - RDL variants step by 5 lb like other lower-body lifts;
+  - the Extra care descriptors are 11px (type floor).
+- **No new storage:** the flags live on the roaming profile (`state.prep`, "fairwayfuel").
+- **Verified:**
+  - `npm test` 343/343. New tests in `training-engine` (4-day and 5-day plans, gear and swaps, the
+    this-week refresh), `program-changes` (the card) and `exercise-cues` (trap-bar and single-leg
+    RDL families); the plan tests fail on the old code.
+  - Playwright, light + dark at 390px, all green:
+    - toggling Back from You keeps the scroll;
+    - the 5-day hinge day shows the badged trap bar;
+    - a session logged this week keeps what was done;
+    - switching to 4 days gives Trap-Bar Deadlift 4 × 6 as lift 1 in the player, with the bird dog
+      in the warm-up and the trap-bar how-to;
+    - turning Back off puts the RDL back, even after opening today's workout;
+    - zero page errors.
+  - Audits: train 18/18, scroll 16/16, type back to the one known Fuel item, contrast clean. Release
+    gate and claims-lint clean.
+
 ## Every compound lift asks for speed on the way up (Nov 24, 2026)
 
 The owner shared a speed article from a competitor's blog. Its one concrete instruction was 100% intent
