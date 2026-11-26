@@ -84,7 +84,8 @@
 
     // Push profile into the real app state + recompute. Idempotent: safe to call repeatedly.
     function applyProfile(){
-      var prevGoal=state.goal;
+      var prevGoal=state.goal, before=null;
+      try{ if(ob.revisit && planStart()) before=ffPlanNames(curWeek()); }catch(_){}   // for ffRefreshUntouched below
       state.sex=ob.sex; state.goal=ob.goal; state.workout=ob.workout;
       if(ob.revisit) ffGoalSwitched(prevGoal);   // 025: a new goal restarts the check-in window
       state.prep=ob.prep.slice(); state.equipPreset=ob.equip;
@@ -103,6 +104,8 @@
       if(ob.equip) applyEquipPreset(ob.equip);
       try{ calc(); }catch(e){}
       try{ persist(); }catch(e){}
+      // Back (or gear) changed on a re-run → this week's opened-but-empty sessions follow (040).
+      try{ ffRefreshUntouched(before); }catch(e){}
     }
     // Seed or update today's baseline through the shared deduping writer.
     // On a re-run every field is PREFILLED from saved numbers, so only the ones

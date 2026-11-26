@@ -620,10 +620,11 @@
   document.addEventListener("click", function(e){
     var b=e.target.closest("#acctPrep [data-prepk]"); if(!b) return;
     var k=b.getAttribute("data-prepk"), p=Array.isArray(state.prep)?state.prep.slice():[], i=p.indexOf(k);
+    var before=null; try{ before=ffPlanNames(curWeek()); }catch(_){}
     if(i===-1) p.push(k); else p.splice(i,1);
     state.prep=p;
     persist();
-    try{ ffRefreshUntouched(); }catch(_){}   // this week's opened-but-empty sessions follow (040)
+    try{ ffRefreshUntouched(before); }catch(_){}   // this week's opened-but-empty sessions follow (040)
     try{ renderAccount(); }catch(_){}
     try{ renderPhase(); }catch(_){}
     try{ renderDash(); }catch(_){}

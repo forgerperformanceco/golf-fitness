@@ -547,16 +547,17 @@
     var bar=!!planState.equip.barbell;
     if(name==="Deadlift") return bar ? "Trap-Bar Deadlift" : null;
     if(name==="Romanian Deadlift"){
-      if(ffPlanHasLift("Deadlift")) return "Single-leg RDL";
+      if(ffPlanHasLift("Deadlift")) return "Single-Leg RDL";
       return bar ? "Trap-Bar Deadlift" : null;
     }
-    if(name==="Standing Calf Raise") return planState.equip.legpress ? "Leg-Press Calf Raise" : "Single-leg Calf Raise";
+    if(name==="Standing Calf Raise") return planState.equip.legpress ? "Leg-Press Calf Raise" : "Single-Leg Calf Raise";
     return null;
   }
-  // A single-leg default in a two-leg slot reads per leg: "3 × 8" → "3 × 8 / leg".
+  // A single-leg lift in a two-leg slot reads per leg: "3 × 8" → "3 × 8 / leg" —
+  // the Back default or your own swap. ffLegTarget (050) does the same mid-session.
   function ffProfileSr(orig, sr){
-    var s=String(sr||""), d=getSwaps()[orig] ? null : ffProfileDefault(orig);
-    if(!d || !/^Single-leg /i.test(d) || /\/\s*(leg|side)/i.test(s)) return sr;
+    var s=String(sr||""), d=applySwapName(orig);
+    if(d===orig || !/^Single-?Leg /i.test(d) || /\/\s*(leg|side)/i.test(s)) return sr;
     return s.replace(/^(\s*\d+\s*×\s*\d+(?:\s*[–-]\s*\d+)?)/, "$1 / leg");
   }
   function applySwapName(name){ var s=getSwaps(), old=FF_PLAN_RENAMED[name]; return s[name] || (old && s[old]) || ffProfileDefault(name) || name; }
@@ -674,22 +675,47 @@
     var built={ date:"", wave:waveFor(week), ex:ex };
     return (typeof ffApplyReadiness==="function")?ffApplyReadiness(built,day,week):built;
   }
-  // A plan-level change (You › Your plan › Extra care) also reaches this week's
-  // sessions that hold no work yet: opening today's workout saves it, so without
-  // this the old lifts would stay until next week. Rebuilt in place with a fresh
-  // _ts (the newer copy wins the sync merge, no tombstone needed). A session with
-  // any set entered or ticked, or a finished one, is never rewritten.
-  function ffRefreshUntouched(){
-    var wk=curWeek();
+  // What the plan gives each slot this week: day name → orig → { name, target }.
+  function ffPlanNames(wk){
+    var out={};
     activeDays().forEach(function(d){
-      if(!d.ex) return;
-      var s=getSession(wk, d.name);
-      if(!s || sessionFinished(s) || (s.ex||[]).some(function(x){
-        return (x.sets||[]).some(function(st){ return st && (st.w||st.r||st.done); }); })) return;
-      var f=freshSession(d, wk), names=function(o){ return (o.ex||[]).map(function(x){ return x.name; }).join("|"); };
-      if(names(f)===names(s)) return;
-      s.ex=f.ex; saveSession(wk, d.name, s);
+      if(!d.ex) return; var m=out[d.name]={};
+      dayTargets(d, wk).forEach(function(t){ m[t.orig]={ name:t.name, target:t.target }; });
     });
+    return out;
+  }
+  // A plan-level change (Extra care in You or setup) also reaches this week's
+  // sessions that hold no work yet: opening today's workout saves it, so without
+  // this the old lifts would stay until next week. `before` is ffPlanNames from
+  // just before the change. Only rows still showing what the plan gave them and
+  // whose slot now resolves to another lift change (name, and "/ leg" in the
+  // target); readiness trims, added or removed lifts, your order and one-off swaps
+  // stay. Stamped old _ts + 1, not now: it beats this session's own stale copy in
+  // the sync merge, but never a session logged (or cleared) on another device.
+  // A session with any set entered or ticked, or a finished one, is never touched.
+  function ffRetarget(t, was, now){
+    t=String(t||""); if(t===was.target) return now.target;
+    var wl=/\/\s*leg\b/i.test(was.target), nl=/\/\s*leg\b/i.test(now.target);
+    if(nl && !wl && !/\/\s*(leg|side)/i.test(t)) return t.replace(/^(\s*\d+\s*×\s*\d+(?:\s*[–-]\s*\d+)?)/, "$1 / leg");
+    if(wl && !nl) return t.replace(/\s*\/\s*leg\b/i, "");
+    return t;
+  }
+  function ffRefreshUntouched(before){
+    if(!before) return;
+    var wk=curWeek(), after=ffPlanNames(wk), L=getLog(), changed=false;
+    Object.keys(after).forEach(function(dn){
+      var k=wk+"|"+dn, s=L[k], b=before[dn]||{}, a=after[dn];
+      if(!s || sessionFinished(s) || !Array.isArray(s.ex) || s.ex.some(function(x){
+        return x && (x.sets||[]).some(function(st){ return st && (st.w||st.r||st.done); }); })) return;
+      var hit=false;
+      s.ex.forEach(function(x){
+        var o=x && x.orig, was=o && b[o], now=o && a[o];
+        if(!was || !now || x.name!==was.name || now.name===was.name) return;
+        x.target=ffRetarget(x.target, was, now); x.name=now.name; hit=true;
+      });
+      if(hit){ s._ts=(typeof s._ts==="number" ? s._ts : 0)+1; L[k]=s; changed=true; }
+    });
+    if(changed) lsSet("ff_log", L);
   }
   function openLogger(dayName,readinessChecked){
     var day=findDay(dayName); if(!day) return;

@@ -195,8 +195,8 @@ speed/power work in, so the deficit costs fat, not mph. Never frame a cut as "ju
   You › Your plan › Extra care, any time) and has a barbell, the app makes the Trap-Bar
   Deadlift their DEFAULT heavy hinge ("back-friendly default" badge): on the 4-day plan it
   replaces the Romanian Deadlift; on plans that already have the deadlift, the RDL becomes
-  a Single-leg RDL (per leg). Back also moves calf raises off the spine (Leg-Press Calf
-  Raise, or Single-leg Calf Raise without a leg press) and adds bird dog + cat–cow to the
+  a Single-Leg RDL (per leg). Back also moves calf raises off the spine (Leg-Press Calf
+  Raise, or Single-Leg Calf Raise without a leg press) and adds bird dog + cat–cow to the
   warm-ups. Choosing the authored lift in Swap keeps it. A golfer asking for a more
   back-friendly leg day: point them to Extra care → Back.
   At the same load it gives lower peak lumbar and hip moments (a higher knee moment) and

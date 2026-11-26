@@ -181,7 +181,11 @@ test("Extra care in You › Your plan: the setup's areas, editable, and Back lis
   assert.doesNotMatch(kept, /Trap-Bar/, "a lift you chose yourself isn't listed as changed");
   // It sits under the health check; a tap saves the profile (it roams) and redraws the plan.
   assert.match(GAME, /G\.plan\+=ffHealthCardHtml\(\);\s*G\.plan\+=ffPrepCardHtml\(\);/);
-  assert.match(GAME, /closest\("#acctPrep \[data-prepk\]"\)[\s\S]{0,260}state\.prep=p;\s*persist\(\);\s*try\{ ffRefreshUntouched\(\); \}catch\(_\)\{\}[\s\S]{0,160}renderPhase\(\)/);
+  // The plan's names are read BEFORE the flag flips, so the refresh knows which rows followed the plan.
+  assert.match(GAME, /closest\("#acctPrep \[data-prepk\]"\)[\s\S]{0,200}before=ffPlanNames\(curWeek\(\)\);[\s\S]{0,120}state\.prep=p;\s*persist\(\);\s*try\{ ffRefreshUntouched\(before\); \}catch\(_\)\{\}[\s\S]{0,160}renderPhase\(\)/);
+  // Setup's re-run does the same (review: it changed Back without refreshing).
+  const OB0 = src("090-first-run-onboarding.js"), ap = fn(OB0, "applyProfile");
+  assert.match(ap, /before=ffPlanNames\(curWeek\(\)\)[\s\S]*state\.prep=ob\.prep\.slice\(\)[\s\S]*ffRefreshUntouched\(before\)/);
   const OB = src("090-first-run-onboarding.js");
   assert.match(OB, /FF_PREP_OPTS\.map/, "setup and You share one list");
   assert.match(OB, /Back also swaps in back-friendly leg lifts\. Change it any time in You › Your plan\./);

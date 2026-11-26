@@ -682,7 +682,7 @@
   // isn't strength. wide = also lunges/split squats (the Stats e1RM list).
   function isBigLift(n, wide){
     n=String(n||"");
-    if(isBallistic(n) || /Pallof|Anti-?rotation|Explosive|^Speed\s/i.test(n)) return false;
+    if(isBallistic(n) || /Pallof|Anti-?rotation|Explosive|^Speed\s|Calf/i.test(n)) return false;   // "Leg-Press Calf Raise" isn't a press
     return (wide ? /Squat|Deadlift|Bench|Press|\bRow\b|Romanian|Hinge|Hip Thrust|Pull-?up|Chin|Lunge|Split Squat/i
                  : /Squat|Deadlift|Bench|Press|\bRow\b|Romanian|Hinge|Hip Thrust|Pull-?up|Chin/i).test(n);
   }
