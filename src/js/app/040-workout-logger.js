@@ -409,7 +409,9 @@
       if(!(w<week) || w<=bw || !s || !Array.isArray(s.ex)) return;
       bw=w; best=s;
     });
-    return best ? best.ex.map(function(x){ return x ? (x.orig||x.name) : ""; }) : null;
+    // Lifts added in the player (flagged since Codex #145) aren't plan slots: skipped,
+    // so an added copy of a plan lift can't move the plan's own.
+    return best ? best.ex.filter(function(x){ return x && !x.added; }).map(function(x){ return x.orig||x.name; }) : null;
   }
   // The permutation (indices into d.ex) that puts a day in your order, or null for
   // the plan's own. Sessions are BUILT in plan order — gear subs dedupe and the
@@ -751,7 +753,7 @@
         return x && (x.sets||[]).some(function(st){ return st && (st.w||st.r||st.done); }); })) return;
       var hit=false;
       s.ex.forEach(function(x){
-        var o=x && x.orig, was=o && b[o], now=o && a[o];
+        var o=x && !x.added && x.orig, was=o && b[o], now=o && a[o];   // a lift you added is yours
         if(!was || !now || x.name!==was.name || now.name===was.name) return;
         x.target=ffRetarget(x, was, now); x.name=now.name; hit=true;
       });

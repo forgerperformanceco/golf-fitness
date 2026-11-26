@@ -33,13 +33,19 @@ machines first, or a shorter day, they picked **"Machines first, like today"**.
   - on the speed day the sheet's promise was false and the reset did nothing.
   - Not built: a lift missing from last week's session returns to its plan slot. The app has no way
     to remove a lift from a session, so this only follows a plan change.
+- **Codex #145:**
+  - Lifts added in the player are flagged `added:true`. Next week's order and the Back refresh skip
+    them, and the reset puts them after the plan's lifts. Before this, an added copy of a plan lift,
+    moved ahead, moved the plan's slot.
+  - The speed-day reset sorts by the drill list (Field or Gym) the session was built from, not the
+    mode the card shows now.
 - **Reorder sheet** (hold the lift name in the player):
   - on lift days it now says "Next time this day starts in your order too";
   - "↺ Back to the plan's order" sorts by plan slot, keeps added lifts after the plan's in your
     order, and keeps the player on the lift you were on.
 - **No new storage:** the order lives in the sessions themselves (`ff_log`, already synced).
 - **Verified:**
-  - `npm test` 353/353, with new tests in `training-engine` (order carry-over, gear subs and the
+  - `npm test` 355/355, with new tests in `training-engine` (order carry-over, gear subs and the
     readiness trim under a carried order, swaps, Back, the
     latest week wins, plan order returns the plan's rows, added or missing lifts, old logs without
     `orig`) and `player-cooldown-station` (the sheet).

@@ -682,7 +682,7 @@
         if(e.target.closest("#plOrdReset") && player){
           // The plan's order (by slot); lifts you added stay after the plan's, in your order.
           var plan=plOrdPlan();
-          var slot=function(x){ var a=plan.indexOf(x.orig||x.name); return a<0 ? plan.length : a; };
+          var slot=function(x){ var a=x.added ? plan.length : plan.indexOf(x.orig||x.name); return a<0 ? plan.length : a; };
           var cur0=player.stations[player.st], keep0=(cur0&&cur0.type==="lift")?player.sess.ex[cur0.xi]:null;
           player.sess.ex=player.sess.ex.map(function(x, i){ return { x:x, i:i }; })
             .sort(function(a, b){ return (slot(a.x)-slot(b.x)) || (a.i-b.i); }).map(function(o){ return o.x; });
@@ -746,7 +746,13 @@
   }
   // The plan's order by slot (orig): the day's rows, or the speed day's drill list.
   function plOrdPlan(){
-    if(player.day && player.day.type==="speed") return speedRows().map(function(e){ return e[3]||e[0]; });
+    if(player.day && player.day.type==="speed"){
+      // The list this session was built from (Field or Gym), not the mode the card shows now (Codex #145).
+      var own=(player.sess.ex||[]).map(function(x){ return x.orig||x.name; });
+      var hits=function(l){ return own.filter(function(n){ return l.indexOf(n)!==-1; }).length; };
+      return ["field","gym"].map(function(m){ return speedRows(m).map(function(e){ return e[3]||e[0]; }); })
+        .reduce(function(a, b){ return hits(b)>hits(a) ? b : a; });
+    }
     return ((player.day && player.day.ex) || []).map(function(r){ return r[0]; });
   }
 

@@ -60,11 +60,25 @@ test("reorder sheet: the order sticks, and one tap restores the plan's order", (
   // Review: the speed day keeps its own order (freshest moves first), so there it's "just for today",
   // and the reset sorts by the speed day's drill list (it was a no-op: speed days have no ex rows).
   assert.match(sheet, /player\.day\.type==="speed"\s*\?\s*"Just for today: the speed day keeps its order, freshest and fastest moves first\."/);
-  assert.match(fn(PLAYER, "plOrdPlan"), /type==="speed"\) return speedRows\(\)\.map\(function\(e\)\{ return e\[3\]\|\|e\[0\]; \}\)/);
+  assert.match(fn(PLAYER, "plOrdPlan"), /type==="speed"\)\{[\s\S]*speedRows\(m\)\.map\(function\(e\)\{ return e\[3\]\|\|e\[0\]; \}\)/);
   assert.match(sheet, /id="plOrdReset">↺ Back to the plan’s order</);
   const reset = sheet.slice(sheet.indexOf('closest("#plOrdReset")'), sheet.indexOf('var mv=e.target.closest("[data-ordmv]")'));
   assert.match(reset, /var plan=plOrdPlan\(\);/, "the plan's rows (or the speed list), by slot");
   assert.match(reset, /x\.orig\|\|x\.name/);
   assert.match(reset, /\(slot\(a\.x\)-slot\(b\.x\)\) \|\| \(a\.i-b\.i\)/, "added lifts keep their order after the plan's");
   assert.match(reset, /plRebuildStations\(keep0\); plSave\(\); plRender\(\);/, "the player follows the lift you were on, and it saves");
+});
+
+// Codex #145: added lifts are flagged so next week's order and the Back refresh can tell them from
+// the plan's copy; the speed reset sorts by the drill list the session was built from (Field or Gym),
+// not the mode the card shows now.
+test("added lifts are flagged; the speed reset follows the session's own drill list", () => {
+  const add = fn(HIST, "addLiftChoice");
+  const pushes = add.match(/sess\.ex\.push\(\{[^}]*\}/g) || [];
+  assert.equal(pushes.length, 2); pushes.forEach((p) => assert.match(p, /added:true/));
+  const plan = fn(PLAYER, "plOrdPlan");
+  assert.match(plan, /\["field","gym"\]\.map\(function\(m\)\{ return speedRows\(m\)/);
+  assert.match(plan, /hits\(b\)>hits\(a\)/, "the list most of the session's drills come from");
+  const sheet = fn(PLAYER, "openReorder");
+  assert.match(sheet, /x\.added \? plan\.length/, "added lifts sort after the plan's");
 });

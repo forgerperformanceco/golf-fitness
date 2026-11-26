@@ -1363,3 +1363,22 @@ test("your order: a readiness smart trim still keeps the plan's first two lifts 
   for (const o of plan) assert.equal(sets(o), planOnly.ex.find((x) => x.orig === o).sets.length, `${o}: same trim as in plan order`);
   assert.ok(sets("Lateral Raise") < full("Lateral Raise"), "moving the raise first doesn't exempt it");
 });
+
+// Codex #145: an added copy of a plan lift (orig = its own name) moved ahead of the plan's one
+// moved the plan slot next week. Added lifts are flagged (050 addLiftChoice) and skipped.
+test("your order ignores an added duplicate; the Back refresh leaves added lifts alone", () => {
+  const D = "Day 1 — Lower (Quads & Hinge)", store = {};
+  const E = engine({ store, week: 4 });
+  const day = E.PHASES[0].days4.find((d) => d.name === D), plan = Array.from(day.ex, (r) => r[0]);
+  const ex = plan.map((o) => ({ name: o, orig: o, sets: [] }));
+  ex.unshift({ name: "Leg Extension", orig: "Leg Extension", added: true, sets: [] });   // a second extension, done first
+  store.ff_log = { ["3|" + D]: { ex } };
+  assert.equal(E.ffDayRows(day, 4), day.ex, "only the added copy moved → the plan's order");
+  // The Back refresh: an added Romanian Deadlift stays as added.
+  const s0 = E.freshSession(day, 4); s0.ex.push({ name: "Romanian Deadlift", orig: "Romanian Deadlift", added: true, target: "2 × 8", sets: [{ w: "", r: "", done: false }] });
+  store.ff_log["4|" + D] = s0; E.setWeek(4);
+  const before = E.ffPlanNames(4); E.state.prep = ["back"]; E.ffRefreshUntouched(before);
+  const got = store.ff_log["4|" + D].ex;
+  assert.equal(got.find((x) => x.orig === "Romanian Deadlift" && !x.added).name, "Trap-Bar Deadlift");
+  assert.equal(got.find((x) => x.added).name, "Romanian Deadlift", "the lift you added is yours");
+});
