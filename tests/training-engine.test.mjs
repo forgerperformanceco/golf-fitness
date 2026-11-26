@@ -54,7 +54,7 @@ const PLAN_FNS = ["effortNote", "ffOnRamp", "ffHealth", "ffHealthCaution", "heav
 const LOGGER_FNS = ["lastSessionFor", "sessFullDose", "repsShifted", "topReps", "isDistEx", "repSeed", "incNum",
   "progressReady", "parseSets", "getLog", "sessionFinished", "swapOptionsFor", "exGroupFor", "getSkippedSessions", "sessionSkipped",
   "getSwaps", "ffBackOn", "ffPlanHasLift", "ffProfileDefault", "ffProfileSr", "applySwapName",
-  "getSession", "saveSession", "freshSession", "ffPlanNames", "ffRetarget", "ffRefreshUntouched", "ffLastOrder", "ffDayRows"];
+  "getSession", "saveSession", "freshSession", "ffPlanNames", "ffRetarget", "ffRefreshUntouched", "ffLastOrder", "ffDayPerm", "ffDayRows"];
 
 function engine({ goal = "leanbulk", equip = null, store = {}, week = 2, now = Date.now(), freq = 4, prep = [] } = {}) {
   const code = [
@@ -62,7 +62,7 @@ function engine({ goal = "leanbulk", equip = null, store = {}, week = 2, now = D
     decl(LOGGER, "EXERCISE_DB", "{"),
     ...PLAN_FNS.map((n) => fn(PLAN, n)), ...LOGGER_FNS.map((n) => fn(LOGGER, n)),
     fn(INLINE, "isBarbell"),
-    ...["ffSessBand", "ffReadinessLoad", "ffDose", "ffHeldTwice", "ffDaysSince", "ffBackFor", "ffReadinessRetarget", "ffReadinessAdaptSession"].map((n) => fn(READY, n)),
+    ...["ffSessBand", "ffReadinessLoad", "ffDose", "ffHeldTwice", "ffDaysSince", "ffBackFor", "ffReadinessRetarget", "ffReadinessAdaptSession", "ffApplyReadiness"].map((n) => fn(READY, n)),
     fn(STATS, "bigLiftStats"), fn(PLAYER, "e1RM"), fn(PLAYER, "sessionsByWeek"), fn(PLAYER, "strengthGain"),
     fn(PLAYER, "plLifetimeBests"), fn(HOME, "ffInsights"),
   ].join("\n");
@@ -370,7 +370,9 @@ test("'About N min' counts the real dose and moves with the wave and the goal", 
   assert.ok(speed % 5 === 0 && speed >= 40 && speed <= 90, String(speed));
   assert.equal(E.sessionMinutes({ type: "rest" }), 10);
   // One pipeline: the logger builds sessions from the same dayTargets.
-  assert.match(LOGGER, /var ex = dayTargets\(day, week\)\.map/);
+  // (built in plan order — subs and readiness as the card — then put in your order: ffDayPerm)
+  assert.match(LOGGER, /var ex = dayTargets\(day, week, true\)\.map/);
+  assert.match(fn(LOGGER, "freshSession"), /var p=\(day && day\.ex\) \? ffDayPerm\(day, week\) : null;/);
 });
 
 // ------------------------------------------------------- 11 no-load swaps
@@ -1329,4 +1331,35 @@ test("your lift order: added lifts are ignored, a lift the last session lacked k
   assert.deepEqual(got.slice(0, 2), ["Leg Extension", "Seated Leg Curl"]);
   assert.equal(got[plan.indexOf("Single-leg Glute Bridge")], "Single-leg Glute Bridge", "missing last time → stays in its plan slot");
   assert.deepEqual(got.slice().sort(), plan.slice().sort(), "same lifts, just reordered");
+});
+
+// Pre-PR review of the lift order: building a session in YOUR order changed which gear sub each
+// slot got (the dedupe is first-come) and moved the readiness smart trim's "first two lifts whole"
+// onto whatever you'd put first. Sessions are now built in plan order, then put in your order.
+test("your order: each slot keeps its own gear sub, whatever the order", () => {
+  const store = {}, E = engine({ store, week: 4, equip: ["bodyweight"] });
+  const pull = E.PHASES[0].days4.find((d) => /Pull/.test(d.name));
+  const plan3 = Array.from(E.dayTargets(pull, 3, true)), byOrig = Object.fromEntries(plan3.map((t) => [t.orig, t.name]));
+  // Run week 3 with the single-arm row before the chest-supported row.
+  const ran = plan3.slice(); const a = ran.findIndex((t) => t.orig === "Chest-Supported Row"), b = ran.findIndex((t) => t.orig === "Single-Arm DB Row");
+  [ran[a], ran[b]] = [ran[b], ran[a]];
+  store.ff_log = { ["3|" + pull.name]: { ex: ran.map((t) => ({ name: t.name, orig: t.orig, sets: [] })) } };
+  const w4 = Array.from(E.dayTargets(pull, 4));
+  assert.deepEqual(w4.map((t) => t.orig), ran.map((t) => t.orig), "your order");
+  w4.forEach((t) => assert.equal(t.name, byOrig[t.orig], `${t.orig} keeps ${byOrig[t.orig]}`));
+  assert.deepEqual(Array.from(E.freshSession(pull, 4).ex, (x) => x.name), w4.map((t) => t.name), "the logged session agrees");
+});
+
+test("your order: a readiness smart trim still keeps the plan's first two lifts whole", () => {
+  const store = { __readiness: { band: "steady", date: "Nov 26", ts: 1 } }, E = engine({ store, week: 4 });
+  const push = E.PHASES[0].days4.find((d) => /Push/.test(d.name)), plan = Array.from(push.ex, (r) => r[0]);
+  const moved = ["Lateral Raise", "Cable Overhead Triceps Extension"].concat(plan.filter((n) => !/Lateral Raise|Triceps/.test(n)));
+  store.ff_log = { ["3|" + push.name]: { ex: moved.map((o) => ({ name: o, orig: o, sets: [] })) } };
+  const s = E.freshSession(push, 4), sets = (o) => s.ex.find((x) => x.orig === o).sets.length;
+  assert.equal(s.ex[0].orig, "Lateral Raise", "your order");
+  const full = (o) => Number(String(push.ex.find((r) => r[0] === o)[1]).match(/^\d+/)[0]);
+  assert.equal(sets(plan[1]), E.freshSession(push, 4).ex.find((x) => x.orig === plan[1]).sets.length);
+  const planOnly = engine({ store: { __readiness: { band: "steady", date: "Nov 26", ts: 1 } }, week: 4 }).freshSession(push, 4);
+  for (const o of plan) assert.equal(sets(o), planOnly.ex.find((x) => x.orig === o).sets.length, `${o}: same trim as in plan order`);
+  assert.ok(sets("Lateral Raise") < full("Lateral Raise"), "moving the raise first doesn't exempt it");
 });

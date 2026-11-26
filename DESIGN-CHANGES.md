@@ -17,18 +17,30 @@ machines first, or a shorter day, they picked **"Machines first, like today"**.
     this week's session sets next week's order.
   - Rows match by plan slot (`orig`, else the name), so swaps and the Back defaults keep their
     place.
+  - Sessions are **built in plan order and then put in your order** (`ffDayPerm`), so each slot
+    keeps the same gear sub (the dedupe is first-come) and a readiness smart trim still keeps the
+    plan's first two lifts whole. The day card resolves the same way.
   - Lifts added mid-session are ignored, and a plan lift the last session lacked keeps its own slot.
   - The day card and `dayTargets` (so new sessions, the time estimate and the effort notes) all use
     it.
 - **Effort notes stay safe:** a lift that comes before a heavy one is still told to stay 2 reps
   short of failure.
+- **The speed day keeps its own order** (freshest, fastest moves first). Its sheet says "Just for
+  today", and the reset sorts by its drill list.
+- **Pre-PR review** (independent agent, diff only), fixed with tests that fail on the first version:
+  - building in your order changed which gear sub a slot got;
+  - the smart trim protected whatever you'd moved first;
+  - on the speed day the sheet's promise was false and the reset did nothing.
+  - Not built: a lift missing from last week's session returns to its plan slot. The app has no way
+    to remove a lift from a session, so this only follows a plan change.
 - **Reorder sheet** (hold the lift name in the player):
-  - it now says "Next time this day starts in your order too";
+  - on lift days it now says "Next time this day starts in your order too";
   - "↺ Back to the plan's order" sorts by plan slot, keeps added lifts after the plan's in your
     order, and keeps the player on the lift you were on.
 - **No new storage:** the order lives in the sessions themselves (`ff_log`, already synced).
 - **Verified:**
-  - `npm test` 351/351, with new tests in `training-engine` (order carry-over, swaps, Back, the
+  - `npm test` 353/353, with new tests in `training-engine` (order carry-over, gear subs and the
+    readiness trim under a carried order, swaps, Back, the
     latest week wins, plan order returns the plan's rows, added or missing lifts, old logs without
     `orig`) and `player-cooldown-station` (the sheet).
   - Playwright, light + dark at 390px, all green:

@@ -673,7 +673,7 @@
       m=document.createElement("div"); m.id="plOrdModal"; m.className="swap-modal"; m.hidden=true;
       m.innerHTML='<div class="swap-card"><div class="swap-head"><span>⇅ Reorder today’s lifts</span>'+
         '<button class="swap-x" id="plOrdX" type="button" aria-label="Close">×</button></div>'+
-        '<div class="swap-body"><div class="swap-sub">Drag a row — or use the arrows. Next time this day starts in your order too.</div>'+
+        '<div class="swap-body"><div class="swap-sub" id="plOrdSub"></div>'+
         '<div id="plOrdList"></div>'+
         '<button type="button" class="ord-reset" id="plOrdReset">↺ Back to the plan’s order</button></div></div>';
       document.body.appendChild(m);
@@ -681,7 +681,7 @@
         if(e.target===m || e.target.closest("#plOrdX")){ m.hidden=true; return; }
         if(e.target.closest("#plOrdReset") && player){
           // The plan's order (by slot); lifts you added stay after the plan's, in your order.
-          var plan=((player.day&&player.day.ex)||[]).map(function(r){ return r[0]; });
+          var plan=plOrdPlan();
           var slot=function(x){ var a=plan.indexOf(x.orig||x.name); return a<0 ? plan.length : a; };
           var cur0=player.stations[player.st], keep0=(cur0&&cur0.type==="lift")?player.sess.ex[cur0.xi]:null;
           player.sess.ex=player.sess.ex.map(function(x, i){ return { x:x, i:i }; })
@@ -736,8 +736,18 @@
       m.addEventListener("pointerup", ordDrop);
       m.addEventListener("pointercancel", ordDrop);
     }
+    // A lift day keeps your order next time (040 ffDayPerm); the speed day keeps its
+    // own — freshest, fastest moves first — so there it's just for today (review).
+    $("plOrdSub").textContent="Drag a row — or use the arrows. "+(player.day && player.day.type==="speed"
+      ? "Just for today: the speed day keeps its order, freshest and fastest moves first."
+      : "Next time this day starts in your order too.");
     $("plOrdList").innerHTML=plOrdRows();
     m.hidden=false;
+  }
+  // The plan's order by slot (orig): the day's rows, or the speed day's drill list.
+  function plOrdPlan(){
+    if(player.day && player.day.type==="speed") return speedRows().map(function(e){ return e[3]||e[0]; });
+    return ((player.day && player.day.ex) || []).map(function(r){ return r[0]; });
   }
 
   // Paused-session bar: when a session with logged work is exited un-finished,

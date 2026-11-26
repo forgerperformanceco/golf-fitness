@@ -411,17 +411,26 @@
     });
     return best ? best.ex.map(function(x){ return x ? (x.orig||x.name) : ""; }) : null;
   }
-  function ffDayRows(d, week){
+  // The permutation (indices into d.ex) that puts a day in your order, or null for
+  // the plan's own. Sessions are BUILT in plan order — gear subs dedupe and the
+  // readiness smart trim keep the first two plan lifts whole, as always — and only
+  // then put in your order (review: building in your order handed a slot a
+  // different gear sub, and protected whatever you'd moved to the top).
+  function ffDayPerm(d, week){
     var rows=(d && d.ex) || [];
-    if(rows.length<2) return rows;
-    var ord=ffLastOrder(d.name, week); if(!ord) return rows;
+    if(rows.length<2) return null;
+    var ord=ffLastOrder(d.name, week); if(!ord) return null;
     var pos=rows.map(function(r){ var a=ord.indexOf(r[0]); return a>=0 ? a : ord.indexOf(applySwapName(r[0])); });
     var known=[]; pos.forEach(function(p, i){ if(p>=0) known.push(i); });
-    if(known.length<2) return rows;
+    if(known.length<2) return null;
     var sorted=known.slice().sort(function(a, b){ return pos[a]-pos[b]; });
-    if(sorted.join()===known.join()) return rows;   // already the plan's order
+    if(sorted.join()===known.join()) return null;   // already the plan's order
     var q=0;
-    return rows.map(function(r, i){ return pos[i]>=0 ? rows[sorted[q++]] : r; });
+    return rows.map(function(r, i){ return pos[i]>=0 ? sorted[q++] : i; });
+  }
+  function ffDayRows(d, week){
+    var p=ffDayPerm(d, week), rows=(d && d.ex) || [];
+    return p ? p.map(function(i){ return rows[i]; }) : rows;
   }
   function findDay(name){ var f=null; activeDays().forEach(function(d){ if(d.name===name) f=d; }); return f; }
   function todayStr(){ try{ return new Date().toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"}); }catch(e){ return ""; } }
@@ -695,14 +704,17 @@
   function freshSession(day, week){
     // dayTargets (035): user swaps + gear subs (deduped like the card), retain
     // trim + wave shift — the same list the "About N min" estimate counts.
-    var ex = dayTargets(day, week).map(function(t){
+    var ex = dayTargets(day, week, true).map(function(t){   // plan order: subs + readiness as always
       var n=parseSets(t.target), sets=[]; for(var i=0;i<n;i++) sets.push({w:"",r:"",done:false});
       return { name:t.name, orig:t.orig, target:t.target, sets:sets }; });
     // wave = the wave this session was RUN at. An event taper re-anchors waves only
     // until the recovery week ends, so waveFor(week) later forgets that week was a
     // deload — lastSessionFor reads this stamp first so it still skips those loads.
     var built={ date:"", wave:waveFor(week), ex:ex };
-    return (typeof ffApplyReadiness==="function")?ffApplyReadiness(built,day,week):built;
+    if(typeof ffApplyReadiness==="function") built=ffApplyReadiness(built,day,week);
+    var p=(day && day.ex) ? ffDayPerm(day, week) : null;   // then your order (ffDayPerm)
+    if(p && built && built.ex && built.ex.length===p.length) built.ex=p.map(function(i){ return built.ex[i]; });
+    return built;
   }
   // What the plan gives each slot this week: day name → orig → { name, target }.
   function ffPlanNames(wk){

@@ -57,9 +57,13 @@ test("the cool-down station: checklist with how-to cues; the recap keeps a one-t
 test("reorder sheet: the order sticks, and one tap restores the plan's order", () => {
   const sheet = fn(PLAYER, "openReorder");
   assert.match(sheet, /Next time this day starts in your order too\./);
+  // Review: the speed day keeps its own order (freshest moves first), so there it's "just for today",
+  // and the reset sorts by the speed day's drill list (it was a no-op: speed days have no ex rows).
+  assert.match(sheet, /player\.day\.type==="speed"\s*\?\s*"Just for today: the speed day keeps its order, freshest and fastest moves first\."/);
+  assert.match(fn(PLAYER, "plOrdPlan"), /type==="speed"\) return speedRows\(\)\.map\(function\(e\)\{ return e\[3\]\|\|e\[0\]; \}\)/);
   assert.match(sheet, /id="plOrdReset">↺ Back to the plan’s order</);
   const reset = sheet.slice(sheet.indexOf('closest("#plOrdReset")'), sheet.indexOf('var mv=e.target.closest("[data-ordmv]")'));
-  assert.match(reset, /player\.day&&player\.day\.ex/, "the plan's rows, by slot");
+  assert.match(reset, /var plan=plOrdPlan\(\);/, "the plan's rows (or the speed list), by slot");
   assert.match(reset, /x\.orig\|\|x\.name/);
   assert.match(reset, /\(slot\(a\.x\)-slot\(b\.x\)\) \|\| \(a\.i-b\.i\)/, "added lifts keep their order after the plan's");
   assert.match(reset, /plRebuildStations\(keep0\); plSave\(\); plRender\(\);/, "the player follows the lift you were on, and it saves");
